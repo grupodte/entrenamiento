@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  @apply select-none;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+#root {
+  display: block;
+  width: 100%;
+}
+
+@layer components {
+  .all-\[unset\] {
+    all: unset;
+  }
+}
+
+@layer base {
+
+  input,
+  textarea,
+  select {
+    @apply text-base;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img {
+  pointer-events: none;
+  user-select: none;
+}
+
+@font-face {
+  font-family: 'ProductSans';
+  src: url('./assets/fonts/ProductSansBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: bold;
+}
+
+@font-face {
+  font-family: 'ProductSans';
+  src: url('./assets/fonts/ProductSansRegular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
+/* index.css */
+*:focus {
+  outline: none;
+}
+
+
+
+
+
+
+
+/* Estilo base (mobile primero) */
+.dark-calendar {
+  font-size: 10px;
+  @apply bg-white rounded-lg shadow-lg p-2 text-sm;
+}
+
+.dark-datepicker-popper {
+  @apply z-[9999];
+}
+
+.dark-calendar .react-datepicker__day-name,
+.dark-calendar .react-datepicker__day,
+.dark-calendar .react-datepicker__time-name {
+  font-size: 10px;
+  width: 0.8rem;
+  height: 0.8rem;
+  line-height: 1rem
+}
+
+.dark-calendar .react-datepicker__time-list-item {
+  font-size: 9px;
+  padding: 4px 6px;
+}
+
+
+
+
+/* Estilo para desktop: agranda todo */
+@media (min-width: 380px) {
+  .dark-calendar {
+    font-size: 14px;
+  }
+
+  .dark-calendar .react-datepicker__day-name,
+  .dark-calendar .react-datepicker__day,
+  .dark-calendar .react-datepicker__time-name {
+    font-size: 13px;
+    width: 1.7rem;
+    height: 1.7rem;
+  }
+
+  .dark-calendar .react-datepicker__time-list-item {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+}
+
+/* Popper para que no se superponga */
+.dark-datepicker-popper {
+  z-index: 9999 !important;
+}
