@@ -1,30 +1,34 @@
+// vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  base: '/',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'robots.txt'],
+      includeAssets: ['favicon.svg', 'favicon.ico', 'robots.txt'],
       manifest: {
-        name: 'Mi App de Rutinas',
-        short_name: 'Rutinas',
-        start_url: '/',
-        display: 'standalone',
+        name: 'FitApp Trainer',
+        short_name: 'FitApp',
+        description: 'Tu rutina personalizada con seguimiento diario',
+        theme_color: '#ffffff',
         background_color: '#ffffff',
-        theme_color: '#000000',
+        display: 'standalone',
+        scope: '/',
+        start_url: '/',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: '/icons/icon-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
-            src: 'pwa-512x512.png',
+            src: '/icons/icon-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
           }
         ]
       }

@@ -7,6 +7,16 @@ import { registerSW } from 'virtual:pwa-register';
 
 registerSW();
 
+useEffect(() => {
+  if (user) {
+    if (user.role === 'admin') {
+      navigate('/admin');
+    } else {
+      navigate('/dashboard');
+    }
+  }
+}, [user]);
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
