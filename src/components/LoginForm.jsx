@@ -48,31 +48,38 @@ const LoginForm = ({ onLoginSuccess }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-                type="email"
-                placeholder="Correo electrónico"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-            />
-            <input
-                type="password"
-                placeholder="Contraseña"
-                value={clave}
-                onChange={(e) => setClave(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-            />
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-            >
-                Ingresar
-            </button>
-        </form>
+        <div className="min-h-screen flex items-center justify-center px-4">
+            <div className="bg-white dark:bg-gray-800 shadow-md rounded-xl w-full max-w-sm p-6 space-y-4">
+                <h2 className="text-lg font-semibold text-center text-gray-800 dark:text-white">
+                    Iniciar sesión
+                </h2>
+                <form onSubmit={handleSubmit} className="space-y-3">
+                    <input
+                        type="email"
+                        placeholder="Correo electrónico"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                        required
+                    />
+                    <input
+                        type="password"
+                        placeholder="Contraseña"
+                        value={clave}
+                        onChange={(e) => setClave(e.target.value)}
+                        className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                        required
+                    />
+                    {error && <p className="text-sm text-red-500">{error}</p>}
+                    <button
+                        type="submit"
+                        className="w-full bg-blue-600 text-white text-sm py-2 rounded-md hover:bg-blue-700 transition"
+                    >
+                        Ingresar
+                    </button>
+                </form>
+            </div>
+        </div>
     );
 };
 
