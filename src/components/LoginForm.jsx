@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
@@ -7,8 +7,14 @@ const LoginForm = ({ onLoginSuccess }) => {
     const [email, setEmail] = useState('');
     const [clave, setClave] = useState('');
     const [error, setError] = useState(null);
-    const { login } = useAuth();
+    const { login, user } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (user) {
+            navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+        }
+    }, [user, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -44,7 +50,7 @@ const LoginForm = ({ onLoginSuccess }) => {
             await supabase.auth.signOut();
         }
 
-        if (onLoginSuccess) onLoginSuccess(); // Cierra modal
+        if (onLoginSuccess) onLoginSuccess();
     };
 
     return (

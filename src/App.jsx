@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import RutinaDetalle from './pages/RutinaDetalle';
+import EditarRutinaPersonalizada from './pages/EditarRutinaPersonalizada';
 
 
 function InstallBanner() {
@@ -55,6 +56,16 @@ import AdminPanel from './pages/AdminPanel';
 import AlumnoPerfil from './pages/AlumnoPerfil';
 import { AuthProvider } from './context/AuthContext';
 import RutaProtegida from './components/RutaProtegida';
+import RedireccionInicial from './pages/RedireccionInicial';
+import CrearRutina from './pages/CrearRutina';
+import SeleccionarEjercicios from './pages/SeleccionarEjercicios';
+
+
+import AdminRutinas from './pages/Admin/AdminRutinas';
+import AdminAlumnos from './pages/Admin/AdminAlumnos';
+import AdminEjercicios from './pages/Admin/AdminEjercicios';
+
+
 
 const App = () => {
   return (
@@ -64,11 +75,9 @@ const App = () => {
         <main className="pt-20 px-4">
           <Routes>
             <Route path="/rutina/:id" element={<RutinaDetalle />} />
-
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<RedireccionInicial />} />
             <Route path="/login" element={<Login />} />
 
-            {/* Solo alumnos pueden ver su dashboard */}
             <Route
               path="/dashboard"
               element={
@@ -78,7 +87,6 @@ const App = () => {
               }
             />
 
-            {/* Solo entrenadores pueden ver su panel */}
             <Route
               path="/admin"
               element={
@@ -88,7 +96,6 @@ const App = () => {
               }
             />
 
-            {/* Perfil individual de alumno visible solo para entrenador */}
             <Route
               path="/alumno/:id"
               element={
@@ -97,7 +104,38 @@ const App = () => {
                 </RutaProtegida>
               }
             />
+
+            <Route
+              path="/editar-rutina/:id"
+              element={
+                <RutaProtegida rolPermitido="admin">
+                  <EditarRutinaPersonalizada />
+                </RutaProtegida>
+              }
+            />
+
+            <Route path="/crear-rutina" element={
+              <RutaProtegida rolPermitido="admin">
+                <CrearRutina />
+              </RutaProtegida>
+            } />
+            <Route
+              path="/seleccionar-ejercicios"
+              element={
+                <RutaProtegida rolPermitido="admin">
+                  <SeleccionarEjercicios />
+                </RutaProtegida>
+              }
+            />
+
+
+
+            <Route path="/admin/rutinas" element={<RutaProtegida rolPermitido="admin"><AdminRutinas /></RutaProtegida>} />
+            <Route path="/admin/alumnos" element={<RutaProtegida rolPermitido="admin"><AdminAlumnos /></RutaProtegida>} />
+            <Route path="/admin/ejercicios" element={<RutaProtegida rolPermitido="admin"><AdminEjercicios /></RutaProtegida>} />
           </Routes>
+    
+
         </main>
       </Router>
     </AuthProvider>

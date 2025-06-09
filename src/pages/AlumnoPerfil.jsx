@@ -62,6 +62,58 @@ const AlumnoPerfil = () => {
         }
     };
 
+    const handleClonarPersonalizar = async (rutinaBaseId) => {
+        try {
+            // 1. Crear rutina personalizada
+            const { data: nuevaRutina, error: errorRutina } = await supabase
+                .from('rutinas_personalizadas')
+                .insert({
+                    alumno_id: id,
+                    nombre: `Personalizada - ${alumno?.nombre || 'Alumno'}`,
+                    fecha_inicio: new Date(),
+                })
+                .select()
+                .single();
+
+            if (errorRutina) throw errorRutina;
+
+            // 2. Obtener ejercicios base de la rutina seleccionada
+            const { data: ejerciciosBase, error: errorBase } = await supabase
+                .from('rutinas_ejercicios')
+                .select('*')
+                .eq('rutina_id', rutinaBaseId);
+
+            if (errorBase) throw errorBase;
+
+            // 3. Mapear a estructura personalizada
+            const personalizados = ejerciciosBase.map(e => ({
+                rutina_personalizada_id: nuevaRutina.id,
+                ejercicio_id: e.ejercicio_id,
+                orden: e.orden,
+                dia_semana: 0, // se puede editar luego
+                series: e.series,
+                repeticiones: e.repeticiones,
+                pausa: e.pausa,
+                carga: e.carga_sugerida
+            }));
+
+            // 4. Insertar ejercicios personalizados
+            const { error: errorInsert } = await supabase
+                .from('rutinas_personalizadas_ejercicios')
+                .insert(personalizados);
+
+            if (errorInsert) throw errorInsert;
+
+            // 5. Redirigir al editor
+            navigate(`/editar-rutina/${nuevaRutina.id}`);
+        } catch (error) {
+            console.error('Error al clonar rutina:', error);
+            setMensaje('❌ Error al clonar rutina.');
+        }
+    };
+    
+
+
     if (loading) {
         return (
             <div className="max-w-3xl mx-auto mt-10 p-6 bg-white rounded shadow text-center">
@@ -108,13 +160,23 @@ const AlumnoPerfil = () => {
                             </a>
                         )}
                         <div className="mt-2">
-                            <button
-                                onClick={() => handleAsignar(rutina.id)}
-                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-                                disabled={asignada === rutina.id}
-                            >
-                                {asignada === rutina.id ? 'Asignada' : 'Asignar esta rutina'}
-                            </button>
+                            <div className="mt-2 flex gap-2">
+                                <button
+                                    onClick={() => handleAsignar(rutina.id)}
+                                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                                    disabled={asignada === rutina.id}
+                                >
+                                    {asignada === rutina.id ? 'Asignada' : 'Asignar esta rutina'}
+                                </button>
+
+                                <button
+                                    onClick={() => handleClonarPersonalizar(rutina.id)}
+                                    className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 transition"
+                                >
+                                    Clonar y personalizar
+                                </button>
+                            </div>
+
                         </div>
                     </li>
                 ))}

@@ -46,6 +46,18 @@ const DashboardAlumno = () => {
 
     return (
         <div className="min-h-screen pb-24 bg-gray-50">
+            {/* Logout */}
+            <div className="w-full flex justify-end px-6 py-4">
+                <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 transition"
+                >
+                    <FaSignOutAlt />
+                    Cerrar sesión
+                </button>
+            </div>
+
+            {/* Contenido principal */}
             <div className="max-w-3xl mx-auto p-6">
                 <h1 className="text-3xl font-bold mb-6 text-center text-blue-700">Mi Rutina</h1>
 
@@ -59,15 +71,13 @@ const DashboardAlumno = () => {
                             onClick={() => navigate(`/rutina/${rutina.id}`)}
                             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                         >
-                           Empezar Rutina
+                            Empezar Rutina
                         </button>
                     </div>
                 ) : (
                     <p className="text-center text-gray-600">Aún no se te ha asignado una rutina.</p>
                 )}
             </div>
-
-            {/* Bottom nav igual que antes */}
         </div>
     );
 };
