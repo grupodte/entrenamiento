@@ -21,6 +21,9 @@ body,
 body {
   font-family: 'ProductSans', sans-serif;
   @apply select-none;
+
+  touch-action: manipulation;
+    overscroll-behavior: none;
 }
 
 #root {
@@ -31,6 +34,11 @@ body {
 
 html {
   scroll-behavior: smooth;
+}
+
+html,
+body {
+  overflow-x: hidden;
 }
 
 /* El resto de tus estilos se mantienen como estaban */
