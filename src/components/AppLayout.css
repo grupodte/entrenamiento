@@ -1,20 +1,21 @@
-/* src/components/AppLayout.css */
+.app-layout-container {
+    /* Contenedor principal que ocupa todo el espacio */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    /* Muy importante: este contenedor no debe tener scroll */
+}
 
-.pull-to-refresh-container {
-    /* Ocupa toda la altura de la pantalla del dispositivo */
-    height: 100vh;
-    /* Permite el scroll vertical si el contenido es más largo */
+.scrollable-content {
+    /* Este es el contenedor que SÍ tiene scroll */
     overflow-y: auto;
-    /* Ayuda a que los eventos táctiles se comporten mejor en iOS */
+    flex-grow: 1;
     -webkit-overflow-scrolling: touch;
+    /* Scroll fluido en iOS */
+    background-color: #f0f2f5;
+    /* O el color de fondo de tu app */
 }
 
-.content-wrapper {
-    /* Añade un poco de espacio para que el contenido no quede pegado a los bordes */
-    padding: 1rem;
-}
-
-/* Opcional: Personalizar el ícono de carga si lo deseas */
-.ptr-icon {
-    color: #3b82f6;
-    /* Un color azul, por ejemplo */ }
+.page-content {
+    padding: 1rem; }

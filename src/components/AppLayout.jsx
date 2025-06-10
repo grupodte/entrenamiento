@@ -1,25 +1,31 @@
-// src/components/AppLayout.jsx
-
 import React from 'react';
-import PullToRefresh from 'react-pull-to-refresh';
-import 'react-pull-to-refresh/dist/index.css'; // Importación de estilos
 import { Outlet } from 'react-router-dom';
-import './AppLayout.css'; // Crearemos este archivo de CSS
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import PullToRefreshIndicator from './PullToRefreshIndicator';
+import './AppLayout.css';
 
 const AppLayout = () => {
-    const handleRefresh = () => {
+    const handleRefresh = async () => {
+        // Simulamos una demora para ver el spinner
+        await new Promise(resolve => setTimeout(resolve, 1000));
         window.location.reload();
-        return Promise.resolve();
     };
 
+    const { isRefreshing, pullDistance, scrollRef } = usePullToRefresh(handleRefresh);
+
     return (
-        // Añadimos una clase 'pull-to-refresh-container' al div principal
-        <div className="pull-to-refresh-container">
-            <PullToRefresh onRefresh={handleRefresh}>
-                <div className="content-wrapper">
+        <div className="app-layout-container">
+            <PullToRefreshIndicator
+                isRefreshing={isRefreshing}
+                pullDistance={pullDistance}
+            />
+
+            {/* Este es el contenedor que tendrá el scroll y que el hook vigilará */}
+            <div ref={scrollRef} className="scrollable-content">
+                <div className="page-content">
                     <Outlet />
                 </div>
-            </PullToRefresh>
+            </div>
         </div>
     );
 };

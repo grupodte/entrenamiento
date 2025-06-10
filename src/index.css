@@ -3,22 +3,37 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: 'product', sans-serif;
+/*
+  --- CORRECCIÓN CON FLEXBOX ---
+  Usamos Flexbox para un control de layout más robusto. Esto asegura que #root
+  ocupe todo el espacio y que nuestro AppLayout pueda crecer para llenarlo.
+*/
+html,
+body,
+#root {
+  height: 100%;
+  /* Ocupa toda la altura de la ventana */
   margin: 0;
   padding: 0;
+  /* Elimina 'overflow: hidden' para que el contenido pueda desbordarse */
+}
+
+body {
+  font-family: 'ProductSans', sans-serif;
   @apply select-none;
+}
+
+#root {
+  display: flex;
+  /* Mantiene la estructura flexbox */
+  flex-direction: column;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-#root {
-  display: block;
-  width: 100%;
-}
-
+/* El resto de tus estilos se mantienen como estaban */
 @layer components {
   .all-\[unset\] {
     all: unset;
@@ -68,17 +83,9 @@ img {
   scrollbar-width: none;
 }
 
-
-/* index.css */
 *:focus {
   outline: none;
 }
-
-
-
-
-
-
 
 /* Estilo base (mobile primero) */
 .dark-calendar {
@@ -104,9 +111,6 @@ img {
   padding: 4px 6px;
 }
 
-
-
-
 /* Estilo para desktop: agranda todo */
 @media (min-width: 380px) {
   .dark-calendar {
@@ -128,6 +132,5 @@ img {
 }
 
 /* Popper para que no se superponga */
-.dark-datepicker-popper {
-  z-index: 9999 !important;
-}
+  .dark-datepicker-popper {
+  z-index: 9999 !important;}
