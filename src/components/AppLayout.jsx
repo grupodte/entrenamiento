@@ -4,16 +4,16 @@ import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import PullToRefreshIndicator from './PullToRefreshIndicator';
 
 const AppLayout = () => {
-    // Altura real del viewport (fix para iOS)
+    // Fix de altura 100vh real en móviles
     useEffect(() => {
-        const setVH = () => {
+        const setViewportHeight = () => {
             const vh = window.innerHeight * 0.01;
             document.documentElement.style.setProperty('--vh', `${vh}px`);
         };
 
-        setVH();
-        window.addEventListener('resize', setVH);
-        return () => window.removeEventListener('resize', setVH);
+        setViewportHeight();
+        window.addEventListener('resize', setViewportHeight);
+        return () => window.removeEventListener('resize', setViewportHeight);
     }, []);
 
     const handleRefresh = async () => {
@@ -24,16 +24,17 @@ const AppLayout = () => {
     const { isRefreshing, pullDistance, scrollRef } = usePullToRefresh(handleRefresh);
 
     return (
-        <div className="h-[calc(var(--vh,1vh)*100)] w-full flex flex-col overflow-hidden bg-black text-white">
+        <div
+            className="app-wrapper h-[calc(var(--vh,1vh)*100)] w-full overflow-hidden bg-white text-black"
+        >
             <PullToRefreshIndicator
                 isRefreshing={isRefreshing}
                 pullDistance={pullDistance}
             />
 
-            {/* Contenedor con scroll */}
             <div
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto overscroll-contain -webkit-overflow-scrolling-touch bg-black"
+                className="scroll-zone h-full overflow-y-auto overscroll-contain"
             >
                 <main className="min-h-full px-4 py-6">
                     <Outlet />
