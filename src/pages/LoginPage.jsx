@@ -26,10 +26,10 @@ const LoginPage = () => {
 
     return (
         <div
-            className="relative min-h-screen bg-cover bg-center"
+            className="relative  bg-cover bg-center"
             style={{ backgroundImage: `url(${backgroundImage})` }}
         >
-            <div className="absolute inset-0 backdrop-blur-md bg-black/30"></div>
+            <div className="inset-0 backdrop-blur-md bg-black/30"></div>
 
             <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
                 <motion.div
