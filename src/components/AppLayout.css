@@ -1,0 +1,20 @@
+/* src/components/AppLayout.css */
+
+.pull-to-refresh-container {
+    /* Ocupa toda la altura de la pantalla del dispositivo */
+    height: 100vh;
+    /* Permite el scroll vertical si el contenido es más largo */
+    overflow-y: auto;
+    /* Ayuda a que los eventos táctiles se comporten mejor en iOS */
+    -webkit-overflow-scrolling: touch;
+}
+
+.content-wrapper {
+    /* Añade un poco de espacio para que el contenido no quede pegado a los bordes */
+    padding: 1rem;
+}
+
+/* Opcional: Personalizar el ícono de carga si lo deseas */
+.ptr-icon {
+    color: #3b82f6;
+    /* Un color azul, por ejemplo */ }
