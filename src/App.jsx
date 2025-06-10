@@ -52,18 +52,21 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './components/LoginForm';
 import DashboardAlumno from './pages/Dashboard';
-import AdminPanel from './pages/AdminPanel';
-import AlumnoPerfil from './pages/AlumnoPerfil';
+import AdminPanel from './pages/Admin/AdminPanel';
+import AlumnoPerfil from './pages/Admin/AlumnoPerfil';
 import { AuthProvider } from './context/AuthContext';
 import RutaProtegida from './components/RutaProtegida';
 import RedireccionInicial from './pages/RedireccionInicial';
-import CrearRutina from './pages/CrearRutina';
-import SeleccionarEjercicios from './pages/SeleccionarEjercicios';
+import CrearRutina from './pages/Admin/CrearRutina';
+import SeleccionarEjercicios from './pages/Admin/SeleccionarEjercicios';
 
 
 import AdminRutinas from './pages/Admin/AdminRutinas';
 import AdminAlumnos from './pages/Admin/AdminAlumnos';
 import AdminEjercicios from './pages/Admin/AdminEjercicios';
+import AsignarRutina from './pages/Admin/AsignarRutina';
+import EditarDia from './pages/Admin/EditarDia';
+
 
 
 
@@ -75,7 +78,7 @@ const App = () => {
         <main className="pt-20 px-4">
           <Routes>
             <Route path="/rutina/:id" element={<RutinaDetalle />} />
-            <Route path="/" element={<RedireccionInicial />} />
+          <Route path="/" element={<RedireccionInicial />} />
             <Route path="/login" element={<Login />} />
 
             <Route
@@ -133,7 +136,9 @@ const App = () => {
             <Route path="/admin/rutinas" element={<RutaProtegida rolPermitido="admin"><AdminRutinas /></RutaProtegida>} />
             <Route path="/admin/alumnos" element={<RutaProtegida rolPermitido="admin"><AdminAlumnos /></RutaProtegida>} />
             <Route path="/admin/ejercicios" element={<RutaProtegida rolPermitido="admin"><AdminEjercicios /></RutaProtegida>} />
-          </Routes>
+            <Route path="/asignar-rutina/:id" element={<AsignarRutina />} />
+            <Route path="/editar-rutina-dia/:id" element={<EditarDia />} />
+            </Routes>
     
 
         </main>

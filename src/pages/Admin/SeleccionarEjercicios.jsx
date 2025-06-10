@@ -1,7 +1,9 @@
 // src/pages/SeleccionarEjercicios.jsx
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient';
+import AdminLayout from './AdminLayout';
+
 
 const SeleccionarEjercicios = () => {
     const { state } = useLocation();
@@ -60,6 +62,7 @@ const SeleccionarEjercicios = () => {
     );
 
     return (
+        <AdminLayout>
         <div className="max-w-5xl mx-auto p-6 bg-white rounded shadow mt-8">
             <h1 className="text-2xl font-bold mb-6">Seleccionar ejercicios</h1>
 
@@ -94,6 +97,7 @@ const SeleccionarEjercicios = () => {
                 </div>
             )}
         </div>
+        </AdminLayout>
     );
 };
 

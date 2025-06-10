@@ -1,7 +1,9 @@
 // src/pages/CrearRutina.jsx
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient';
+import AdminLayout from './AdminLayout';
+
 
 const CrearRutina = () => {
     const { state } = useLocation();
@@ -61,6 +63,7 @@ const CrearRutina = () => {
     };
 
     return (
+        <AdminLayout>
         <div className="max-w-4xl mx-auto p-6 bg-white rounded shadow mt-8 space-y-6">
             <h1 className="text-2xl font-bold">Crear nueva rutina</h1>
 
@@ -139,6 +142,7 @@ const CrearRutina = () => {
                 </button>
             )}
         </div>
+        </AdminLayout>
     );
 };
 

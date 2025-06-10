@@ -1,5 +1,5 @@
 // src/pages/AdminPanel.jsx
-import AdminSidebar from '../components/AdminSidebar';
+import AdminSidebar from '../../components/AdminSidebar';
 
 const AdminPanel = () => {
   return (

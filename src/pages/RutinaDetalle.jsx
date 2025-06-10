@@ -1,98 +1,84 @@
+// src/pages/RutinaDetalle.jsx
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import { FaArrowLeft } from 'react-icons/fa';
 
+const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
 const RutinaDetalle = () => {
-    const { id } = useParams();
-    const [rutina, setRutina] = useState(null);
-    const [ejercicios, setEjercicios] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { id } = useParams(); // rutina_personalizada_id
     const navigate = useNavigate();
+    const { user } = useAuth();
+
+    const [ejerciciosPorDia, setEjerciciosPorDia] = useState({});
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!id) return;
+
         const fetchRutinaConEjercicios = async () => {
-            const { data: rutinaData } = await supabase
-                .from('rutinas')
-                .select('*')
-                .eq('id', id)
-                .single();
+            const { data, error } = await supabase
+                .from('rutinas_personalizadas_ejercicios')
+                .select('dia_semana, orden, series, reps, pausa, carga, ejercicios(nombre, descripcion, video_url)')
+                .eq('rutina_personalizada_id', id)
+                .order('dia_semana, orden', { ascending: true });
 
-            setRutina(rutinaData);
+            if (error) {
+                console.error('Error cargando ejercicios:', error);
+                return;
+            }
 
-            const { data: ejerciciosData } = await supabase
-                .from('rutinas_ejercicios')
-                .select('orden, ejercicios (id, nombre, descripcion, video_url)')
-                .eq('rutina_id', id)
-                .order('orden', { ascending: true });
+            // Agrupar por día de la semana
+            const agrupado = {};
+            data.forEach((e) => {
+                if (!agrupado[e.dia_semana]) agrupado[e.dia_semana] = [];
+                agrupado[e.dia_semana].push(e);
+            });
 
-            const formateados = ejerciciosData?.map((e) => e.ejercicios) || [];
-            setEjercicios(formateados);
+            setEjerciciosPorDia(agrupado);
             setLoading(false);
         };
 
-        if (id) fetchRutinaConEjercicios();
+        fetchRutinaConEjercicios();
     }, [id]);
 
-    // Helper para convertir URL de YouTube en embed
-    const getYouTubeEmbedUrl = (url) => {
-        const videoIdMatch = url?.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&\n]+)/);
-        return videoIdMatch ? `https://www.youtube.com/embed/${videoIdMatch[1]}` : null;
-    };
-
     return (
-        <div className="min-h-screen bg-gray-50 p-6 max-w-3xl mx-auto">
-            <button
-                onClick={() => navigate(-1)}
-                className="flex items-center text-sm text-blue-600 mb-4 hover:underline"
-            >
+        <div className="max-w-3xl mx-auto p-6">
+            <button onClick={() => navigate(-1)} className="mb-4 flex items-center text-blue-600 hover:underline">
                 <FaArrowLeft className="mr-2" />
-                Volver
+                Volver atrás
             </button>
 
-            {loading ? (
-                <p>Cargando rutina...</p>
-            ) : rutina ? (
-                <div className="bg-white p-6 rounded-xl shadow space-y-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-blue-700">{rutina.nombre}</h1>
-                        <p className="text-gray-700 mt-2">{rutina.descripcion}</p>
-                    </div>
+            <h1 className="text-2xl font-bold mb-4">Rutina detallada</h1>
 
-                    <div className="space-y-6">
-                        <h2 className="text-lg font-semibold text-gray-800">Ejercicios</h2>
-                        {ejercicios.length === 0 ? (
-                            <p className="text-gray-500">No hay ejercicios asignados a esta rutina.</p>
-                        ) : (
-                            ejercicios.map((ej, idx) => {
-                                const embedUrl = getYouTubeEmbedUrl(ej.video_url);
-                                return (
-                                    <div key={ej.id} className="border-b pb-6 space-y-2">
-                                        <h3 className="font-semibold">{idx + 1}. {ej.nombre}</h3>
-                                        <p className="text-sm text-gray-700">{ej.descripcion}</p>
-                                        {embedUrl ? (
-                                            <div className="aspect-video">
-                                                <iframe
-                                                    width="100%"
-                                                    height="315"
-                                                    src={embedUrl}
-                                                    title={ej.nombre}
-                                                    frameBorder="0"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                    allowFullScreen
-                                                ></iframe>
-                                            </div>
-                                        ) : (
-                                            <p className="text-sm text-red-500">Video no válido</p>
+            {loading ? (
+                <p>Cargando ejercicios...</p>
+            ) : (
+                Object.entries(ejerciciosPorDia).map(([dia, ejercicios]) => (
+                    <div key={dia} className="mb-6">
+                        <h2 className="text-xl font-semibold mb-2 text-blue-700">{diasSemana[dia]}</h2>
+                        <ul className="space-y-3">
+                            {ejercicios.map((e, i) => (
+                                <li key={i} className="border p-3 rounded bg-white shadow-sm">
+                                    <h3 className="font-bold text-gray-800">{e.ejercicios?.nombre}</h3>
+                                    <p className="text-sm text-gray-600">{e.ejercicios?.descripcion}</p>
+                                    <div className="text-sm mt-1 text-gray-700">
+                                        <p>Series: {e.series}, Reps: {e.reps}, Pausa: {e.pausa}s</p>
+                                        {e.carga && <p>Carga: {e.carga}</p>}
+                                        {e.ejercicios?.video_url && (
+                                            <video controls className="mt-2 w-full max-w-md rounded">
+                                                <source src={e.ejercicios.video_url} type="video/mp4" />
+                                                Tu navegador no soporta video.
+                                            </video>
                                         )}
                                     </div>
-                                );
-                            })
-                        )}
+                                </li>
+                            ))}
+                        </ul>
                     </div>
-                </div>
-            ) : (
-                <p>No se encontró la rutina.</p>
+                ))
             )}
         </div>
     );
