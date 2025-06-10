@@ -5,85 +5,49 @@ import { supabase } from '../../lib/supabaseClient';
 import AdminLayout from './AdminLayout';
 
 const AsignarRutina = () => {
-    const { id } = useParams();
-    const [searchParams] = useSearchParams();
-    const dia = parseInt(searchParams.get('dia'), 10);
-    const navigate = useNavigate();
+    const { id: alumnoId } = useParams(); //
+    const [searchParams] = useSearchParams(); //
+    const dia = parseInt(searchParams.get('dia'), 10); //
+    const navigate = useNavigate(); //
 
-    const [rutinas, setRutinas] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [mensaje, setMensaje] = useState('');
+    const [rutinas, setRutinas] = useState([]); //
+    const [loading, setLoading] = useState(true); //
+    const [mensaje, setMensaje] = useState(''); //
 
     useEffect(() => {
         const fetchRutinas = async () => {
-            const { data, error } = await supabase.from('rutinas_base').select('*');
-            if (!error) setRutinas(data);
-            setLoading(false);
+            const { data, error } = await supabase.from('rutinas_base').select('*'); //
+            if (!error) setRutinas(data); //
+            setLoading(false); //
         };
-        fetchRutinas();
+        fetchRutinas(); //
     }, []);
 
     const handleAsignar = async (rutinaBaseId) => {
         try {
             setMensaje('');
 
-            // 1. Obtener ejercicios de la rutina base
-            const { data: ejerciciosBase, error: errorBase } = await supabase
-                .from('rutinas_base_ejercicios')
-                .select('*')
-                .eq('rutina_base_id', rutinaBaseId);
-
-            if (errorBase) throw errorBase;
-
-            // 2. Crear nueva rutina personalizada
-            const { data: nuevaRutina, error: errorRutina } = await supabase
-                .from('rutinas_personalizadas')
-                .insert({
-                    alumno_id: id,
-                    nombre: `Rutina personalizada (${dia})`,
-                    fecha_inicio: new Date(),
-                })
-                .select()
-                .single();
-
-            if (errorRutina) throw errorRutina;
-
-            const rutinaFinalId = nuevaRutina.id;
-
-            // 3. Guardar la asignación con día
-            const { error: errorAsignacion } = await supabase.from('asignaciones').insert({
-                alumno_id: id,
-                rutina_personalizada_id: rutinaFinalId,
-                rutina_base_id: rutinaBaseId,
-                dia_semana: dia,
-                fecha_asignacion: new Date().toISOString(),
+            // Solo creamos la asignación, vinculando al alumno con la rutina base en un día específico.
+            // rutina_personalizada_id se deja en NULL.
+            const { error } = await supabase.from('asignaciones').insert({
+                alumno_id: alumnoId, //
+                rutina_base_id: rutinaBaseId, //
+                dia_semana: dia, //
+                fecha_asignacion: new Date().toISOString(), //
             });
 
-            if (errorAsignacion) throw errorAsignacion;
+            if (error) throw error; //
 
-            // 4. Insertar ejercicios
-            const personalizados = ejerciciosBase.map((e, index) => ({
-                rutina_personalizada_id: rutinaFinalId,
-                ejercicio_id: e.ejercicio_id,
-                dia_semana: dia,
-                orden: index,
-                series: e.series,
-                reps: e.reps,
-                pausa: e.pausa,
-                carga: e.carga_sugerida,
-            }));
+            setMensaje('✅ Rutina base asignada correctamente. Puede ser personalizada al editar.'); //
+            setTimeout(() => navigate(`/alumno/${alumnoId}`), 1500); //
 
-            const { error: errorInsert } = await supabase
-                .from('rutinas_personalizadas_ejercicios')
-                .insert(personalizados);
-
-            if (errorInsert) throw errorInsert;
-
-            setMensaje('✅ Rutina asignada correctamente');
-            setTimeout(() => navigate(`/alumno/${id}`), 1200);
         } catch (error) {
-            console.error('❌ Error durante la asignación:', error);
-            alert('❌ Ocurrió un error al asignar la rutina');
+            console.error('❌ Error durante la asignación:', error); //
+            if (error.code === '23505') {
+                alert('❌ Este día ya tiene una rutina asignada.');
+            } else {
+                alert('❌ Ocurrió un error al asignar la rutina'); //
+            }
         }
     };
 
@@ -97,7 +61,7 @@ const AsignarRutina = () => {
                     ← Volver atrás
                 </button>
 
-                <h1 className="text-xl font-bold mb-4">Seleccionar rutina base</h1>
+                <h1 className="text-xl font-bold mb-4">Seleccionar rutina base para el día</h1>
                 {loading ? (
                     <p>Cargando rutinas...</p>
                 ) : (
@@ -124,4 +88,4 @@ const AsignarRutina = () => {
     );
 };
 
-export default AsignarRutina;
+export default AsignarRutina; //
