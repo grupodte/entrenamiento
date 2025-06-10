@@ -21,7 +21,7 @@ const RutinasManager = () => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Rutinas base</h2>
         <button
-          onClick={() => navigate('/crear-rutina')}
+          onClick={() => navigate('/admin/rutinas/crear')}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           ➕ Crear nueva rutina

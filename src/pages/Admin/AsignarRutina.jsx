@@ -39,7 +39,7 @@ const AsignarRutina = () => {
             if (error) throw error; //
 
             setMensaje('✅ Rutina base asignada correctamente. Puede ser personalizada al editar.'); //
-            setTimeout(() => navigate(`/alumno/${alumnoId}`), 1500); //
+            setTimeout(() => navigate(`/admin/alumno/${alumnoId}`), 1500); //
 
         } catch (error) {
             console.error('❌ Error durante la asignación:', error); //

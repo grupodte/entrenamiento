@@ -35,7 +35,7 @@ const AlumnosManager = () => {
                                 <p className="text-sm text-gray-500">{alumno.email}</p>
                             </div>
                             <Link
-                                to={`/alumno/${alumno.id}`}
+                                to={`/admin/alumno/${alumno.id}`}
                                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                             >
                                 Ver Perfil

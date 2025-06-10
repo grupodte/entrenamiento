@@ -52,23 +52,22 @@ const LoginForm = ({ onLoginSuccess }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-8 mt-[100px] w-[350px] justify-center mx-auto bg-white p-6 rounded-lg shadow-md">
+        <form onSubmit={handleSubmit} className="space-y-8 mt-[100px] w-[350px] justify-center mx-auto p-6 rounded-lg ">
             {/* Campo de Correo Electrónico */}
             <div>
-                <label htmlFor="email" className=" block text-sm font-medium text-gray-800">
+                <label htmlFor="email" className=" block text-sm text-white">
                     Correo Electrónico
                 </label>
-                <div className="relative mt-1 ">
+                <div className="relative mt-1 text-white">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <svg className="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
+                        <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
                     </div>
                     <input
                         id="email"
                         type="email"
-                        placeholder="tu@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="block w-full rounded-lg border-white/40 bg-white/50 pl-10 py-2.5 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 sm:text-sm"
+                        className="block w-full rounded-lg border-white/40 bg-white/25 pl-10 py-2.5 text-white  focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 sm:text-sm"
                         required
                         disabled={isLoading}
                     />
@@ -77,20 +76,19 @@ const LoginForm = ({ onLoginSuccess }) => {
 
             {/* Campo de Contraseña */}
             <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-800">
+                <label htmlFor="password" className="block text-sm  text-white">
                     Contraseña
                 </label>
                 <div className="relative mt-1">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <svg className="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>
+                        <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>
                     </div>
                     <input
                         id="password"
                         type="password"
-                        placeholder="••••••••"
                         value={clave}
                         onChange={(e) => setClave(e.target.value)}
-                        className="block w-full rounded-lg border-white/40 bg-white/50 pl-10 py-2.5 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 sm:text-sm"
+                        className="block w-full rounded-lg border-white/40 bg-white/25 pl-10 py-2.5 text-white  focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 sm:text-sm"
                         required
                         disabled={isLoading}
                     />

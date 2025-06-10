@@ -49,7 +49,7 @@ const SeleccionarEjercicios = () => {
 
         const yaSeleccionados = state?.ejerciciosSeleccionados || [];
 
-        navigate('/crear-rutina', {
+        navigate('/admin/rutinas/crear', {
             state: {
                 ...state,
                 ejerciciosSeleccionados: [...yaSeleccionados, ...nuevosSeleccionados]

@@ -61,11 +61,11 @@ const AlumnoPerfil = () => {
     }, [id]);
 
     const irASeleccionarRutina = (dia) => {
-        navigate(`/asignar-rutina/${id}?dia=${dia}`);
+        navigate(`/admin/asignar-rutina/${id}?dia=${dia}`);
     };
 
     const irAEditarDia = (dia) => {
-        navigate(`/editar-rutina-dia/${id}?dia=${dia}`);
+        navigate(`/admin/rutinas/editar-dia/${id}?dia=${dia}`);
     };
 
     // --- FUNCIÓN CORREGIDA ---

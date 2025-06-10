@@ -1,23 +1,23 @@
-// src/App.jsx
-
-import { useEffect, useState } from 'react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 
-// 1. Importa el nuevo Layout que manejará el pull-to-refresh
+// --- LAYOUT Y COMPONENTES GLOBALES ---
 import AppLayout from './components/AppLayout';
-
-// Importa tus páginas y componentes
-import RutinaDetalle from './pages/RutinaDetalle';
-import EditarRutinaPersonalizada from './pages/EditarRutinaPersonalizada';
-import Home from './pages/Home';
-import Login from './components/LoginForm';
-import DashboardAlumno from './pages/Dashboard';
-import AdminPanel from './pages/Admin/AdminPanel';
-import AlumnoPerfil from './pages/Admin/AlumnoPerfil';
 import RutaProtegida from './components/RutaProtegida';
 import RedireccionInicial from './pages/RedireccionInicial';
+
+// --- PÁGINAS PÚBLICAS ---
+import LoginPage from './pages/LoginPage';
+
+// --- PÁGINAS DE ALUMNO ---
+import DashboardAlumno from './pages/Alumno/Dashboard';
+import DashboardRutinas from './pages/Alumno/DashboardRutinas';
+import RutinaDetalle from './pages/Alumno/RutinaDetalle';
+
+// --- PÁGINAS DE ADMIN ---
+import AdminPanel from './pages/Admin/AdminPanel';
+import AlumnoPerfil from './pages/Admin/AlumnoPerfil';
 import CrearRutina from './pages/Admin/CrearRutina';
 import SeleccionarEjercicios from './pages/Admin/SeleccionarEjercicios';
 import AdminRutinas from './pages/Admin/AdminRutinas';
@@ -26,7 +26,7 @@ import AdminEjercicios from './pages/Admin/AdminEjercicios';
 import AsignarRutina from './pages/Admin/AsignarRutina';
 import EditarDia from './pages/Admin/EditarDia';
 
-// Componente para el banner de instalación de la PWA
+// --- COMPONENTE PWA ---
 function InstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
@@ -76,16 +76,15 @@ const App = () => {
     <AuthProvider>
       <Router>
         <InstallBanner />
-        {/* Se elimina la etiqueta <main> para que el Layout controle toda la pantalla */}
         <Routes>
-          {/* 2. Rutas que NO tendrán pull-to-refresh se quedan fuera */}
+          {/* --- RUTAS PÚBLICAS --- */}
           <Route path="/" element={<RedireccionInicial />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<LoginPage />} />
 
-          {/* 3. Grupo de rutas que SÍ tendrán pull-to-refresh, envueltas en AppLayout */}
+          {/* --- RUTAS PROTEGIDAS CON LAYOUT GENERAL --- */}
           <Route element={<AppLayout />}>
-            <Route path="/rutina/:id" element={<RutinaDetalle />} />
 
+            {/* --- RUTAS DE ALUMNO --- */}
             <Route
               path="/dashboard"
               element={
@@ -94,7 +93,24 @@ const App = () => {
                 </RutaProtegida>
               }
             />
+            <Route
+              path="/dashboard/rutinas"
+              element={
+                <RutaProtegida rolPermitido="alumno">
+                  <DashboardRutinas />
+                </RutaProtegida>
+              }
+            />
+            <Route
+              path="/rutina/:id"
+              element={
+                <RutaProtegida rolPermitido="alumno">
+                  <RutinaDetalle />
+                </RutaProtegida>
+              }
+            />
 
+            {/* --- RUTAS DE ADMIN --- */}
             <Route
               path="/admin"
               element={
@@ -103,9 +119,25 @@ const App = () => {
                 </RutaProtegida>
               }
             />
-
             <Route
-              path="/alumno/:id"
+              path="/admin/alumnos"
+              element={
+                <RutaProtegida rolPermitido="admin">
+                  <AdminAlumnos />
+                </RutaProtegida>
+              }
+            />
+            <Route
+              path="/admin/alumnos/:id"
+              element={
+                <RutaProtegida rolPermitido="admin">
+                  <AlumnoPerfil />
+                </RutaProtegida>
+              }
+            />
+            {/* RUTA ALTERNATIVA /alumno/:id si aún se usa en algún lugar */}
+            <Route
+              path="/admin/alumno/:id"
               element={
                 <RutaProtegida rolPermitido="admin">
                   <AlumnoPerfil />
@@ -114,34 +146,53 @@ const App = () => {
             />
 
             <Route
-              path="/editar-rutina/:id"
+              path="/admin/rutinas"
               element={
                 <RutaProtegida rolPermitido="admin">
-                  <EditarRutinaPersonalizada />
+                  <AdminRutinas />
                 </RutaProtegida>
               }
             />
-
-            <Route path="/crear-rutina" element={
-              <RutaProtegida rolPermitido="admin">
-                <CrearRutina />
-              </RutaProtegida>
-            } />
-
             <Route
-              path="/seleccionar-ejercicios"
+              path="/admin/rutinas/crear"
+              element={
+                <RutaProtegida rolPermitido="admin">
+                  <CrearRutina />
+                </RutaProtegida>
+              }
+            />
+            <Route
+              path="/admin/rutinas/editar-dia/:id"
+              element={
+                <RutaProtegida rolPermitido="admin">
+                  <EditarDia />
+                </RutaProtegida>
+              }
+            />
+            <Route
+              path="/admin/ejercicios"
+              element={
+                <RutaProtegida rolPermitido="admin">
+                  <AdminEjercicios />
+                </RutaProtegida>
+              }
+            />
+            <Route
+              path="/admin/ejercicios/seleccionar"
               element={
                 <RutaProtegida rolPermitido="admin">
                   <SeleccionarEjercicios />
                 </RutaProtegida>
               }
             />
-
-            <Route path="/admin/rutinas" element={<RutaProtegida rolPermitido="admin"><AdminRutinas /></RutaProtegida>} />
-            <Route path="/admin/alumnos" element={<RutaProtegida rolPermitido="admin"><AdminAlumnos /></RutaProtegida>} />
-            <Route path="/admin/ejercicios" element={<RutaProtegida rolPermitido="admin"><AdminEjercicios /></RutaProtegida>} />
-            <Route path="/asignar-rutina/:id" element={<AsignarRutina />} />
-            <Route path="/editar-rutina-dia/:id" element={<EditarDia />} />
+            <Route
+              path="/admin/asignar-rutina/:id"
+              element={
+                <RutaProtegida rolPermitido="admin">
+                  <AsignarRutina />
+                </RutaProtegida>
+              }
+            />
           </Route>
         </Routes>
       </Router>

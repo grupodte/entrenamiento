@@ -27,13 +27,13 @@ const LoginPage = () => {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="w-full max-w-md p-8 space-y-6 rounded-2xl shadow-2xl bg-white/80 backdrop-blur-sm border border-white/20"
+                    className="w-full max-w-md p-8 space-y-6 rounded-2xl shadow-2xl backdrop-blur-lg "
                 >
                     <div className="text-center">
-                        <h1 className="text-3xl font-bold text-gray-900">
+                        <h1 className="text-3xl font-bold text-white">
                             Bienvenido
                         </h1>
-                        <p className="mt-2 text-sm text-gray-800">
+                        <p className="mt-2 text-sm text-white/80">
                             Inicia sesión para continuar.
                         </p>
                     </div>
