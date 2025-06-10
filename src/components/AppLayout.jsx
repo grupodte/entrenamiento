@@ -2,25 +2,25 @@
 
 import React from 'react';
 import PullToRefresh from 'react-pull-to-refresh';
+import 'react-pull-to-refresh/dist/index.css'; // Importación de estilos
 import { Outlet } from 'react-router-dom';
+import './AppLayout.css'; // Crearemos este archivo de CSS
 
 const AppLayout = () => {
-    /**
-     * Esta función se ejecutará cuando el usuario "sinche" hacia abajo.
-     * Para un refresh global, la acción más simple es recargar la página.
-     */
     const handleRefresh = () => {
         window.location.reload();
-        // Devolvemos una Promise para que el indicador de carga se oculte.
         return Promise.resolve();
     };
 
     return (
-        // Se eliminó la lógica de 'disabled' y el hook 'useNavigation'
-        <PullToRefresh onRefresh={handleRefresh}>
-            {/* Outlet renderizará la página actual (Dashboard, AlumnoPerfil, etc.) */}
-            <Outlet />
-        </PullToRefresh>
+        // Añadimos una clase 'pull-to-refresh-container' al div principal
+        <div className="pull-to-refresh-container">
+            <PullToRefresh onRefresh={handleRefresh}>
+                <div className="content-wrapper">
+                    <Outlet />
+                </div>
+            </PullToRefresh>
+        </div>
     );
 };
 
