@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaSignOutAlt, FaArrowLeft, FaPlayCircle } from 'react-icons/fa'; // Importado FaPlayCircle
+import { FaSignOutAlt, FaArrowLeft, FaPlayCircle, FaCheckCircle } from 'react-icons/fa'; // Importado FaCheckCircle
 import { motion, AnimatePresence } from 'framer-motion';
 
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -15,7 +15,6 @@ const DashboardRutinas = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
-    // Obtiene el índice del día actual (Lunes=0, Martes=1, ..., Domingo=6)
     const todayIndex = (new Date().getDay() + 6) % 7;
 
     useEffect(() => {
@@ -24,32 +23,62 @@ const DashboardRutinas = () => {
             return;
         }
 
-        const fetchRutinas = async () => {
+        const fetchRutinasYCompletadas = async () => {
             setLoading(true);
-            const { data, error } = await supabase
+
+            // 1. Obtener las rutinas asignadas (sin cambios)
+            const { data: asignaciones, error: errorAsignaciones } = await supabase
                 .from('asignaciones')
                 .select('dia_semana, rutina_personalizada_id, rutinas_personalizadas ( nombre ), rutina_base_id, rutinas_base ( nombre )')
                 .eq('alumno_id', user.id);
 
-            if (error) {
-                console.error('Error al cargar asignaciones:', error);
+            if (errorAsignaciones) {
+                console.error('Error al cargar asignaciones:', errorAsignaciones);
                 setRutinas([]);
-            } else {
-                const formateadas = data
-                    .map((a) => {
-                        const esPersonalizada = !!a.rutina_personalizada_id;
-                        const rutinaId = esPersonalizada ? a.rutina_personalizada_id : a.rutina_base_id;
-                        const nombre = esPersonalizada ? a.rutinas_personalizadas?.nombre : a.rutinas_base?.nombre;
-                        const tipo = esPersonalizada ? 'personalizada' : 'base';
-                        return { dia: a.dia_semana, rutinaId, nombre: nombre || 'Rutina Asignada', tipo };
-                    })
-                    .sort((a, b) => a.dia - b.dia);
-                setRutinas(formateadas);
+                setLoading(false);
+                return;
             }
+
+            // --- NUEVO: OBTENER RUTINAS COMPLETADAS HOY ---
+            const hoy = new Date();
+            const inicioDelDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).toISOString();
+            const finDelDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 1).toISOString();
+
+            const { data: sesionesCompletadas, error: errorSesiones } = await supabase
+                .from('sesiones_entrenamiento')
+                .select('rutina_personalizada_id')
+                .eq('alumno_id', user.id)
+                .gte('created_at', inicioDelDia)
+                .lt('created_at', finDelDia);
+
+            if (errorSesiones) {
+                console.error('Error al verificar sesiones completadas:', errorSesiones);
+            }
+
+            const idsCompletados = new Set(sesionesCompletadas?.map(s => s.rutina_personalizada_id) || []);
+
+            // --- MODIFICADO: Añadir el estado 'isCompleted' a cada rutina ---
+            const formateadas = asignaciones
+                .map((a) => {
+                    const esPersonalizada = !!a.rutina_personalizada_id;
+                    const rutinaId = esPersonalizada ? a.rutina_personalizada_id : a.rutina_base_id;
+                    const nombre = esPersonalizada ? a.rutinas_personalizadas?.nombre : a.rutinas_base?.nombre;
+                    const tipo = esPersonalizada ? 'personalizada' : 'base';
+                    return {
+                        dia: a.dia_semana,
+                        rutinaId,
+                        nombre: nombre || 'Rutina Asignada',
+                        tipo,
+                        isCompleted: idsCompletados.has(rutinaId) // Añadir la bandera
+                    };
+                })
+                .sort((a, b) => a.dia - b.dia);
+            
+            setRutinas(formateadas);
             setLoading(false);
         };
 
-        fetchRutinas();
+        fetchRutinasYCompletadas();
     }, [user]);
 
     const handleLogout = async () => {
@@ -57,14 +86,12 @@ const DashboardRutinas = () => {
         navigate('/login');
     };
 
-    // Nueva función que navega y pasa el estado para iniciar el cronómetro
     const iniciarRutina = (rutina) => {
         navigate(`/rutina/${rutina.rutinaId}?tipo=${rutina.tipo}`, {
             state: { startTimer: true }
         });
     }
 
-    // Función para ver detalles sin iniciar el cronómetro
     const verDetalleRutina = (rutina) => {
         navigate(`/rutina/${rutina.rutinaId}?tipo=${rutina.tipo}`);
     }
@@ -96,7 +123,6 @@ const DashboardRutinas = () => {
                     </div>
                 ) : rutinas.length > 0 ? (
                     <div className="space-y-10">
-                        {/* Sección para la rutina de HOY */}
                         <AnimatePresence>
                             {rutinas.filter(r => r.dia === todayIndex).map(rutina => (
                                 <motion.div
@@ -104,22 +130,34 @@ const DashboardRutinas = () => {
                                     initial={{ opacity: 0, y: -20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0 }}
-                                    className="bg-gradient-to-br from-indigo-600 to-blue-500 rounded-2xl shadow-xl p-6 md:p-8 text-white"
+                                    className={`rounded-2xl shadow-xl p-6 md:p-8 text-white ${
+                                        rutina.isCompleted 
+                                        ? 'bg-gradient-to-br from-green to-emerald-500' 
+                                        : 'bg-gradient-to-br from-indigo-600 to-blue-500'
+                                    }`}
                                 >
                                     <p className="font-bold text-sm text-white/80 uppercase tracking-wider">Rutina de Hoy: {diasSemana[rutina.dia]}</p>
                                     <h3 className="text-3xl lg:text-4xl font-extrabold mt-2 drop-shadow-md">{rutina.nombre}</h3>
-                                    <button
-                                        onClick={() => iniciarRutina(rutina)}
-                                        className="mt-8 w-full md:w-auto flex items-center justify-center gap-3 bg-white text-indigo-600 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white/50"
-                                    >
-                                        <FaPlayCircle className="text-2xl" />
-                                        <span>Iniciar Entrenamiento</span>
-                                    </button>
+                                    
+                                    {/* --- NUEVO: RENDERIZADO CONDICIONAL DEL BOTÓN --- */}
+                                    {rutina.isCompleted ? (
+                                        <div className="mt-8 flex items-center justify-center gap-3 bg-white/20 text-white font-bold py-3 px-8 rounded-full cursor-not-allowed">
+                                            <FaCheckCircle className="text-2xl" />
+                                            <span>Entrenamiento Completado</span>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => iniciarRutina(rutina)}
+                                            className="mt-8 w-full md:w-auto flex items-center justify-center gap-3 bg-white text-indigo-600 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white/50"
+                                        >
+                                            <FaPlayCircle className="text-2xl" />
+                                            <span>Iniciar Entrenamiento</span>
+                                        </button>
+                                    )}
                                 </motion.div>
                             ))}
                         </AnimatePresence>
-
-                        {/* Sección para las otras rutinas */}
+                        
                         <div className="border-t border-gray-200 pt-8">
                             <h3 className="text-2xl font-bold text-gray-700 mb-5">Próximos Días</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

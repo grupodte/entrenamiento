@@ -1,24 +1,13 @@
 // src/pages/Alumno/RutinaDetalle.jsx
 
 import { useEffect, useState } from 'react';
-import { useLocation, useParams, Link } from 'react-router-dom';
+import { useLocation, useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
-import { FaPause, FaPlay, FaArrowLeft, FaCheck, FaStopwatch } from 'react-icons/fa';
+import { FaPause, FaPlay, FaArrowLeft, FaCheck, FaStopwatch, FaTrophy, FaSave } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- CRONÓMETRO GENERAL ---
-const Chronometer = () => {
-    const [time, setTime] = useState(0);
-    const [isRunning, setIsRunning] = useState(true);
-
-    useEffect(() => {
-        let interval = null;
-        if (isRunning) {
-            interval = setInterval(() => setTime(prev => prev + 1), 1000);
-        }
-        return () => clearInterval(interval);
-    }, [isRunning]);
-
+// --- CRONÓMETRO GENERAL (MODIFICADO PARA RECIBIR ESTADO) ---
+const Chronometer = ({ time, isRunning, onToggle }) => {
     const formatTime = (s) => {
         const h = `0${Math.floor(s / 3600)}`.slice(-2);
         const m = `0${Math.floor((s % 3600) / 60)}`.slice(-2);
@@ -31,7 +20,7 @@ const Chronometer = () => {
             <div className="max-w-4xl mx-auto flex justify-between items-center px-6 py-3">
                 <span className="text-sm font-semibold uppercase tracking-wider">Tiempo Total</span>
                 <span className="text-3xl font-mono font-bold">{formatTime(time)}</span>
-                <button onClick={() => setIsRunning(!isRunning)} className="p-3 rounded-full text-white bg-white/20 hover:bg-white/30" aria-label={isRunning ? 'Pausar' : 'Reanudar'}>
+                <button onClick={onToggle} className="p-3 rounded-full text-white bg-white/20 hover:bg-white/30" aria-label={isRunning ? 'Pausar' : 'Reanudar'}>
                     {isRunning ? <FaPause /> : <FaPlay />}
                 </button>
             </div>
@@ -76,7 +65,7 @@ const RestTimer = ({ duration, exerciseName, onFinish }) => {
     );
 };
 
-// --- ITEM DE EJERCICIO (CON DISEÑO RESPONSIVE INTEGRADO) ---
+// --- ITEM DE EJERCICIO (TU CÓDIGO EXACTO, SIN CAMBIOS) ---
 const EjercicioItem = ({ ejercicio, onSetComplete, onCargaChange }) => (
     <motion.div
         layout
@@ -91,15 +80,12 @@ const EjercicioItem = ({ ejercicio, onSetComplete, onCargaChange }) => (
                     key={set.id}
                     className={`flex flex-wrap items-center justify-between gap-x-2 gap-y-2 p-1 rounded-lg transition-colors duration-300 ${set.completed ? 'bg-green-50 text-gray-400' : 'bg-gray-50'}`}
                 >
-                    {/* GRUPO 1: Información (no se encoge) */}
                     <div className="flex items-center gap-4 flex-shrink-0">
                         <span className={`font-bold text-lg ${set.completed ? 'line-through' : 'text-indigo-600'}`}>
                             Set {index + 1}
                         </span>
                         <p className="font-semibold text-gray-800">{set.reps} reps</p>
                     </div>
-
-                    {/* GRUPO 2: Acciones (crece para ocupar espacio y se alinea a la derecha) */}
                     <div className="flex items-center gap-2 flex-grow justify-end">
                         <input
                             type="text"
@@ -123,20 +109,64 @@ const EjercicioItem = ({ ejercicio, onSetComplete, onCargaChange }) => (
     </motion.div>
 );
 
+// --- NUEVO: MODAL DE FINALIZACIÓN ---
+const WorkoutCompleteModal = ({ onSave, isSaving }) => (
+    <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+    >
+        <motion.div
+            initial={{ scale: 0.8, y: 50 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.8, y: 50 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="bg-white rounded-2xl shadow-2xl p-8 text-center max-w-sm w-full"
+        >
+            <FaTrophy className="text-5xl text-yellow-400 mx-auto mb-4" />
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">¡Entrenamiento Finalizado!</h2>
+            <p className="text-black mb-6">Guarda los resultados para registrar tu progreso.</p>
+            <div className="flex flex-col gap-3">
+                <button
+                    onClick={onSave}
+                    disabled={isSaving}
+                    className="w-full bg-black text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:bg-green-400"
+                >
+                    <FaSave />
+                    {isSaving ? 'Guardando...' : 'Guardar Resultados'}
+                </button>
+            </div>
+        </motion.div>
+    </motion.div>
+);
+
 // --- COMPONENTE PRINCIPAL (LÓGICA FINAL INTEGRADA) ---
 const RutinaDetalle = () => {
-    const { id } = useParams();
+    const { id: rutinaId } = useParams();
     const location = useLocation();
+    const navigate = useNavigate();
     const [rutina, setRutina] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [showTimer, setShowTimer] = useState(false);
-    const [restInfo, setRestInfo] = useState({ active: false, duration: 0, exerciseName: '' });
     const [tipoRutina, setTipoRutina] = useState(null);
 
-    useEffect(() => {
-        if (location.state?.startTimer) setShowTimer(true);
+    const [time, setTime] = useState(0);
+    const [isTimerRunning, setIsTimerRunning] = useState(false);
+    const [restInfo, setRestInfo] = useState({ active: false, duration: 0, exerciseName: '' });
 
+    const [isWorkoutComplete, setIsWorkoutComplete] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        let interval = null;
+        if (isTimerRunning) {
+            interval = setInterval(() => setTime(prev => prev + 1), 1000);
+        }
+        return () => clearInterval(interval);
+    }, [isTimerRunning]);
+
+    useEffect(() => {
         const fetchRutinaDetails = async () => {
             setLoading(true);
             setError(null);
@@ -145,7 +175,7 @@ const RutinaDetalle = () => {
             const tipo = searchParams.get('tipo');
             setTipoRutina(tipo);
 
-            if (!tipo || !id) {
+            if (!tipo || !rutinaId) {
                 setError("No se pudo identificar la rutina. Falta el tipo o el ID.");
                 setLoading(false);
                 return;
@@ -167,7 +197,7 @@ const RutinaDetalle = () => {
                         ${seriesTable} ( id, nro_set, reps, pausa, ${cargaField} )
                     )
                 `)
-                .eq('id', id)
+                .eq('id', rutinaId)
                 .single();
 
             if (fetchError || !data) {
@@ -203,11 +233,11 @@ const RutinaDetalle = () => {
         };
 
         fetchRutinaDetails();
-    }, [id, location]);
+        setIsTimerRunning(location.state?.startTimer || false);
+    }, [rutinaId, location.state]);
 
     const handleCargaChange = (ejercicioId, setId, carga) => {
         if (!rutina) return;
-
         const updatedEjercicios = rutina.ejercicios.map(ej => {
             if (ej.id === ejercicioId) {
                 const updatedSets = ej.sets.map(set =>
@@ -217,67 +247,101 @@ const RutinaDetalle = () => {
             }
             return ej;
         });
-
         setRutina(prev => ({ ...prev, ejercicios: updatedEjercicios }));
     };
 
     const handleSetComplete = async (ejercicioId, setId) => {
         if (!rutina) return;
-
         let completedSet = null;
-        rutina.ejercicios.forEach(ej => {
-            if (ej.id === ejercicioId) {
-                ej.sets.forEach(set => {
-                    if (set.id === setId) {
-                        completedSet = set;
-                    }
-                });
-            }
-        });
-
-        if (!completedSet || completedSet.completed) return;
-
-        if (tipoRutina === 'personalizada') {
-            const { error: updateError } = await supabase
-                .from('rutinas_personalizadas_series')
-                .update({ carga: completedSet.cargaRealizada })
-                .eq('id', setId);
-
-            if (updateError) {
-                alert('Error al guardar la carga. Inténtalo de nuevo.');
-                console.error('Error updating carga:', updateError);
-                return;
-            }
-        }
-
         const updatedEjercicios = rutina.ejercicios.map(ej => {
             if (ej.id === ejercicioId) {
-                const updatedSets = ej.sets.map(set =>
-                    set.id === setId ? { ...set, completed: true } : set
-                );
+                const updatedSets = ej.sets.map(set => {
+                    if (set.id === setId && !set.completed) {
+                        completedSet = { ...set, completed: true };
+                        return completedSet;
+                    }
+                    return set;
+                });
                 return { ...ej, sets: updatedSets };
             }
             return ej;
         });
 
+        if (!completedSet) return;
         setRutina(prev => ({ ...prev, ejercicios: updatedEjercicios }));
 
-        const currentExerciseIndex = rutina.ejercicios.findIndex(e => e.id === ejercicioId);
-        const currentExercise = rutina.ejercicios[currentExerciseIndex];
-        const currentSetIndex = currentExercise.sets.findIndex(s => s.id === setId);
+        const allSetsCompleted = updatedEjercicios.every(ej => ej.sets.every(s => s.completed));
 
-        let nextExerciseName = "¡Entrenamiento finalizado!";
-        if (currentSetIndex < currentExercise.sets.length - 1) {
-            nextExerciseName = currentExercise.nombre;
-        } else if (currentExerciseIndex < rutina.ejercicios.length - 1) {
-            nextExerciseName = rutina.ejercicios[currentExerciseIndex + 1].nombre;
+        if (allSetsCompleted) {
+            setIsTimerRunning(false);
+            setRestInfo({ active: false, duration: 0, exerciseName: '' });
+            setIsWorkoutComplete(true);
+        } else {
+            const currentExerciseIndex = rutina.ejercicios.findIndex(e => e.id === ejercicioId);
+            const currentExercise = rutina.ejercicios[currentExerciseIndex];
+            const currentSetIndex = currentExercise.sets.findIndex(s => s.id === setId);
+            let nextExerciseName = "¡Entrenamiento finalizado!";
+            if (currentSetIndex < currentExercise.sets.length - 1) {
+                nextExerciseName = currentExercise.nombre;
+            } else if (currentExerciseIndex < rutina.ejercicios.length - 1) {
+                nextExerciseName = rutina.ejercicios[currentExerciseIndex + 1].nombre;
+            }
+            setRestInfo({ active: true, duration: completedSet.descanso, exerciseName: nextExerciseName });
+        }
+    };
+
+    const handleSaveResults = async () => {
+        setIsSaving(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            alert('No se pudo identificar al usuario. Por favor, inicia sesión de nuevo.');
+            setIsSaving(false);
+            return;
         }
 
-        setRestInfo({
-            active: true,
-            duration: completedSet.descanso,
-            exerciseName: nextExerciseName
+        const { data: sesionData, error: sesionError } = await supabase
+            .from('sesiones_entrenamiento')
+            .insert({ alumno_id: user.id, rutina_personalizada_id: rutinaId, duracion_segundos: time })
+            .select()
+            .single();
+
+        if (sesionError) {
+            console.error('Error creando la sesión:', sesionError);
+            alert('Ocurrió un error al guardar la sesión.');
+            setIsSaving(false);
+            return;
+        }
+
+        const seriesDataToInsert = [];
+        rutina.ejercicios.forEach((ej, ejIndex) => {
+            ej.sets.forEach((set, setIndex) => {
+                if (set.completed) {
+                    seriesDataToInsert.push({
+                        sesion_id: sesionData.id,
+                        ejercicio_id: ej.id,
+                        nro_set: setIndex + 1,
+                        reps_realizadas: set.reps,
+                        carga_realizada: set.cargaRealizada || '0'
+                    });
+                }
+            });
         });
+
+        if (seriesDataToInsert.length > 0) {
+            const { error: seriesError } = await supabase
+                .from('sesiones_series')
+                .insert(seriesDataToInsert);
+            if (seriesError) {
+                console.error('Error guardando las series:', seriesError);
+                alert('Ocurrió un error al guardar el detalle de las series.');
+                setIsSaving(false);
+                return;
+            }
+        }
+
+        alert('¡Resultados guardados con éxito!');
+        navigate('/dashboard/rutinas');
+        setIsSaving(false);
     };
 
     if (loading) return <div className="min-h-screen flex items-center justify-center"><p>Cargando detalles de la rutina...</p></div>;
@@ -285,14 +349,19 @@ const RutinaDetalle = () => {
 
     return (
         <div className="bg-gray-100 min-h-screen pb-20">
-            {showTimer && <Chronometer />}
+            <Chronometer time={time} isRunning={isTimerRunning} onToggle={() => setIsTimerRunning(!isTimerRunning)} />
             {restInfo.active && (
-                <RestTimer
-                    duration={restInfo.duration}
-                    exerciseName={restInfo.exerciseName}
-                    onFinish={() => setRestInfo({ active: false, duration: 0, exerciseName: '' })}
-                />
+                <RestTimer duration={restInfo.duration} exerciseName={restInfo.exerciseName} onFinish={() => setRestInfo({ active: false, duration: 0, exerciseName: '' })} />
             )}
+
+            <AnimatePresence>
+                {isWorkoutComplete && (
+                    <WorkoutCompleteModal
+                        onSave={handleSaveResults}
+                        isSaving={isSaving}
+                    />
+                )}
+            </AnimatePresence>
 
             <header className="bg-white p-4 shadow-sm">
                 <div className="max-w-4xl mx-auto">

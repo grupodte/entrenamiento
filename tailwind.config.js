@@ -1,26 +1,25 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
     content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
 
     theme: {
         extend: {
-            // --- TUS CUSTOMIZACIONES (SE MANTIENEN) ---
             borderRadius: {
                 '10px': '10px',
             },
             fontFamily: {
-                'inter': ['Inter', 'sans-serif'],
-                'product': ['ProductSans', 'sans-serif'],
+                inter: ['Inter', 'sans-serif'],
+                product: ['ProductSans', 'sans-serif'],
             },
             colors: {
                 'teal-light': '#dbfdff',
                 'teal-medium': '#6ea0a0',
                 'teal-dark': '#3a7c7c',
-                'greyburger': '#d9d9d9',
-                'skyblue': '#0071E3',
-                'green': '#0DD122',
-                'crem': '#ACACAC',
-                'skysoft': '#AEE4F8',
+                greyburger: '#d9d9d9',
+                skyblue: '#0071E3',
+                green: '#0DD122',
+                crem: '#ACACAC',
+                skysoft: '#AEE4F8',
             },
             keyframes: {
                 'slide-up': {
@@ -34,11 +33,11 @@ export default {
                 kenburns: {
                     '0%': {
                         transform: 'scale(1) translate(0, 0)',
-                        filter: 'blur(0px)'
+                        filter: 'blur(0px)',
                     },
                     '100%': {
                         transform: 'scale(1.1) translate(-10px, 5px)',
-                        filter: 'blur(1px)'
+                        filter: 'blur(1px)',
                     },
                 },
             },
@@ -46,13 +45,11 @@ export default {
                 'slide-up': 'slide-up 1s ease-out',
                 'fade-in': 'fade-in 1s ease-out',
                 'spin-slow': 'spin 20s linear infinite',
-                'kenburns': 'kenburns 20s ease-in-out infinite alternate',
+                kenburns: 'kenburns 20s ease-in-out infinite alternate',
             },
         },
     },
-    // --- LA LÍNEA MÁS IMPORTANTE ---
-    // Añade el plugin de formularios aquí
-    plugins: [
-        require('@tailwindcss/forms'),
-    ],
-}
+
+    plugins: [require('@tailwindcss/forms')],
+};
+  
