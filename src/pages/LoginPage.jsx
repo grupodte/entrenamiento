@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoginForm from '../components/LoginForm';
-import backgroundImage from '../assets/men.jpg'; // Asegúrate que la ruta a tu imagen sea correcta
+import backgroundImage from '../assets/men.jpg';
 import { motion } from 'framer-motion';
 
 const LoginPage = () => {
@@ -10,9 +10,18 @@ const LoginPage = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        // Redirige si el usuario ya está logueado
         if (user) {
             navigate(user.role === 'admin' ? '/admin' : '/dashboard');
         }
+
+        // Desactiva scroll al montar el componente
+        document.body.style.overflow = 'hidden';
+
+        // Restaura scroll al desmontar
+        return () => {
+            document.body.style.overflow = '';
+        };
     }, [user, navigate]);
 
     return (
@@ -27,7 +36,7 @@ const LoginPage = () => {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="w-full max-w-md p-8 space-y-6 rounded-2xl shadow-2xl backdrop-blur-lg "
+                    className="w-full max-w-md p-8 space-y-6 rounded-2xl shadow-2xl backdrop-blur-lg"
                 >
                     <div className="text-center">
                         <h1 className="text-3xl font-bold text-white">
