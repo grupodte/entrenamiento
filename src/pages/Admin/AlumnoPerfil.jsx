@@ -19,39 +19,52 @@ const AlumnoPerfil = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            const { data: perfil } = await supabase.from('perfiles').select('*').eq('id', id).single();
+            // Obtener perfil del alumno
+            const { data: perfil } = await supabase
+                .from('perfiles')
+                .select('*')
+                .eq('id', id)
+                .single();
             setAlumno(perfil);
 
-            const { data: rutina } = await supabase
-                .from('rutinas_personalizadas')
-                .select('id')
-                .eq('alumno_id', id)
-                .order('fecha_inicio', { ascending: false })
-                .limit(1)
-                .single();
+            // Obtener asignaciones por día
+            const { data: asignaciones, error: errorAsignaciones } = await supabase
+                .from('asignaciones')
+                .select('dia_semana, rutina_personalizada_id')
+                .eq('alumno_id', id);
 
-            if (rutina?.id) {
+            if (errorAsignaciones) {
+                console.error('Error asignaciones:', errorAsignaciones);
+                setLoading(false);
+                return;
+            }
+
+            const rutinaPorDiaTemp = {};
+
+            for (const asignacion of asignaciones) {
                 const { data: ejercicios } = await supabase
                     .from('rutinas_personalizadas_ejercicios')
                     .select('dia_semana, orden, series, reps, pausa, carga, ejercicio_id, ejercicios(nombre)')
-                    .eq('rutina_personalizada_id', rutina.id)
-                    .order('dia_semana', { ascending: true })
+                    .eq('rutina_personalizada_id', asignacion.rutina_personalizada_id)
+                    .eq('dia_semana', asignacion.dia_semana)
                     .order('orden', { ascending: true });
 
-                const agrupado = {};
-                ejercicios?.forEach((e) => {
-                    if (!agrupado[e.dia_semana]) agrupado[e.dia_semana] = [];
-                    agrupado[e.dia_semana].push(e);
-                });
+                if (!rutinaPorDiaTemp[asignacion.dia_semana]) {
+                    rutinaPorDiaTemp[asignacion.dia_semana] = [];
+                }
 
-                setRutinaPorDia(agrupado);
+                rutinaPorDiaTemp[asignacion.dia_semana].push(...ejercicios);
             }
 
+            setRutinaPorDia(rutinaPorDiaTemp);
             setLoading(false);
         };
 
         fetchData();
     }, [id]);
+    
+    
+    
 
     const irASeleccionarRutina = (dia) => {
         navigate(`/asignar-rutina/${id}?dia=${dia}`);
