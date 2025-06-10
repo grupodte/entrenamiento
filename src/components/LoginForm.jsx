@@ -52,7 +52,7 @@ const LoginForm = ({ onLoginSuccess }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-8 mt-[100px] w-[350px] justify-center mx-auto p-6 rounded-lg ">
+        <form onSubmit={handleSubmit} className="space-y-8 mt-[100px] justify-center mx-auto rounded-lg ">
             {/* Campo de Correo Electrónico */}
             <div>
                 <label htmlFor="email" className=" block text-sm text-white">
