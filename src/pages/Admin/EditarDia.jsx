@@ -12,209 +12,104 @@ const EditarDia = () => {
     const navigate = useNavigate();
 
     const [ejercicios, setEjercicios] = useState([]);
-    const [rutinaPersonalizadaId, setRutinaPersonalizadaId] = useState(null);
     const [asignacionOriginal, setAsignacionOriginal] = useState(null);
+    const [rutinaPersonalizadaId, setRutinaPersonalizadaId] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [mensaje, setMensaje] = useState('');
     const [mostrarSelector, setMostrarSelector] = useState(false);
     const [ejerciciosDisponibles, setEjerciciosDisponibles] = useState([]);
-    const [nombreRutinaBase, setNombreRutinaBase] = useState('');
 
     useEffect(() => {
-        const inicializarVista = async () => {
-            const { data: asignacion, error: errorAsignacion } = await supabase
+        const cargarDatos = async () => {
+            setLoading(true);
+
+            const { data: asignacion, error } = await supabase
                 .from('asignaciones')
-                .select('id, rutina_personalizada_id, rutina_base_id')
+                .select('id, rutina_base_id, rutina_personalizada_id')
                 .eq('alumno_id', alumnoId)
                 .eq('dia_semana', dia)
-                .single();
+                .maybeSingle();
 
-            if (errorAsignacion || !asignacion) {
-                setMensaje('No hay una rutina asignada para este día. Redirigiendo...');
-                setTimeout(() => navigate(`/admin/alumno/${alumnoId}`), 2000);
+            if (error || !asignacion) {
+                console.error("Asignación no encontrada", error);
+                setLoading(false);
                 return;
             }
 
             setAsignacionOriginal(asignacion);
+            setRutinaPersonalizadaId(asignacion.rutina_personalizada_id);
+
+            let ejerciciosFinales = [];
 
             if (asignacion.rutina_personalizada_id) {
-                setRutinaPersonalizadaId(asignacion.rutina_personalizada_id);
-                const { data: ejerciciosDia } = await supabase
+                const { data: dataPers } = await supabase
                     .from('rutinas_personalizadas_ejercicios')
-                    .select('id, ejercicio_id, orden, ejercicios(nombre)')
+                    .select(`id, ejercicio_id, ejercicios(nombre), rutinas_personalizadas_series(id, nro_set, reps, pausa, carga)`)
                     .eq('rutina_personalizada_id', asignacion.rutina_personalizada_id)
-                    .eq('dia_semana', dia)
                     .order('orden', { ascending: true });
 
-                const ejerciciosConSeries = await Promise.all(ejerciciosDia.map(async (ej) => {
-                    const { data: series } = await supabase
-                        .from('rutinas_personalizadas_series')
-                        .select('id, nro_set, reps, pausa, carga')
-                        .eq('rutina_personalizada_ejercicio_id', ej.id)
-                        .order('nro_set', { ascending: true });
-
-                    return {
-                        ...ej,
-                        series_personalizadas: series || [],
-                    };
+                ejerciciosFinales = (dataPers || []).map(ej => ({
+                    id: ej.id,
+                    ejercicio_id: ej.ejercicio_id,
+                    nombre: ej.ejercicios?.nombre || 'Sin nombre',
+                    series: ej.rutinas_personalizadas_series || []
                 }));
 
-                setEjercicios(ejerciciosConSeries);
-
-            } else {
-                if (asignacion.rutina_base_id) {
-                    const { data: infoRutinaBase } = await supabase
-                        .from('rutinas_base')
-                        .select('nombre')
-                        .eq('id', asignacion.rutina_base_id)
-                        .single();
-                    if (infoRutinaBase) setNombreRutinaBase(infoRutinaBase.nombre);
-                }
-
+            } else if (asignacion.rutina_base_id) {
                 const { data: ejerciciosBase } = await supabase
                     .from('rutinas_base_ejercicios')
-                    .select('*, ejercicios(nombre)')
+                    .select('orden, ejercicio_id')
                     .eq('rutina_base_id', asignacion.rutina_base_id)
                     .order('orden', { ascending: true });
 
-                // --- INICIO DE LA CORRECCIÓN ---
+                ejerciciosFinales = await Promise.all(
+                    ejerciciosBase.map(async (ej) => {
+                        const { data: info } = await supabase
+                            .from('ejercicios')
+                            .select('nombre')
+                            .eq('id', ej.ejercicio_id)
+                            .maybeSingle();
 
-                // 1. OBTENER LOS DETALLES CORRECTOS DESDE 'rutinas_base_series'
-                const { data: seriesDeLaRutinaBase, error: errorSeries } = await supabase
-                    .from('rutinas_base_series')
-                    .select('ejercicio_id, reps, pausa, carga_sugerida')
-                    .eq('rutina_base_id', asignacion.rutina_base_id);
+                        const { data: seriesBase } = await supabase
+                            .from('rutinas_base_series')
+                            .select('nro_set, reps, pausa, carga_sugerida')
+                            .eq('rutina_base_id', asignacion.rutina_base_id)
+                            .eq('ejercicio_id', ej.ejercicio_id);
 
-                if (errorSeries) {
-                    throw new Error('No se pudieron cargar los detalles de las series');
-                }
-
-                // 2. CONSTRUIR EL ESTADO 'ejerciciosParaEditar' USANDO LOS DATOS CORRECTOS
-                const ejerciciosParaEditar = ejerciciosBase.map((ejercicio) => {
-                    // Filtramos las series que le pertenecen a este ejercicio en particular
-                    const seriesDelEjercicio = seriesDeLaRutinaBase
-                        .filter(serie => serie.ejercicio_id === ejercicio.ejercicio_id)
-                        .map(s => ({
-                            reps: s.reps,
-                            pausa: s.pausa,
-                            carga: s.carga_sugerida || ''
-                        }));
-
-                    return {
-                        id: null, // Es nulo porque aún no existe en la tabla de personalizadas
-                        ejercicio_id: ejercicio.ejercicio_id,
-                        ejercicios: ejercicio.ejercicios,
-                        orden: ejercicio.orden,
-                        // Usamos las series encontradas. Si no hay ninguna, creamos una vacía como fallback.
-                        series_personalizadas: seriesDelEjercicio.length > 0 ? seriesDelEjercicio : [{ reps: '', pausa: '', carga: '' }],
-                    };
-                });
-
-                // --- FIN DE LA CORRECCIÓN ---
-
-                setEjercicios(ejerciciosParaEditar);
+                        return {
+                            ejercicio_id: ej.ejercicio_id,
+                            nombre: info?.nombre || 'Desconocido',
+                            series: (seriesBase || []).map((s, i) => ({
+                                nro_set: i + 1,
+                                reps: s.reps,
+                                pausa: s.pausa,
+                                carga: s.carga_sugerida
+                            }))
+                        };
+                    })
+                );
             }
+
+            setEjercicios(ejerciciosFinales);
             setLoading(false);
         };
 
-        inicializarVista().catch((err) => {
-            console.error(err);
-            setLoading(false);
+        cargarDatos();
+    }, [alumnoId, dia]);
+
+    const actualizarSerie = (indexEjercicio, indexSerie, campo, valor) => {
+        setEjercicios(prev => {
+            const nuevos = [...prev];
+            nuevos[indexEjercicio].series[indexSerie][campo] = valor;
+            return nuevos;
         });
-    }, [alumnoId, dia, navigate]);
-
-    const handleSetChange = (ejIndex, setIndex, campo, valor) => {
-        const nuevos = [...ejercicios];
-        nuevos[ejIndex].series_personalizadas[setIndex][campo] = valor;
-        setEjercicios(nuevos);
     };
 
-    const agregarSet = (ejIndex) => {
-        const nuevos = [...ejercicios];
-        nuevos[ejIndex].series_personalizadas.push({ reps: '', pausa: '', carga: '' });
-        setEjercicios(nuevos);
-    };
-
-    const eliminarSet = (ejIndex, setIndex) => {
-        const nuevos = [...ejercicios];
-        nuevos[ejIndex].series_personalizadas.splice(setIndex, 1);
-        setEjercicios(nuevos);
-    };
-
-    const handleGuardar = async () => {
-        setLoading(true);
-        try {
-            if (!rutinaPersonalizadaId) {
-                const { data: nuevaRutina, error: errorCrearRutina } = await supabase
-                    .from('rutinas_personalizadas')
-                    .insert({
-                        alumno_id: alumnoId,
-                        nombre: nombreRutinaBase || `Rutina Personalizada - ${diasSemana[dia]}`,
-                        fecha_inicio: new Date().toISOString(),
-                    })
-                    .select('id')
-                    .single();
-
-                if (errorCrearRutina) throw errorCrearRutina;
-                const newId = nuevaRutina.id;
-
-                await Promise.all(
-                    ejercicios.map(async (ej, index) => {
-                        const { data: inserted, error } = await supabase
-                            .from('rutinas_personalizadas_ejercicios')
-                            .insert({
-                                rutina_personalizada_id: newId,
-                                ejercicio_id: ej.ejercicio_id,
-                                dia_semana: dia,
-                                orden: index,
-                            })
-                            .select()
-                            .single();
-                        if (error) throw error;
-
-                        const sets = ej.series_personalizadas.map((set, i) => ({
-                            rutina_personalizada_ejercicio_id: inserted.id,
-                            nro_set: i + 1,
-                            reps: Number(set.reps),
-                            pausa: Number(set.pausa),
-                            carga: set.carga || '',
-                        }));
-
-                        await supabase.from('rutinas_personalizadas_series').insert(sets);
-                    })
-                );
-
-                await supabase.from('asignaciones').update({ rutina_personalizada_id: newId }).eq('id', asignacionOriginal.id);
-
-            } else {
-                for (const ej of ejercicios) {
-                    if (ej.id) {
-                        await supabase
-                            .from('rutinas_personalizadas_series')
-                            .delete()
-                            .eq('rutina_personalizada_ejercicio_id', ej.id);
-
-                        const nuevosSets = ej.series_personalizadas.map((set, i) => ({
-                            rutina_personalizada_ejercicio_id: ej.id,
-                            nro_set: i + 1,
-                            reps: Number(set.reps),
-                            pausa: Number(set.pausa),
-                            carga: set.carga || '',
-                        }));
-
-                        await supabase.from('rutinas_personalizadas_series').insert(nuevosSets);
-                    }
-                }
-            }
-
-            alert('✅ Día actualizado con éxito');
-            navigate(`/admin/alumno/${alumnoId}`);
-
-        } catch (error) {
-            console.error('Error al guardar los cambios:', error);
-            alert(`❌ Ocurrió un error al guardar: ${error.message}`);
-            setLoading(false);
-        }
+    const eliminarSerie = (indexEjercicio, indexSerie) => {
+        setEjercicios(prev => {
+            const nuevos = [...prev];
+            nuevos[indexEjercicio].series.splice(indexSerie, 1);
+            return nuevos;
+        });
     };
 
     const agregarEjercicio = (ejercicio) => {
@@ -223,10 +118,9 @@ const EditarDia = () => {
             {
                 id: null,
                 ejercicio_id: ejercicio.id,
-                ejercicios: { nombre: ejercicio.nombre },
-                series_personalizadas: [{ reps: '', pausa: '', carga: '' }],
-                orden: prev.length,
-            },
+                nombre: ejercicio.nombre,
+                series: [{ nro_set: 1, reps: '', pausa: '', carga: '' }]
+            }
         ]);
         setMostrarSelector(false);
     };
@@ -241,97 +135,122 @@ const EditarDia = () => {
         setMostrarSelector(true);
     };
 
-    if (loading) return <p className="text-center mt-10">Cargando editor...</p>;
-    if (mensaje) return <p className="text-center mt-10">{mensaje}</p>;
+    const handleGuardar = async () => {
+        let rutinaId = rutinaPersonalizadaId;
+
+        if (!rutinaId && asignacionOriginal?.rutina_base_id) {
+            const { data: nuevaRutina, error: errorInsert } = await supabase
+                .from('rutinas_personalizadas')
+                .insert({ alumno_id: alumnoId, nombre: `Rutina personalizada día ${dia}` })
+                .select()
+                .single();
+
+            if (errorInsert) {
+                alert("Error creando rutina personalizada");
+                return;
+            }
+
+            rutinaId = nuevaRutina.id;
+            setRutinaPersonalizadaId(rutinaId);
+
+            await supabase
+                .from('asignaciones')
+                .update({ rutina_personalizada_id: rutinaId, rutina_base_id: null })
+                .eq('id', asignacionOriginal.id);
+        }
+
+        await supabase.from('rutinas_personalizadas_series')
+            .delete()
+            .in('rutina_personalizada_ejercicio_id', ejercicios.map(e => e.id).filter(Boolean));
+
+        await supabase.from('rutinas_personalizadas_ejercicios')
+            .delete()
+            .eq('rutina_personalizada_id', rutinaId);
+
+        for (const [orden, ej] of ejercicios.entries()) {
+            const { data: insertedEj, error: errEj } = await supabase
+                .from('rutinas_personalizadas_ejercicios')
+                .insert({ rutina_personalizada_id: rutinaId, ejercicio_id: ej.ejercicio_id, orden, dia_semana: dia })
+                .select()
+                .single();
+
+            if (errEj) continue;
+
+            const seriesAInsertar = ej.series.map((s, i) => ({
+                rutina_personalizada_ejercicio_id: insertedEj.id,
+                nro_set: i + 1,
+                reps: Number(s.reps),
+                pausa: Number(s.pausa),
+                carga: s.carga
+            }));
+
+            await supabase.from('rutinas_personalizadas_series').insert(seriesAInsertar);
+        }
+
+        alert("Cambios guardados correctamente ✅");
+        navigate(-1);
+    };
+
+    if (loading) return <p className="text-center mt-10">Cargando rutina...</p>;
 
     return (
-        <div className="max-w-3xl mx-auto mt-10 p-6 bg-white shadow rounded space-y-6">
-            <h1 className="text-2xl font-bold mb-4">Editar rutina – {diasSemana[dia]}</h1>
+        <div className="max-w-4xl mx-auto p-4">
+            <h1 className="text-2xl font-bold mb-4">Editar rutina del día {diasSemana[dia]}</h1>
 
-            {ejercicios.map((ej, i) => (
-                <div key={ej.ejercicio_id + '-' + i} className="border p-4 rounded shadow bg-gray-50">
-                    <div className="flex justify-between items-center mb-2">
-                        <h3 className="font-semibold">{ej.ejercicios?.nombre || 'Ejercicio Nuevo'}</h3>
-                        <button
-                            onClick={() => setEjercicios((prev) => prev.filter((_, idx) => idx !== i))}
-                            className="text-red-500 text-sm underline hover:opacity-80"
-                        >
-                            🗑️ Eliminar
-                        </button>
-                    </div>
-
-                    {ej.series_personalizadas.map((set, setIdx) => (
-                        <div key={setIdx} className="grid grid-cols-4 gap-2 mb-2">
-                            <input
-                                type="number"
-                                value={set.reps}
-                                onChange={(e) => handleSetChange(i, setIdx, 'reps', e.target.value)}
-                                placeholder="Reps"
-                                className="input"
-                            />
-                            <input
-                                type="number"
-                                value={set.pausa}
-                                onChange={(e) => handleSetChange(i, setIdx, 'pausa', e.target.value)}
-                                placeholder="Pausa"
-                                className="input"
-                            />
-                            <input
-                                type="text"
-                                value={set.carga}
-                                onChange={(e) => handleSetChange(i, setIdx, 'carga', e.target.value)}
-                                placeholder="Carga"
-                                className="input"
-                            />
-                            <button
-                                onClick={() => eliminarSet(i, setIdx)}
-                                className="text-red-500"
-                            >
-                                ❌
-                            </button>
+            <ul className="space-y-4">
+                {ejercicios.map((ej, indexEj) => (
+                    <li key={indexEj} className="p-4 bg-gray-100 rounded shadow">
+                        <div className="flex justify-between mb-2">
+                            <p className="font-semibold">{ej.nombre}</p>
+                            <button onClick={() => setEjercicios(prev => prev.filter((_, i) => i !== indexEj))} className="text-red-600 text-sm">Eliminar</button>
                         </div>
-                    ))}
-
-                    <button onClick={() => agregarSet(i)} className="text-blue-600 text-sm">
-                        ➕ Agregar set
-                    </button>
-                </div>
-            ))}
+                        {ej.series.map((serie, indexSer) => (
+                            <div key={indexSer} className="flex gap-2 mb-2 items-center">
+                                <input
+                                    type="number"
+                                    className="w-20 px-2 py-1 border rounded"
+                                    value={serie.reps}
+                                    onChange={e => actualizarSerie(indexEj, indexSer, 'reps', parseInt(e.target.value))}
+                                    placeholder="Reps"
+                                />
+                                <input
+                                    type="number"
+                                    className="w-20 px-2 py-1 border rounded"
+                                    value={serie.pausa}
+                                    onChange={e => actualizarSerie(indexEj, indexSer, 'pausa', parseInt(e.target.value))}
+                                    placeholder="Pausa"
+                                />
+                                <input
+                                    type="number"
+                                    className="w-20 px-2 py-1 border rounded"
+                                    value={serie.carga}
+                                    onChange={e => actualizarSerie(indexEj, indexSer, 'carga', parseFloat(e.target.value))}
+                                    placeholder="Carga"
+                                />
+                                <button onClick={() => eliminarSerie(indexEj, indexSer)} className="text-red-500 text-sm">❌</button>
+                            </div>
+                        ))}
+                    </li>
+                ))}
+            </ul>
 
             {mostrarSelector && (
-                <div className="border p-4 rounded bg-gray-100 space-y-2">
-                    <h3 className="font-bold">Seleccionar ejercicio para agregar</h3>
-                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {ejerciciosDisponibles.map((e) => (
-                            <li key={e.id} className="flex justify-between items-center border p-2 rounded bg-white">
-                                <span>{e.nombre}</span>
-                                <button
-                                    onClick={() => agregarEjercicio(e)}
-                                    className="text-blue-600 text-sm underline hover:opacity-80"
-                                >
-                                    ➕ Agregar
-                                </button>
+                <div className="mt-6 bg-gray-50 p-4 rounded shadow">
+                    <h2 className="text-lg font-semibold mb-2">Seleccionar ejercicio</h2>
+                    <ul className="space-y-2">
+                        {ejerciciosDisponibles.map(ej => (
+                            <li key={ej.id} className="flex justify-between items-center">
+                                <span>{ej.nombre}</span>
+                                <button onClick={() => agregarEjercicio(ej)} className="text-blue-600">Agregar</button>
                             </li>
                         ))}
                     </ul>
                 </div>
             )}
 
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={cargarEjerciciosDisponibles}
-                    className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700"
-                >
-                    ➕ Agregar ejercicio
-                </button>
-
-                <button
-                    onClick={handleGuardar}
-                    disabled={ejercicios.length === 0}
-                    className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 disabled:opacity-50"
-                >
-                    ✅ Guardar cambios
-                </button>
+            <div className="mt-6 flex gap-4">
+                <button onClick={cargarEjerciciosDisponibles} className="bg-yellow-500 text-white px-4 py-2 rounded">➕ Agregar ejercicio</button>
+                <button onClick={handleGuardar} className="bg-blue-600 text-white px-4 py-2 rounded">Guardar cambios</button>
             </div>
         </div>
     );

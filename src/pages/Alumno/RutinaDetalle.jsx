@@ -5,6 +5,8 @@ import { useLocation, useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { FaPause, FaPlay, FaArrowLeft, FaCheck, FaStopwatch, FaTrophy, FaSave } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import RestTimer from '../../components/RestTimer';
+
 
 // --- CRONÓMETRO GENERAL (MODIFICADO PARA RECIBIR ESTADO) ---
 const Chronometer = ({ time, isRunning, onToggle }) => {
@@ -28,44 +30,8 @@ const Chronometer = ({ time, isRunning, onToggle }) => {
     );
 };
 
-// --- TEMPORIZADOR DE DESCANSO ---
-const RestTimer = ({ duration, exerciseName, onFinish }) => {
-    const [timeLeft, setTimeLeft] = useState(duration);
 
-    useEffect(() => {
-        if (timeLeft <= 0) {
-            onFinish();
-            return;
-        }
-        const interval = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
-        return () => clearInterval(interval);
-    }, [timeLeft, onFinish]);
-
-    return (
-        <AnimatePresence>
-            <motion.div
-                initial={{ y: 200 }}
-                animate={{ y: 0 }}
-                exit={{ y: 200 }}
-                transition={{ type: 'spring', stiffness: 50 }}
-                className="fixed bottom-0 left-0 right-0 z-[999] bg-black text-white p-4 shadow-2xl"
-            >
-                <div className="max-w-4xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <FaStopwatch className="text-3xl" />
-                        <div>
-                            <p className="font-bold text-lg">¡A descansar!</p>
-                            <p className="text-sm text-white/80">Siguiente: {exerciseName}</p>
-                        </div>
-                    </div>
-                    <span className="text-5xl font-mono font-bold">{timeLeft}s</span>
-                </div>
-            </motion.div>
-        </AnimatePresence>
-    );
-};
-
-// --- ITEM DE EJERCICIO (TU CÓDIGO EXACTO, SIN CAMBIOS) ---
+// --- ITEM DE EJERCICIO ---
 const EjercicioItem = ({ ejercicio, onSetComplete, onCargaChange }) => (
     <motion.div
         layout
@@ -109,7 +75,7 @@ const EjercicioItem = ({ ejercicio, onSetComplete, onCargaChange }) => (
     </motion.div>
 );
 
-// --- NUEVO: MODAL DE FINALIZACIÓN ---
+// --- MODAL DE FINALIZACIÓN ---
 const WorkoutCompleteModal = ({ onSave, isSaving }) => (
     <motion.div
         initial={{ opacity: 0 }}
@@ -126,12 +92,12 @@ const WorkoutCompleteModal = ({ onSave, isSaving }) => (
         >
             <FaTrophy className="text-5xl text-yellow-400 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-800 mb-2">¡Entrenamiento Finalizado!</h2>
-            <p className="text-black mb-6">Guarda los resultados para registrar tu progreso.</p>
+            <p className="text-b mb-6">Guarda los resultados para registrar tu progreso.</p>
             <div className="flex flex-col gap-3">
                 <button
                     onClick={onSave}
                     disabled={isSaving}
-                    className="w-full bg-black text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:bg-green-400"
+                    className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:bg-green-400"
                 >
                     <FaSave />
                     {isSaving ? 'Guardando...' : 'Guardar Resultados'}
@@ -141,7 +107,7 @@ const WorkoutCompleteModal = ({ onSave, isSaving }) => (
     </motion.div>
 );
 
-// --- COMPONENTE PRINCIPAL (LÓGICA FINAL INTEGRADA) ---
+// --- COMPONENTE PRINCIPAL ---
 const RutinaDetalle = () => {
     const { id: rutinaId } = useParams();
     const location = useLocation();
@@ -181,61 +147,86 @@ const RutinaDetalle = () => {
                 return;
             }
 
-            const isBase = tipo === 'base';
-            const table = isBase ? 'rutinas_base' : 'rutinas_personalizadas';
-            const joinTable = isBase ? 'rutinas_base_ejercicios' : 'rutinas_personalizadas_ejercicios';
-            const seriesTable = isBase ? 'rutinas_base_series' : 'rutinas_personalizadas_series';
-            const cargaField = isBase ? 'carga_sugerida' : 'carga';
+            try {
+                let data = null;
+                let fetchError = null;
 
-            const { data, error: fetchError } = await supabase
-                .from(table)
-                .select(`
-                    nombre,
-                    ${joinTable} (
-                        orden,
-                        ejercicios ( id, nombre ),
-                        ${seriesTable} ( id, nro_set, reps, pausa, ${cargaField} )
-                    )
-                `)
-                .eq('id', rutinaId)
-                .single();
+                if (tipo === 'base') {
+                    ({ data, error: fetchError } = await supabase
+                        .from('rutinas_base')
+                        .select(`
+                            nombre,
+                            ejercicios_de_rutina:rutinas_base_ejercicios (
+                                orden,
+                                ejercicios:ejercicios ( id, nombre ),
+                                rutinas_base_series ( id, nro_set, reps, pausa, carga_sugerida )
+                            )
+                        `)
+                        .eq('id', rutinaId)
+                        .maybeSingle()
+                    );
+                } else {
+                    ({ data, error: fetchError } = await supabase
+                        .from('rutinas_personalizadas')
+                        .select(`
+                            nombre,
+                            ejercicios_asignados:rutinas_personalizadas_ejercicios (
+                                orden,
+                                ejercicios:ejercicios ( id, nombre ),
+                                rutinas_personalizadas_series ( id, nro_set, reps, pausa, carga )
+                            )
+                        `)
+                        .eq('id', rutinaId)
+                        .maybeSingle()
+                    );
+                }
 
-            if (fetchError || !data) {
-                console.error("Error fetching routine:", fetchError);
-                setError("No se pudieron cargar los detalles de la rutina.");
+                if (fetchError || !data) {
+                    console.error("Error fetching routine:", fetchError);
+                    setError(`No se pudieron cargar los detalles de la rutina. Error: ${fetchError?.message || 'Error desconocido'}`);
+                    setLoading(false);
+                    return;
+                }
+
+                // Elegí el alias correcto según el tipo
+                const joinKey = tipo === 'base' ? 'ejercicios_de_rutina' : 'ejercicios_asignados';
+                const seriesKey = tipo === 'base' ? 'rutinas_base_series' : 'rutinas_personalizadas_series';
+                const cargaField = tipo === 'base' ? 'carga_sugerida' : 'carga';
+
+                const ejerciciosData = (data[joinKey] || []).filter(d => d.ejercicios);
+                ejerciciosData.sort((a, b) => a.orden - b.orden);
+
+                const ejerciciosConSets = ejerciciosData.map(d => {
+                    const setsData = d[seriesKey] || [];
+                    setsData.sort((a, b) => a.nro_set - b.nro_set);
+
+                    return {
+                        id: d.ejercicios.id,
+                        nombre: d.ejercicios.nombre,
+                        sets: setsData.map(set => ({
+                            id: set.id,
+                            reps: set.reps,
+                            descanso: set.pausa > 0 ? set.pausa : 60,
+                            completed: false,
+                            cargaSugerida: set[cargaField] || '',
+                            cargaRealizada: tipo === 'base' ? '' : (set[cargaField] || ''),
+                        }))
+                    };
+                });
+
+                setRutina({ nombre: data.nombre, ejercicios: ejerciciosConSets });
+                setIsTimerRunning(location?.state?.startTimer === true);
+
+            } catch (err) {
+                console.error('❌ Error general cargando rutina:', err);
+                setError(err.message || "Ocurrió un error inesperado al cargar la rutina.");
+            } finally {
                 setLoading(false);
-                return;
             }
-
-            const ejerciciosData = (data[joinTable] || []).filter(d => d.ejercicios);
-            ejerciciosData.sort((a, b) => a.orden - b.orden);
-
-            const ejerciciosConSets = ejerciciosData.map(d => {
-                const setsData = d[seriesTable] || [];
-                setsData.sort((a, b) => a.nro_set - b.nro_set);
-
-                return {
-                    id: d.ejercicios.id,
-                    nombre: d.ejercicios.nombre,
-                    sets: setsData.map(set => ({
-                        id: set.id,
-                        reps: set.reps,
-                        descanso: set.pausa > 0 ? set.pausa : 60,
-                        completed: false,
-                        cargaSugerida: set[cargaField] || '',
-                        cargaRealizada: isBase ? '' : (set[cargaField] || ''),
-                    }))
-                };
-            });
-
-            setRutina({ nombre: data.nombre, ejercicios: ejerciciosConSets });
-            setLoading(false);
         };
-
+        
         fetchRutinaDetails();
-        setIsTimerRunning(location.state?.startTimer || false);
     }, [rutinaId, location.state]);
-
     const handleCargaChange = (ejercicioId, setId, carga) => {
         if (!rutina) return;
         const updatedEjercicios = rutina.ejercicios.map(ej => {
@@ -278,13 +269,14 @@ const RutinaDetalle = () => {
             setIsWorkoutComplete(true);
         } else {
             const currentExerciseIndex = rutina.ejercicios.findIndex(e => e.id === ejercicioId);
-            const currentExercise = rutina.ejercicios[currentExerciseIndex];
+            const currentExercise = updatedEjercicios[currentExerciseIndex];
             const currentSetIndex = currentExercise.sets.findIndex(s => s.id === setId);
+
             let nextExerciseName = "¡Entrenamiento finalizado!";
             if (currentSetIndex < currentExercise.sets.length - 1) {
                 nextExerciseName = currentExercise.nombre;
-            } else if (currentExerciseIndex < rutina.ejercicios.length - 1) {
-                nextExerciseName = rutina.ejercicios[currentExerciseIndex + 1].nombre;
+            } else if (currentExerciseIndex < updatedEjercicios.length - 1) {
+                nextExerciseName = updatedEjercicios[currentExerciseIndex + 1].nombre;
             }
             setRestInfo({ active: true, duration: completedSet.descanso, exerciseName: nextExerciseName });
         }
@@ -349,7 +341,13 @@ const RutinaDetalle = () => {
 
     return (
         <div className="bg-gray-100 min-h-screen pb-20">
-            <Chronometer time={time} isRunning={isTimerRunning} onToggle={() => setIsTimerRunning(!isTimerRunning)} />
+            {isTimerRunning && (
+                <Chronometer
+                    time={time}
+                    isRunning={isTimerRunning}
+                    onToggle={() => setIsTimerRunning(!isTimerRunning)}
+                />
+            )}
             {restInfo.active && (
                 <RestTimer duration={restInfo.duration} exerciseName={restInfo.exerciseName} onFinish={() => setRestInfo({ active: false, duration: 0, exerciseName: '' })} />
             )}

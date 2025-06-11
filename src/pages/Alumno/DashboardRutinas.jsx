@@ -73,7 +73,7 @@ const DashboardRutinas = () => {
                     };
                 })
                 .sort((a, b) => a.dia - b.dia);
-            
+
             setRutinas(formateadas);
             setLoading(false);
         };
@@ -130,15 +130,14 @@ const DashboardRutinas = () => {
                                     initial={{ opacity: 0, y: -20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0 }}
-                                    className={`rounded-2xl shadow-xl p-6 md:p-8 text-white ${
-                                        rutina.isCompleted 
-                                        ? 'bg-gradient-to-br from-green to-emerald-500' 
-                                        : 'bg-gradient-to-br from-indigo-600 to-blue-500'
-                                    }`}
+                                    className={`rounded-2xl shadow-xl p-6 md:p-8 text-white ${rutina.isCompleted
+                                            ? 'bg-gradient-to-br from-green-600 to-emerald-500'
+                                            : 'bg-gradient-to-br from-indigo-600 to-blue-500'
+                                        }`}
                                 >
                                     <p className="font-bold text-sm text-white/80 uppercase tracking-wider">Rutina de Hoy: {diasSemana[rutina.dia]}</p>
                                     <h3 className="text-3xl lg:text-4xl font-extrabold mt-2 drop-shadow-md">{rutina.nombre}</h3>
-                                    
+
                                     {/* --- NUEVO: RENDERIZADO CONDICIONAL DEL BOTÓN --- */}
                                     {rutina.isCompleted ? (
                                         <div className="mt-8 flex items-center justify-center gap-3 bg-white/20 text-white font-bold py-3 px-8 rounded-full cursor-not-allowed">
@@ -157,7 +156,7 @@ const DashboardRutinas = () => {
                                 </motion.div>
                             ))}
                         </AnimatePresence>
-                        
+
                         <div className="border-t border-gray-200 pt-8">
                             <h3 className="text-2xl font-bold text-gray-700 mb-5">Próximos Días</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

@@ -5,48 +5,46 @@ import { supabase } from '../../lib/supabaseClient';
 import AdminLayout from './AdminLayout';
 
 const AsignarRutina = () => {
-    const { id: alumnoId } = useParams(); //
-    const [searchParams] = useSearchParams(); //
-    const dia = parseInt(searchParams.get('dia'), 10); //
-    const navigate = useNavigate(); //
+    const { id: alumnoId } = useParams();
+    const [searchParams] = useSearchParams();
+    const dia = parseInt(searchParams.get('dia'), 10);
+    const navigate = useNavigate();
 
-    const [rutinas, setRutinas] = useState([]); //
-    const [loading, setLoading] = useState(true); //
-    const [mensaje, setMensaje] = useState(''); //
+    const [rutinas, setRutinas] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [mensaje, setMensaje] = useState('');
 
     useEffect(() => {
         const fetchRutinas = async () => {
-            const { data, error } = await supabase.from('rutinas_base').select('*'); //
-            if (!error) setRutinas(data); //
-            setLoading(false); //
+            const { data, error } = await supabase.from('rutinas_base').select('*');
+            if (!error) setRutinas(data);
+            setLoading(false);
         };
-        fetchRutinas(); //
+        fetchRutinas();
     }, []);
 
     const handleAsignar = async (rutinaBaseId) => {
         try {
             setMensaje('');
 
-            // Solo creamos la asignación, vinculando al alumno con la rutina base en un día específico.
-            // rutina_personalizada_id se deja en NULL.
             const { error } = await supabase.from('asignaciones').insert({
-                alumno_id: alumnoId, //
-                rutina_base_id: rutinaBaseId, //
-                dia_semana: dia, //
-                fecha_asignacion: new Date().toISOString(), //
+                alumno_id: alumnoId,
+                rutina_base_id: rutinaBaseId,
+                dia_semana: dia,
+                fecha_asignacion: new Date().toISOString(),
             });
 
-            if (error) throw error; //
+            if (error) throw error;
 
-            setMensaje('✅ Rutina base asignada correctamente. Puede ser personalizada al editar.'); //
-            setTimeout(() => navigate(`/admin/alumno/${alumnoId}`), 1500); //
+            setMensaje('✅ Rutina base asignada correctamente. Puede ser personalizada al editar.');
+            setTimeout(() => navigate(`/admin/alumno/${alumnoId}`), 1500);
 
         } catch (error) {
-            console.error('❌ Error durante la asignación:', error); //
+            console.error('❌ Error durante la asignación:', error);
             if (error.code === '23505') {
                 alert('❌ Este día ya tiene una rutina asignada.');
             } else {
-                alert('❌ Ocurrió un error al asignar la rutina'); //
+                alert('❌ Ocurrió un error al asignar la rutina');
             }
         }
     };
@@ -88,4 +86,4 @@ const AsignarRutina = () => {
     );
 };
 
-export default AsignarRutina; //
+export default AsignarRutina;
