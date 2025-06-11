@@ -6,7 +6,8 @@ import { supabase } from '../../lib/supabaseClient';
 import { FaPause, FaPlay, FaArrowLeft, FaCheck, FaStopwatch, FaTrophy, FaSave } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import RestTimer from '../../components/RestTimer';
-import VideoPanel from '../../components/VideoPanel'; // o donde lo pongas
+import EjercicioItem from '../../components/EjercicioItem';
+
 
 
 // --- CRONÓMETRO GENERAL (MODIFICADO PARA RECIBIR ESTADO) ---
@@ -32,32 +33,7 @@ const Chronometer = ({ time, isRunning, onToggle }) => {
 };
 
 
-// --- ITEM DE EJERCICIO ---
-const EjercicioItem = ({ ejercicio, onSetComplete, onCargaChange }) => {
-    const [showVideo, setShowVideo] = useState(false);
 
-    return (
-        <motion.div layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-4 sm:p-6 rounded-2xl shadow-md border">
-            <h3
-                onClick={() => setShowVideo(true)}
-                className="text-xl font-bold text-indigo-600 hover:underline cursor-pointer mb-4"
-            >
-                {ejercicio.nombre}
-            </h3>
-
-            <VideoPanel
-                open={showVideo}
-                onClose={() => setShowVideo(false)}
-                videoUrl={ejercicio.video_url}
-                nombre={ejercicio.nombre}
-            />
-
-            <div className="space-y-3">
-                {/* sets */}
-            </div>
-        </motion.div>
-    );
-};
 
 // --- MODAL DE FINALIZACIÓN ---
 const WorkoutCompleteModal = ({ onSave, isSaving }) => (
@@ -104,8 +80,6 @@ const RutinaDetalle = () => {
     const [time, setTime] = useState(0);
     const [isTimerRunning, setIsTimerRunning] = useState(false);
     const [restInfo, setRestInfo] = useState({ active: false, duration: 0, exerciseName: '' });
-    const [videoEjercicio, setVideoEjercicio] = useState(null);
-
 
     const [isWorkoutComplete, setIsWorkoutComplete] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -144,7 +118,7 @@ const RutinaDetalle = () => {
                             nombre,
                             ejercicios_de_rutina:rutinas_base_ejercicios (
                                 orden,
-                                ejercicios:ejercicios ( id, nombre ),
+                                ejercicios:ejercicios ( id, nombre, video_url ),
                                 rutinas_base_series ( id, nro_set, reps, pausa, carga_sugerida )
                             )
                         `)
@@ -158,7 +132,7 @@ const RutinaDetalle = () => {
                             nombre,
                             ejercicios_asignados:rutinas_personalizadas_ejercicios (
                                 orden,
-                                ejercicios:ejercicios ( id, nombre, video_url ),
+                                ejercicios:ejercicios ( id, nombre, video_url  ),
                                 rutinas_personalizadas_series ( id, nro_set, reps, pausa, carga )
                             )
                         `)
@@ -189,8 +163,7 @@ const RutinaDetalle = () => {
                     return {
                         id: d.ejercicios.id,
                         nombre: d.ejercicios.nombre,
-                        video_url: d.ejercicios.video_url,
-
+                        video_url: d.ejercicios.video_url, 
                         sets: setsData.map(set => ({
                             id: set.id,
                             reps: set.reps,
@@ -359,43 +332,23 @@ const RutinaDetalle = () => {
             </header>
 
             <main className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
-                <h1 className="text-3xl md:text-4xl font-extrabold text-gray-800 mb-6">
-                    {rutina?.nombre || 'Rutina'}
-                </h1>
-
+                <h1 className="text-3xl md:text-4xl font-extrabold text-gray-800 mb-6">{rutina?.nombre || 'Rutina'}</h1>
                 {rutina?.ejercicios?.length > 0 ? (
-                    <>
-                        {rutina.ejercicios.map((ej) => (
-                            <div key={ej.id}>
-                                <h3
-                                    onClick={() => setVideoEjercicio(ej)}
-                                    className="text-xl font-bold text-indigo-600 hover:underline cursor-pointer"
-                                >
-                                    {ej.nombre}
-                                </h3>
-                            </div>
-                        ))}
-
-                        <VideoPanel
-                            open={!!videoEjercicio}
-                            onClose={() => setVideoEjercicio(null)}
-                            ejercicio={videoEjercicio}
+                    rutina.ejercicios.map(ej => (
+                        <EjercicioItem
+                            key={ej.id}
+                            ejercicio={ej}
                             onSetComplete={handleSetComplete}
                             onCargaChange={handleCargaChange}
                         />
-                    </>
+                    ))
                 ) : (
                     <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-                        <p className="font-semibold text-gray-700">
-                            Esta rutina aún no tiene ejercicios asignados.
-                        </p>
-                        <p className="text-sm text-gray-500 mt-1">
-                            Contacta a tu entrenador para más detalles.
-                        </p>
+                        <p className="font-semibold text-gray-700">Esta rutina aún no tiene ejercicios asignados.</p>
+                        <p className="text-sm text-gray-500 mt-1">Contacta a tu entrenador para más detalles.</p>
                     </div>
                 )}
             </main>
-
         </div>
     );
 };

@@ -1,75 +1,54 @@
 // src/components/VideoPanel.jsx
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaCheck } from 'react-icons/fa';
 
-const VideoPanel = ({ open, onClose, ejercicio, onSetComplete, onCargaChange }) => {
-    if (!ejercicio) return null;
+const VideoPanel = ({ open, onClose, videoUrl }) => {
+    if (!videoUrl) return null;
 
     return (
         <AnimatePresence>
             {open && (
                 <motion.div
-                    initial={{ x: '100%' }}
-                    animate={{ x: 0 }}
-                    exit={{ x: '100%' }}
-                    transition={{ type: 'tween', duration: 0.3 }}
-                    className="fixed inset-0 z-50 bg-black/40 flex justify-end"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+                    onClick={onClose}
                 >
-                    <div className="bg-white w-full max-w-md h-full shadow-xl relative overflow-y-auto p-6 rounded-l-2xl">
-                        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 text-2xl font-bold">
-                            &times;
-                        </button>
-
-                        <h2 className="text-2xl font-bold mb-4">{ejercicio.nombre}</h2>
-
-                        {ejercicio.video_url && (
-                            <video src={ejercicio.video_url} controls className="w-full rounded-lg shadow mb-6" />
-                        )}
-
-                        <div className="space-y-3">
-                            {ejercicio.sets.map((set, index) => (
-                                <div
-                                    key={set.id}
-                                    className={`flex flex-wrap items-center justify-between gap-x-2 gap-y-2 p-1 rounded-lg transition-colors duration-300 ${set.completed ? 'bg-green-50 text-gray-400' : 'bg-gray-50'
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-4 flex-shrink-0">
-                                        <span
-                                            className={`font-bold text-lg ${set.completed ? 'line-through' : 'text-indigo-600'
-                                                }`}
-                                        >
-                                            Set {index + 1}
-                                        </span>
-                                        <p className="font-semibold text-gray-800">{set.reps} reps</p>
-                                    </div>
-                                    <div className="flex items-center gap-2 flex-grow justify-end">
-                                        <input
-                                            type="text"
-                                            placeholder={set.cargaSugerida ? `Sug: ${set.cargaSugerida}` : 'Carga'}
-                                            value={set.cargaRealizada || ''}
-                                            onChange={(e) => onCargaChange(ejercicio.id, set.id, e.target.value)}
-                                            disabled={set.completed}
-                                            className="input text-sm w-full max-w-[75px]"
-                                        />
-                                        <button
-                                            onClick={() => onSetComplete(ejercicio.id, set.id)}
-                                            disabled={set.completed}
-                                            className={`p-3 rounded-full transition-all duration-300 ${set.completed
-                                                    ? 'bg-green-500 text-white'
-                                                    : 'bg-gray-200 text-gray-500 hover:bg-green-200'
-                                                }`}
-                                        >
-                                            <FaCheck />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                    <motion.div
+                        initial={{ scale: 0.9 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0.9 }}
+                        transition={{ duration: 0.2 }}
+                        className="w-full max-w-3xl aspect-video"
+                        onClick={(e) => e.stopPropagation()} // evita cerrar al tocar el iframe
+                    >
+                        <iframe
+                            src={getEmbedUrl(videoUrl)}
+                            title="Video del ejercicio"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="w-full h-full rounded-xl shadow-2xl border-0"
+                        />
+                    </motion.div>
                 </motion.div>
             )}
         </AnimatePresence>
     );
 };
+
+// Transforma URL de YouTube en formato embed
+function getEmbedUrl(url) {
+    try {
+        const parsed = new URL(url);
+        const id =
+            parsed.hostname === 'youtu.be'
+                ? parsed.pathname.slice(1)
+                : parsed.searchParams.get('v');
+        return `https://www.youtube.com/embed/${id}?autoplay=1`;
+    } catch {
+        return '';
+    }
+}
 
 export default VideoPanel;
