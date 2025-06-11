@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaStopwatch } from 'react-icons/fa';
-import levelupSound from '../assets/levelup.mp3';
 
 const formatTime = (seconds) => {
     const m = String(Math.floor(seconds / 60)).padStart(2, '0');
@@ -16,6 +15,7 @@ const RestTimer = ({ duration = 30, exerciseName = 'Ejercicio siguiente', onFini
 
     useEffect(() => {
         setTimeLeft(duration);
+        console.log('🟢 RestTimer iniciado con duración:', duration);
 
         if (intervalRef.current) clearInterval(intervalRef.current);
 
@@ -25,17 +25,24 @@ const RestTimer = ({ duration = 30, exerciseName = 'Ejercicio siguiente', onFini
                     clearInterval(intervalRef.current);
                     intervalRef.current = null;
 
-                    // 🔊 Sonido
+                    console.log('⏰ Tiempo finalizado. Intentando reproducir sonido...');
                     if (audioRef.current) {
+                        console.log('🔍 AudioRef encontrado, volumen:', audioRef.current.volume);
                         audioRef.current.currentTime = 0;
-                        audioRef.current.play().catch(e =>
-                            console.warn('⚠️ Audio bloqueado por el navegador:', e)
-                        );
+                        audioRef.current
+                            .play()
+                            .then(() => console.log('✅ Sonido reproducido con éxito'))
+                            .catch((err) => console.error('❌ Error al reproducir sonido:', err));
+                    } else {
+                        console.warn('⚠️ audioRef es null');
                     }
 
-                    // 📳 Vibración (si el dispositivo lo soporta)
+                    // Vibración
                     if (navigator.vibrate) {
+                        console.log('📳 Dispositivo soporta vibración. Vibrando...');
                         navigator.vibrate([300, 100, 300]);
+                    } else {
+                        console.warn('📴 Vibración no soportada');
                     }
 
                     onFinish?.();
@@ -53,9 +60,12 @@ const RestTimer = ({ duration = 30, exerciseName = 'Ejercicio siguiente', onFini
 
     return (
         <>
-            <audio ref={audioRef} src={levelupSound} preload="auto" />
-
-            <AnimatePresence>
+            <audio
+                ref={audioRef}
+                src="https://iyipzkkiqscbzugrakeh.supabase.co/storage/v1/object/public/video//levelup.mp3"
+                preload="auto"
+            />
+<AnimatePresence>
                 {timeLeft > 0 && (
                     <motion.div
                         key="rest-timer"
