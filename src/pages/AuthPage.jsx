@@ -7,7 +7,6 @@ import { toast } from 'react-hot-toast';
 import backgroundImage from '../assets/FOTO_FONDO.webp';
 import { FaFacebook } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
-import { useEffect } from 'react';
 
 
 const transition = { duration: 0.5, ease: 'easeInOut' };
@@ -42,7 +41,7 @@ const AuthPage = () => {
         };
     }, []);
 
-    
+
 
     // Efecto para redirigir al usuario si ya está autenticado y tiene un rol
     useEffect(() => {
