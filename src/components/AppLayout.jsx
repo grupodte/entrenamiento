@@ -9,10 +9,17 @@ const AppLayout = () => {
             const vh = window.innerHeight * 0.01;
             document.documentElement.style.setProperty('--vh', `${vh}px`);
         };
-
         setViewportHeight();
         window.addEventListener('resize', setViewportHeight);
         return () => window.removeEventListener('resize', setViewportHeight);
+    }, []);
+
+    // 🔒 Desactivar scroll del body como en AuthPage
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = '';
+        };
     }, []);
 
     const handleRefresh = async () => {
@@ -23,9 +30,8 @@ const AppLayout = () => {
     const { isRefreshing, pullDistance, scrollRef } = usePullToRefresh(handleRefresh);
 
     return (
-        <div className="relative h-[calc(var(--vh,1vh)*100)] w-full overflow-hidden text-white">
-
-            {/* Imagen de fondo con estilo iOS blur */}
+        <div className="fixed inset-0 w-full h-full overflow-hidden text-white">
+            {/* Fondo con imagen y blur estilo iOS */}
             <div className="absolute inset-0 -z-10">
                 <img
                     src="/backgrounds/admin-blur.webp"
@@ -33,22 +39,19 @@ const AppLayout = () => {
                     className="w-full h-full object-cover opacity-40"
                 />
             </div>
-
-            {/* Capa de blur y oscurecimiento */}
             <div className="absolute inset-0 -z-10 backdrop-blur-xl bg-white/30" />
 
-            {/* Indicador de refresco */}
             <PullToRefreshIndicator
                 isRefreshing={isRefreshing}
                 pullDistance={pullDistance}
             />
 
-            {/* Contenido scrollable */}
+            {/* Contenedor de páginas */}
             <div
                 ref={scrollRef}
-                className="scroll-zone h-full overflow-y-auto overscroll-contain"
+                className="relative z-10 h-full overflow-y-auto overscroll-contain"
             >
-                    <Outlet />
+                <Outlet />
             </div>
         </div>
     );
