@@ -26,23 +26,23 @@ const AuthPage = () => {
             const vh = window.innerHeight * 0.01;
             document.documentElement.style.setProperty('--vh', `${vh}px`);
         };
-
-        useEffect(() => {
-            // Bloquear scroll al montar el componente
-            document.body.style.overflow = 'hidden';
-
-            return () => {
-                // Restaurar scroll al desmontar
-                document.body.style.overflow = '';
-            };
-          }, []);
-        
-
-        setViewportHeight();
+          setViewportHeight();
         window.addEventListener('resize', setViewportHeight);
         return () => window.removeEventListener('resize', setViewportHeight);
     }, []);
       
+
+    useEffect(() => {
+        // Bloquear scroll al montar el componente
+        document.body.style.overflow = 'hidden';
+
+        return () => {
+            // Restaurar scroll al desmontar
+            document.body.style.overflow = '';
+        };
+    }, []);
+
+    
 
     // Efecto para redirigir al usuario si ya está autenticado y tiene un rol
     useEffect(() => {
