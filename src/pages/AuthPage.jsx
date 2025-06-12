@@ -64,18 +64,8 @@ const AuthPage = () => {
             const { error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) return toast.error(error.message || 'Credenciales inválidas');
         } else {
-            const { data: existingUser } = await supabase
-                .from('perfiles')
-                .select('id')
-                .eq('email', email)
-                .maybeSingle();
-
-            if (existingUser) {
-                toast.error('⚠️ Este correo ya está registrado. Probá iniciar sesión.');
-                return;
-            }
-
-            const { error: signUpError } = await supabase.auth.signUp({
+            // Intentamos crear el usuario en Supabase Auth
+            const { data, error: signUpError } = await supabase.auth.signUp({
                 email,
                 password,
                 options: {
@@ -84,18 +74,25 @@ const AuthPage = () => {
             });
 
             if (signUpError) {
-                if (signUpError.message.includes('User already registered')) {
+                const isRegistered =
+                    signUpError.message?.includes('User already registered') ||
+                    signUpError.message?.toLowerCase().includes('already') || // Captura general
+                    signUpError.status === 400;
+
+                if (isRegistered) {
                     toast.error('⚠️ Este correo ya está registrado. Probá iniciar sesión.');
                 } else {
-                    toast.error(signUpError.message);
+                    toast.error(`❌ ${signUpError.message}`);
                 }
                 return;
             }
 
+            // Recién si no hay error, mostramos mensaje y seteamos el estado
             toast.success('📩 Revisa tu correo para verificar tu cuenta');
             setIsLogin(true);
             setPassword('');
         }
+        
     };
 
     const handleFacebook = async () => {
