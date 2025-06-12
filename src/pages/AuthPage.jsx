@@ -7,6 +7,8 @@ import { toast } from 'react-hot-toast';
 import backgroundImage from '../assets/FOTO_FONDO.webp';
 import { FaFacebook } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import { useEffect } from 'react';
+
 
 const transition = { duration: 0.5, ease: 'easeInOut' };
 
@@ -24,6 +26,17 @@ const AuthPage = () => {
             const vh = window.innerHeight * 0.01;
             document.documentElement.style.setProperty('--vh', `${vh}px`);
         };
+
+        seEffect(() => {
+            // Bloquear scroll al montar el componente
+            document.body.style.overflow = 'hidden';
+
+            return () => {
+                // Restaurar scroll al desmontar
+                document.body.style.overflow = '';
+            };
+          }, []);
+        
 
         setViewportHeight();
         window.addEventListener('resize', setViewportHeight);
@@ -117,21 +130,20 @@ const AuthPage = () => {
     };
 
     return (
-        <div
-            className="relative h-[calc(var(--vh,1vh)*100)] w-full flex items-center justify-center bg-cover bg-center overflow-hidden"
+        <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-cover bg-center z-0"
             style={{ backgroundImage: `url(${backgroundImage})` }}
         >
-            <div className="absolute inset-0 backdrop-blur-sm bg-black/50" />
+            <div className="absolute inset-0 backdrop-blur-sm bg-black/40" />
 
             <AnimatePresence mode="wait">
                 <motion.div
                     key={isLogin ? 'login' : 'register'}
-                    initial={{ y: 40, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -40, opacity: 0 }}
-                    transition={{ duration: 0.5, ease: 'easeInOut' }}
-                    className="relative z-10 p-6 sm:p-8 w-full max-w-sm bg-gradient-to-br from-white/10 to-black/30 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10"
-                >
+                    initial={{ x: isLogin ? 300 : -300, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: isLogin ? -300 : 300, opacity: 0 }}
+                    transition={transition}
+                    className="relative z-10 p-8 rounded-[30px] bg-gradient-to-br from-white/10 to-black/30 backdrop-blur-md shadow-xl w-full max-w-sm text-white"
+          >
                     <h2 className="text-2xl font-bold text-white mb-6 text-center tracking-tight">
                         {isLogin ? 'Iniciá sesión' : 'Creá tu cuenta'}
                     </h2>

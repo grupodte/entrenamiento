@@ -17,6 +17,7 @@ body,
   -webkit-tap-highlight-color: transparent;
 }
 
+
 body {
   @apply font-product bg-black text-white select-none overflow-hidden;
 
