@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import BrandedLoader from '../components/BrandedLoader';
+import { FaUser } from 'react-icons/fa';
 
 const AlumnosManager = () => {
     const [alumnos, setAlumnos] = useState([]);
@@ -8,7 +10,7 @@ const AlumnosManager = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchRol = async () => {
+        const verificarRol = async () => {
             const { data: user } = await supabase.auth.getUser();
             const { data: perfil } = await supabase
                 .from('perfiles')
@@ -16,57 +18,74 @@ const AlumnosManager = () => {
                 .eq('id', user?.user?.id)
                 .maybeSingle();
 
-            if (perfil?.rol === 'admin') {
-                setEsAdmin(true);
-            } else {
-                setEsAdmin(false);
-            }
+            setEsAdmin(perfil?.rol === 'admin');
         };
 
-        fetchRol();
+        verificarRol();
     }, []);
 
     useEffect(() => {
-        const fetchAlumnos = async () => {
+        const obtenerAlumnos = async () => {
             const { data, error } = await supabase
                 .from('perfiles')
-                .select('id, rol, nombre, apellido, email')
+                .select('id, nombre, apellido, email, avatar_url')
                 .eq('rol', 'alumno');
 
             if (!error) setAlumnos(data);
         };
 
-        if (esAdmin) fetchAlumnos();
+        if (esAdmin) obtenerAlumnos();
     }, [esAdmin]);
 
-    if (esAdmin === null) return <p className="text-white">Cargando...</p>;
+    if (esAdmin === null) return <BrandedLoader />;
 
     if (!esAdmin) {
-        return <p className="text-red-500 font-semibold">⛔ Acceso denegado</p>;
+        return (
+            <div className="p-6 text-red-400 font-semibold text-center text-lg">
+                ⛔ Acceso denegado — Solo administradores pueden ver esta sección.
+            </div>
+        );
     }
 
     return (
-        <div>
-            <h1 className="text-2xl font-bold mb-4">Alumnos</h1>
+        <div className="px-2 md:px-6 py-4">
+            <h1 className="text-2xl font-bold mb-6">👥 Alumnos registrados</h1>
+
             {alumnos.length === 0 ? (
-                <p>No hay alumnos registrados.</p>
+                <p className="text-sm text-gray-300">No hay alumnos cargados.</p>
             ) : (
-                <ul className="space-y-4">
+                <ul className="grid gap-4">
                     {alumnos.map((alumno) => (
                         <li
                             key={alumno.id}
-                            className="p-4 border bg-white rounded-lg shadow-sm flex justify-between items-center"
+                            className="p-4 bg-white/10 backdrop-blur rounded-xl shadow-md flex justify-between items-center hover:bg-white/20 transition"
                         >
-                            <div>
-                                <p className="font-bold">{alumno.nombre} {alumno.apellido}</p>
-                                <p className="text-sm text-gray-500">{alumno.email}</p>
+                            <div className="flex items-center gap-4">
+                                {alumno.avatar_url ? (
+                                    <img
+                                        src={alumno.avatar_url}
+                                        alt={`${alumno.nombre} ${alumno.apellido}`}
+                                        className="w-12 h-12 rounded-full object-cover border border-white/20"
+                                    />
+                                ) : (
+                                    <div className="bg-white/20 rounded-full p-3">
+                                        <FaUser className="text-white text-lg" />
+                                    </div>
+                                )}
+
+                                <div>
+                                    <p className="font-semibold text-white">
+                                        {alumno.nombre} {alumno.apellido}
+                                    </p>
+                                    <p className="text-sm text-gray-300">{alumno.email}</p>
+                                </div>
                             </div>
-                            <a
-                                href={`/admin/alumno/${alumno.id}`}
-                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                            <button
+                                onClick={() => navigate(`/admin/alumno/${alumno.id}`)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
                             >
                                 Ver Perfil
-                            </a>
+                            </button>
                         </li>
                     ))}
                 </ul>
