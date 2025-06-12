@@ -43,14 +43,18 @@ export const usePullToRefresh = (onRefresh) => {
         if (!gestureRef.current.isDragging || !gestureRef.current.readyToPull) return;
 
         const currentY = e.touches[0].clientY;
-        const distance = currentY - gestureRef.current.startY;
+        const scrollTop = scrollRef.current?.scrollTop;
 
+        if (scrollTop > 0) return; // 🚫 No tirar si no estamos en la cima
+
+        const distance = currentY - gestureRef.current.startY;
         if (distance > 0) {
-            e.preventDefault();
+            e.preventDefault(); // Previene scroll nativo solo si está en la cima
             const dampened = Math.min(distance * 0.4, PULL_THRESHOLD + 40);
             setPullDistance(dampened);
         }
     }, []);
+    
 
     const handleTouchEnd = useCallback(async () => {
         if (!gestureRef.current.isDragging) return;
@@ -80,6 +84,6 @@ export const usePullToRefresh = (onRefresh) => {
             el.removeEventListener('touchend', handleTouchEnd);
         };
     }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
-
+    
     return { isRefreshing, pullDistance, scrollRef };
 };

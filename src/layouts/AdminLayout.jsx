@@ -43,8 +43,9 @@ const AdminLayout = ({ children }) => {
             {/* Layout principal con scroll interno */}
             <div
                 ref={scrollRef}
-                className="relative z-10 flex h-full overflow-y-auto overscroll-contain"
+                className="relative z-10 flex h-full overflow-y-scroll overscroll-contain"
             >
+
                 <AdminSidebarDesktop />
 
                 <main className="flex-1 min-h-full p-6 md:p-10">
