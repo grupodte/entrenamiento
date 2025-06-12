@@ -9,8 +9,13 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'favicon.ico', 'robots.txt'],
-      manifest: {
+      includeAssets: [
+        'favicon.svg',
+        'favicon.ico',
+        'robots.txt',
+        'backgrounds/admin-blur.png' // 👈 agregá esta línea
+      ],
+            manifest: {
         name: 'FitApp Trainer',
         short_name: 'FitApp',
         description: 'Tu rutina personalizada con seguimiento diario',

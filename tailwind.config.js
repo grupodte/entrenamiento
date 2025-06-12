@@ -46,6 +46,13 @@ module.exports = {
                 'fade-in': 'fade-in 1s ease-out',
                 'spin-slow': 'spin 20s linear infinite',
                 kenburns: 'kenburns 20s ease-in-out infinite alternate',
+                fadeIn: 'fadeIn 0.4s ease-out',
+            },
+            keyframes: {
+                fadeIn: {
+                    '0%': { opacity: 0 },
+                    '100%': { opacity: 1 },
+              },
             },
         },
     },

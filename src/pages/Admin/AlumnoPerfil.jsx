@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { FaArrowLeft, FaEnvelope, FaBullseye, FaSignal } from 'react-icons/fa';
-import AdminLayout from './AdminLayout';
+import AdminLayout from '../../layouts/AdminLayout';
 
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -202,7 +202,6 @@ const AlumnoPerfil = () => {
         }
     };
     
-    if (loading) return <p className="text-center mt-10">Cargando datos del alumno...</p>;
 
     return (
         <AdminLayout>

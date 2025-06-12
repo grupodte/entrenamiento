@@ -3,48 +3,46 @@
 @tailwind components;
 @tailwind utilities;
 
-/*
-  --- CORRECCIÓN CON FLEXBOX ---
-  Usamos Flexbox para un control de layout más robusto. Esto asegura que #root
-  ocupe todo el espacio y que nuestro AppLayout pueda crecer para llenarlo.
-*/
+/* ======================== */
+/* GLOBAL BASE             */
+/* ======================== */
 html,
 body,
 #root {
   height: 100%;
-  /* Ocupa toda la altura de la ventana */
   margin: 0;
   padding: 0;
-  /* Elimina 'overflow: hidden' para que el contenido pueda desbordarse */
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  @apply font-product select-none text-white bg-black overflow-hidden m-0 p-0;
+  @apply font-product bg-black text-white select-none overflow-hidden;
 
   touch-action: manipulation;
   overscroll-behavior: none;
+  font-smoothing: antialiased;
 }
 
 #root {
   display: flex;
-  /* Mantiene la estructura flexbox */
   flex-direction: column;
 }
 
-html {
-  scroll-behavior: smooth;
+/* ======================== */
+/* TYPOGRAPHY              */
+/* ======================== */
+@font-face {
+  font-family: 'ProductSans';
+  src: url('./assets/fonts/ProductSansBold.ttf') format('truetype');
+  font-weight: 700;
 }
 
-html,
-body {
-  overflow-x: hidden;
-}
-
-/* El resto de tus estilos se mantienen como estaban */
-@layer components {
-  .all-\[unset\] {
-    all: unset;
-  }
+@font-face {
+  font-family: 'ProductSans';
+  src: url('./assets/fonts/ProductSansRegular.ttf') format('truetype');
+  font-weight: 400;
 }
 
 @layer base {
@@ -56,29 +54,24 @@ body {
   }
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+/* ======================== */
+/* SCROLLBAR CUSTOM        */
+/* ======================== */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-img {
-  pointer-events: none;
-  user-select: none;
+::-webkit-scrollbar-track {
+  background: #111827;
 }
 
-@font-face {
-  font-family: 'ProductSans';
-  src: url('./assets/fonts/ProductSansBold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: bold;
+::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
 }
 
-@font-face {
-  font-family: 'ProductSans';
-  src: url('./assets/fonts/ProductSansRegular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
+html {
+  scrollbar-color: #4b5563 #111827;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -86,15 +79,40 @@ img {
 }
 
 .no-scrollbar {
-  -ms-overflow-style: none;
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
+/* ======================== */
+/* GENERAL UX ENHANCEMENTS */
+/* ======================== */
 *:focus {
   outline: none;
 }
 
-/* Estilo base (mobile primero) */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img {
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ======================== */
+/* CUSTOM UTILITIES        */
+/* ======================== */
+@layer components {
+  .all-\[unset\] {
+    all: unset;
+  }
+}
+
+/* ======================== */
+/* DATEPICKER STYLING      */
+/* ======================== */
 .dark-calendar {
   font-size: 10px;
   @apply bg-white rounded-lg shadow-lg p-2 text-sm;
@@ -110,7 +128,7 @@ img {
   font-size: 10px;
   width: 0.8rem;
   height: 0.8rem;
-  line-height: 1rem
+  line-height: 1rem;
 }
 
 .dark-calendar .react-datepicker__time-list-item {
@@ -118,7 +136,6 @@ img {
   padding: 4px 6px;
 }
 
-/* Estilo para desktop: agranda todo */
 @media (min-width: 380px) {
   .dark-calendar {
     font-size: 14px;
@@ -137,7 +154,3 @@ img {
     padding: 6px 10px;
   }
 }
-
-/* Popper para que no se superponga */
-  .dark-datepicker-popper {
-  z-index: 9999 !important;}

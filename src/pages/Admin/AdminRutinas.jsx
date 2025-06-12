@@ -1,4 +1,4 @@
-import AdminLayout from './AdminLayout';
+import AdminLayout from '../../layouts/AdminLayout';
 import RutinasManager from '../../components/RutinasManager';
 
 const AdminRutinas = () => {

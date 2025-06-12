@@ -1,4 +1,4 @@
-import AdminLayout from './AdminLayout';
+import AdminLayout from '../../layouts/AdminLayout';
 import EjerciciosManager from '../../components/EjerciciosManager';
 
 const AdminEjercicios = () => {

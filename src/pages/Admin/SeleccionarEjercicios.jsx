@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
-import AdminLayout from './AdminLayout';
+import AdminLayout from '../../layouts/AdminLayout';
 
 
 const SeleccionarEjercicios = () => {

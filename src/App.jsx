@@ -28,6 +28,9 @@ import AdminEjercicios from './pages/Admin/AdminEjercicios';
 import AsignarRutina from './pages/Admin/AsignarRutina';
 import EditarDia from './pages/Admin/EditarDia';
 
+// --- LAYOUTS
+import AdminLayout from './layouts/AdminLayout'
+
 // --- COMPONENTE PWA ---
 function InstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -122,10 +125,13 @@ const App = () => {
               path="/admin"
               element={
                 <RutaProtegida rolPermitido="admin">
-                  <AdminPanel />
+                  <AdminLayout>
+                    <AdminPanel />
+                  </AdminLayout>
                 </RutaProtegida>
               }
             />
+
             <Route
               path="/admin/alumnos"
               element={

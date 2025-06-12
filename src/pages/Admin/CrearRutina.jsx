@@ -2,7 +2,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import AdminLayout from './AdminLayout';
+import AdminLayout from '../../layouts/AdminLayout';
 
 const CrearRutina = () => {
     const { state } = useLocation();
