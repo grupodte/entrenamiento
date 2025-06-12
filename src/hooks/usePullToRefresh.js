@@ -1,20 +1,22 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
-const PULL_THRESHOLD = 80; // px
+const PULL_THRESHOLD = 80;
 
 export const usePullToRefresh = (onRefresh) => {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [pullDistance, setPullDistance] = useState(0);
     const scrollRef = useRef(null);
+    const isMounted = useRef(true);
 
-    const gestureRef = useRef({
+    // Gesto unificado
+    const gesture = useRef({
         startY: 0,
-        isDragging: false,
-        readyToPull: false,
+        active: false,   // Si hay un gesto en curso
+        canPull: false,  // Si se puede hacer pull (solo cuando scrollTop está arriba)
     });
 
     const resetPull = () => {
-        let start = pullDistance;
+        const start = pullDistance;
         const duration = 200;
         const startTime = performance.now();
 
@@ -22,49 +24,62 @@ export const usePullToRefresh = (onRefresh) => {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
             setPullDistance(start * (1 - progress));
-
             if (progress < 1) requestAnimationFrame(animate);
         };
 
         requestAnimationFrame(animate);
     };
 
-    const handleTouchStart = useCallback((e) => {
-        const scrollTop = scrollRef.current?.scrollTop || 0;
-        gestureRef.current.readyToPull = scrollTop <= 0;
+    const cancelGesture = () => {
+        gesture.current.active = false;
+        gesture.current.canPull = false;
+        setPullDistance(0);
+    };
 
-        if (gestureRef.current.readyToPull) {
-            gestureRef.current.startY = e.touches[0].clientY;
-            gestureRef.current.isDragging = true;
+    const handleTouchStart = useCallback((e) => {
+        const el = scrollRef.current;
+        const scrollTop = el?.scrollTop ?? 0;
+
+        if (scrollTop <= 1) {
+            gesture.current.canPull = true;
+            gesture.current.active = true;
+            gesture.current.startY = e.touches[0].clientY;
+        } else {
+            cancelGesture();
         }
     }, []);
 
     const handleTouchMove = useCallback((e) => {
-        if (!gestureRef.current.isDragging || !gestureRef.current.readyToPull) return;
+        if (!gesture.current.active || !gesture.current.canPull) return;
+
+        const el = scrollRef.current;
+        if (!el || el.scrollTop > 1) {
+            cancelGesture();
+            return;
+        }
 
         const currentY = e.touches[0].clientY;
-        const scrollTop = scrollRef.current?.scrollTop;
+        const deltaY = currentY - gesture.current.startY;
 
-        if (scrollTop > 0) return; // 🚫 No tirar si no estamos en la cima
-
-        const distance = currentY - gestureRef.current.startY;
-        if (distance > 0) {
-            e.preventDefault(); // Previene scroll nativo solo si está en la cima
-            const dampened = Math.min(distance * 0.4, PULL_THRESHOLD + 40);
+        if (deltaY > 0) {
+            e.preventDefault(); // Solo cuando hay un "pull" válido
+            const dampened = Math.min(deltaY * 0.4, PULL_THRESHOLD + 40);
             setPullDistance(dampened);
         }
     }, []);
-    
 
     const handleTouchEnd = useCallback(async () => {
-        if (!gestureRef.current.isDragging) return;
+        if (!gesture.current.active || !gesture.current.canPull) return;
 
-        gestureRef.current.isDragging = false;
+        gesture.current.active = false;
 
         if (pullDistance > PULL_THRESHOLD) {
             setIsRefreshing(true);
-            await onRefresh();
-            setIsRefreshing(false);
+            try {
+                await onRefresh?.();
+            } finally {
+                if (isMounted.current) setIsRefreshing(false);
+            }
         }
 
         resetPull();
@@ -74,6 +89,7 @@ export const usePullToRefresh = (onRefresh) => {
         const el = scrollRef.current;
         if (!el) return;
 
+        // Attach listeners
         el.addEventListener('touchstart', handleTouchStart, { passive: true });
         el.addEventListener('touchmove', handleTouchMove, { passive: false });
         el.addEventListener('touchend', handleTouchEnd);
@@ -84,6 +100,17 @@ export const usePullToRefresh = (onRefresh) => {
             el.removeEventListener('touchend', handleTouchEnd);
         };
     }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
-    
-    return { isRefreshing, pullDistance, scrollRef };
+
+    useEffect(() => {
+        isMounted.current = true;
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
+
+    return {
+        scrollRef,
+        isRefreshing,
+        pullDistance,
+    };
 };
