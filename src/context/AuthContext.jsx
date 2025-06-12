@@ -1,3 +1,4 @@
+// src/context/AuthContext.jsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
@@ -8,9 +9,9 @@ export const AuthProvider = ({ children }) => {
     const [rol, setRol] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Cargar usuario y rol al montar
     useEffect(() => {
-        const fetchUser = async () => {
+        const fetchUserAndRol = async () => {
+            setLoading(true);
             const { data } = await supabase.auth.getUser();
             setUser(data.user);
 
@@ -19,15 +20,23 @@ export const AuthProvider = ({ children }) => {
                     .from('perfiles')
                     .select('rol')
                     .eq('id', data.user.id)
-                    .single();
+                    .maybeSingle();
 
                 setRol(perfil?.rol || null);
+            } else {
+                setRol(null);
             }
 
             setLoading(false);
         };
 
-        fetchUser();
+        fetchUserAndRol();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            fetchUserAndRol();
+        });
+
+        return () => subscription.unsubscribe();
     }, []);
 
     const login = (userData, userRol) => {

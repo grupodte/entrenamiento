@@ -1,3 +1,4 @@
+// src/pages/AuthPage.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -5,6 +6,7 @@ import { supabase } from '../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
 import backgroundImage from '../assets/FOTO_FONDO.webp';
 import { FaFacebook } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
 const transition = { duration: 0.5, ease: 'easeInOut' };
 
@@ -14,61 +16,65 @@ const AuthPage = () => {
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
     const location = useLocation();
+    const { user, rol, loading } = useAuth();
 
-    // ✅ Recupera sesión si viene del email (access_token en hash)
+    // Efecto para redirigir al usuario si ya está autenticado y tiene un rol
     useEffect(() => {
-        const checkRecovery = async () => {
-            if (window.location.hash.includes('access_token')) {
-                const { data, error } = await supabase.auth.getSessionFromUrl();
+        if (!loading && user && rol) {
+            const destino = rol === 'admin' ? '/admin' : '/dashboard';
+            navigate(destino, { replace: true });
+        }
+    }, [user, rol, loading, navigate]);
+
+    // --- CÓDIGO CORREGIDO ---
+    // Efecto para manejar el callback de verificación de email y activar la cuenta
+    useEffect(() => {
+        const activarCuentaYRedirigir = async () => {
+            // 1. Nos aseguramos de que el contexto de autenticación ya cargó al usuario
+            if (user) {
+                // 2. Actualizamos el estado del perfil en la base de datos
+                const { error } = await supabase
+                    .from('perfiles')
+                    .update({ estado: 'Activo' })
+                    .eq('id', user.id); // Usamos el ID del usuario desde el contexto
+
                 if (error) {
-                    toast.error('Error recuperando sesión');
-                    console.error(error);
-                } else if (data.session) {
-                    const { error: errorEstado } = await supabase
-                        .from('perfiles')
-                        .update({ estado: 'activo' })
-                        .eq('id', data.session.user.id);
-
-                    if (errorEstado) {
-                        console.error('❌ Error actualizando estado del usuario:', errorEstado);
-                    } else {
-                        toast.success('✅ Estado actualizado: cuenta activa');
-              }
+                    toast.error('❌ Error al activar la cuenta. Revisa los permisos.');
+                } else {
+                    toast.success('🙌 Cuenta activada correctamente.');
                 }
-            }
 
-            if (location.search.includes('verified=true')) {
-                toast.success('✅ Correo verificado. Ahora podés iniciar sesión');
-                setIsLogin(true);
+                // 3. Limpiamos la URL para que el efecto no se repita.
+                // El primer useEffect se encargará de la redirección final al dashboard.
+                navigate('/login', { replace: true });
             }
         };
-        checkRecovery();
-    }, [location]);
+
+        // Se ejecuta solo si la URL contiene 'verified=true' Y el contexto ya tiene un usuario
+        if (location.search.includes('verified=true') && !loading && user) {
+            toast.success('✅ Correo verificado. Activando tu cuenta...');
+            activarCuentaYRedirigir();
+        }
+    }, [location, navigate, user, loading]); // <-- Dependencias clave para un funcionamiento correcto
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (isLogin) {
-            const { data: sessionData, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) return toast.error('Credenciales inválidas');
-
-            const userId = sessionData?.user?.id;
-            if (!userId) return toast.error('No se pudo obtener el usuario');
-
-            const { data: perfil, error: errorPerfil } = await supabase
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) return toast.error(error.message || 'Credenciales inválidas');
+        } else {
+            const { data: existingUser } = await supabase
                 .from('perfiles')
-                .select('rol')
-                .eq('id', userId)
+                .select('id')
+                .eq('email', email)
                 .maybeSingle();
 
-            if (errorPerfil || !perfil?.rol) {
-                console.error('❌ Error perfil:', errorPerfil);
-                return toast.error('No se pudo obtener tu perfil');
+            if (existingUser) {
+                toast.error('⚠️ Este correo ya está registrado. Probá iniciar sesión.');
+                return;
             }
 
-            toast.success('🔓 Bienvenido');
-            navigate(perfil.rol === 'admin' ? '/admin' : '/dashboard');
-        } else {
             const { error: signUpError } = await supabase.auth.signUp({
                 email,
                 password,
@@ -77,16 +83,26 @@ const AuthPage = () => {
                 },
             });
 
-            if (signUpError) return toast.error(signUpError.message);
+            if (signUpError) {
+                if (signUpError.message.includes('User already registered')) {
+                    toast.error('⚠️ Este correo ya está registrado. Probá iniciar sesión.');
+                } else {
+                    toast.error(signUpError.message);
+                }
+                return;
+            }
 
-            toast.success('📩 Revisá tu correo para verificar tu cuenta');
+            toast.success('📩 Revisa tu correo para verificar tu cuenta');
             setIsLogin(true);
             setPassword('');
         }
     };
 
     const handleFacebook = async () => {
-        const { error } = await supabase.auth.signInWithOAuth({ provider: 'facebook' });
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'facebook',
+            options: { redirectTo: window.location.origin },
+        });
         if (error) toast.error('Error con Facebook');
     };
 
@@ -111,6 +127,7 @@ const AuthPage = () => {
                     </h2>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* ... campos del formulario sin cambios ... */}
                         <div>
                             <label className="text-sm">Email</label>
                             <input

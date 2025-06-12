@@ -1,39 +1,61 @@
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabaseClient';
 import { FaSignOutAlt, FaDumbbell, FaUtensils, FaEnvelope } from 'react-icons/fa';
 
 const Dashboard = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const [nombre, setNombre] = useState('');
+
+    useEffect(() => {
+        const fetchPerfil = async () => {
+            if (!user?.id) return;
+
+            const { data, error } = await supabase
+                .from('perfiles')
+                .select('nombre')
+                .eq('id', user.id)
+                .single();
+
+            if (error) {
+                console.error('Error al obtener perfil:', error.message);
+            } else {
+                setNombre(data?.nombre || '');
+            }
+        };
+
+        fetchPerfil();
+    }, [user]);
 
     const handleLogout = async () => {
         await logout();
         navigate('/login');
     };
 
-    // Opciones del menú del dashboard
     const menuOptions = [
         {
             title: "Mis Rutinas",
             description: "Consulta tu plan de entrenamiento semanal.",
             icon: <FaDumbbell className="text-4xl text-white" />,
-            path: "/dashboard/rutinas", // La nueva ruta para las rutinas
+            path: "/dashboard/rutinas",
             color: "from-blue-500 to-indigo-600",
         },
         {
             title: "Mi Dieta",
             description: "Accede a tu plan de nutrición y comidas.",
             icon: <FaUtensils className="text-4xl text-white" />,
-            path: "/dashboard/dieta", // Ruta futura para la dieta
+            path: "/dashboard/dieta",
             color: "from-green to-teal-600",
         },
         {
             title: "Mensajes",
             description: "Comunícate con tu entrenador.",
             icon: <FaEnvelope className="text-4xl text-white" />,
-            path: "/dashboard/mensajes", // Ruta futura para mensajes
+            path: "/dashboard/mensajes",
             color: "from-orange-500 to-red-600",
-        }
+        },
     ];
 
     return (
@@ -46,7 +68,7 @@ const Dashboard = () => {
                             Panel Principal
                         </h1>
                         <p className="text-sm text-gray-500">
-                            Bienvenido, {user?.user_metadata?.nombre || 'Alumno'}
+                            Bienvenido, {nombre }
                         </p>
                     </div>
                     <button
@@ -59,7 +81,7 @@ const Dashboard = () => {
                 </div>
             </header>
 
-            {/* Contenido principal con las tarjetas de menú */}
+            {/* Tarjetas */}
             <main className="max-w-5xl mx-auto p-6 mt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {menuOptions.map((option) => (
@@ -78,9 +100,8 @@ const Dashboard = () => {
                                     Acceder →
                                 </span>
                             </div>
-                            {/* Efecto de fondo */}
                             <div className="absolute top-0 right-0 -mt-10 -mr-10 text-white/10 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-125">
-                                {option.icon && <div className="text-9xl">{option.icon}</div>}
+                                <div className="text-9xl">{option.icon}</div>
                             </div>
                         </button>
                     ))}
