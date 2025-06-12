@@ -27,7 +27,7 @@ const AuthPage = () => {
             document.documentElement.style.setProperty('--vh', `${vh}px`);
         };
 
-        seEffect(() => {
+        useEffect(() => {
             // Bloquear scroll al montar el componente
             document.body.style.overflow = 'hidden';
 
