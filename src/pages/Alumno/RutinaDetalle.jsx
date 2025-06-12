@@ -117,7 +117,7 @@ const RutinaDetalle = () => {
                         .select(`
                             nombre,
                             ejercicios_de_rutina:rutinas_base_ejercicios (
-                                orden,
+                                orden,  
                                 ejercicios:ejercicios ( id, nombre, video_url ),
                                 rutinas_base_series ( id, nro_set, reps, pausa, carga_sugerida )
                             )
@@ -243,6 +243,8 @@ const RutinaDetalle = () => {
         }
     };
 
+    // Reemplaza tu función handleSaveResults en RutinaDetalle.jsx con esta:
+
     const handleSaveResults = async () => {
         setIsSaving(true);
         const { data: { user } } = await supabase.auth.getUser();
@@ -252,19 +254,39 @@ const RutinaDetalle = () => {
             return;
         }
 
+        // --- INICIO DE LA CORRECCIÓN ---
+
+        // 1. Crear un objeto base para la sesión
+        const sesionPayload = {
+            alumno_id: user.id,
+            duracion_segundos: time
+        };
+
+        // 2. Añadir el ID de la rutina correcta según el tipo
+        if (tipoRutina === 'base') {
+            sesionPayload.rutina_base_id = rutinaId;
+        } else {
+            // Asumimos que si no es 'base', es 'personalizada'
+            sesionPayload.rutina_personalizada_id = rutinaId;
+        }
+
+        // 3. Insertar el objeto dinámico en la base de datos
         const { data: sesionData, error: sesionError } = await supabase
             .from('sesiones_entrenamiento')
-            .insert({ alumno_id: user.id, rutina_personalizada_id: rutinaId, duracion_segundos: time })
+            .insert(sesionPayload)
             .select()
             .single();
 
+        // --- FIN DE LA CORRECCIÓN ---
+
         if (sesionError) {
             console.error('Error creando la sesión:', sesionError);
-            alert('Ocurrió un error al guardar la sesión.');
+            alert('Ocurrió un error al guardar la sesión. Revisa la consola para más detalles.');
             setIsSaving(false);
             return;
         }
 
+        // El resto de la lógica para guardar las series ya es genérica y debería funcionar bien.
         const seriesDataToInsert = [];
         rutina.ejercicios.forEach((ej, ejIndex) => {
             ej.sets.forEach((set, setIndex) => {

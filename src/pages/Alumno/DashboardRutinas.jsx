@@ -23,10 +23,12 @@ const DashboardRutinas = () => {
             return;
         }
 
+        // Reemplaza tu función fetchRutinasYCompletadas en DashboardRutinas.jsx con esta:
+
         const fetchRutinasYCompletadas = async () => {
             setLoading(true);
 
-            // 1. Obtener las rutinas asignadas (sin cambios)
+            // 1. Obtener las rutinas asignadas (esto ya estaba bien)
             const { data: asignaciones, error: errorAsignaciones } = await supabase
                 .from('asignaciones')
                 .select('dia_semana, rutina_personalizada_id, rutinas_personalizadas ( nombre ), rutina_base_id, rutinas_base ( nombre )')
@@ -39,14 +41,17 @@ const DashboardRutinas = () => {
                 return;
             }
 
-            // --- NUEVO: OBTENER RUTINAS COMPLETADAS HOY ---
+            // --- INICIO DE LA CORRECCIÓN ---
+
+            // 2. OBTENER RUTINAS COMPLETADAS HOY (DE AMBOS TIPOS)
             const hoy = new Date();
             const inicioDelDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).toISOString();
             const finDelDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 1).toISOString();
 
+            // CAMBIO 1: Pedimos tanto el ID de la rutina base como el de la personalizada
             const { data: sesionesCompletadas, error: errorSesiones } = await supabase
                 .from('sesiones_entrenamiento')
-                .select('rutina_personalizada_id')
+                .select('rutina_personalizada_id, rutina_base_id')
                 .eq('alumno_id', user.id)
                 .gte('created_at', inicioDelDia)
                 .lt('created_at', finDelDia);
@@ -55,9 +60,20 @@ const DashboardRutinas = () => {
                 console.error('Error al verificar sesiones completadas:', errorSesiones);
             }
 
-            const idsCompletados = new Set(sesionesCompletadas?.map(s => s.rutina_personalizada_id) || []);
+            // CAMBIO 2: Procesamos ambos IDs para crear el conjunto de rutinas completadas
+            const idsCompletados = new Set();
+            sesionesCompletadas?.forEach(sesion => {
+                if (sesion.rutina_personalizada_id) {
+                    idsCompletados.add(sesion.rutina_personalizada_id);
+                }
+                if (sesion.rutina_base_id) {
+                    idsCompletados.add(sesion.rutina_base_id);
+                }
+            });
 
-            // --- MODIFICADO: Añadir el estado 'isCompleted' a cada rutina ---
+            // --- FIN DE LA CORRECCIÓN ---
+
+            // 3. Añadir el estado 'isCompleted' a cada rutina (esto ya estaba bien)
             const formateadas = asignaciones
                 .map((a) => {
                     const esPersonalizada = !!a.rutina_personalizada_id;
@@ -69,7 +85,7 @@ const DashboardRutinas = () => {
                         rutinaId,
                         nombre: nombre || 'Rutina Asignada',
                         tipo,
-                        isCompleted: idsCompletados.has(rutinaId) // Añadir la bandera
+                        isCompleted: idsCompletados.has(rutinaId) // Ahora esto funcionará para ambos tipos
                     };
                 })
                 .sort((a, b) => a.dia - b.dia);
@@ -131,8 +147,8 @@ const DashboardRutinas = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0 }}
                                     className={`rounded-2xl shadow-xl p-6 md:p-8 text-white ${rutina.isCompleted
-                                            ? 'bg-gradient-to-br from-green-600 to-emerald-500'
-                                            : 'bg-gradient-to-br from-indigo-600 to-blue-500'
+                                            ? 'bg-gradient-to-br from-green to-emerald-500'
+                                            : 'bg-gradient-to-br from-indigo to-blue-500'
                                         }`}
                                 >
                                     <p className="font-bold text-sm text-white/80 uppercase tracking-wider">Rutina de Hoy: {diasSemana[rutina.dia]}</p>
@@ -157,31 +173,38 @@ const DashboardRutinas = () => {
                             ))}
                         </AnimatePresence>
 
-                        <div className="border-t border-gray-200 pt-8">
-                            <h3 className="text-2xl font-bold text-gray-700 mb-5">Próximos Días</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                                {rutinas.filter(r => r.dia !== todayIndex).map((rutina) => (
-                                    <motion.div
-                                        key={rutina.dia}
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: rutina.dia * 0.05 }}
-                                        className="bg-white rounded-xl shadow-md border p-5 flex flex-col justify-between group transition-all duration-300 hover:shadow-lg hover:border-indigo-500"
-                                    >
-                                        <div>
-                                            <p className="text-sm text-gray-500 font-medium">{diasSemana[rutina.dia]}</p>
-                                            <p className="font-semibold text-lg text-gray-800 mt-1">{rutina.nombre}</p>
-                                        </div>
-                                        <button
-                                            onClick={() => verDetalleRutina(rutina)}
-                                            className="mt-4 text-sm font-semibold text-indigo-600 text-left self-start group-hover:underline"
+                            {/* Dentro del return de DashboardRutinas.jsx */}
+
+                            <div className="border-t border-gray-200 pt-8">
+                                <h3 className="text-2xl font-bold text-gray-700 mb-5">Próximos Días</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                                    {rutinas.filter(r => r.dia !== todayIndex).map((rutina) => (
+                                        <motion.div
+                                            key={rutina.dia}
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ delay: rutina.dia * 0.05 }}
+                                            className="bg-white rounded-xl shadow-md border p-5 flex flex-col justify-between group transition-all duration-300 hover:shadow-lg hover:border-indigo-500"
                                         >
-                                            Ver detalle →
-                                        </button>
-                                    </motion.div>
-                                ))}
+                                            <div>
+                                                <p className="text-sm text-gray-500 font-medium">{diasSemana[rutina.dia]}</p>
+                                                <p className="font-semibold text-lg text-gray-800 mt-1">{rutina.nombre}</p>
+                                            </div>
+
+                                            {/* --- AQUÍ ESTÁ LA CORRECCIÓN --- */}
+                                            <button
+                                                onClick={() => iniciarRutina(rutina)} // CAMBIO: Se usa iniciarRutina en lugar de verDetalleRutina
+                                                className="mt-4 text-sm font-semibold text-indigo-600 self-start flex items-center gap-2 group-hover:text-indigo-800 transition-colors"
+                                            >
+                                                <FaPlayCircle /> {/* Se añade ícono para consistencia */}
+                                                <span>Iniciar Entrenamiento</span> {/* Se cambia el texto para consistencia */}
+                                            </button>
+                                            {/* --- FIN DE LA CORRECCIÓN --- */}
+
+                                        </motion.div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
                     </div>
                 ) : (
                     <div className="text-center text-gray-600 bg-white p-8 rounded-lg shadow-sm">

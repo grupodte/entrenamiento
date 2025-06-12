@@ -44,84 +44,87 @@ const CrearRutina = () => {
 
     const guardarRutina = async () => {
         try {
-            // Crear rutina base
+            console.log('--- INICIANDO PROCESO DE GUARDADO DE RUTINA ---');
+
+            // 1. Crear la rutina base
             const { data: rutina, error: errorRutina } = await supabase
                 .from('rutinas_base')
                 .insert({ nombre, tipo, descripcion })
                 .select()
                 .single();
 
-            if (errorRutina || !rutina?.id) throw new Error('Error al crear rutina');
+            if (errorRutina || !rutina?.id) throw new Error('Error al crear la rutina base');
+            console.log('✅ PASO 1: Rutina base creada con ID:', rutina.id);
 
-            // Validar que todos los ejercicios tengan ID
-            for (const e of ejercicios) {
-                if (!e.id) {
-                    console.error('Ejercicio sin ID:', e);
-                    throw new Error('Uno de los ejercicios seleccionados no tiene ID.');
-                }
-            }
-
-            // Insertar ejercicios en rutinas_base_ejercicios
-            const ejerciciosConRutina = ejercicios.map((e, i) => ({
+            // 2. Preparar los ejercicios
+            const ejerciciosParaInsertar = ejercicios.map((e, i) => ({
                 rutina_base_id: rutina.id,
                 ejercicio_id: e.id,
                 orden: i,
-                semana_inicio: 1,
-                semana_fin: 4,
             }));
+            console.log('PASO 2: Objeto preparado para insertar en rutinas_base_ejercicios:', ejerciciosParaInsertar);
 
-            console.log('Ejercicios a insertar:', ejerciciosConRutina);
 
+            // 3. Insertar los ejercicios y obtener sus IDs únicos
             const { data: ejerciciosGuardados, error: errorEj } = await supabase
                 .from('rutinas_base_ejercicios')
-                .insert(ejerciciosConRutina)
-                .select('rutina_base_id, ejercicio_id');
+                .insert(ejerciciosParaInsertar)
+                .select();
 
-            console.log('Respuesta de Supabase:', ejerciciosGuardados);
-            console.error('Error Supabase:', errorEj);
+            if (errorEj) throw new Error(`Error en Supabase al guardar ejercicios: ${errorEj.message}`);
+            console.log('✅ PASO 3: Respuesta de Supabase (ejerciciosGuardados):', ejerciciosGuardados);
 
-            if (errorEj || !ejerciciosGuardados?.length) {
-                console.error('Error guardando ejercicios:', errorEj);
-                throw new Error('No se pudieron guardar los ejercicios');
-            }
 
-            // Insertar series personalizadas
+            // 4. Preparar las series, el paso más crítico
+            console.log('--- INICIANDO PASO 4: Preparación de series ---');
             const seriesAInsertar = [];
+            ejercicios.forEach((ejercicioLocal, index) => {
+                console.log(`\nIteración ${index} del bucle de ejercicios...`);
+                console.log('Buscando coincidencia para el ejercicio local:', ejercicioLocal);
 
-            ejerciciosGuardados.forEach((ej) => {
-                const ejOriginal = ejercicios.find((e) => e.id === ej.ejercicio_id);
-                if (!ejOriginal) return;
+                const ejercicioGuardado = ejerciciosGuardados.find(
+                    eg => eg.ejercicio_id === ejercicioLocal.id
+                );
 
-                ejOriginal.series_personalizadas?.forEach((set, i) => {
+                console.log('Resultado de la búsqueda (ejercicioGuardado):', ejercicioGuardado);
+
+                if (!ejercicioGuardado) {
+                    console.warn('¡ADVERTENCIA! No se encontró el ejercicio guardado correspondiente. Se saltarán sus series.');
+                    return;
+                }
+
+                ejercicioLocal.series_personalizadas?.forEach((set, i) => {
                     seriesAInsertar.push({
-                        rutina_base_id: rutina.id,
-                        ejercicio_id: ej.ejercicio_id,
                         nro_set: i + 1,
-                        reps: Number(set.reps),
-                        pausa: Number(set.pausa),
+                        reps: Number(set.reps) || 0,
+                        pausa: Number(set.pausa) || 0,
                         carga_sugerida: set.carga || '',
+                        rutinas_base_ejercicio_id: ejercicioGuardado.id
                     });
                 });
             });
 
-            if (seriesAInsertar.length === 0) {
-                console.warn('No se encontró ninguna serie para insertar');
-            } else {
+            console.log('✅ PASO 4: Array final de series a insertar:', seriesAInsertar);
+
+
+            // 5. Insertar todas las series
+            if (seriesAInsertar.length > 0) {
+                console.log('--- INICIANDO PASO 5: Insertando series en la BD ---');
                 const { error: errorSeries } = await supabase
                     .from('rutinas_base_series')
                     .insert(seriesAInsertar);
 
-                if (errorSeries) {
-                    console.error('Error guardando series:', errorSeries);
-                    throw new Error('No se pudieron guardar las series');
-                }
+                if (errorSeries) throw new Error(`Error en Supabase al guardar series: ${errorSeries.message}`);
+                console.log('✅ PASO 5: Series insertadas con éxito.');
+            } else {
+                console.warn('ADVERTENCIA: No hay series para insertar. El proceso terminará aquí.');
             }
 
             alert('✅ Rutina guardada con éxito');
             navigate('/admin');
         } catch (err) {
-            console.error('Error en guardarRutina:', err);
-            alert(err.message || 'Error desconocido al guardar rutina');
+            console.error('❌ ERROR FATAL en guardarRutina:', err);
+            alert(err.message || 'Error desconocido al guardar la rutina');
         }
     };
 

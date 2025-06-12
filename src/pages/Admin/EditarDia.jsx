@@ -41,6 +41,7 @@ const EditarDia = () => {
             let ejerciciosFinales = [];
 
             if (asignacion.rutina_personalizada_id) {
+                // Esta parte para rutinas personalizadas ya estaba bien
                 const { data: dataPers } = await supabase
                     .from('rutinas_personalizadas_ejercicios')
                     .select(`id, ejercicio_id, ejercicios(nombre), rutinas_personalizadas_series(id, nro_set, reps, pausa, carga)`)
@@ -55,38 +56,44 @@ const EditarDia = () => {
                 }));
 
             } else if (asignacion.rutina_base_id) {
+                // --- INICIO DE LA CORRECCIÓN ---
+                // CAMBIO 1: Pedimos también el 'id' de la tabla de unión.
                 const { data: ejerciciosBase } = await supabase
                     .from('rutinas_base_ejercicios')
-                    .select('orden, ejercicio_id')
+                    .select('id, orden, ejercicio_id')
                     .eq('rutina_base_id', asignacion.rutina_base_id)
                     .order('orden', { ascending: true });
 
-                ejerciciosFinales = await Promise.all(
-                    ejerciciosBase.map(async (ej) => {
-                        const { data: info } = await supabase
-                            .from('ejercicios')
-                            .select('nombre')
-                            .eq('id', ej.ejercicio_id)
-                            .maybeSingle();
+                if (ejerciciosBase) {
+                    ejerciciosFinales = await Promise.all(
+                        ejerciciosBase.map(async (ej) => {
+                            const { data: info } = await supabase
+                                .from('ejercicios')
+                                .select('nombre')
+                                .eq('id', ej.ejercicio_id)
+                                .maybeSingle();
 
-                        const { data: seriesBase } = await supabase
-                            .from('rutinas_base_series')
-                            .select('nro_set, reps, pausa, carga_sugerida')
-                            .eq('rutina_base_id', asignacion.rutina_base_id)
-                            .eq('ejercicio_id', ej.ejercicio_id);
+                            // CAMBIO 2: Buscamos las series usando la clave foránea correcta.
+                            const { data: seriesBase } = await supabase
+                                .from('rutinas_base_series')
+                                .select('nro_set, reps, pausa, carga_sugerida')
+                                .eq('rutinas_base_ejercicio_id', ej.id); // Se usa el ID del "padre"
 
-                        return {
-                            ejercicio_id: ej.ejercicio_id,
-                            nombre: info?.nombre || 'Desconocido',
-                            series: (seriesBase || []).map((s, i) => ({
-                                nro_set: i + 1,
-                                reps: s.reps,
-                                pausa: s.pausa,
-                                carga: s.carga_sugerida
-                            }))
-                        };
-                    })
-                );
+                            return {
+                                ejercicio_id: ej.ejercicio_id,
+                                nombre: info?.nombre || 'Desconocido',
+                                series: (seriesBase || []).map((s, i) => ({
+                                    id: s.id, // Es buena idea mantener un id para las series si existe
+                                    nro_set: i + 1,
+                                    reps: s.reps,
+                                    pausa: s.pausa,
+                                    carga: s.carga_sugerida // Se mapea a 'carga' para consistencia
+                                }))
+                            };
+                        })
+                    );
+                }
+                // --- FIN DE LA CORRECCIÓN ---
             }
 
             setEjercicios(ejerciciosFinales);
@@ -112,18 +119,26 @@ const EditarDia = () => {
         });
     };
 
-    const agregarEjercicio = (ejercicio) => {
-        setEjercicios((prev) => [
-            ...prev,
-            {
-                id: null,
-                ejercicio_id: ejercicio.id,
-                nombre: ejercicio.nombre,
-                series: [{ nro_set: 1, reps: '', pausa: '', carga: '' }]
-            }
-        ]);
-        setMostrarSelector(false);
+    // Añade esta nueva función
+    const agregarSet = (indexEjercicio) => {
+        setEjercicios(prev => {
+            // Mapeamos el array de ejercicios para crear uno nuevo
+            return prev.map((ejercicio, index) => {
+                // Si este no es el ejercicio que queremos cambiar, lo devolvemos tal como está
+                if (index !== indexEjercicio) {
+                    return ejercicio;
+                }
+
+                // Si es el ejercicio correcto, creamos una copia de él
+                // y le añadimos el nuevo set a una copia de su array de series
+                return {
+                    ...ejercicio,
+                    series: [...ejercicio.series, { reps: '', pausa: '', carga: '' }]
+                };
+            });
+        });
     };
+
 
     const cargarEjerciciosDisponibles = async () => {
         const { data, error } = await supabase.from('ejercicios').select('id, nombre');
@@ -230,6 +245,14 @@ const EditarDia = () => {
                                 <button onClick={() => eliminarSerie(indexEj, indexSer)} className="text-red-500 text-sm">❌</button>
                             </div>
                         ))}
+
+                        {/* --- BOTÓN AÑADIDO AQUÍ --- */}
+                        <button
+                            onClick={() => agregarSet(indexEj)}
+                            className="text-sm text-blue-600 mt-2 hover:underline"
+                        >
+                            ➕ Agregar set
+                        </button>
                     </li>
                 ))}
             </ul>

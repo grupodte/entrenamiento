@@ -27,7 +27,7 @@ const AlumnoPerfil = () => {
 
             const { data: asignaciones, error: errorAsignaciones } = await supabase
                 .from('asignaciones')
-                .select('id, dia_semana, rutina_personalizada_id, rutina_base_id') // Se incluye 'id' para la key
+                .select('id, dia_semana, rutina_personalizada_id, rutina_base_id')
                 .eq('alumno_id', id);
 
             if (errorAsignaciones) throw errorAsignaciones;
@@ -37,40 +37,41 @@ const AlumnoPerfil = () => {
             for (const asignacion of asignaciones) {
                 let ejerciciosFinales = [];
 
-                // ✅ Rutina personalizada tiene prioridad
+                // Rutina personalizada (esta parte ya estaba bien)
                 if (asignacion.rutina_personalizada_id) {
                     const { data: dataPers, error: errorPers } = await supabase
                         .from('rutinas_personalizadas_ejercicios')
                         .select(`
-              id,
-              ejercicio_id,
-              ejercicios(nombre),
-              rutinas_personalizadas_series (
-                nro_set,
-                reps,
-                pausa,
-                carga
-              )
-            `)
+                            id,
+                            ejercicio_id,
+                            ejercicios(nombre),
+                            rutinas_personalizadas_series (
+                                nro_set,
+                                reps,
+                                pausa,
+                                carga
+                            )
+                        `)
                         .eq('rutina_personalizada_id', asignacion.rutina_personalizada_id)
                         .order('orden', { ascending: true });
 
                     if (errorPers) throw errorPers;
 
                     ejerciciosFinales = (dataPers || []).map(ej => ({
-                        id: ej.id, // Se añade id para la key
+                        id: ej.id,
                         nombre: ej.ejercicios?.nombre || 'Nombre no encontrado',
                         series: ej.rutinas_personalizadas_series?.length || 0,
                         reps: ej.rutinas_personalizadas_series?.[0]?.reps || '-',
                     }));
 
-                    // ✅ Rutina base
+                    // Rutina base (AQUÍ ESTÁ LA CORRECCIÓN)
                 } else if (asignacion.rutina_base_id) {
                     const rutinaId = asignacion.rutina_base_id;
 
+                    // CAMBIO 1: Pedimos también el 'id' de la tabla de unión.
                     const { data: ejerciciosEnRutina, error: errorEjercicios } = await supabase
                         .from('rutinas_base_ejercicios')
-                        .select('orden, ejercicio_id')
+                        .select('id, orden, ejercicio_id')
                         .eq('rutina_base_id', rutinaId)
                         .order('orden', { ascending: true });
 
@@ -86,19 +87,19 @@ const AlumnoPerfil = () => {
 
                             if (errorEj) throw errorEj;
 
+                            // CAMBIO 2: Buscamos las series usando la nueva y correcta clave foránea.
                             const { data: series, error: errorSeries } = await supabase
                                 .from('rutinas_base_series')
                                 .select('nro_set, reps, pausa, carga_sugerida')
-                                .eq('rutina_base_id', rutinaId)
-                                .eq('ejercicio_id', ejercicio.ejercicio_id)
+                                .eq('rutinas_base_ejercicio_id', ejercicio.id) // Se usa el ID del "padre"
                                 .order('nro_set', { ascending: true });
 
                             if (errorSeries) throw errorSeries;
 
                             return {
-                                id: ejercicio.ejercicio_id, // Se añade id para la key
+                                id: ejercicio.ejercicio_id,
                                 nombre: ejercicioData?.nombre || 'Ejercicio no encontrado',
-                                orden: ejercicio.orden,
+                                    orden: ejercicio.orden,
                                 series: series || [],
                             };
                         })

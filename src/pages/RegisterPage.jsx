@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import backgroundImage from '../assets/FOTO_FONDO.webp'; // Fondo
+import backgroundImage from '../assets/men.jpg';
 import { FaFacebook } from 'react-icons/fa';
 
-const LoginPage = () => {
+const RegisterPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
@@ -14,16 +14,21 @@ const LoginPage = () => {
         return () => (document.body.style.overflow = '');
     }, []);
 
-    const handleLogin = async (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signUp({
+            email,
+            password,
+        });
+
         if (error) return alert(error.message);
-        navigate('/');
+        alert('Revisá tu correo para verificar tu cuenta');
+        navigate('/login');
     };
 
-    const handleFacebookLogin = async () => {
+    const handleFacebookSignup = async () => {
         const { error } = await supabase.auth.signInWithOAuth({ provider: 'facebook' });
-        if (error) alert('Error al iniciar sesión con Facebook');
+        if (error) alert('Error al registrarse con Facebook');
     };
 
     return (
@@ -33,8 +38,8 @@ const LoginPage = () => {
         >
             <div className="absolute inset-0 backdrop-blur-md bg-black/40" />
             <div className="relative z-10 p-8 rounded-[30px] bg-gradient-to-br from-white/10 to-black/30 backdrop-blur-md shadow-xl w-full max-w-sm text-white">
-                <h2 className="text-2xl font-bold mb-4">Inicia sesión para continuar.</h2>
-                <form onSubmit={handleLogin} className="space-y-4">
+                <h2 className="text-2xl font-bold mb-4">Crear cuenta nueva</h2>
+                <form onSubmit={handleRegister} className="space-y-4">
                     <div>
                         <label className="text-sm">Email</label>
                         <input
@@ -61,7 +66,7 @@ const LoginPage = () => {
                         type="submit"
                         className="w-full py-2 rounded-full bg-lime-400 hover:bg-lime-500 text-black font-bold transition"
                     >
-                        Ingresar →
+                        Registrarse →
                     </button>
                 </form>
 
@@ -70,17 +75,17 @@ const LoginPage = () => {
                 </div>
 
                 <button
-                    onClick={handleFacebookLogin}
+                    onClick={handleFacebookSignup}
                     className="w-full py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center justify-center gap-2 transition"
                 >
                     <FaFacebook size={18} />
-                    Ingresar con Facebook
+                    Registrarse con Facebook
                 </button>
 
                 <p className="text-sm text-center mt-6 text-white/80">
-                    ¿No tenés cuenta?
-                    <Link to="/register" className="text-lime-400 font-semibold ml-1 hover:underline">
-                        Registrate acá
+                    ¿Ya tenés cuenta?
+                    <Link to="/login" className="text-lime-400 font-semibold ml-1 hover:underline">
+                        Iniciar sesión
                     </Link>
                 </p>
             </div>
@@ -88,4 +93,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default RegisterPage;
