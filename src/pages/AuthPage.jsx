@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import backgroundImage from '../assets/FOTO_FONDO.webp';
 import { supabase } from '../lib/supabaseClient';
+import { toast } from 'react-hot-toast';
+import backgroundImage from '../assets/FOTO_FONDO.webp';
 import { FaFacebook } from 'react-icons/fa';
 
 const transition = { duration: 0.5, ease: 'easeInOut' };
@@ -10,22 +12,82 @@ const AuthPage = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // ✅ Recupera sesión si viene del email (access_token en hash)
+    useEffect(() => {
+        const checkRecovery = async () => {
+            if (window.location.hash.includes('access_token')) {
+                const { data, error } = await supabase.auth.getSessionFromUrl();
+                if (error) {
+                    toast.error('Error recuperando sesión');
+                    console.error(error);
+                } else if (data.session) {
+                    const { error: errorEstado } = await supabase
+                        .from('perfiles')
+                        .update({ estado: 'activo' })
+                        .eq('id', data.session.user.id);
+
+                    if (errorEstado) {
+                        console.error('❌ Error actualizando estado del usuario:', errorEstado);
+                    } else {
+                        toast.success('✅ Estado actualizado: cuenta activa');
+              }
+                }
+            }
+
+            if (location.search.includes('verified=true')) {
+                toast.success('✅ Correo verificado. Ahora podés iniciar sesión');
+                setIsLogin(true);
+            }
+        };
+        checkRecovery();
+    }, [location]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         if (isLogin) {
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) return alert(error.message);
+            const { data: sessionData, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) return toast.error('Credenciales inválidas');
+
+            const userId = sessionData?.user?.id;
+            if (!userId) return toast.error('No se pudo obtener el usuario');
+
+            const { data: perfil, error: errorPerfil } = await supabase
+                .from('perfiles')
+                .select('rol')
+                .eq('id', userId)
+                .maybeSingle();
+
+            if (errorPerfil || !perfil?.rol) {
+                console.error('❌ Error perfil:', errorPerfil);
+                return toast.error('No se pudo obtener tu perfil');
+            }
+
+            toast.success('🔓 Bienvenido');
+            navigate(perfil.rol === 'admin' ? '/admin' : '/dashboard');
         } else {
-            const { error } = await supabase.auth.signUp({ email, password });
-            if (error) return alert(error.message);
-            alert('Revisá tu correo para verificar tu cuenta');
+            const { error: signUpError } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/login?verified=true`,
+                },
+            });
+
+            if (signUpError) return toast.error(signUpError.message);
+
+            toast.success('📩 Revisá tu correo para verificar tu cuenta');
+            setIsLogin(true);
+            setPassword('');
         }
     };
 
     const handleFacebook = async () => {
         const { error } = await supabase.auth.signInWithOAuth({ provider: 'facebook' });
-        if (error) alert('Error al conectar con Facebook');
+        if (error) toast.error('Error con Facebook');
     };
 
     return (
@@ -33,7 +95,7 @@ const AuthPage = () => {
             className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
             style={{ backgroundImage: `url(${backgroundImage})` }}
         >
-            <div className="absolute inset-0 backdrop-blur-md bg-black/40" />
+            <div className="absolute inset-0 backdrop-blur-sm bg-black/40" />
 
             <AnimatePresence mode="wait">
                 <motion.div
