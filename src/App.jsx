@@ -8,9 +8,9 @@ import RutaProtegida from './components/RutaProtegida';
 import RedireccionInicial from './pages/RedireccionInicial';
 
 // --- PÁGINAS PÚBLICAS ---
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import AuthPage from './pages/AuthPage';
 import Tyc from './pages/tyc'
+import PoliticaPrivacidad from './pages/PoliticaPrivacidad';
 
 // --- PÁGINAS DE ALUMNO ---
 import DashboardAlumno from './pages/Alumno/Dashboard';
@@ -81,9 +81,10 @@ const App = () => {
         <Routes>
           {/* --- RUTAS PÚBLICAS --- */}
           <Route path="/" element={<RedireccionInicial />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<AuthPage />} />
+          <Route path="/register" element={<AuthPage />} /> // opcional, redirecciona al mismo
           <Route path="/tyc" element={<Tyc />} />
+          <Route path="/privacidad" element={<PoliticaPrivacidad />} />
 
 
 
