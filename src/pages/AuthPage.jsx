@@ -18,6 +18,19 @@ const AuthPage = () => {
     const location = useLocation();
     const { user, rol, loading } = useAuth();
 
+
+    useEffect(() => {
+        const setViewportHeight = () => {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        };
+
+        setViewportHeight();
+        window.addEventListener('resize', setViewportHeight);
+        return () => window.removeEventListener('resize', setViewportHeight);
+    }, []);
+      
+
     // Efecto para redirigir al usuario si ya está autenticado y tiene un rol
     useEffect(() => {
         if (!loading && user && rol) {
@@ -105,31 +118,32 @@ const AuthPage = () => {
 
     return (
         <div
-            className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
+            className="relative h-[calc(var(--vh,1vh)*100)] w-full flex items-center justify-center bg-cover bg-center overflow-hidden"
             style={{ backgroundImage: `url(${backgroundImage})` }}
         >
-            <div className="absolute inset-0 backdrop-blur-sm bg-black/40" />
+            <div className="absolute inset-0 backdrop-blur-sm bg-black/50" />
 
             <AnimatePresence mode="wait">
                 <motion.div
                     key={isLogin ? 'login' : 'register'}
-                    initial={{ x: isLogin ? 300 : -300, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    exit={{ x: isLogin ? -300 : 300, opacity: 0 }}
-                    transition={transition}
-                    className="relative z-10 p-8 rounded-[30px] bg-gradient-to-br from-white/10 to-black/30 backdrop-blur-md shadow-xl w-full max-w-sm text-white"
+                    initial={{ y: 40, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -40, opacity: 0 }}
+                    transition={{ duration: 0.5, ease: 'easeInOut' }}
+                    className="relative z-10 p-6 sm:p-8 w-full max-w-sm bg-gradient-to-br from-white/10 to-black/30 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10"
                 >
-                    <h2 className="text-2xl font-bold mb-4">
-                        {isLogin ? 'Inicia sesión' : 'Crear cuenta nueva'}
+                    <h2 className="text-2xl font-bold text-white mb-6 text-center tracking-tight">
+                        {isLogin ? 'Iniciá sesión' : 'Creá tu cuenta'}
                     </h2>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {/* ... campos del formulario sin cambios ... */}
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
-                            <label className="text-sm">Email</label>
+                            <label className="text-sm text-white/80">Correo electrónico</label>
                             <input
                                 type="email"
-                                className="w-full px-4 py-2 mt-1 rounded-full bg-black/70 text-white placeholder-white focus:outline-none"
+                                inputMode="email"
+                                autoComplete="email"
+                                className="w-full mt-1 px-4 py-2 rounded-full bg-black/70 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-lime-400"
                                 placeholder="tucorreo@email.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -137,11 +151,12 @@ const AuthPage = () => {
                             />
                         </div>
                         <div>
-                            <label className="text-sm">Contraseña</label>
+                            <label className="text-sm text-white/80">Contraseña</label>
                             <input
                                 type="password"
-                                className="w-full px-4 py-2 mt-1 rounded-full bg-black/70 text-white placeholder-white focus:outline-none"
-                                placeholder="***********"
+                                autoComplete="current-password"
+                                className="w-full mt-1 px-4 py-2 rounded-full bg-black/70 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-lime-400"
+                                placeholder="••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -149,22 +164,20 @@ const AuthPage = () => {
                         </div>
                         <button
                             type="submit"
-                            className="w-full py-2 rounded-full bg-lime-400 hover:bg-lime-500 text-black font-bold transition"
+                            className="w-full py-2 rounded-full bg-lime-400 hover:bg-lime-500 text-black font-bold text-center transition shadow-sm"
                         >
-                            {isLogin ? 'Ingresar →' : 'Registrarse →'}
+                            {isLogin ? 'Ingresar →' : 'Registrarme →'}
                         </button>
                     </form>
 
-                    <div className="my-4 flex items-center justify-center">
-                        <span className="text-white/70 text-sm">o</span>
-                    </div>
+                    <div className="my-4 text-center text-white/70 text-sm">o</div>
 
                     <button
                         onClick={handleFacebook}
                         className="w-full py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center justify-center gap-2 transition"
                     >
                         <FaFacebook size={18} />
-                        {isLogin ? 'Ingresar con Facebook' : 'Registrarse con Facebook'}
+                        {isLogin ? 'Ingresar con Facebook' : 'Registrarme con Facebook'}
                     </button>
 
                     <p className="text-sm text-center mt-6 text-white/80">
@@ -174,12 +187,13 @@ const AuthPage = () => {
                             onClick={() => setIsLogin(!isLogin)}
                             className="text-lime-400 font-semibold ml-1 hover:underline"
                         >
-                            {isLogin ? 'Registrate acá' : 'Iniciar sesión'}
+                            {isLogin ? 'Registrate' : 'Iniciar sesión'}
                         </button>
                     </p>
                 </motion.div>
             </AnimatePresence>
         </div>
+      
     );
 };
 
