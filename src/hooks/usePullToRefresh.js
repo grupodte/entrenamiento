@@ -40,7 +40,7 @@ export const usePullToRefresh = (onRefresh) => {
         const el = scrollRef.current;
         const scrollTop = el?.scrollTop ?? 0;
 
-        if (scrollTop <= 1) {
+        if (el.scrollTop === 0 && el.scrollHeight > el.clientHeight) {
             gesture.current.canPull = true;
             gesture.current.active = true;
             gesture.current.startY = e.touches[0].clientY;
