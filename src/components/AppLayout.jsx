@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
-import PullToRefreshIndicator from './PullToRefreshIndicator';
 
 const AppLayout = () => {
     useEffect(() => {
@@ -41,11 +40,7 @@ const AppLayout = () => {
             </div>
             <div className="absolute inset-0 -z-10 backdrop-blur-xl bg-white/30" />
 
-            <PullToRefreshIndicator
-                isRefreshing={isRefreshing}
-                pullDistance={pullDistance}
-            />
-
+        
             {/* Contenedor de páginas */}
             <div
                 ref={scrollRef}
