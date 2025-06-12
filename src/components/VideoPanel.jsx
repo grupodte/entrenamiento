@@ -1,8 +1,17 @@
-// src/components/VideoPanel.jsx
 import { motion, AnimatePresence } from 'framer-motion';
+import { getYouTubeVideoId } from '../utils/youtube'; // Import the utility
 
 const VideoPanel = ({ open, onClose, videoUrl }) => {
     if (!videoUrl) return null;
+
+    // Use the existing utility to get the ID
+    const videoId = getYouTubeVideoId(videoUrl);
+
+    // If no ID, don't render
+    if (!videoId) return null;
+
+    // Construct the correct embed URL
+    const embedUrl = `https://www.youtube.com/embed/$${videoId}?autoplay=1`;
 
     return (
         <AnimatePresence>
@@ -24,7 +33,7 @@ const VideoPanel = ({ open, onClose, videoUrl }) => {
                         onClick={(e) => e.stopPropagation()} // evita cerrar al tocar el iframe
                     >
                         <iframe
-                            src={getEmbedUrl(videoUrl)}
+                            src={embedUrl}
                             title="Video del ejercicio"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
@@ -36,19 +45,5 @@ const VideoPanel = ({ open, onClose, videoUrl }) => {
         </AnimatePresence>
     );
 };
-
-// Transforma URL de YouTube en formato embed
-function getEmbedUrl(url) {
-    try {
-        const parsed = new URL(url);
-        const id =
-            parsed.hostname === 'youtu.be'
-                ? parsed.pathname.slice(1)
-                : parsed.searchParams.get('v');
-        return `https://www.youtube.com/embed/${id}?autoplay=1`;
-    } catch {
-        return '';
-    }
-}
 
 export default VideoPanel;
