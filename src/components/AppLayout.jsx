@@ -1,8 +1,18 @@
 import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { VideoProvider, useVideo } from '../context/VideoContext';
+import VideoPanel from './VideoPanel'
 
-const AppLayout = () => {
+const LayoutContent = () => {
+    const { isOpen, videoUrl, hideVideo } = useVideo();
+    const handleRefresh = async () => {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        window.location.reload();
+    };
+
+    const { scrollRef } = usePullToRefresh(handleRefresh);
+
     useEffect(() => {
         const setViewportHeight = () => {
             const vh = window.innerHeight * 0.01;
@@ -13,7 +23,6 @@ const AppLayout = () => {
         return () => window.removeEventListener('resize', setViewportHeight);
     }, []);
 
-    // 🔒 Desactivar scroll del body como en AuthPage
     useEffect(() => {
         document.body.style.overflow = 'hidden';
         return () => {
@@ -21,16 +30,9 @@ const AppLayout = () => {
         };
     }, []);
 
-    const handleRefresh = async () => {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        window.location.reload();
-    };
-
-    const { isRefreshing, pullDistance, scrollRef } = usePullToRefresh(handleRefresh);
-
     return (
         <div className="fixed inset-0 w-full h-full overflow-hidden text-white">
-            {/* Fondo con imagen y blur estilo iOS */}
+            {/* Fondo blur iOS */}
             <div className="absolute inset-0 -z-10">
                 <img
                     src="/backgrounds/admin-blur.webp"
@@ -40,16 +42,36 @@ const AppLayout = () => {
             </div>
             <div className="absolute inset-0 -z-10 backdrop-blur-xl bg-white/30" />
 
-        
-            {/* Contenedor de páginas */}
+            {/* Barra superior fina */}
+            <div className="absolute top-0 left-0 w-full h-[25px] backdrop-blur-xl bg-black border-b border-white/10 z-30 flex items-center justify-center">
+                <img
+                    src="/icons/iconodte.svg"
+                    alt="Icono"
+                    className="h-3 opacity-80"
+                />
+
+            </div>
+
+            {/* Contenido scrollable */}
             <div
                 ref={scrollRef}
-                className="relative z-10 h-full overflow-y-auto overscroll-contain"
+                data-scroll
+                className="relative z-10 h-full pt-[25px] overflow-y-auto overscroll-contain"
             >
                 <Outlet />
             </div>
+
+            {/* Panel global de video */}
+            <VideoPanel open={isOpen} onClose={hideVideo} videoUrl={videoUrl} />
         </div>
     );
+      
 };
+
+const AppLayout = () => (
+    <VideoProvider>
+        <LayoutContent />
+    </VideoProvider>
+);
 
 export default AppLayout;

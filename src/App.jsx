@@ -36,6 +36,8 @@ function InstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
 
+
+
   useEffect(() => {
     const handler = (e) => {
       e.preventDefault();

@@ -1,43 +1,65 @@
+// src/components/VideoPanel.jsx
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getYouTubeVideoId } from '../utils/youtube'; // Import the utility
+import { getYouTubeVideoId } from '../utils/youtube';
+import { FaTimes } from 'react-icons/fa';
 
 const VideoPanel = ({ open, onClose, videoUrl }) => {
-    if (!videoUrl) return null;
-
-    // Use the existing utility to get the ID
     const videoId = getYouTubeVideoId(videoUrl);
+    const embedUrl = videoId
+        ? `https://www.youtube.com/embed/${videoId}?autoplay=1`
+        : null;
 
-    // If no ID, don't render
-    if (!videoId) return null;
+    // Evita el scroll mientras está abierto
+    useEffect(() => {
+        if (open) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [open]);
 
-    // Construct the correct embed URL
-    const embedUrl = `https://www.youtube.com/embed/$${videoId}?autoplay=1`;
+    if (!videoUrl || !videoId) return null;
 
     return (
         <AnimatePresence>
             {open && (
                 <motion.div
+                    key={`panel-${videoId}`} // 👈 clave dinámica
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xl px-4"
                     onClick={onClose}
                 >
+                    {/* Botón cerrar */}
+                    <button
+                        onClick={onClose}
+                        className="absolute top-4 right-4 text-white bg-black/40 backdrop-blur-md p-2 rounded-full hover:bg-white/10 transition"
+                    >
+                        <FaTimes className="w-4 h-4" />
+                    </button>
+
+                    {/* Contenedor del video */}
                     <motion.div
+                        key={`video-${videoId}`} // 👈 también clave para reiniciar iframe
                         initial={{ scale: 0.9 }}
                         animate={{ scale: 1 }}
                         exit={{ scale: 0.9 }}
                         transition={{ duration: 0.2 }}
-                        className="w-full max-w-3xl aspect-video"
-                        onClick={(e) => e.stopPropagation()} // evita cerrar al tocar el iframe
+                        className="w-full max-w-4xl aspect-video rounded-xl shadow-2xl overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <iframe
                             src={embedUrl}
                             title="Video del ejercicio"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
-                            className="w-full h-full rounded-xl shadow-2xl border-0"
+                            className="w-full h-full border-0"
                         />
                     </motion.div>
                 </motion.div>

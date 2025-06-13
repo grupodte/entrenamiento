@@ -3,9 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ======================== */
-/* GLOBAL BASE             */
-/* ======================== */
+/* GLOBAL BASE */
 html,
 body,
 #root {
@@ -17,10 +15,8 @@ body,
   -webkit-tap-highlight-color: transparent;
 }
 
-
 body {
   @apply font-product bg-black text-white select-none overflow-hidden;
-
   touch-action: manipulation;
   overscroll-behavior: none;
   font-smoothing: antialiased;
@@ -31,9 +27,7 @@ body {
   flex-direction: column;
 }
 
-/* ======================== */
-/* TYPOGRAPHY              */
-/* ======================== */
+/* FUENTES PERSONALIZADAS */
 @font-face {
   font-family: 'ProductSans';
   src: url('./assets/fonts/ProductSansBold.ttf') format('truetype');
@@ -46,18 +40,17 @@ body {
   font-weight: 400;
 }
 
+/* INPUTS BASE */
 @layer base {
 
   input,
   textarea,
   select {
-    @apply text-base;
+    @apply text-base bg-white/5 text-white placeholder-white/50 rounded-ios-md px-4 py-2 focus:ring-2 focus:ring-ios-primary focus:outline-none transition duration-200;
   }
 }
 
-/* ======================== */
-/* SCROLLBAR CUSTOM        */
-/* ======================== */
+/* SCROLLBAR PERSONALIZADA */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -84,9 +77,7 @@ html {
   -ms-overflow-style: none;
 }
 
-/* ======================== */
-/* GENERAL UX ENHANCEMENTS */
-/* ======================== */
+/* GENERAL UX */
 *:focus {
   outline: none;
 }
@@ -102,56 +93,41 @@ img {
   pointer-events: none;
 }
 
-/* ======================== */
-/* CUSTOM UTILITIES        */
-/* ======================== */
-@layer components {
-  .all-\[unset\] {
-    all: unset;
-  }
+/* EFECTO GLASS */
+.ios-glass {
+  background-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
 }
 
-/* ======================== */
-/* DATEPICKER STYLING      */
-/* ======================== */
-.dark-calendar {
-  font-size: 10px;
-  @apply bg-white rounded-lg shadow-lg p-2 text-sm;
+/* TRANSICIONES */
+.ios-transition {
+  @apply transition-all duration-300 ease-in-out;
 }
 
-.dark-datepicker-popper {
-  @apply z-[9999];
+/* TIPOGRAFÍA */
+.ios-title {
+  @apply font-product text-[1.8rem] leading-[2.2rem] font-bold;
 }
 
-.dark-calendar .react-datepicker__day-name,
-.dark-calendar .react-datepicker__day,
-.dark-calendar .react-datepicker__time-name {
-  font-size: 10px;
-  width: 0.8rem;
-  height: 0.8rem;
-  line-height: 1rem;
+.ios-body {
+  @apply font-product text-base leading-6;
 }
 
-.dark-calendar .react-datepicker__time-list-item {
-  font-size: 9px;
-  padding: 4px 6px;
+.ios-caption {
+  @apply font-product text-sm text-white/60;
 }
 
-@media (min-width: 380px) {
-  .dark-calendar {
-    font-size: 14px;
-  }
+/* BOTÓN iOS */
+.ios-button {
+  @apply bg-ios-primary text-white font-product rounded-ios-md px-4 py-2 hover:opacity-90 active:scale-95 ios-transition shadow-md;
+}
 
-  .dark-calendar .react-datepicker__day-name,
-  .dark-calendar .react-datepicker__day,
-  .dark-calendar .react-datepicker__time-name {
-    font-size: 13px;
-    width: 1.7rem;
-    height: 1.7rem;
-  }
 
-  .dark-calendar .react-datepicker__time-list-item {
-    font-size: 12px;
-    padding: 6px 10px;
-  }
+
+.listbox-z {
+  z-index: 9999 !important;
+  position: absolute;
 }

@@ -40,21 +40,28 @@ export const usePullToRefresh = (onRefresh) => {
         const el = scrollRef.current;
         const scrollTop = el?.scrollTop ?? 0;
 
-        if (el.scrollTop === 0 && el.scrollHeight > el.clientHeight) {
-            gesture.current.canPull = true;
-            gesture.current.active = true;
-            gesture.current.startY = e.touches[0].clientY;
-        } else {
-            cancelGesture();
+        // Si no estás bien arriba, cancelá pull completamente
+        if (scrollTop > 0) {
+            gesture.current.active = false;
+            gesture.current.canPull = false;
+            return;
         }
+
+        gesture.current.canPull = true;
+        gesture.current.active = true;
+        gesture.current.startY = e.touches[0].clientY;
     }, []);
 
     const handleTouchMove = useCallback((e) => {
         if (!gesture.current.active || !gesture.current.canPull) return;
 
         const el = scrollRef.current;
-        if (!el || el.scrollTop > 1) {
-            cancelGesture();
+        const scrollTop = el?.scrollTop ?? 0;
+
+        // Si el usuario scrolleó mientras arrastraba, cancelá el gesto
+        if (scrollTop > 0) {
+            gesture.current.canPull = false;
+            gesture.current.active = false;
             return;
         }
 
@@ -62,11 +69,12 @@ export const usePullToRefresh = (onRefresh) => {
         const deltaY = currentY - gesture.current.startY;
 
         if (deltaY > 0) {
-            e.preventDefault(); // Solo cuando hay un "pull" válido
+            e.preventDefault();
             const dampened = Math.min(deltaY * 0.4, PULL_THRESHOLD + 40);
             setPullDistance(dampened);
         }
     }, []);
+    
 
     const handleTouchEnd = useCallback(async () => {
         if (!gesture.current.active || !gesture.current.canPull) return;

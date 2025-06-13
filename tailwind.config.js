@@ -1,62 +1,43 @@
-/** @type {import('tailwindcss').Config} */
+// tailwind.config.js actualizado con estilo iOS 26
 module.exports = {
     content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
-
     theme: {
         extend: {
-            borderRadius: {
-                '10px': '10px',
+            colors: {
+                ios: {
+                    primary: '#007AFF', // Azul Apple
+                    secondary: '#5856D6', // Morado iOS moderno
+                    accent: '#FF2D55',
+                    neutral: {
+                        100: '#F5F5F5',
+                        200: '#E5E5EA',
+                        800: '#2C2C2E',
+                        900: '#1C1C1E'
+                    },
+                    glass: 'rgba(255, 255, 255, 0.1)',
+                },
             },
             fontFamily: {
-                inter: ['Inter', 'sans-serif'],
+                ios: ['"SF Pro"', 'system-ui', '-apple-system', 'sans-serif'],
                 product: ['ProductSans', 'sans-serif'],
+                inter: ['Inter', 'sans-serif'],
             },
-            colors: {
-                'teal-light': '#dbfdff',
-                'teal-medium': '#6ea0a0',
-                'teal-dark': '#3a7c7c',
-                greyburger: '#d9d9d9',
-                skyblue: '#0071E3',
-                green: '#0DD122',
-                crem: '#ACACAC',
-                skysoft: '#AEE4F8',
+            fontSize: {
+                'ios-title': ['1.8rem', { lineHeight: '2.2rem', fontWeight: '700' }],
+                'ios-body': ['1rem', { lineHeight: '1.5rem' }],
+                'ios-caption': ['0.8rem', { lineHeight: '1rem' }],
             },
-            keyframes: {
-                'slide-up': {
-                    '0%': { transform: 'translateY(100%)', opacity: '0' },
-                    '100%': { transform: 'translateY(0)', opacity: '1' },
-                },
-                'fade-in': {
-                    '0%': { opacity: '0', transform: 'translateY(20px)' },
-                    '100%': { opacity: '1', transform: 'translateY(0)' },
-                },
-                kenburns: {
-                    '0%': {
-                        transform: 'scale(1) translate(0, 0)',
-                        filter: 'blur(0px)',
-                    },
-                    '100%': {
-                        transform: 'scale(1.1) translate(-10px, 5px)',
-                        filter: 'blur(1px)',
-                    },
-                },
+            borderRadius: {
+                'ios-sm': '0.5rem',
+                'ios-md': '1rem',
+                'ios-lg': '1.5rem',
             },
-            animation: {
-                'slide-up': 'slide-up 1s ease-out',
-                'fade-in': 'fade-in 1s ease-out',
-                'spin-slow': 'spin 20s linear infinite',
-                kenburns: 'kenburns 20s ease-in-out infinite alternate',
-                fadeIn: 'fadeIn 0.4s ease-out',
-            },
-            keyframes: {
-                fadeIn: {
-                    '0%': { opacity: 0 },
-                    '100%': { opacity: 1 },
-              },
+            boxShadow: {
+                ios: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                'ios-hover': '0 8px 24px rgba(0, 0, 0, 0.15)',
             },
         },
     },
-
     plugins: [require('@tailwindcss/forms')],
 };
   
