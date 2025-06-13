@@ -42,20 +42,10 @@ const LayoutContent = () => {
             </div>
             <div className="absolute inset-0 -z-10 backdrop-blur-xl bg-white/30" />
 
-            {/* Barra superior fina */}
-            <div className="absolute top-0 left-0 w-full h-[25px] backdrop-blur-xl bg-black border-b border-white/10 z-30 flex items-center justify-center">
-                <img
-                    src="/icons/iconodte.svg"
-                    alt="Icono"
-                    className="h-3 opacity-80"
-                />
-
-            </div>
-
-            {/* Contenido scrollable */}
+            {/* Contenido */}
             <div
                 ref={scrollRef}
-                className="relative z-10 h-full pt-[25px] overflow-y-auto overscroll-contain"
+                className="relative z-10 h-full overflow-y-auto overscroll-contain"
             >
                 <Outlet />
             </div>
@@ -64,7 +54,6 @@ const LayoutContent = () => {
             <VideoPanel open={isOpen} onClose={hideVideo} videoUrl={videoUrl} />
         </div>
     );
-      
 };
 
 const AppLayout = () => (
