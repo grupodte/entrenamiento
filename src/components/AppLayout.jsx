@@ -2,10 +2,11 @@ import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { VideoProvider, useVideo } from '../context/VideoContext';
-import VideoPanel from './VideoPanel'
+import VideoPanel from './VideoPanel';
 
 const LayoutContent = () => {
     const { isOpen, videoUrl, hideVideo } = useVideo();
+
     const handleRefresh = async () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         window.location.reload();
@@ -42,10 +43,20 @@ const LayoutContent = () => {
             </div>
             <div className="absolute inset-0 -z-10 backdrop-blur-xl bg-white/30" />
 
-            {/* Contenido */}
+            {/* Barra top de 25px */}
+            <div className="absolute top-0 left-0 w-full h-[25px] backdrop-blur-xl bg-black/30 border-b border-white/10 z-30 flex items-center justify-center">
+                <img
+                    src="/icons/iconodte.svg"
+                    alt="Icono"
+                    className="h-4 opacity-80"
+                />
+            </div>
+
+            {/* Contenido principal con padding-top para no ser tapado */}
             <div
                 ref={scrollRef}
-                className="relative z-10 h-full overflow-y-auto overscroll-contain"
+                data-scroll
+                className="relative z-10 h-full pt-[25px] overflow-y-auto overscroll-contain"
             >
                 <Outlet />
             </div>
