@@ -36,6 +36,18 @@ export const usePullToRefresh = (onRefresh) => {
         setPullDistance(0);
     };
 
+    const isScrollable = (el) => {
+        return el.scrollHeight > el.clientHeight;
+    };
+
+    const isAtTop = (el) => {
+        return el.scrollTop <= 0;
+    };
+
+    const isAtBottom = (el) => {
+        return el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+    };
+
     const handleTouchStart = useCallback((e) => {
         const el = scrollRef.current;
         if (!el) return;
@@ -45,12 +57,14 @@ export const usePullToRefresh = (onRefresh) => {
             return;
         }
 
-        const scrollTop = el.scrollTop;
-        const isAtTop = scrollTop === 0;
-        const isScrollable = el.scrollHeight > el.clientHeight;
-        const isAtBottom = scrollTop + el.clientHeight >= el.scrollHeight - 1;
+        // Verificamos si el contenedor tiene scroll
+        if (!isScrollable(el)) {
+            cancelGesture();
+            return;
+        }
 
-        if (!isScrollable || !isAtTop || isAtBottom) {
+        // Solo permitir pull si estamos arriba y NO abajo
+        if (!isAtTop(el) || isAtBottom(el)) {
             cancelGesture();
             return;
         }
@@ -67,11 +81,7 @@ export const usePullToRefresh = (onRefresh) => {
         const el = scrollRef.current;
         if (!el) return;
 
-        const scrollTop = el.scrollTop;
-        const isScrollable = el.scrollHeight > el.clientHeight;
-        const isAtBottom = scrollTop + el.clientHeight >= el.scrollHeight - 1;
-
-        if (!isScrollable || scrollTop > 0 || isAtBottom) {
+        if (!isScrollable(el) || el.scrollTop > 0 || isAtBottom(el)) {
             cancelGesture();
             return;
         }
@@ -132,7 +142,6 @@ export const usePullToRefresh = (onRefresh) => {
         };
     }, []);
 
-    // Bloquear scroll global mientras refresca
     useEffect(() => {
         document.body.style.overflow = isRefreshing ? 'hidden' : '';
         return () => {
