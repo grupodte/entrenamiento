@@ -38,15 +38,19 @@ export const usePullToRefresh = (onRefresh) => {
 
     const handleTouchStart = useCallback((e) => {
         const el = scrollRef.current;
-        const scrollTop = el?.scrollTop ?? window.scrollY ?? 0;
+        if (!el) return;
 
-        // Ignorar si el gesto comienza en un componente que no permite pull
         if (e.target.closest('[data-no-pull]')) {
             cancelGesture();
             return;
         }
 
-        if (scrollTop > 0) {
+        const scrollTop = el.scrollTop;
+        const isAtTop = scrollTop === 0;
+        const isScrollable = el.scrollHeight > el.clientHeight;
+        const isAtBottom = scrollTop + el.clientHeight >= el.scrollHeight - 1;
+
+        if (!isScrollable || !isAtTop || isAtBottom) {
             cancelGesture();
             return;
         }
@@ -61,10 +65,13 @@ export const usePullToRefresh = (onRefresh) => {
         if (!gesture.current.active || !gesture.current.canPull) return;
 
         const el = scrollRef.current;
-        const scrollTop = el?.scrollTop ?? window.scrollY ?? 0;
+        if (!el) return;
 
-        // Cancelar si el usuario desplazó durante el gesto
-        if (scrollTop > 0) {
+        const scrollTop = el.scrollTop;
+        const isScrollable = el.scrollHeight > el.clientHeight;
+        const isAtBottom = scrollTop + el.clientHeight >= el.scrollHeight - 1;
+
+        if (!isScrollable || scrollTop > 0 || isAtBottom) {
             cancelGesture();
             return;
         }
@@ -74,14 +81,13 @@ export const usePullToRefresh = (onRefresh) => {
         const deltaY = currentY - gesture.current.startY;
         const deltaX = currentX - gesture.current.startX;
 
-        // Cancelar si el movimiento es lateral (mayor deltaX)
         if (Math.abs(deltaX) > Math.abs(deltaY)) {
             cancelGesture();
             return;
         }
 
         if (deltaY > 0) {
-            e.preventDefault(); // prevenir scroll nativo
+            e.preventDefault();
             const dampened = Math.min(deltaY * 0.4, PULL_THRESHOLD + 40);
             setPullDistance(dampened);
         }
@@ -126,7 +132,7 @@ export const usePullToRefresh = (onRefresh) => {
         };
     }, []);
 
-    // Bloquear scroll del body durante la actualización
+    // Bloquear scroll global mientras refresca
     useEffect(() => {
         document.body.style.overflow = isRefreshing ? 'hidden' : '';
         return () => {
