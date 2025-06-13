@@ -55,7 +55,6 @@ const LayoutContent = () => {
             {/* Contenido scrollable */}
             <div
                 ref={scrollRef}
-                data-scroll
                 className="relative z-10 h-full pt-[25px] overflow-y-auto overscroll-contain"
             >
                 <Outlet />
