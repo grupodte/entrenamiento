@@ -23,8 +23,8 @@ const AdminLayout = ({ children }) => {
     const { isRefreshing, pullDistance, scrollRef } = usePullToRefresh(handleRefresh);
 
     return (
-        <div className="relative w-full min-h-screen text-white">
-{/* Fondo blur con imagen estilo iOS */}
+        <div className="relative w-full h-[calc(var(--vh,1vh)*100)] text-white overflow-hidden">
+            {/* Fondo blur con imagen estilo iOS */}
             <div className="absolute inset-0 -z-20">
                 <img
                     src="/backgrounds/admin-blur.png"
