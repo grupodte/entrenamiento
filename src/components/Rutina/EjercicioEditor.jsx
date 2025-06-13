@@ -1,6 +1,7 @@
 // src/componentes/Rutina/EjercicioEditor.jsx
 import React from 'react';
 import SeriesInput from './SeriesInput';
+import { Trash2, PlusCircle } from 'lucide-react';
 
 const EjercicioEditor = ({ ejercicio, onChange, onRemove }) => {
     const actualizarSerie = (index, nuevaSerie) => {
@@ -15,33 +16,39 @@ const EjercicioEditor = ({ ejercicio, onChange, onRemove }) => {
     };
 
     return (
-        <div className="bg-white/10 p-3 rounded-xl space-y-3 border border-white/10">
-            <div className="flex justify-between items-center">
-                <div className="font-semibold text-white">{ejercicio.nombre}</div>
+        <div className="bg-gradient-to-tr from-white/5 to-white/10 p-5 rounded-2xl border border-white/10 shadow-inner hover:shadow-lg transition-all duration-300">
+            {/* Encabezado del ejercicio */}
+            <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-semibold text-white tracking-wide">{ejercicio.nombre}</h3>
                 <button
                     onClick={onRemove}
-                    className="text-red-400 hover:text-red-600 text-sm"
+                    className="flex items-center gap-1 text-sm text-red-400 hover:text-red-500 transition"
                 >
-                    🗑️ Eliminar ejercicio
+                    <Trash2 size={16} /> Eliminar
                 </button>
             </div>
 
             {/* Series */}
-            {ejercicio.series.map((serie, index) => (
-                <SeriesInput
-                    key={index}
-                    serie={serie}
-                    index={index}
-                    onChange={actualizarSerie}
-                />
-            ))}
+            <div className="space-y-2">
+                {ejercicio.series.map((serie, index) => (
+                    <SeriesInput
+                        key={index}
+                        serie={serie}
+                        index={index}
+                        onChange={actualizarSerie}
+                    />
+                ))}
+            </div>
 
-            <button
-                onClick={agregarSerie}
-                className="text-sm text-skyblue hover:underline"
-            >
-                ➕ Agregar set
-            </button>
+            {/* Botón de agregar set */}
+            <div className="mt-4">
+                <button
+                    onClick={agregarSerie}
+                    className="flex items-center gap-2 text-sm text-sky-400 hover:text-sky-300 font-medium transition"
+                >
+                    <PlusCircle size={18} /> Agregar serie
+                </button>
+            </div>
         </div>
     );
 };

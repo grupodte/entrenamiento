@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
-import BrandedLoader from '../components/BrandedLoader';
 import { FaUser } from 'react-icons/fa';
 
 const AlumnosManager = () => {
     const [alumnos, setAlumnos] = useState([]);
     const [esAdmin, setEsAdmin] = useState(null);
+    const [fadeIn, setFadeIn] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -37,7 +37,12 @@ const AlumnosManager = () => {
         if (esAdmin) obtenerAlumnos();
     }, [esAdmin]);
 
-    if (esAdmin === null) return <BrandedLoader />;
+    useEffect(() => {
+        const timer = setTimeout(() => setFadeIn(true), 50);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (esAdmin === null) return null;
 
     if (!esAdmin) {
         return (
@@ -48,17 +53,16 @@ const AlumnosManager = () => {
     }
 
     return (
-        <div className="px-2 md:px-6 py-4">
-            <h1 className="text-2xl font-bold mb-6">👥 Alumnos registrados</h1>
+        <div className={`px-2 md:px-6 py-4 transition-all duration-500 ease-out ${fadeIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <h1 className="text-2xl font-bold mb-6 animate-fadeIn">👥 Alumnos registrados</h1>
 
-            {alumnos.length === 0 ? (
-                <p className="text-sm text-gray-300">No hay alumnos cargados.</p>
-            ) : (
+        
                 <ul className="grid gap-4">
-                    {alumnos.map((alumno) => (
+                    {alumnos.map((alumno, index) => (
                         <li
                             key={alumno.id}
-                            className="p-4 bg-white/10 backdrop-blur rounded-xl shadow-md flex justify-between items-center hover:bg-white/20 transition"
+                            className="p-4 bg-white/10 backdrop-blur rounded-xl shadow-md flex justify-between items-center hover:bg-white/20 transition duration-300 animate-fadeIn"
+                            style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }}
                         >
                             <div className="flex items-center gap-4">
                                 {alumno.avatar_url ? (
@@ -89,7 +93,7 @@ const AlumnosManager = () => {
                         </li>
                     ))}
                 </ul>
-            )}
+            
         </div>
     );
 };

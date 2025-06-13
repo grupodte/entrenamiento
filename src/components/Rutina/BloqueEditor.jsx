@@ -73,21 +73,20 @@ const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDispo
         <div
             ref={setNodeRef}
             style={style}
-            className="bg-white/10 p-4 rounded-xl border border-white/10 space-y-4"
+            className="bg-white/10 p-4 rounded-xl border border-white/10 space-y-2"
         >
             <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                  
-                    <span className="text-white font-semibold">
+                    <span className="text-[12px] md:text-16px text-white font-normal">
                         Bloque (semanas {bloque.semana_inicio} - {bloque.semana_fin})
                     </span>
                 </div>
-                <div className="flex gap-3">
-                    <button onClick={duplicarBloque} className="text-yellow-400 hover:text-yellow-500 text-sm flex items-center gap-1">
-                        <Copy size={14} /> Duplicar bloque
-                    </button>
-                    <button onClick={onRemove} className="text-red-400 hover:text-red-600 text-sm">
-                        🗑️ Eliminar
+                <div className=" flex gap-3">
+                    <button onClick={duplicarBloque} className="text-yellow-400 hover:text-yellow-500 text-[12px] md:text-16px flex items-center gap-1">
+                         Duplicar                    </button>
+                    <button onClick={onRemove} className="text-red-400 hover:text-red-600 text-[12px] md:text-16px ">
+                        Eliminar
                     </button>
                 </div>
             </div>
@@ -111,7 +110,7 @@ const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDispo
 
             <button
                 onClick={agregarSubbloque}
-                className="bg-skyblue text-white font-semibold rounded-xl px-4 py-2"
+                className="text-white font-bold rounded-xl px-4 py-2"
             >
                 ➕ Agregar subbloque
             </button>

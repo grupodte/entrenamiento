@@ -9,8 +9,38 @@ const RutinaForm = () => {
     const [tipo, setTipo] = useState('');
     const [descripcion, setDescripcion] = useState('');
     const [bloques, setBloques] = useState([]);
+    const LOCAL_STORAGE_KEY = 'rutinaDraft';
+    const [isHydrated, setIsHydrated] = useState(false);
+
+
 
     const [ejerciciosDisponibles, setEjerciciosDisponibles] = useState([]);
+
+
+    useEffect(() => {
+        const draft = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (draft) {
+            try {
+                const data = JSON.parse(draft);
+                if (data.nombre) setNombre(data.nombre);
+                if (data.tipo) setTipo(data.tipo);
+                if (data.descripcion) setDescripcion(data.descripcion);
+                if (data.bloques) setBloques(data.bloques);
+            } catch (error) {
+                console.error('Error al parsear localStorage', error);
+            }
+        }
+        setIsHydrated(true); // solo después de leer
+    }, []);
+    
+      
+    useEffect(() => {
+        if (!isHydrated) return; // ⛔️ evita sobrescribir al cargar
+        const rutinaDraft = { nombre, tipo, descripcion, bloques };
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(rutinaDraft));
+    }, [nombre, tipo, descripcion, bloques, isHydrated]);
+      
+      
 
     useEffect(() => {
         const fetchEjercicios = async () => {
@@ -143,6 +173,8 @@ const RutinaForm = () => {
             setTipo('');
             setDescripcion('');
             setBloques([]);
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+
 
         } catch (error) {
             toast.dismiss();
@@ -152,34 +184,40 @@ const RutinaForm = () => {
     };
 
     return (
-            <div className="max-w-5xl mx-auto p-4 space-y-6">
-            <h1 className="text-2xl font-bold text-white">Crear nueva rutina</h1>     {bloques.length > 0 && (
+        <div className="max-w-5xl mx-auto p-2 space-y-2 sm:space-y-3">
+            {bloques.length > 0 && (
                 <button
                     onClick={guardarRutina}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-xl"
+                    className="w-full bg-green-600/30 backdrop-blur hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm"
                 >
-                    ✅ Guardar rutina
+                    Guardar rutina
                 </button>
             )}
 
+            <div className="grid grid-cols-2  gap-2">
                 <input
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
-                    placeholder="Nombre de la rutina"
-                    className="w-full rounded-xl bg-white/10 backdrop-blur px-4 py-2 text-white placeholder-white/50"
+                    placeholder="Nombre"
+                    className="w-full rounded-lg bg-white/10 backdrop-blur px-3 py-1.5 text-white placeholder-white/50 text-sm"
                 />
                 <input
                     value={tipo}
                     onChange={(e) => setTipo(e.target.value)}
-                    placeholder="Tipo de rutina"
-                    className="w-full rounded-xl bg-white/10 backdrop-blur px-4 py-2 text-white placeholder-white/50"
+                    placeholder="Tipo"
+                    className="w-full rounded-lg bg-white/10 backdrop-blur px-3 py-1.5 text-white placeholder-white/50 text-sm"
                 />
-                <textarea
-                    value={descripcion}
-                    onChange={(e) => setDescripcion(e.target.value)}
-                    placeholder="Descripción"
-                    className="w-full rounded-xl bg-white/10 backdrop-blur px-4 py-2 text-white placeholder-white/50"
-                />
+            </div>
+
+            <textarea
+                value={descripcion}
+                onChange={(e) => setDescripcion(e.target.value)}
+                placeholder="Descripción"
+                rows={2}
+                className="w-full rounded-lg bg-white/10 backdrop-blur px-3 py-1.5 text-white placeholder-white/50 text-sm resize-none"
+            />
+
+    
 
                 {bloques.map((bloque) => (
                     <BloqueEditor
@@ -194,9 +232,9 @@ const RutinaForm = () => {
 
                 <button
                     onClick={agregarBloque}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl"
+                className="w-full bg-skyblue text-white font-semibold rounded-xl py-2 bg-white/20 hover:bg transition"
                 >
-                    ➕ Agregar bloque
+                    Agregar mes
                 </button>
 
             

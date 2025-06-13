@@ -9,7 +9,6 @@ const FadeContent = ({
     className = '',
     delay = 0,
     blur = false,
-    initialOpacity = 0,
     ...props
 }) => {
     const ref = useRef();
@@ -21,19 +20,17 @@ const FadeContent = ({
             el,
             {
                 opacity: 0,
-                y: 30,
             },
             {
                 opacity: 1,
-                y: 0,
                 delay: delay / 1000,
-                duration: 0.6,
+                duration: 0.8,
                 ease: 'power2.out',
                 scrollTrigger: {
                     trigger: el,
                     scroller: document.querySelector('[data-scroll]'),
                     start: 'top 85%',
-                    once: true, // 👈 solo una vez
+                    once: true,
                 },
             }
         );
@@ -43,20 +40,13 @@ const FadeContent = ({
             animation.kill();
         };
     }, [delay]);
-      
-      
-    const safeProps = { ...props };
-    delete safeProps.blur;
-    delete safeProps.delay;
-    delete safeProps.stagger;
-    delete safeProps.initialOpacity;
 
     return (
         <div
             ref={ref}
-            style={{ willChange: 'opacity, transform' }} // ✅ mejora rendimiento de animación
+            style={{ willChange: 'opacity' }}
             className={`${className} ${blur ? 'backdrop-blur-sm' : ''}`}
-            {...safeProps}
+            {...props}
         >
             {children}
         </div>

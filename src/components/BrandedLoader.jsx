@@ -1,3 +1,4 @@
+// src/components/BrandedLoader.jsx
 import logo from '/icons/icon-512x512-removebg-preview.png';
 
 const BrandedLoader = () => {

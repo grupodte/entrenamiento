@@ -5,8 +5,8 @@ import AdminLayout from '../../layouts/AdminLayout';
 const CrearRutina = () => {
     return (
         <AdminLayout>
-            <div className="h-full w-full px-4 md:px-10 text-white overflow-x-hidden"> {/* 👈 evita scroll horizontal */}
-                <div className="max-w-5xl mx-auto flex flex-col space-y-6 py-6 h-full overflow-hidden">
+            <div className="h-full w-full px-2 md:px-10 text-white overflow-x-hidden"> {/* 👈 evita scroll horizontal */}
+                <div className="max-w-5xl mx-auto flex flex-col h-full overflow-hidden ">
                     <div className="flex items-center justify-between">
                         {/* El botón de guardar lo podrías subir acá si lo exponés con forwardRef */}
                     </div>

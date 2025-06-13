@@ -48,7 +48,7 @@ const AdminLayout = ({ children }) => {
 
                 <AdminSidebarDesktop />
 
-                <main className="flex-1 min-h-full p-6 md:p-6">
+                <main className="flex-1 min-h-full p-3 md:p-6">
                     {children}
                 </main>
 

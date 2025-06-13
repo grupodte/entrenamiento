@@ -11,7 +11,6 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const fetchUserAndRol = async () => {
-            setLoading(true);
             const { data } = await supabase.auth.getUser();
             setUser(data.user);
 
@@ -27,13 +26,19 @@ export const AuthProvider = ({ children }) => {
                 setRol(null);
             }
 
-            setLoading(false);
+            setLoading(false); // ✅ solo se marca como cargado una vez
         };
 
         fetchUserAndRol();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            fetchUserAndRol();
+            if (session) {
+                setUser(session.user);
+                // Opción: podrías refrescar rol si querés más precisión
+            } else {
+                setUser(null);
+                setRol(null);
+            }
         });
 
         return () => subscription.unsubscribe();
