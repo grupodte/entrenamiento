@@ -3,7 +3,6 @@ import { Outlet } from 'react-router-dom';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { VideoProvider, useVideo } from '../context/VideoContext';
 import VideoPanel from './VideoPanel';
-import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 
 const LayoutContent = () => {
     const { isOpen, videoUrl, hideVideo } = useVideo();
@@ -13,7 +12,7 @@ const LayoutContent = () => {
         window.location.reload();
     };
 
-    const { isRefreshing, pullDistance, scrollRef } = usePullToRefresh(handleRefresh); // ✅ Solo una vez
+    const { scrollRef } = usePullToRefresh(handleRefresh);
 
     useEffect(() => {
         const setViewportHeight = () => {
@@ -25,10 +24,17 @@ const LayoutContent = () => {
         return () => window.removeEventListener('resize', setViewportHeight);
     }, []);
 
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, []);
 
     return (
-        <div className="w-full min-h-screen text-white">
-<div className="absolute inset-0 -z-10">
+        <div className="fixed inset-0 w-full h-full overflow-hidden text-white">
+            {/* Fondo */}
+            <div className="absolute inset-0 -z-10">
                 <img
                     src="/backgrounds/admin-blur.webp"
                     alt="Background"
@@ -37,37 +43,35 @@ const LayoutContent = () => {
             </div>
             <div className="absolute inset-0 -z-10 backdrop-blur-xl bg-white/30" />
 
-            {/* Indicador de pull-to-refresh */}
-            <PullToRefreshIndicator
-                isRefreshing={isRefreshing}
-                pullDistance={pullDistance}
-            />
-
             {/* Estructura scrollable */}
             <div
                 ref={scrollRef}
                 data-scroll
                 className="relative z-10 flex flex-col min-h-screen overflow-y-auto"
             >
-                {/* Barra superior */}
-                <div className="h-[25px] backdrop-blur-xl bg-black/30 border-b border-white/10 flex items-center justify-center">
+                {/* Barra superior fija dentro del flujo */}
+                <div className="h-[25px] backdrop-blur-xl bg-black border-b border-white/10 flex items-center justify-center">
                     <img
                         src="/icons/iconodte.svg"
                         alt="Icono"
-                        className="h-4 opacity-80"
+                        className="h-3 opacity-80"
                     />
                 </div>
 
-                {/* Contenido */}
+                {/* Contenido real */}
                 <div className="flex-1">
                     <Outlet />
                 </div>
             </div>
 
-            {/* Panel de video */}
+            {/* Panel global video */}
             <VideoPanel open={isOpen} onClose={hideVideo} videoUrl={videoUrl} />
         </div>
     );
+
+
+
+
 };
 
 const AppLayout = () => (
