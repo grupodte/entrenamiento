@@ -44,11 +44,11 @@ const LayoutContent = () => {
             <div className="absolute inset-0 -z-10 backdrop-blur-xl bg-white/30" />
 
             {/* Barra fija top fuera del flujo */}
-            <div className="fixed top-0 left-0 w-full h-[25px] backdrop-blur-xl bg-black/30 border-b border-white/10 z-20 flex items-center justify-center">
+            <div className="fixed top-0 left-0 w-full h-[25px] backdrop-blur-xl bg-black border-b border-white/10 z-20 flex items-center justify-center">
                 <img
                     src="/icons/iconodte.svg"
                     alt="Icono"
-                    className="h-4 opacity-80"
+                    className="h-3 opacity-80"
                 />
             </div>
 
