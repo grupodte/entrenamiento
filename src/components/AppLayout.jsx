@@ -33,7 +33,7 @@ const LayoutContent = () => {
 
     return (
         <div className="fixed inset-0 w-full h-full overflow-hidden text-white">
-            {/* Fondo blur iOS */}
+            {/* Fondo */}
             <div className="absolute inset-0 -z-10">
                 <img
                     src="/backgrounds/admin-blur.webp"
@@ -43,28 +43,32 @@ const LayoutContent = () => {
             </div>
             <div className="absolute inset-0 -z-10 backdrop-blur-xl bg-white/30" />
 
-            {/* Barra fija top fuera del flujo */}
-            <div className="fixed top-0 left-0 w-full h-[25px] backdrop-blur-xl bg-black/30 border-b border-white/10 z-20 flex items-center justify-center">
-                <img
-                    src="/icons/iconodte.svg"
-                    alt="Icono"
-                    className="h-4 opacity-80"
-                />
-            </div>
-
-            {/* Contenido con padding compensado */}
+            {/* Estructura scrollable */}
             <div
                 ref={scrollRef}
                 data-scroll
-                className="relative z-10 h-full overflow-y-auto overscroll-contain pt-[25px]"
+                className="relative z-10 flex flex-col min-h-screen overflow-y-auto"
             >
-                <Outlet />
+                {/* Barra superior fija dentro del flujo */}
+                <div className="h-[25px] backdrop-blur-xl bg-black/30 border-b border-white/10 flex items-center justify-center">
+                    <img
+                        src="/icons/iconodte.svg"
+                        alt="Icono"
+                        className="h-4 opacity-80"
+                    />
+                </div>
+
+                {/* Contenido real */}
+                <div className="flex-1">
+                    <Outlet />
+                </div>
             </div>
 
-            {/* Video global */}
+            {/* Panel global video */}
             <VideoPanel open={isOpen} onClose={hideVideo} videoUrl={videoUrl} />
         </div>
     );
+      
       
       
       

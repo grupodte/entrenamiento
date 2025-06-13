@@ -23,40 +23,39 @@ const AdminLayout = ({ children }) => {
     const { isRefreshing, pullDistance, scrollRef } = usePullToRefresh(handleRefresh);
 
     return (
-        <div className="fixed inset-0 w-full h-full overflow-hidden text-white">
-            {/* Fondo blur iOS */}
-            <div className="absolute inset-0 -z-10">
+        <div className="relative w-full h-[calc(var(--vh,1vh)*100)] text-white overflow-hidden">
+            {/* Fondo blur con imagen estilo iOS */}
+            <div className="absolute inset-0 -z-20">
                 <img
-                    src="/backgrounds/admin-blur.webp"
-                    alt="Background"
+                    src="/backgrounds/admin-blur.png"
+                    alt="Fondo admin"
                     className="w-full h-full object-cover opacity-40"
                 />
             </div>
-            <div className="absolute inset-0 -z-10 backdrop-blur-xl bg-white/30" />
+            <div className="absolute inset-0 -z-10 backdrop-blur-xl bg-black/30" />
 
-            {/* Barra fija top fuera del flujo */}
-            <div className="fixed top-0 left-0 w-full h-[25px] backdrop-blur-xl bg-black/30 border-b border-white/10 z-20 flex items-center justify-center">
-                <img
-                    src="/icons/iconodte.svg"
-                    alt="Icono"
-                    className="h-4 opacity-80"
-                />
-            </div>
+            {/* Indicador de pull to refresh */}
+            <PullToRefreshIndicator
+                isRefreshing={isRefreshing}
+                pullDistance={pullDistance}
+            />
 
-            {/* Contenido con padding compensado */}
+            {/* Layout principal con scroll interno */}
             <div
                 ref={scrollRef}
-                data-scroll
-                className="relative z-10 h-full overflow-y-auto overscroll-contain pt-[25px]"
+                className="relative z-10 flex h-full overflow-y-scroll overscroll-contain"
             >
-                <Outlet />
-            </div>
 
-            {/* Video global */}
-            <VideoPanel open={isOpen} onClose={hideVideo} videoUrl={videoUrl} />
+                <AdminSidebarDesktop />
+
+                <main className="flex-1 min-h-full p-4 md:p-6">
+                    {children}
+                </main>
+
+                <AdminSidebarMobile />
+            </div>
         </div>
     );
-      
 };
 
 export default AdminLayout;
