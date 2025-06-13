@@ -32,8 +32,8 @@ const LayoutContent = () => {
     }, []);
 
     return (
-        <div className="fixed inset-0 w-full h-full overflow-hidden text-white">
-            {/* Fondo blur iOS */}
+        <div className="relative w-full min-h-screen text-white">
+{/* Fondo blur iOS */}
             <div className="absolute inset-0 -z-10">
                 <img
                     src="/backgrounds/admin-blur.webp"
