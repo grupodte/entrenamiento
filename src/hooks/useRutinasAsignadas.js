@@ -13,6 +13,7 @@ export const usePullToRefresh = (onRefresh) => {
         startX: 0,
         active: false,
         canPull: false,
+        startScrollTop: 0,
     });
 
     const resetPull = () => {
@@ -36,35 +37,21 @@ export const usePullToRefresh = (onRefresh) => {
         setPullDistance(0);
     };
 
-    const isScrollable = (el) => {
-        return el.scrollHeight > el.clientHeight;
-    };
-
-    const isAtTop = (el) => {
-        return el.scrollTop <= 0;
-    };
-
-    const isAtBottom = (el) => {
-        return el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
-    };
-
     const handleTouchStart = useCallback((e) => {
         const el = scrollRef.current;
         if (!el) return;
 
-        if (e.target.closest('[data-no-pull]')) {
-            cancelGesture();
-            return;
-        }
+        const scrollTop = el.scrollTop;
+        const isScrollable = el.scrollHeight > el.clientHeight;
 
-        // Verificamos si el contenedor tiene scroll
-        if (!isScrollable(el)) {
-            cancelGesture();
-            return;
-        }
+        // Guardar scrollTop de inicio y validar contexto
+        gesture.current.startScrollTop = scrollTop;
 
-        // Solo permitir pull si estamos arriba y NO abajo
-        if (!isAtTop(el) || isAtBottom(el)) {
+        if (
+            e.target.closest('[data-no-pull]') ||
+            !isScrollable ||
+            scrollTop > 0
+        ) {
             cancelGesture();
             return;
         }
@@ -81,7 +68,10 @@ export const usePullToRefresh = (onRefresh) => {
         const el = scrollRef.current;
         if (!el) return;
 
-        if (!isScrollable(el) || el.scrollTop > 0 || isAtBottom(el)) {
+        const scrollTop = el.scrollTop;
+
+        // Si el usuario ya no está arriba, cancelar
+        if (scrollTop > 0 || gesture.current.startScrollTop > 0) {
             cancelGesture();
             return;
         }
@@ -91,11 +81,13 @@ export const usePullToRefresh = (onRefresh) => {
         const deltaY = currentY - gesture.current.startY;
         const deltaX = currentX - gesture.current.startX;
 
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Cancelar si es gesto lateral o si es hacia arriba
+        if (Math.abs(deltaX) > Math.abs(deltaY) || deltaY < 0) {
             cancelGesture();
             return;
         }
 
+        // Solo si el usuario arrastra hacia abajo desde el tope
         if (deltaY > 0) {
             e.preventDefault();
             const dampened = Math.min(deltaY * 0.4, PULL_THRESHOLD + 40);
