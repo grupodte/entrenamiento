@@ -108,7 +108,7 @@ const AuthPage = () => {
             email,
             password,
             options: {
-                emailRedirectTo: `${window.location.origin}/login?verified=true`,
+                emailRedirectTo: `${window.location.origin}/auth?verified=true`,
             },
         });
 
