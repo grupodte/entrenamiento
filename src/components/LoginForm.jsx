@@ -52,64 +52,47 @@ const LoginForm = ({ onLoginSuccess }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-8 mt-[100px] justify-center mx-auto rounded-lg ">
-            {/* Campo de Correo Electrónico */}
+        <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-                <label htmlFor="email" className=" block text-sm text-white">
-                    Correo Electrónico
-                </label>
-                <div className="relative mt-1 text-white">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
-                    </div>
-                    <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="block w-full rounded-lg border-white/40 bg-white/25 pl-10 py-2.5 text-white  focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 sm:text-sm"
-                        required
-                        disabled={isLoading}
-                    />
-                </div>
+                <label className="text-sm text-white/80">Correo electrónico</label>
+                <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full mt-1 px-4 py-2 rounded-full bg-black/70 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-lime-400"
+                    placeholder="tucorreo@email.com"
+                    required
+                    disabled={isLoading}
+                />
             </div>
 
-            {/* Campo de Contraseña */}
             <div>
-                <label htmlFor="password" className="block text-sm  text-white">
-                    Contraseña
-                </label>
-                <div className="relative mt-1">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>
-                    </div>
-                    <input
-                        id="password"
-                        type="password"
-                        value={clave}
-                        onChange={(e) => setClave(e.target.value)}
-                        className="block w-full rounded-lg border-white/40 bg-white/25 pl-10 py-2.5 text-white  focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50 sm:text-sm"
-                        required
-                        disabled={isLoading}
-                    />
-                </div>
+                <label className="text-sm text-white/80">Contraseña</label>
+                <input
+                    id="password"
+                    type="password"
+                    value={clave}
+                    onChange={(e) => setClave(e.target.value)}
+                    className="w-full mt-1 px-4 py-2 rounded-full bg-black/70 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-lime-400"
+                    placeholder="••••••••"
+                    required
+                    disabled={isLoading}
+                />
             </div>
 
-            {/* Mensaje de Error */}
             {error && (
-                <div className="flex items-center space-x-2 rounded-md bg-red-500/20 p-3">
-                    <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" /></svg>
-                    <p className="text-sm font-semibold text-red-800">{error}</p>
+                <div className="text-sm text-red-400 font-semibold bg-red-500/10 p-2 rounded text-center">
+                    {error}
                 </div>
             )}
 
-            {/* Botón de Ingresar */}
             <button
                 type="submit"
                 disabled={isLoading}
-                className="flex w-full justify-center rounded-lg border border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 py-3 px-4 text-sm font-bold text-white shadow-lg hover:shadow-indigo-500/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 transition-shadow"
+                className="w-full py-2 rounded-full bg-lime-400 hover:bg-lime-500 text-black font-bold text-center transition shadow-sm"
             >
-                {isLoading ? <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> : 'Ingresar'}
+                {isLoading ? 'Ingresando...' : 'Ingresar →'}
             </button>
         </form>
     );
