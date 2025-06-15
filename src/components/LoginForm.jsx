@@ -17,28 +17,44 @@ const LoginForm = ({ onLoginSuccess }) => {
         setError(null);
         setIsLoading(true);
 
+        console.log('[Login] Intentando login con:', email);
+
         try {
             const { data, error: authError } = await supabase.auth.signInWithPassword({
                 email,
                 password: clave,
             });
 
-            if (authError) throw new Error('El correo o la contraseña son incorrectos.');
+            if (authError) {
+                console.warn('[Login] Error de autenticación:', authError.message);
+                throw new Error('El correo o la contraseña son incorrectos.');
+            }
 
             const user = data.user;
+            console.log('[Login] Usuario autenticado:', user.id);
+
             const { data: perfil, error: perfilError } = await supabase
                 .from('perfiles')
-                .select('rol')
+                .select('rol, estado')
                 .eq('id', user.id)
                 .single();
 
-            if (perfilError || !perfil) throw new Error('No pudimos verificar tu rol.');
+            if (perfilError || !perfil) {
+                console.error('[Login] ❌ No se pudo obtener el perfil:', perfilError);
+                throw new Error('No pudimos verificar tu cuenta.');
+            }
+
+            if (perfil.estado !== 'Aprobado') {
+                console.warn('[Login] ⚠️ Cuenta no activada:', perfil.estado);
+                throw new Error('Tu cuenta aún no fue activada. Verificá tu correo.');
+            }
 
             login(user, perfil.rol);
 
             if (perfil.rol === 'admin') navigate('/admin');
             else if (perfil.rol === 'alumno') navigate('/dashboard');
             else {
+                console.error('[Login] ❌ Rol inválido:', perfil.rol);
                 await supabase.auth.signOut();
                 throw new Error('Tu rol no tiene permisos para acceder.');
             }

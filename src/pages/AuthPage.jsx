@@ -1,4 +1,3 @@
-// src/pages/AuthPage.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,6 +18,7 @@ const AuthPage = () => {
     const location = useLocation();
     const { user, rol, loading } = useAuth();
 
+    // 🔧 Altura adaptable para móviles
     useEffect(() => {
         const setViewportHeight = () => {
             const vh = window.innerHeight * 0.01;
@@ -34,73 +34,51 @@ const AuthPage = () => {
         return () => { document.body.style.overflow = ''; };
     }, []);
 
-    // Redirige una vez que el usuario y su rol están cargados
+    // ✅ Redirección automática al dashboard si ya está logueado
     useEffect(() => {
         if (!loading && user && rol) {
             const destino = rol === 'admin' ? '/admin' : '/dashboard';
+            console.log('[AuthPage] Redirigiendo a:', destino);
             navigate(destino, { replace: true });
         }
     }, [user, rol, loading, navigate]);
 
-    // ✅ Verificación de correo: actualiza estado a "Aprobado"
+    // ✅ Verificación de email vía ?verified=true
     useEffect(() => {
         const activarCuentaYRedirigir = async () => {
-            if (user) {
-                const { error } = await supabase
-                    .from('perfiles')
-                    .update({ estado: 'Aprobado' })
-                    .eq('id', user.id);
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            const userId = session?.user?.id;
 
-                if (error) {
-                    toast.error('❌ Error al activar la cuenta. Revisa los permisos.');
-                } else {
-                    toast.success('🙌 Cuenta activada correctamente.');
-                }
-
-                navigate('/login', { replace: true });
+            if (!userId || sessionError) {
+                toast.error('❌ No se pudo obtener la sesión.');
+                console.error('[Verificación email] Error sesión:', sessionError);
+                return;
             }
+
+            const { error } = await supabase
+                .from('perfiles')
+                .update({ estado: 'Aprobado' })
+                .eq('id', userId);
+
+            if (error) {
+                toast.error('❌ Error al activar la cuenta.');
+                console.error('[Verificación email] Error update:', error);
+            } else {
+                toast.success('🙌 Cuenta activada correctamente.', {
+                    id: 'cuenta-activada',
+                });
+            }
+
+            navigate('/login', { replace: true });
         };
 
-        if (location.search.includes('verified=true') && !loading && user) {
-            toast.success('✅ Correo verificado. Activando tu cuenta...');
+        if (location.search.includes('verified=true')) {
             activarCuentaYRedirigir();
         }
-    }, [location, navigate, user, loading]);
+    }, [location, navigate]);
+    
 
-    // ✅ Si el usuario inicia sesión por Google y no tiene perfil, lo creamos
-    useEffect(() => {
-        const verificarPerfilOAuth = async () => {
-            if (!user) return;
-
-            const { data: perfil, error: perfilError } = await supabase
-                .from('perfiles')
-                .select('id')
-                .eq('id', user.id)
-                .single();
-
-            if (!perfil) {
-                const { error: insertError } = await supabase.from('perfiles').insert({
-                    id: user.id,
-                    email: user.email,
-                    nombre: user.user_metadata?.name || '',
-                    estado: 'Aprobado',
-                    rol: 'alumno',
-                });
-
-                if (insertError) {
-                    toast.error('⚠️ Error al crear tu perfil. Contactanos.');
-                    console.error('[Perfil Google]', insertError);
-                    return;
-                }
-
-                toast.success('🙌 Bienvenido, tu cuenta fue activada.');
-            }
-        };
-
-        if (!loading && user) verificarPerfilOAuth();
-    }, [user, loading]);
-
-    // Registro por email/password (estado inicia como "pendiente")
+    // ✅ Registro por email/password
     const handleRegister = async (e) => {
         e.preventDefault();
 
@@ -108,7 +86,7 @@ const AuthPage = () => {
             email,
             password,
             options: {
-                emailRedirectTo: `${window.location.origin}/auth?verified=true`,
+                emailRedirectTo: `${window.location.origin}/login?verified=true`,
             },
         });
 
@@ -125,15 +103,19 @@ const AuthPage = () => {
             return;
         }
 
-        // Insertar perfil con estado "pendiente"
         const { data: sessionData } = data;
+
         if (sessionData?.user) {
-            await supabase.from('perfiles').insert({
+            const { error: insertError } = await supabase.from('perfiles').insert({
                 id: sessionData.user.id,
                 email,
                 estado: 'pendiente',
                 rol: 'alumno',
             });
+
+            if (insertError) {
+                console.error('[Registro] ❌ Error al insertar perfil:', insertError);
+            }
         }
 
         toast.success('📩 Revisa tu correo para verificar tu cuenta');
@@ -141,12 +123,16 @@ const AuthPage = () => {
         setPassword('');
     };
 
+    // ✅ Login con Google (redirige a esta misma página)
     const handleGoogle = async () => {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: { redirectTo: window.location.origin },
+            options: { redirectTo: window.location.origin }, // Asegura que vuelva a AuthPage
         });
-        if (error) toast.error('Error con Google');
+        if (error) {
+            toast.error('❌ Error con Google');
+            console.error('[Google login error]', error);
+        }
     };
 
     return (
