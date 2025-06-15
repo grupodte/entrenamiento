@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
 import backgroundImage from '../assets/FOTO_FONDO.webp';
-import { FaFacebook } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../context/AuthContext';
-import LoginForm from '../components/LoginForm'; // 👉 Asegurate que la ruta sea correcta
+import LoginForm from '../components/LoginForm';
 
 const transition = { duration: 0.5, ease: 'easeInOut' };
 
@@ -31,11 +31,10 @@ const AuthPage = () => {
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
-        return () => {
-            document.body.style.overflow = '';
-        };
+        return () => { document.body.style.overflow = ''; };
     }, []);
 
+    // Redirige una vez que el usuario y su rol están cargados
     useEffect(() => {
         if (!loading && user && rol) {
             const destino = rol === 'admin' ? '/admin' : '/dashboard';
@@ -43,12 +42,13 @@ const AuthPage = () => {
         }
     }, [user, rol, loading, navigate]);
 
+    // ✅ Verificación de correo: actualiza estado a "Aprobado"
     useEffect(() => {
         const activarCuentaYRedirigir = async () => {
             if (user) {
                 const { error } = await supabase
                     .from('perfiles')
-                    .update({ estado: 'Activo' })
+                    .update({ estado: 'Aprobado' })
                     .eq('id', user.id);
 
                 if (error) {
@@ -67,6 +67,40 @@ const AuthPage = () => {
         }
     }, [location, navigate, user, loading]);
 
+    // ✅ Si el usuario inicia sesión por Google y no tiene perfil, lo creamos
+    useEffect(() => {
+        const verificarPerfilOAuth = async () => {
+            if (!user) return;
+
+            const { data: perfil, error: perfilError } = await supabase
+                .from('perfiles')
+                .select('id')
+                .eq('id', user.id)
+                .single();
+
+            if (!perfil) {
+                const { error: insertError } = await supabase.from('perfiles').insert({
+                    id: user.id,
+                    email: user.email,
+                    nombre: user.user_metadata?.name || '',
+                    estado: 'Aprobado',
+                    rol: 'alumno',
+                });
+
+                if (insertError) {
+                    toast.error('⚠️ Error al crear tu perfil. Contactanos.');
+                    console.error('[Perfil Google]', insertError);
+                    return;
+                }
+
+                toast.success('🙌 Bienvenido, tu cuenta fue activada.');
+            }
+        };
+
+        if (!loading && user) verificarPerfilOAuth();
+    }, [user, loading]);
+
+    // Registro por email/password (estado inicia como "pendiente")
     const handleRegister = async (e) => {
         e.preventDefault();
 
@@ -80,7 +114,6 @@ const AuthPage = () => {
 
         if (signUpError) {
             const isRegistered =
-                signUpError.message?.includes('User already registered') ||
                 signUpError.message?.toLowerCase().includes('already') ||
                 signUpError.status === 400;
 
@@ -92,17 +125,28 @@ const AuthPage = () => {
             return;
         }
 
+        // Insertar perfil con estado "pendiente"
+        const { data: sessionData } = data;
+        if (sessionData?.user) {
+            await supabase.from('perfiles').insert({
+                id: sessionData.user.id,
+                email,
+                estado: 'pendiente',
+                rol: 'alumno',
+            });
+        }
+
         toast.success('📩 Revisa tu correo para verificar tu cuenta');
         setIsLogin(true);
         setPassword('');
     };
 
-    const handleFacebook = async () => {
+    const handleGoogle = async () => {
         const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'facebook',
+            provider: 'google',
             options: { redirectTo: window.location.origin },
         });
-        if (error) toast.error('Error con Facebook');
+        if (error) toast.error('Error con Google');
     };
 
     return (
@@ -124,7 +168,6 @@ const AuthPage = () => {
                         {isLogin ? 'Iniciá sesión' : 'Creá tu cuenta'}
                     </h2>
 
-                    {/* 👉 Modo login: usa tu componente */}
                     {isLogin ? (
                         <LoginForm />
                     ) : (
@@ -166,11 +209,11 @@ const AuthPage = () => {
                     <div className="my-4 text-center text-white/70 text-sm">o</div>
 
                     <button
-                        onClick={handleFacebook}
-                        className="w-full py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center justify-center gap-2 transition"
+                        onClick={handleGoogle}
+                        className="w-full py-2 rounded-full bg-white hover:bg-gray-200 text-black font-semibold flex items-center justify-center gap-2 transition"
                     >
-                        <FaFacebook size={18} />
-                        {isLogin ? 'Ingresar con Facebook' : 'Registrarme con Facebook'}
+                        <FcGoogle size={20} />
+                        {isLogin ? 'Ingresar con Google' : 'Registrarme con Google'}
                     </button>
 
                     <p className="text-sm text-center mt-6 text-white/80">
