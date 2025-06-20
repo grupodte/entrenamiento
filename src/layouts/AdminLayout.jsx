@@ -1,10 +1,20 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; // ⬅️ Asegurate de tener esto configurado
 import AdminSidebarDesktop from '../components/AdminSidebarDesktop';
 import AdminSidebarMobile from '../components/AdminSidebarMobile';
 import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 
 const AdminLayout = ({ children }) => {
+    const navigate = useNavigate();
+    const { logout } = useAuth();
+
+    const handleLogout = async () => {
+        await logout(); // ⬅️ Esto debería limpiar el token o sesión
+        navigate('/login');
+    };
+
     useEffect(() => {
         const setViewportHeight = () => {
             const vh = window.innerHeight * 0.01;
@@ -45,10 +55,19 @@ const AdminLayout = ({ children }) => {
                 ref={scrollRef}
                 className="relative z-10 flex h-full overflow-y-scroll overscroll-contain"
             >
-
                 <AdminSidebarDesktop />
 
                 <main className="flex-1 min-h-full p-3 md:p-6">
+                    {/* Botón de logout */}
+                    <div className="flex justify-end mb-4">
+                        <button
+                            onClick={handleLogout}
+                            className="bg-white text-black px-4 py-2 rounded-md hover:bg-gray-200 transition"
+                        >
+                            Cerrar sesión
+                        </button>
+                    </div>
+
                     {children}
                 </main>
 
