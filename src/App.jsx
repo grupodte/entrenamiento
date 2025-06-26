@@ -21,6 +21,8 @@ import RutinaDetalle from './pages/Alumno/RutinaDetalle';
 import AdminPanel from './pages/Admin/AdminPanel';
 import AlumnoPerfil from './pages/Admin/AlumnoPerfil';
 import CrearRutina from './pages/Admin/CrearRutina';
+import EditarRutina from './pages/Admin/EditarRutina'; // Importar EditarRutina
+import VerRutina from './pages/Admin/VerRutina'; // Importar VerRutina
 import SeleccionarEjercicios from './pages/Admin/SeleccionarEjercicios';
 import AdminRutinas from './pages/Admin/AdminRutinas';
 import AdminAlumnos from './pages/Admin/AdminAlumnos';
@@ -173,6 +175,22 @@ const App = () => {
               element={
                 <RutaProtegida rolPermitido="admin">
                   <CrearRutina />
+                </RutaProtegida>
+              }
+            />
+            <Route
+              path="/admin/rutinas/editar/:id" // Ruta para editar rutina
+              element={
+                <RutaProtegida rolPermitido="admin">
+                  <EditarRutina />
+                </RutaProtegida>
+              }
+            />
+            <Route
+              path="/admin/rutinas/ver/:id" // Ruta para ver rutina
+              element={
+                <RutaProtegida rolPermitido="admin">
+                  <VerRutina />
                 </RutaProtegida>
               }
             />

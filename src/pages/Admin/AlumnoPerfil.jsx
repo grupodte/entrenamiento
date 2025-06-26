@@ -1,280 +1,166 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
-import { FaArrowLeft, FaEnvelope, FaBullseye, FaSignal } from 'react-icons/fa';
 import AdminLayout from '../../layouts/AdminLayout';
+import DiaCard from '../../components/Rutina/DiaCard';
+import RutinasSidebar from '../../components/Rutina/RutinasSidebar';
+
+import {
+    DndContext,
+    MouseSensor,
+    TouchSensor,
+    useSensor,
+    useSensors
+} from '@dnd-kit/core';
 
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 const AlumnoPerfil = () => {
     const { id } = useParams();
-    const navigate = useNavigate();
     const [alumno, setAlumno] = useState(null);
     const [asignacionesPorDia, setAsignacionesPorDia] = useState({});
+    const [rutinasBase, setRutinasBase] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const sensors = useSensors(
+        useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+        useSensor(TouchSensor)
+    );
 
     const fetchData = async () => {
         setLoading(true);
-        try {
-            const { data: perfil, error: errorPerfil } = await supabase
-                .from('perfiles')
-                .select('*')
-                .eq('id', id)
-                .single();
 
-            if (errorPerfil) throw errorPerfil;
-            setAlumno(perfil);
+        // Obtener datos del alumno
+        const { data: perfil } = await supabase
+            .from('perfiles')
+            .select('*')
+            .eq('id', id)
+            .single();
+        setAlumno(perfil);
 
-            const { data: asignaciones, error: errorAsignaciones } = await supabase
-                .from('asignaciones')
-                .select('id, dia_semana, rutina_personalizada_id, rutina_base_id')
-                .eq('alumno_id', id);
+        // Obtener rutinas base
+        const { data: rutinas } = await supabase
+            .from('rutinas_base')
+            .select('id, nombre')
+            .order('nombre');
+        setRutinasBase(rutinas || []);
 
-            if (errorAsignaciones) throw errorAsignaciones;
+        // Obtener asignaciones actuales con nombres de rutina
+        const { data: asignaciones } = await supabase
+            .from('asignaciones')
+            .select(`
+                *,
+                rutina_base:rutina_base_id (id, nombre),
+                rutina_personalizada:rutina_personalizada_id (id, nombre)
+            `)
+            .eq('alumno_id', id);
 
-            const asignacionesTemp = {};
-
-            for (const asignacion of asignaciones) {
-                let ejerciciosFinales = [];
-
-                // Rutina personalizada (esta parte ya estaba bien)
-                if (asignacion.rutina_personalizada_id) {
-                    const { data: dataPers, error: errorPers } = await supabase
-                        .from('rutinas_personalizadas_ejercicios')
-                        .select(`
-                            id,
-                            ejercicio_id,
-                            ejercicios(nombre),
-                            rutinas_personalizadas_series (
-                                nro_set,
-                                reps,
-                                pausa,
-                                carga
-                            )
-                        `)
-                        .eq('rutina_personalizada_id', asignacion.rutina_personalizada_id)
-                        .order('orden', { ascending: true });
-
-                    if (errorPers) throw errorPers;
-
-                    ejerciciosFinales = (dataPers || []).map(ej => ({
-                        id: ej.id,
-                        nombre: ej.ejercicios?.nombre || 'Nombre no encontrado',
-                        series: ej.rutinas_personalizadas_series?.length || 0,
-                        reps: ej.rutinas_personalizadas_series?.[0]?.reps || '-',
-                    }));
-
-                    // Rutina base (AQUÍ ESTÁ LA CORRECCIÓN)
-                } else if (asignacion.rutina_base_id) {
-                    const rutinaId = asignacion.rutina_base_id;
-
-                    // CAMBIO 1: Pedimos también el 'id' de la tabla de unión.
-                    const { data: ejerciciosEnRutina, error: errorEjercicios } = await supabase
-                        .from('rutinas_base_ejercicios')
-                        .select('id, orden, ejercicio_id')
-                        .eq('rutina_base_id', rutinaId)
-                        .order('orden', { ascending: true });
-
-                    if (errorEjercicios) throw errorEjercicios;
-
-                    ejerciciosFinales = await Promise.all(
-                        (ejerciciosEnRutina || []).map(async (ejercicio) => {
-                            const { data: ejercicioData, error: errorEj } = await supabase
-                                .from('ejercicios')
-                                .select('nombre')
-                                .eq('id', ejercicio.ejercicio_id)
-                                .maybeSingle();
-
-                            if (errorEj) throw errorEj;
-
-                            // CAMBIO 2: Buscamos las series usando la nueva y correcta clave foránea.
-                            const { data: series, error: errorSeries } = await supabase
-                                .from('rutinas_base_series')
-                                .select('nro_set, reps, pausa, carga_sugerida')
-                                .eq('rutinas_base_ejercicio_id', ejercicio.id) // Se usa el ID del "padre"
-                                .order('nro_set', { ascending: true });
-
-                            if (errorSeries) throw errorSeries;
-
-                            return {
-                                id: ejercicio.ejercicio_id,
-                                nombre: ejercicioData?.nombre || 'Ejercicio no encontrado',
-                                    orden: ejercicio.orden,
-                                series: series || [],
-                            };
-                        })
-                    );
-                }
-
-                asignacionesTemp[asignacion.dia_semana] = {
-                    asignacion,
-                    ejercicios: ejerciciosFinales,
-                };
-            }
-
-            setAsignacionesPorDia(asignacionesTemp);
-        } catch (error) {
-            console.error("Error cargando los datos del perfil:", error);
-        } finally {
-            setLoading(false);
+        const map = {};
+        for (const asig of asignaciones) {
+            map[asig.dia_semana] = { asignacion: asig, ejercicios: [] };
         }
+        setAsignacionesPorDia(map);
+        setLoading(false);
     };
 
     useEffect(() => {
         fetchData();
     }, [id]);
 
-    const irASeleccionarRutina = (dia) => navigate(`/admin/asignar-rutina/${id}?dia=${dia}`);
-    const irAEditarDia = (dia) => navigate(`/admin/rutinas/editar-dia/${id}?dia=${dia}`);
+    const handleDrop = async (event) => {
+        const itemId = event.active?.id;
+        const overId = event.over?.id;
 
-    const eliminarDia = async (dia) => {
-        const confirmacion = window.confirm(`¿Seguro que quieres eliminar la rutina del día ${diasSemana[dia]}?`);
-        if (!confirmacion) return;
+        if (!itemId || !overId || !overId.startsWith('dia-')) {
+            console.warn("❌ Drop inválido", { itemId, overId });
+            return;
+        }
+
+        const diaIndex = Number(overId.replace('dia-', ''));
 
         try {
-            // 1. Buscar asignación actual
-            const { data: asignacion, error } = await supabase
-                .from('asignaciones')
-                .select('id, rutina_personalizada_id')
-                .eq('alumno_id', id)
-                .eq('dia_semana', dia)
-                .maybeSingle();
+            if (itemId.startsWith('rutina-')) {
+                // Asignar rutina base
+                const rutinaBaseId = itemId.replace('rutina-', '');
 
-            if (error || !asignacion) {
-                alert('❌ No se encontró asignación para eliminar.');
-                return;
-            }
+                await supabase
+                    .from('asignaciones')
+                    .upsert({
+                        alumno_id: id,
+                        dia_semana: diaIndex,
+                        rutina_base_id: rutinaBaseId,
+                        rutina_personalizada_id: null,
+                    }, {
+                        onConflict: 'alumno_id,dia_semana',
+                    });
 
-            // 2. Si hay rutina personalizada, borrar en orden:
-            if (asignacion.rutina_personalizada_id) {
-                const rutinaId = asignacion.rutina_personalizada_id;
+            } else {
+                // Asignar ejercicio a rutina personalizada (legacy)
+                let asignacion = asignacionesPorDia[diaIndex];
+                let rutinaId;
 
-                // 2.1 Buscar ejercicios personalizados
-                const { data: ejerciciosPersonalizados, error: errorEj } = await supabase
-                    .from('rutinas_personalizadas_ejercicios')
-                    .select('id')
-                    .eq('rutina_personalizada_id', rutinaId);
+                if (!asignacion || !asignacion.asignacion.rutina_personalizada_id) {
+                    const { data: nuevaRutina } = await supabase
+                        .from('rutinas_personalizadas')
+                        .insert({ alumno_id: id })
+                        .select()
+                        .single();
 
-                if (errorEj) throw errorEj;
+                    rutinaId = nuevaRutina.id;
 
-                const ejercicioIds = ejerciciosPersonalizados.map(ej => ej.id);
+                    const { data: nuevaAsignacion } = await supabase
+                        .from('asignaciones')
+                        .insert({
+                            alumno_id: id,
+                            dia_semana: diaIndex,
+                            rutina_personalizada_id: rutinaId,
+                        })
+                        .select()
+                        .single();
 
-                // 2.2 Borrar series asociadas a esos ejercicios
-                if (ejercicioIds.length > 0) {
-                    const { error: errorSeries } = await supabase
-                        .from('rutinas_personalizadas_series')
-                        .delete()
-                        .in('rutina_personalizada_ejercicio_id', ejercicioIds);
-
-                    if (errorSeries) throw errorSeries;
+                    asignacion = { asignacion: nuevaAsignacion, ejercicios: [] };
+                } else {
+                    rutinaId = asignacion.asignacion.rutina_personalizada_id;
                 }
 
-                // 2.3 Borrar los ejercicios personalizados
-                const { error: errorEjerciciosPers } = await supabase
-                    .from('rutinas_personalizadas_ejercicios')
-                    .delete()
-                    .eq('rutina_personalizada_id', rutinaId);
-
-                if (errorEjerciciosPers) throw errorEjerciciosPers;
-
-                // 2.4 Borrar la rutina personalizada
-                const { error: errorRutinaPers } = await supabase
-                    .from('rutinas_personalizadas')
-                    .delete()
-                    .eq('id', rutinaId);
-
-                if (errorRutinaPers) throw errorRutinaPers;
+                await supabase.from('rutinas_personalizadas_ejercicios').insert({
+                    rutina_personalizada_id: rutinaId,
+                    ejercicio_id: itemId,
+                    orden: asignacion.ejercicios.length + 1,
+                });
             }
 
-            // 3. Borrar la asignación en sí
-            const { error: deleteAsignacionError } = await supabase
-                .from('asignaciones')
-                .delete()
-                .eq('id', asignacion.id);
-
-            if (deleteAsignacionError) throw deleteAsignacionError;
-
-            alert('✅ Rutina del día eliminada correctamente.');
             fetchData();
         } catch (error) {
-            console.error('Error al eliminar rutina del día:', error);
-            alert(`❌ Ocurrió un error: ${error.message}`);
+            console.error("Error en drop:", error);
         }
     };
-    
 
     return (
         <AdminLayout>
-            <div className="max-w-5xl mx-auto mt-10 p-6 bg-white rounded shadow">
-                <button onClick={() => navigate('/admin/alumnos')} className="text-blue-600 hover:underline mb-6 flex items-center">
-                    <FaArrowLeft className="mr-2" /> Volver a alumnos
-                </button>
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold">{alumno?.nombre} {alumno?.apellido}</h1>
-                    <p className="text-sm text-gray-700 flex items-center gap-2 mt-1"><FaEnvelope /> {alumno?.email}</p>
-                    <p className="text-sm text-gray-700 flex items-center gap-2 mt-1"><FaBullseye /> Objetivo: <strong>{alumno?.objetivo || 'No definido'}</strong></p>
-                    <p className="text-sm text-gray-700 flex items-center gap-2"><FaSignal /> Nivel: <strong>{alumno?.nivel || 'No definido'}</strong></p>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-4">
+                <div className="md:col-span-1">
+                    <RutinasSidebar rutinas={rutinasBase} />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {diasSemana.map((dia, index) => {
-                        const diaInfo = asignacionesPorDia[index];
-                        const tieneAsignacion = !!diaInfo;
-                        // --- NUEVO: Determinar si la rutina es personalizada ---
-                        const esPersonalizada = tieneAsignacion && !!diaInfo.asignacion.rutina_personalizada_id;
-                        const tieneEjercicios = diaInfo && diaInfo.ejercicios.length > 0;
 
-                        // --- NUEVO: Clases de estilo condicionales para el fondo ---
-                        const cardBgClass = esPersonalizada
-                            ? 'bg-purple-50 border-purple-200'
-                            : tieneAsignacion
-                                ? 'bg-green-50 border-green-200'
-                                : 'bg-gray-50 border-gray-200';
+                <div className="md:col-span-3">
+                    <h1 className="text-2xl font-bold mb-4">
+                        Rutinas de {alumno?.nombre} {alumno?.apellido}
+                    </h1>
 
-                        return (
-                            <div key={index} className={`border rounded p-4 flex flex-col justify-between ${cardBgClass}`}>
-                                <div>
-                                    <h3 className="font-bold mb-2">{dia}</h3>
-                                    {tieneAsignacion ? (
-                                        <>
-                                            {/* --- NUEVO: Etiqueta para el tipo de rutina --- */}
-                                            <div className="mb-2">
-                                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${esPersonalizada ? 'bg-purple-200 text-purple-800' : 'bg-blue-200 text-blue-800'}`}>
-                                                    {esPersonalizada ? '⭐ Personalizada' : '📘 Base'}
-                                                </span>
-                                            </div>
-
-                                            {tieneEjercicios ? (
-                                                <ul className="text-sm mb-2 space-y-1">
-                                                    {diaInfo.ejercicios.map((ej, i) => {
-                                                        const esRutinaBase = Array.isArray(ej.series);
-                                                        const seriesCount = esRutinaBase ? ej.series.length : ej.series;
-                                                        const repsText = esRutinaBase ? 'series' : `x ${ej.reps} reps`;
-                                                        return (
-                                                            <li key={ej.id || i} className="truncate">✅ {ej.nombre} ({seriesCount} {repsText})</li>
-                                                        );
-                                                    })}
-                                                </ul>
-                                            ) : (
-                                                <p className="text-sm text-yellow-600 mb-2">⚠️ Rutina asignada pero sin ejercicios definidos.</p>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <p className="text-sm text-gray-500">Sin rutina.</p>
-                                    )}
-                                </div>
-                                <div className="mt-4 flex gap-3">
-                                    {tieneAsignacion ? (
-                                        <>
-                                            <button onClick={() => irAEditarDia(index)} className="text-yellow-700 text-sm underline hover:opacity-80">✏️ Editar</button>
-                                            <button onClick={() => eliminarDia(index)} className="text-red-600 text-sm underline hover:opacity-80">🗑️ Quitar</button>
-                                        </>
-                                    ) : (
-                                        <button onClick={() => irASeleccionarRutina(index)} className="text-blue-600 hover:underline text-sm">➕ Asignar rutina</button>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
+                    <DndContext sensors={sensors} onDragEnd={handleDrop} autoScroll={true}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            {diasSemana.map((dia, i) => (
+                                <DiaCard
+                                    key={i}
+                                    index={i}
+                                    id={`dia-${i}`}
+                                    dia={dia}
+                                    diaInfo={asignacionesPorDia[i]}
+                                />
+                            ))}
+                        </div>
+                    </DndContext>
                 </div>
             </div>
         </AdminLayout>
