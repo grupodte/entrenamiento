@@ -6,27 +6,35 @@ const RutinaItem = ({ rutina }) => {
         id: `rutina-${rutina.id}`,
     });
 
-    const style = transform
+    const baseStyle = transform
         ? {
             transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-            touchAction: 'none', // previene interferencia en touch
-            WebkitUserSelect: 'none', // mejora compatibilidad
-            userSelect: 'none',
-            zIndex: 10, // Asegura que el item arrastrado esté por encima
+            zIndex: 10, // Asegura que el item arrastrado esté por encima durante la transición si es visible
         }
-        : {
-            touchAction: 'none',
-            WebkitUserSelect: 'none',
-            userSelect: 'none',
-        };
+        : {};
+
+    const combinedStyle = {
+        ...baseStyle,
+        touchAction: 'none', // previene interferencia en touch y scroll en móviles
+        WebkitUserSelect: 'none', // mejora compatibilidad de selección en navegadores WebKit
+        userSelect: 'none', // previene selección de texto durante el drag
+        opacity: isDragging ? 0 : 1, // Clave: Oculta el item original mientras se arrastra
+    };
+
+    // Se mantiene el cambio de clase para isDragging por si se quiere dar feedback visual 
+    // al placeholder que podría quedar (aunque con opacity:0 no se verá)
+    // o si en el futuro se cambia opacity:0 por otra estrategia (ej. moverlo fuera de pantalla)
+    const draggingClass = isDragging
+        ? 'bg-blue-100 border-blue-400 shadow-lg'
+        : 'bg-gray-50 hover:bg-gray-100 border-gray-200';
 
     return (
         <li
             ref={setNodeRef}
-            style={style}
+            style={combinedStyle}
             {...listeners}
             {...attributes}
-            className={`cursor-grab active:cursor-grabbing p-3 rounded-md border transition-colors ${isDragging ? 'bg-blue-100 border-blue-400 shadow-lg' : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
+            className={`cursor-grab active:cursor-grabbing p-3 rounded-md border transition-colors ${draggingClass}
                 }`}
         >
             <span className="font-medium text-sm text-gray-800">{rutina.nombre}</span>
