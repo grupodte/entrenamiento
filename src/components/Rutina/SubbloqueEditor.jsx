@@ -53,10 +53,10 @@ const structureOptions = [
     { value: 'simple', label: 'Simple (series por ejercicio)' },
     { value: 'superset', label: 'Superset (series compartidas)' },
 ];
-
-const createDefaultSetsConfig = (numSets) => {
-    return Array(numSets).fill(null).map(() => ({ reps: '', carga: '' }));
+const createDefaultSetsConfig = (numSets, reps = '', carga = '') => {
+    return Array(numSets).fill(null).map(() => ({ reps, carga }));
 };
+  
 
 const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles }) => {
     const currentSubbloque = {
@@ -86,7 +86,7 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
                 updated.ejercicios = updated.ejercicios.map(ej => ({
                     ...ej,
                     series: [],
-                    sets_config: createDefaultSetsConfig(numSets),
+sets_config: createDefaultSetsConfig(numSets, '', ''),
                 }));
             }
         }
@@ -97,7 +97,7 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
     const handleSharedConfigChange = (newSharedConfig) => {
         const nuevo = newSharedConfig.num_sets;
         const ejerciciosActualizados = currentSubbloque.ejercicios.map(ej => {
-            if (!isShared) {
+            if (currentSubbloque.tipo === 'simple') {
                 return {
                     ...ej,
                     series: Array.from({ length: nuevo }).map((_, i) => ({
@@ -109,8 +109,12 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
             } else {
                 return {
                     ...ej,
-                    sets_config: createDefaultSetsConfig(nuevo),
-                };
+                    sets_config: createDefaultSetsConfig(
+                        nuevo,
+                        newSharedConfig.shared_reps || '',
+                        newSharedConfig.shared_load || ''
+                    )
+                                    };
             }
         });
 
@@ -130,8 +134,12 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
 
         if (isShared) {
             const numSets = currentSubbloque.shared_config?.num_sets || 1;
-            nuevo.sets_config = createDefaultSetsConfig(numSets);
-        } else {
+            nuevo.sets_config = createDefaultSetsConfig(
+                currentSubbloque.shared_config?.num_sets || 1,
+                currentSubbloque.shared_config?.shared_reps || '',
+                currentSubbloque.shared_config?.shared_load || ''
+            );
+                    } else {
             nuevo.series = [];
         }
 

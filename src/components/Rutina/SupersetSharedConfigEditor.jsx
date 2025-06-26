@@ -18,51 +18,65 @@ const SupersetSharedConfigEditor = ({ sharedConfig, onConfigChange }) => {
 
     return (
         <div>
-            <div className="grid grid-cols-3 gap-3 items-center">
-                <div>
-                    <label htmlFor="num_sets" className="block text-xs font-medium text-white/70 mb-1">
-                        Número de series:
-                    </label>
-                    <input
-                        type="text"
-                        id="num_sets"
-                        name="num_sets"
-                        value={sharedConfig?.num_sets || ''}
-                        onChange={handleNumSetsChange}
-                        className="w-full rounded-md bg-white/10 backdrop-blur px-3 py-1.5 text-white placeholder-white/50 text-sm focus:ring-sky-500 focus:border-sky-500 border-transparent"
-                        placeholder="Ej: 3"
-                    />
-                </div>
-                <div>
-                    <label htmlFor="shared_rest" className="block text-xs font-medium text-white/70 mb-1">
-                        Descanso (segundos):
-                    </label>
-                    <input
-                        type="text"
-                        id="shared_rest"
-                        name="shared_rest"
-                        value={sharedConfig?.shared_rest || ''}
-                        onChange={handleSharedRestChange}
-                        placeholder="Ej: 60"
-                        className="w-full rounded-md bg-white/10 backdrop-blur px-3 py-1.5 text-white placeholder-white/50 text-sm focus:ring-sky-500 focus:border-sky-500 border-transparent"
-                    />
-                </div>
-                <div>
-                    <label htmlFor="shared_reps" className="block text-xs font-medium text-white/70 mb-1">
-                        Repeticiones:
-                    </label>
-                    <input
-                        type="text"
-                        id="shared_reps"
-                        name="shared_reps"
-                        value={sharedConfig?.shared_reps || ''}
-                        onChange={handleSharedRepsChange}
-                        placeholder="Ej: 12"
-                        className="w-full rounded-md bg-white/10 backdrop-blur px-3 py-1.5 text-white placeholder-white/50 text-sm focus:ring-sky-500 focus:border-sky-500 border-transparent"
-                    />
-                </div>
-            </div>
-        </div>
+  <div className="grid grid-cols-4 gap-3 items-center">
+    <div>
+      <label htmlFor="num_sets" className="block text-xs font-medium text-white/70 mb-1">
+        Número de series:
+      </label>
+      <input
+        type="text"
+        id="num_sets"
+        name="num_sets"
+        value={sharedConfig?.num_sets || ''}
+        onChange={handleNumSetsChange}
+        className="w-full rounded-md bg-white/10 backdrop-blur px-3 py-1.5 text-white placeholder-white/50 text-sm focus:ring-sky-500 focus:border-sky-500 border-transparent"
+        placeholder="Ej: 3"
+      />
+    </div>
+    <div>
+      <label htmlFor="shared_rest" className="block text-xs font-medium text-white/70 mb-1">
+        Descanso (segundos):
+      </label>
+      <input
+        type="text"
+        id="shared_rest"
+        name="shared_rest"
+        value={sharedConfig?.shared_rest || ''}
+        onChange={handleSharedRestChange}
+        placeholder="Ej: 60"
+        className="w-full rounded-md bg-white/10 backdrop-blur px-3 py-1.5 text-white placeholder-white/50 text-sm focus:ring-sky-500 focus:border-sky-500 border-transparent"
+      />
+    </div>
+    <div>
+      <label htmlFor="shared_reps" className="block text-xs font-medium text-white/70 mb-1">
+        Repeticiones:
+      </label>
+      <input
+        type="text"
+        id="shared_reps"
+        name="shared_reps"
+        value={sharedConfig?.shared_reps || ''}
+        onChange={handleSharedRepsChange}
+        placeholder="Ej: 12"
+        className="w-full rounded-md bg-white/10 backdrop-blur px-3 py-1.5 text-white placeholder-white/50 text-sm focus:ring-sky-500 focus:border-sky-500 border-transparent"
+      />
+    </div>
+    <div>
+      <label htmlFor="shared_load" className="block text-xs font-medium text-white/70 mb-1">
+        Carga sugerida:
+      </label>
+      <input
+        type="text"
+        id="shared_load"
+        name="shared_load"
+        value={sharedConfig?.shared_load || ''}
+        onChange={(e) => onConfigChange({ ...sharedConfig, shared_load: e.target.value })}
+        placeholder="Ej: 40kg"
+        className="w-full rounded-md bg-white/10 backdrop-blur px-3 py-1.5 text-white placeholder-white/50 text-sm focus:ring-sky-500 focus:border-sky-500 border-transparent"
+      />
+    </div>
+  </div>
+</div>
     );
 };
 
