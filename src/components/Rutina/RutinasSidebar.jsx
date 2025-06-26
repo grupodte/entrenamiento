@@ -1,35 +1,5 @@
-// src/components/Rutina/RutinasSidebar.jsx
 import React, { useState } from 'react';
-import { useDraggable } from '@dnd-kit/core';
-
-const RutinaItem = ({ rutina }) => {
-    const { attributes, listeners, setNodeRef, transform } = useDraggable({
-        id: `rutina-${rutina.id}`,
-    });
-
-    const style = transform
-        ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
-        : undefined;
-
-    return (
-        <div
-            ref={setNodeRef}
-            {...listeners}
-            {...attributes}
-            draggable="true"
-            style={{
-                ...style,
-                touchAction: 'none', // previene interferencia en touch
-                WebkitUserSelect: 'none', // mejora compatibilidad
-                userSelect: 'none'
-            }}
-            className="bg-white/10 text-white px-3 py-2 rounded-md mb-2 hover:bg-white/20 cursor-grab active:cursor-grabbing z-10 relative"
-        >
-            {rutina.nombre}
-        </div>
-      
-    );
-};
+import RutinaItem from './RutinaItem';
 
 const RutinasSidebar = ({ rutinas }) => {
     const [filtro, setFiltro] = useState('');
@@ -47,11 +17,11 @@ const RutinasSidebar = ({ rutinas }) => {
                 value={filtro}
                 onChange={(e) => setFiltro(e.target.value)}
             />
-            <div className="overflow-y-auto max-h-[70vh] pr-1">
+            <ul className="space-y-2">
                 {rutinasFiltradas.map((rutina) => (
                     <RutinaItem key={rutina.id} rutina={rutina} />
                 ))}
-            </div>
+            </ul>
         </div>
     );
 };

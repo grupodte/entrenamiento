@@ -22,14 +22,14 @@ const EditarRutina = () => {
                 const { data, error: fetchError } = await supabase
                     .from('rutinas_base')
                     .select(`
-                        id, nombre, tipo, descripcion, created_at, user_id,
-                        bloques:rutina_bloques (
-                            id, orden, nombre_bloque, descripcion_bloque, rutina_base_id,
-                            sub_bloques:rutina_sub_bloques (
-                                id, orden, tipo, bloque_id,
-                                ejercicios:rutina_ejercicios (
-                                    id, orden, ejercicio_id, series, repeticiones, rir, tiempo_descanso_segundos, notas, sub_bloque_id,
-                                    ejercicio_detalle:ejercicios (id, nombre, tipo_ejercicio, video_url, grupo_muscular)
+                        *,
+                        rutina_bloques (
+                            *,
+                            rutina_sub_bloques (
+                                *,
+                                rutina_ejercicios (
+                                    *,
+                                    ejercicios (*)
                                 )
                             )
                         )
@@ -41,27 +41,31 @@ const EditarRutina = () => {
 
                 // Transformar los datos para que coincidan con la estructura esperada por RutinaForm
                 // Esto es crucial y dependerá de cómo RutinaForm espera los datos.
-                if (!data) {
-                    throw new Error("No se encontró la rutina o no hay datos.");
-                }
-
+                // Por ejemplo, si RutinaForm espera `ejercicio_id` en lugar de un objeto `ejercicios`.
                 const transformada = {
-                    ...data, // Contiene id, nombre, tipo, descripcion de rutinas_base
-                    // Los bloques ya vienen anidados y aliaseados desde la consulta
-                    // Solo necesitamos asegurar que la estructura interna coincida con lo que RutinaForm espera.
-                    bloques: (data.bloques || []).map(bloque => ({
-                        ...bloque, // id, orden, nombre_bloque, descripcion_bloque de rutina_bloques
-                        // 'sub_bloques' ya está aliaseado en la consulta
-                        sub_bloques: (bloque.sub_bloques || []).map(subBloque => ({
-                            ...subBloque, // id, orden, tipo de rutina_sub_bloques
-                            // 'ejercicios' ya está aliaseado en la consulta
-                            ejercicios: (subBloque.ejercicios || []).map(ej => ({
-                                ...ej, // id, orden, ejercicio_id, series, etc. de rutina_ejercicios
-                                // 'ejercicioData' es el alias para los datos de la tabla 'ejercicios'
-                                ejercicioData: ej.ejercicio_detalle
-                            })).sort((a, b) => a.orden - b.orden)
-                        })).sort((a, b) => a.orden - b.orden)
-                    })).sort((a, b) => a.orden - b.orden)
+                    ...data,
+                    bloques: data.rutina_bloques.map(bloque => ({
+                        ...bloque,
+                        id: bloque.id, // Asegurar que el ID del bloque se mantenga
+                        nombre_bloque: bloque.nombre_bloque,
+                        descripcion_bloque: bloque.descripcion_bloque,
+                        sub_bloques: bloque.rutina_sub_bloques.map(subBloque => ({
+                            ...subBloque,
+                            id: subBloque.id, // Asegurar que el ID del sub_bloque se mantenga
+                            tipo: subBloque.tipo,
+                            ejercicios: subBloque.rutina_ejercicios.map(ej => ({
+                                ...ej,
+                                id: ej.id, // Asegurar que el ID del rutina_ejercicio se mantenga
+                                ejercicio_id: ej.ejercicio_id,
+                                // Asegurarse de que 'series' sea un array de strings/numbers si es necesario
+                                series: typeof ej.series === 'string' ? ej.series.split(',').map(s => s.trim()) : ej.series,
+                                // ... otros campos como repeticiones, rir, etc.
+                                // El objeto 'ejercicios' (info del catálogo) se puede pasar si RutinaForm lo usa
+                                // o solo el ID como 'ejercicio_id'.
+                                ejercicioData: ej.ejercicios // Datos completos del ejercicio desde la tabla 'ejercicios'
+                            })).sort((a, b) => a.orden - b.orden) // Ordenar ejercicios
+                        })).sort((a, b) => a.orden - b.orden) // Ordenar sub_bloques
+                    })).sort((a, b) => a.orden - b.orden) // Ordenar bloques
                 };
                 setRutinaParaEditar(transformada);
 
