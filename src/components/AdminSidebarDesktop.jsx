@@ -9,6 +9,11 @@ const navItems = [
 const AdminSidebarDesktop = () => {
     const location = useLocation();
 
+      const handleLogout = async () => {
+            await logout(); // ⬅️ Esto debería limpiar el token o sesión
+            navigate('/login');
+        };
+
     return (
         <aside className="hidden md:flex md:w-64 flex-col gap-4 h-screen sticky top-0 backdrop-blur-lg bg-white/70 dark:bg-black/40 border-r border-white/10 p-6 shadow-xl">
             <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">FitApp Panel</h2>
@@ -24,8 +29,16 @@ const AdminSidebarDesktop = () => {
                     >
                         {label}
                     </Link>
+                    
+                 
                 ))}
             </nav>
+            <button
+                onClick={handleLogout}
+                className="bg-white text-black px-4 py-2 rounded-md hover:bg-gray-200 transition"
+            >
+                Cerrar sesión
+            </button>
         </aside>
     );
 };

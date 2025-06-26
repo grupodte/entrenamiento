@@ -16,12 +16,7 @@ const SeriesInput = ({ serie, index, onChange }) => {
                 placeholder="Pausa"
                 className="rounded bg-white/10 px-2 py-1"
             />
-            <input
-                value={serie.carga}
-                onChange={(e) => onChange(index, { ...serie, carga: e.target.value })}
-                placeholder="Carga"
-                className="rounded bg-white/10 px-2 py-1"
-            />
+      
             <span className="text-xs text-white/50 self-center">serie {index + 1}</span>
         </div>
     );

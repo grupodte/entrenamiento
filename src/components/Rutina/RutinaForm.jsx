@@ -32,15 +32,15 @@ const RutinaForm = () => {
         }
         setIsHydrated(true); // solo después de leer
     }, []);
-    
-      
+
+
     useEffect(() => {
         if (!isHydrated) return; // ⛔️ evita sobrescribir al cargar
         const rutinaDraft = { nombre, tipo, descripcion, bloques };
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(rutinaDraft));
     }, [nombre, tipo, descripcion, bloques, isHydrated]);
-      
-      
+
+
 
     useEffect(() => {
         const fetchEjercicios = async () => {
@@ -133,35 +133,87 @@ const RutinaForm = () => {
                     if (errorSub) throw errorSub;
                     const subbloqueId = subData.id;
 
-                    for (const [iEj, ejercicio] of subbloque.ejercicios.entries()) {
-                        const { data: ejData, error: errorEj } = await supabase
-                            .from('subbloques_ejercicios')
-                            .insert([
-                                {
+                    if (subbloque.tipo === 'simple' || !subbloque.tipo) {
+                        // --- SIMPLE STRUCTURE ---
+                        if (!subbloque.ejercicios || subbloque.ejercicios.length === 0) {
+                            throw new Error(`Subbloque simple '${subbloque.nombre}' debe tener al menos un ejercicio.`);
+                        }
+                        for (const [iEj, ejercicio] of subbloque.ejercicios.entries()) {
+                            if (!ejercicio.series || ejercicio.series.length === 0) {
+                                throw new Error(`Ejercicio '${ejercicio.nombre}' en subbloque simple '${subbloque.nombre}' requiere al menos una serie.`);
+                            }
+
+                            const { data: ejData, error: errorEj } = await supabase
+                                .from('subbloques_ejercicios')
+                                .insert([{ subbloque_id: subbloqueId, ejercicio_id: ejercicio.ejercicio_id, orden: iEj }])
+                                .select().single();
+                            if (errorEj) throw errorEj;
+                            const subEjId = ejData.id;
+
+                            for (const [iSerie, serie] of ejercicio.series.entries()) {
+                                const { error: errorSerie } = await supabase.from('series_subejercicio').insert([{
+                                    subbloque_ejercicio_id: subEjId,
+                                    nro_set: iSerie + 1,
+                                    reps: serie.reps,
+                                    pausa: serie.pausa,
+                                }]);
+                                if (errorSerie) throw errorSerie;
+                            }
+                        }
+                    } else if (['superset', 'triset', 'circuit'].includes(subbloque.tipo)) {
+                        // --- SUPERSET, TRISET, CIRCUIT STRUCTURE (New Logic) ---
+                        if (!subbloque.shared_config || !subbloque.shared_config.num_sets || subbloque.shared_config.num_sets <= 0) {
+                            throw new Error(`Subbloque '${subbloque.nombre}' (${subbloque.tipo}) debe tener un número de series compartidas definido y mayor a 0.`);
+                        }
+                        if (!subbloque.ejercicios || subbloque.ejercicios.length < (subbloque.tipo === 'superset' ? 2 : 3)) {
+                            throw new Error(`Subbloque '${subbloque.nombre}' (${subbloque.tipo}) no tiene suficientes ejercicios para su estructura.`);
+                        }
+
+                        const numSets = parseInt(subbloque.shared_config.num_sets, 10);
+                        const sharedRest = subbloque.shared_config.shared_rest ? parseInt(subbloque.shared_config.shared_rest, 10) : null;
+
+                        // 1. Save entries to shared_series_subblock (defines set count and shared rest)
+                        for (let s = 0; s < numSets; s++) {
+                            const { error: errorSharedSet } = await supabase
+                                .from('shared_series_subblock')
+                                .insert([{
                                     subbloque_id: subbloqueId,
-                                    ejercicio_id: ejercicio.ejercicio_id,
-                                    orden: iEj,
-                                },
-                            ])
-                            .select()
-                            .single();
+                                    set_number: s + 1,
+                                    rest: sharedRest,
+                                    // reps and suggested_load in this table are NOT used for this new superset logic
+                                }]);
+                            if (errorSharedSet) throw errorSharedSet;
+                        }
 
-                        if (errorEj) throw errorEj;
-                        const subEjId = ejData.id;
+                        // 2. For each exercise, save its specific reps/load for each shared set into series_subejercicio
+                        for (const [iEj, ejercicio] of subbloque.ejercicios.entries()) {
+                            const { data: ejData, error: errorEj } = await supabase
+                                .from('subbloques_ejercicios')
+                                .insert([{ subbloque_id: subbloqueId, ejercicio_id: ejercicio.ejercicio_id, orden: iEj }])
+                                .select().single();
+                            if (errorEj) throw errorEj;
+                            const subEjId = ejData.id;
 
-                        for (const [iSerie, serie] of ejercicio.series.entries()) {
-                            const { error: errorSerie } = await supabase
-                                .from('series_subejercicio')
-                                .insert([
-                                    {
+                            if (!ejercicio.sets_config || ejercicio.sets_config.length !== numSets) {
+                                throw new Error(`Ejercicio '${ejercicio.nombre}' en subbloque '${subbloque.nombre}' (${subbloque.tipo}) no tiene la configuración de series (reps/carga) correspondiente al número de sets compartidos (${numSets}). Se esperaban ${numSets} configuraciones, se recibieron ${ejercicio.sets_config?.length || 0}.`);
+                            }
+
+                            for (let k = 0; k < numSets; k++) {
+                                const setConfig = ejercicio.sets_config[k];
+                                if (!setConfig) {
+                                    throw new Error(`Falta configuración (reps/carga) para el set ${k + 1} del ejercicio '${ejercicio.nombre}' en el subbloque '${subbloque.nombre}'.`);
+                                }
+                                const { error: errorSerie } = await supabase
+                                    .from('series_subejercicio')
+                                    .insert([{
                                         subbloque_ejercicio_id: subEjId,
-                                        nro_set: iSerie + 1,
-                                        reps: serie.reps,
-                                        pausa: serie.pausa,
-                                        carga_sugerida: serie.carga,
-                                    },
-                                ]);
-                            if (errorSerie) throw errorSerie;
+                                        nro_set: k + 1, // Corresponds to shared_series_subblock.set_number
+                                        reps: setConfig.reps,
+                                        carga_sugerida: setConfig.carga,
+                                        // 'pausa' field in series_subejercicio is not used for shared rest in supersets
+                                    }]);
+                                if (errorSerie) throw errorSerie;
+                            }
                         }
                     }
                 }
@@ -184,41 +236,48 @@ const RutinaForm = () => {
     };
 
     return (
-        <div className="max-w-5xl mx-auto p-2 space-y-2 sm:space-y-3">
-            {bloques.length > 0 && (
-                <button
-                    onClick={guardarRutina}
-                    className="w-full bg-green-600/30 backdrop-blur hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm"
-                >
-                    Guardar rutina
-                </button>
-            )}
+        <div className="flex flex-col md:flex-row h-full gap-4">
+            {/* Sidebar izquierda (arriba en mobile) */}
+            <aside className="w-full md:w-[280px] p-4 space-y-4 overflow-y-auto bg-white/5 border-b md:border-b-0 md:border-r border-white/10">
+                <div className="flex flex-col gap-3">
+                    <input
+                        value={nombre}
+                        onChange={(e) => setNombre(e.target.value)}
+                        placeholder="Nombre"
+                        className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full"
+                    />
+                    <input
+                        value={tipo}
+                        onChange={(e) => setTipo(e.target.value)}
+                        placeholder="Tipo"
+                        className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full"
+                    />
+                    <textarea
+                        value={descripcion}
+                        onChange={(e) => setDescripcion(e.target.value)}
+                        placeholder="Descripción"
+                        rows={3}
+                        className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm resize-none w-full"
+                    />
+                    {bloques.length > 0 && (
+                        <button
+                            onClick={guardarRutina}
+                            className="bg-green-600/30 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm"
+                        >
+                            Guardar rutina
+                        </button>
+                    )}
+                    <button
+                        onClick={agregarBloque}
+                        className="bg-white/20 hover:bg-white/30 text-white font-semibold rounded-lg px-4 py-2 text-sm"
+                    >
+                        Agregar mes
+                    </button>
+                </div>
+            </aside>
 
-            <div className="grid grid-cols-2  gap-2">
-                <input
-                    value={nombre}
-                    onChange={(e) => setNombre(e.target.value)}
-                    placeholder="Nombre"
-                    className="w-full rounded-lg bg-white/10 backdrop-blur px-3 py-1.5 text-white placeholder-white/50 text-sm"
-                />
-                <input
-                    value={tipo}
-                    onChange={(e) => setTipo(e.target.value)}
-                    placeholder="Tipo"
-                    className="w-full rounded-lg bg-white/10 backdrop-blur px-3 py-1.5 text-white placeholder-white/50 text-sm"
-                />
-            </div>
-
-            <textarea
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
-                placeholder="Descripción"
-                rows={2}
-                className="w-full rounded-lg bg-white/10 backdrop-blur px-3 py-1.5 text-white placeholder-white/50 text-sm resize-none"
-            />
-
-    
-
+            {/* Contenido principal (debajo en mobile) */}
+            <section className="flex-1  pr-2 space-y-4 px-4 md:px-0">
                 {bloques.map((bloque) => (
                     <BloqueEditor
                         key={bloque.id}
@@ -229,17 +288,12 @@ const RutinaForm = () => {
                         ejerciciosDisponibles={ejerciciosDisponibles}
                     />
                 ))}
-
-                <button
-                    onClick={agregarBloque}
-                className="w-full bg-skyblue text-white font-semibold rounded-xl py-2 bg-white/20 hover:bg transition"
-                >
-                    Agregar mes
-                </button>
-
-            
-            </div>
+            </section>
+        </div>
     );
+      
+      
+      
 };
 
 export default RutinaForm;

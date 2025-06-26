@@ -36,12 +36,13 @@ const AuthPage = () => {
 
     // ✅ Redirección automática al dashboard si ya está logueado
     useEffect(() => {
-        if (!loading && user && rol) {
+        if (!loading && user && rol !== null) {
             const destino = rol === 'admin' ? '/admin' : '/dashboard';
             console.log('[AuthPage] Redirigiendo a:', destino);
             navigate(destino, { replace: true });
         }
     }, [user, rol, loading, navigate]);
+    
 
     // ✅ Verificación de email vía ?verified=true
     useEffect(() => {

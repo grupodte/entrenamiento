@@ -1,4 +1,3 @@
-// src/components/RutaProtegida.jsx
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import BrandedLoader from './BrandedLoader';
@@ -6,7 +5,8 @@ import BrandedLoader from './BrandedLoader';
 const RutaProtegida = ({ children, rolPermitido }) => {
     const { user, rol, loading } = useAuth();
 
-    if (loading) {
+    // Esperar a que todo esté definido
+    if (loading || (user && rol === null)) {
         return <BrandedLoader />;
     }
 

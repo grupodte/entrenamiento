@@ -1,9 +1,8 @@
 import React from 'react';
 import SubbloqueEditor from './SubbloqueEditor';
 import { v4 as uuidv4 } from 'uuid';
-import { GripVertical, Copy } from 'lucide-react';
-import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { DndContext } from '@dnd-kit/core';
+import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDisponibles }) => {
@@ -12,6 +11,9 @@ const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDispo
         transform: CSS.Transform.toString(transform),
         transition,
     };
+
+    const semanaInicio = bloque.semana_inicio ?? 1;
+    const semanaFin = bloque.semana_fin ?? semanaInicio;
 
     const actualizarSubbloques = (nuevos) => {
         onChange({ ...bloque, subbloques: nuevos });
@@ -38,19 +40,20 @@ const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDispo
     };
 
     const duplicarBloque = () => {
-        const semanasPorBloque = bloque.semana_fin - bloque.semana_inicio + 1;
+        const semanasPorBloque = semanaFin - semanaInicio + 1;
         const bloqueDuplicado = {
             ...bloque,
             id: uuidv4(),
-            semana_inicio: bloque.semana_fin + 1,
-            semana_fin: bloque.semana_fin + semanasPorBloque,
+            semana_inicio: semanaFin + 1,
+            semana_fin: semanaFin + semanasPorBloque,
             subbloques: bloque.subbloques.map(sb => ({
                 ...sb,
                 id: uuidv4(),
                 ejercicios: sb.ejercicios.map(ej => ({
                     ...ej,
                     id: uuidv4(),
-                    series: ej.series.map(s => ({ ...s }))
+                    series: ej.series?.map(s => ({ ...s })) || [],
+                    sets_config: ej.sets_config?.map(s => ({ ...s })) || []
                 }))
             }))
         };
@@ -73,19 +76,17 @@ const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDispo
         <div
             ref={setNodeRef}
             style={style}
-            className="bg-white/10 p-4 rounded-xl border border-white/10 space-y-2"
+            className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-4"
         >
-            <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                 
-                    <span className="text-[12px] md:text-16px text-white font-normal">
-                        Bloque (semanas {bloque.semana_inicio} - {bloque.semana_fin})
-                    </span>
-                </div>
-                <div className=" flex gap-3">
-                    <button onClick={duplicarBloque} className="text-yellow-400 hover:text-yellow-500 text-[12px] md:text-16px flex items-center gap-1">
-                         Duplicar                    </button>
-                    <button onClick={onRemove} className="text-red-400 hover:text-red-600 text-[12px] md:text-16px ">
+            <div className="flex flex-wrap justify-between items-center gap-3">
+                <span className="text-white text-sm font-medium">
+                    🧩 Semana ({semanaInicio} - {semanaFin})
+                </span>
+                <div className="flex gap-2">
+                    <button onClick={duplicarBloque} className="text-yellow-400 hover:text-yellow-500 text-sm">
+                        Duplicar
+                    </button>
+                    <button onClick={onRemove} className="text-red-400 hover:text-red-600 text-sm">
                         Eliminar
                     </button>
                 </div>
@@ -108,12 +109,14 @@ const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDispo
                 </SortableContext>
             </DndContext>
 
-            <button
-                onClick={agregarSubbloque}
-                className="text-white font-bold rounded-xl px-4 py-2"
-            >
-                ➕ Agregar subbloque
-            </button>
+            <div className="pt-2">
+                <button
+                    onClick={agregarSubbloque}
+                    className="text-white/90 text-sm font-semibold hover:text-skyblue transition"
+                >
+                    ➕ Agregar subbloque
+                </button>
+            </div>
         </div>
     );
 };
