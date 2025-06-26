@@ -16,20 +16,22 @@ const EditarRutina = () => {
 
     useEffect(() => {
         const fetchRutina = async () => {
-            setLoading(true);
-            setError(null);
             try {
+                setLoading(true);
                 const { data, error: fetchError } = await supabase
                     .from('rutinas_base')
                     .select(`
-                        *,
-                        rutina_bloques (
-                            *,
-                            rutina_sub_bloques (
-                                *,
-                                rutina_ejercicios (
-                                    *,
-                                    ejercicios (*)
+                        id, nombre, descripcion,
+                        bloques (
+                            id, orden, tipo,
+                            subbloques (
+                                id, orden, nombre, tipo,
+                                subbloques_ejercicios (
+                                    id, orden, ejercicio_id,
+                                    ejercicio: ejercicios ( id, nombre ),
+                                    series: series_subejercicio (
+                                        id, nro_set, reps, pausa, carga_sugerida
+                                    )
                                 )
                             )
                         )
@@ -38,52 +40,42 @@ const EditarRutina = () => {
                     .single();
 
                 if (fetchError) throw fetchError;
+                if (!data) throw new Error("No se encontró la rutina.");
 
-                // Transformar los datos para que coincidan con la estructura esperada por RutinaForm
-                // Esto es crucial y dependerá de cómo RutinaForm espera los datos.
-                // Por ejemplo, si RutinaForm espera `ejercicio_id` en lugar de un objeto `ejercicios`.
+                // Transformar la estructura para que sea compatible con RutinaForm
                 const transformada = {
                     ...data,
-                    bloques: data.rutina_bloques.map(bloque => ({
+                    bloques: data.bloques?.map(bloque => ({
                         ...bloque,
-                        id: bloque.id, // Asegurar que el ID del bloque se mantenga
-                        nombre_bloque: bloque.nombre_bloque,
-                        descripcion_bloque: bloque.descripcion_bloque,
-                        sub_bloques: bloque.rutina_sub_bloques.map(subBloque => ({
-                            ...subBloque,
-                            id: subBloque.id, // Asegurar que el ID del sub_bloque se mantenga
-                            tipo: subBloque.tipo,
-                            ejercicios: subBloque.rutina_ejercicios.map(ej => ({
-                                ...ej,
-                                id: ej.id, // Asegurar que el ID del rutina_ejercicio se mantenga
-                                ejercicio_id: ej.ejercicio_id,
-                                // Asegurarse de que 'series' sea un array de strings/numbers si es necesario
-                                series: typeof ej.series === 'string' ? ej.series.split(',').map(s => s.trim()) : ej.series,
-                                // ... otros campos como repeticiones, rir, etc.
-                                // El objeto 'ejercicios' (info del catálogo) se puede pasar si RutinaForm lo usa
-                                // o solo el ID como 'ejercicio_id'.
-                                ejercicioData: ej.ejercicios // Datos completos del ejercicio desde la tabla 'ejercicios'
-                            })).sort((a, b) => a.orden - b.orden) // Ordenar ejercicios
-                        })).sort((a, b) => a.orden - b.orden) // Ordenar sub_bloques
-                    })).sort((a, b) => a.orden - b.orden) // Ordenar bloques
+                        sub_bloques: bloque.subbloques?.map(sb => ({
+                            ...sb,
+                            ejercicios: sb.subbloques_ejercicios?.map(se => ({
+                                ...se,
+                                ejercicioData: se.ejercicio,
+                                sets_config: se.series?.map(serie => ({
+                                    id: serie.id,
+                                    nro_set: serie.nro_set,
+                                    reps: serie.reps,
+                                    pausa: serie.pausa,
+                                    carga: serie.carga_sugerida
+                                })) || []
+                            })) || []
+                        })) || []
+                    })) || []
                 };
-                setRutinaParaEditar(transformada);
 
+                setRutinaParaEditar(transformada);
             } catch (err) {
-                console.error("Error cargando rutina para editar:", err);
-                setError("No se pudo cargar la rutina para editar. " + err.message);
-                toast.error("Error al cargar la rutina: " + err.message);
+                console.error("Error al cargar rutina:", err);
+                toast.error("No se pudo cargar la rutina.");
+                setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
 
-        if (id) {
-            fetchRutina();
-        } else {
-            navigate('/admin/rutinas'); // Si no hay ID, redirigir
-        }
-    }, [id, navigate]);
+        if (id) fetchRutina();
+    }, [id]);
 
     if (loading) {
         return (
@@ -95,11 +87,11 @@ const EditarRutina = () => {
         );
     }
 
-    if (error) {
+    if (error || !rutinaParaEditar) {
         return (
             <AdminLayout>
                 <div className="p-4 text-center text-red-500">
-                    <p>{error}</p>
+                    <p>{error || 'No se encontró la rutina para editar.'}</p>
                     <button
                         onClick={() => navigate('/admin/rutinas')}
                         className="mt-4 bg-skyblue text-white px-4 py-2 rounded hover:bg-white/20 transition"
@@ -110,41 +102,24 @@ const EditarRutina = () => {
             </AdminLayout>
         );
     }
-
-    if (!rutinaParaEditar && !loading) {
-        return (
-            <AdminLayout>
-                <div className="p-4 text-center text-white">
-                    <p>No se encontró la rutina para editar o ya no existe.</p>
-                    <button
-                        onClick={() => navigate('/admin/rutinas')}
-                        className="mt-4 bg-skyblue text-white px-4 py-2 rounded hover:bg-white/20 transition"
-                    >
-                        Volver a Rutinas
-                    </button>
-                </div>
-            </AdminLayout>
-        );
-    }
-
 
     return (
         <AdminLayout>
             <div className="w-full min-h-screen flex flex-col bg-neutral-900 text-white">
                 <div className="p-4 md:p-6">
                     <button
-                        onClick={() => navigate(-1)} // O a /admin/rutinas
+                        onClick={() => navigate(-1)}
                         className="flex items-center gap-2 text-skyblue hover:text-white transition mb-4 text-sm"
                     >
                         <FaArrowLeft /> Volver
                     </button>
                     <h1 className="text-2xl font-bold text-white mb-1">Editar Rutina</h1>
-                    <p className="text-sm text-white/70 mb-6">Modifica los detalles de la rutina "{rutinaParaEditar?.nombre}".</p>
+                    <p className="text-sm text-white/70 mb-6">Modificá la rutina "{rutinaParaEditar?.nombre}".</p>
                 </div>
 
                 <div className="px-4 md:px-6 mx-auto w-full flex flex-col h-full overflow-hidden ">
                     <div className="overscroll-contain">
-                        {rutinaParaEditar && <RutinaForm rutinaAEditar={rutinaParaEditar} />}
+                        <RutinaForm rutinaAEditar={rutinaParaEditar} modoEdicion />
                     </div>
                 </div>
             </div>
