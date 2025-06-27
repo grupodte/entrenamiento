@@ -2,6 +2,7 @@ import React from 'react';
 import { Trash2, ChevronDown } from 'lucide-react';
 import Select from 'react-select';
 import { Disclosure } from '@headlessui/react';
+import { v4 as uuidv4 } from 'uuid';
 import ComboboxEjercicios from './ComboboxEjercicios';
 import EjercicioChip from './EjercicioChip';
 import SupersetSharedConfigEditor from './SupersetSharedConfigEditor';
@@ -53,18 +54,23 @@ const structureOptions = [
     { value: 'simple', label: 'Simple (series por ejercicio)' },
     { value: 'superset', label: 'Superset (series compartidas)' },
 ];
-const createDefaultSetsConfig = (numSets, reps = '', carga = '') => {
-    return Array(numSets).fill(null).map(() => ({ reps, carga }));
-};
-  
+
+const createDefaultSetsConfig = (numSets, reps = '', carga = '') =>
+    Array(numSets).fill(null).map(() => ({ reps, carga }));
 
 const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles }) => {
     const currentSubbloque = {
         ...subbloque,
         nombre: subbloque.nombre || 'principal',
         tipo: subbloque.tipo || 'simple',
-        ejercicios: subbloque.ejercicios || [],
-        shared_config: subbloque.shared_config || { num_sets: '', shared_rest: '' },
+        ejercicios: (subbloque.ejercicios || []).map(ej => {
+            const sets_config = ej.sets_config || (ej.series?.map(s => ({
+                reps: s.reps || '',
+                carga: s.carga_sugerida || '',
+            })) || []);
+            return { ...ej, sets_config };
+        }),
+        shared_config: subbloque.shared_config || { num_sets: 1, shared_rest: '' },
     };
 
     const isShared = currentSubbloque.tipo !== 'simple';
@@ -73,8 +79,6 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
         let updated = { ...currentSubbloque, [campo]: valor };
 
         if (campo === 'tipo') {
-            const numSets = currentSubbloque.shared_config?.num_sets || 1;
-
             if (valor === 'simple') {
                 updated.shared_config = { num_sets: '', shared_rest: '' };
                 updated.ejercicios = updated.ejercicios.map(ej => ({
@@ -83,39 +87,34 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
                     sets_config: undefined,
                 }));
             } else {
+                const numSets = currentSubbloque.shared_config?.num_sets || 1;
                 updated.ejercicios = updated.ejercicios.map(ej => ({
                     ...ej,
                     series: [],
-sets_config: createDefaultSetsConfig(numSets, '', ''),
+                    sets_config: createDefaultSetsConfig(numSets),
                 }));
             }
         }
 
         onChange(updated);
     };
-
     const handleSharedConfigChange = (newSharedConfig) => {
-        const nuevo = newSharedConfig.num_sets;
+        const numSets = parseInt(newSharedConfig.num_sets || 1);
+
         const ejerciciosActualizados = currentSubbloque.ejercicios.map(ej => {
-            if (currentSubbloque.tipo === 'simple') {
-                return {
-                    ...ej,
-                    series: Array.from({ length: nuevo }).map((_, i) => ({
-                        reps: ej.series?.[i]?.reps || '',
-                        pausa: ej.series?.[i]?.pausa || '',
-                        carga: ej.series?.[i]?.carga || '',
-                    })),
-                };
-            } else {
-                return {
-                    ...ej,
-                    sets_config: createDefaultSetsConfig(
-                        nuevo,
-                        newSharedConfig.shared_reps || '',
-                        newSharedConfig.shared_load || ''
-                    )
-                                    };
-            }
+            const setsExistentes = ej.sets_config || [];
+
+            if (setsExistentes.length === numSets) return ej;
+
+            const nuevosSets = Array(numSets).fill(null).map((_, i) => ({
+                reps: setsExistentes[i]?.reps || '',
+                carga: setsExistentes[i]?.carga || '',
+            }));
+
+            return {
+                ...ej,
+                sets_config: nuevosSets,
+            };
         });
 
         onChange({
@@ -124,23 +123,19 @@ sets_config: createDefaultSetsConfig(numSets, '', ''),
             ejercicios: ejerciciosActualizados,
         });
     };
-
+    
+    
     const agregarEjercicio = (ejercicio) => {
         const nuevo = {
-            id: crypto.randomUUID(),
+            id: uuidv4(),
             ejercicio_id: ejercicio.value,
             nombre: ejercicio.label,
         };
 
         if (isShared) {
-            const numSets = currentSubbloque.shared_config?.num_sets || 1;
-            nuevo.sets_config = createDefaultSetsConfig(
-                currentSubbloque.shared_config?.num_sets || 1,
-                currentSubbloque.shared_config?.shared_reps || '',
-                currentSubbloque.shared_config?.shared_load || ''
-            );
-                    } else {
-            nuevo.series = [];
+            nuevo.sets_config = createDefaultSetsConfig(currentSubbloque.shared_config?.num_sets || 1);
+        } else {
+            nuevo.series = [{ reps: '', pausa: '', carga: '' }];
         }
 
         onChange({
@@ -194,7 +189,7 @@ sets_config: createDefaultSetsConfig(numSets, '', ''),
                         </div>
                     </div>
 
-                    {/* Resumen cuando está cerrado */}
+                    {/* Resumen */}
                     {!open && (
                         <div className="bg-white/5 p-3 rounded-lg text-white/80 text-sm space-y-2">
                             {currentSubbloque.ejercicios.length === 0 ? (
@@ -206,14 +201,12 @@ sets_config: createDefaultSetsConfig(numSets, '', ''),
                                     </div>
                                     <ul className="space-y-1 text-xs">
                                         {currentSubbloque.ejercicios.map((ej) => {
-                                            const sets = (ej.series || ej.sets_config || []);
+                                            const sets = ej.series || ej.sets_config || [];
                                             const reps = sets.map((s) => s.reps || '-').join(', ');
                                             return (
                                                 <li key={ej.id} className="flex justify-between border-b border-white/10 pb-1">
                                                     <span className="font-medium text-white/90 truncate">{ej.nombre}</span>
-                                                    <span className="text-white/60 text-right">
-                                                        {sets.length}x [{reps}]
-                                                    </span>
+                                                    <span className="text-white/60 text-right">{sets.length}x [{reps}]</span>
                                                 </li>
                                             );
                                         })}

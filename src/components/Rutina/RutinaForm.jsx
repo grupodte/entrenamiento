@@ -9,36 +9,72 @@ const createDefaultSetsConfig = (numSets, reps = '', carga = '') => {
     return Array(numSets).fill(null).map(() => ({ reps, carga }));
 };
 
-const RutinaForm = () => {
+const RutinaForm = ({ modo = "crear", rutinaInicial = null, onGuardar }) => {
     const [nombre, setNombre] = useState('');
     const [tipo, setTipo] = useState('');
     const [descripcion, setDescripcion] = useState('');
     const [bloques, setBloques] = useState([]);
     const [ejerciciosDisponibles, setEjerciciosDisponibles] = useState([]);
-    const LOCAL_STORAGE_KEY = 'rutinaDraft';
-    const [isHydrated, setIsHydrated] = useState(false);
 
     useEffect(() => {
-        const draft = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (draft) {
-            try {
-                const data = JSON.parse(draft);
-                if (data.nombre) setNombre(data.nombre);
-                if (data.tipo) setTipo(data.tipo);
-                if (data.descripcion) setDescripcion(data.descripcion);
-                if (data.bloques) setBloques(data.bloques);
-            } catch (error) {
-                console.error('Error al parsear localStorage', error);
-            }
+        if (modo === "editar" && rutinaInicial) {
+            setNombre(rutinaInicial.nombre || '');
+            setTipo(rutinaInicial.tipo || '');
+            setDescripcion(rutinaInicial.descripcion || '');
+
+            const bloquesConSets = rutinaInicial.bloques?.map(b => ({
+                ...b,
+                id: b.id || uuidv4(),
+                subbloques: b.subbloques.map(s => {
+                    const esSuperset = s.tipo === 'superset';
+
+                    const shared_config = esSuperset
+                        ? {
+                            num_sets: s.ejercicios?.[0]?.series?.length || 1,
+                            shared_rest: s.ejercicios?.[0]?.series?.[0]?.pausa || ''
+                        }
+                        : undefined;
+
+                    const ejercicios = s.ejercicios.map(ej => {
+                        if (esSuperset) {
+                            return {
+                                ...ej,
+                                sets_config: ej.series.map(serie => ({
+                                    reps: serie.reps,
+                                    carga: serie.carga_sugerida
+                                }))
+                            };
+                        } else {
+                            return {
+                                ...ej,
+                                series: ej.series.map(serie => ({
+                                    reps: serie.reps,
+                                    pausa: serie.pausa,
+                                    carga: serie.carga
+                                }))
+                            };
+                        }
+                    });
+
+                    return {
+                        ...s,
+                        ejercicios,
+                        shared_config
+                    };
+                })
+            })) || [];
+
+            setBloques(bloquesConSets);
+        } else {
+            setNombre('');
+            setTipo('');
+            setDescripcion('');
+            setBloques([]);
         }
-        setIsHydrated(true);
-    }, []);
+    }, [modo, rutinaInicial]);
+    
 
-    useEffect(() => {
-        if (!isHydrated) return;
-        const rutinaDraft = { nombre, tipo, descripcion, bloques };
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(rutinaDraft));
-    }, [nombre, tipo, descripcion, bloques, isHydrated]);
+    // Eliminados los useEffect relacionados con localStorage
 
     useEffect(() => {
         const fetchEjercicios = async () => {
@@ -74,6 +110,108 @@ const RutinaForm = () => {
         setBloques(prev => [...prev, bloqueDuplicado]);
     };
 
+    // Helper function to insert bloques, subbloques, ejercicios, and series
+    const _guardarComponentesAnidados = async (rutinaId, bloquesArray) => {
+        for (const [iBloque, bloque] of bloquesArray.entries()) {
+            const { data: bloqueData, error: errorBloque } = await supabase
+                .from('bloques')
+                .insert([{
+                    rutina_base_id: rutinaId,
+                    semana_inicio: bloque.semana_inicio,
+                    semana_fin: bloque.semana_fin,
+                    orden: iBloque,
+                }])
+                .select()
+                .single();
+
+            if (errorBloque) throw errorBloque;
+            const bloqueId = bloqueData.id;
+
+            for (const [iSub, subbloque] of bloque.subbloques.entries()) {
+                const { data: subData, error: errorSub } = await supabase
+                    .from('subbloques')
+                    .insert([{
+                        bloque_id: bloqueId,
+                        tipo: subbloque.tipo,
+                        nombre: subbloque.nombre,
+                        orden: iSub
+                    }])
+                
+                    .select()
+                    .single();
+
+                if (errorSub) throw errorSub;
+                const subbloqueId = subData.id;
+
+                if (subbloque.tipo === 'simple' || !subbloque.tipo) {
+                    for (const [iEj, ejercicio] of subbloque.ejercicios.entries()) {
+                        const { data: ejData, error: errorEj } = await supabase
+                            .from('subbloques_ejercicios')
+                            .insert([{
+                                subbloque_id: subbloqueId,
+                                ejercicio_id: ejercicio.ejercicio_id,
+                                orden: iEj
+                            }])
+                            .select().single();
+                        if (errorEj) throw errorEj;
+                        const subEjId = ejData.id;
+
+                        for (const [iSerie, serie] of ejercicio.series.entries()) {
+                            const { error: errorSerie } = await supabase
+                                .from('series_subejercicio')
+                                .insert([{
+                                    subbloque_ejercicio_id: subEjId,
+                                    nro_set: iSerie + 1,
+                                    reps: serie.reps,
+                                    pausa: serie.pausa,
+                                    // Carga sugerida no aplica a series simples en este modelo
+                                }]);
+                            if (errorSerie) throw errorSerie;
+                        }
+                    }
+                } else {
+                    const numSets = parseInt(subbloque.shared_config?.num_sets || 0, 10);
+                    const sharedRest = subbloque.shared_config?.shared_rest || '';
+
+                    for (const [iEj, ejercicio] of subbloque.ejercicios.entries()) {
+                        const { data: ejData, error: errorEj } = await supabase
+                            .from('subbloques_ejercicios')
+                            .insert([{
+                                subbloque_id: subbloqueId,
+                                ejercicio_id: ejercicio.ejercicio_id,
+                                orden: iEj
+                            }])
+                            .select()
+                            .single();
+                        if (errorEj) throw errorEj;
+                        const subEjId = ejData.id;
+
+                        // Usamos los sets personalizados del ejercicio, si existen
+                        const sets = ejercicio.sets_config?.length
+                        ? ejercicio.sets_config
+                        : createDefaultSetsConfig(numSets);
+                    
+
+                        for (let iSet = 0; iSet < sets.length; iSet++) {
+                            const set = sets[iSet];
+                            const { error: errorSerie } = await supabase
+                                .from('series_subejercicio')
+                                .insert([{
+                                    subbloque_ejercicio_id: subEjId,
+                                    nro_set: iSet + 1,
+                                    reps: set.reps || '',
+                                    carga_sugerida: set.carga || '',
+                                    pausa: set.pausa || sharedRest || '',
+                                }]);
+                            if (errorSerie) throw errorSerie;
+                        }
+                    }
+                }
+                
+            }
+        }
+    };
+
     const guardarRutina = async () => {
         if (!nombre || bloques.length === 0) {
             toast.error('Faltan datos: nombre o bloques');
@@ -91,100 +229,89 @@ const RutinaForm = () => {
             if (errorRutina) throw errorRutina;
             const rutinaBaseId = rutinaBase.id;
 
-            for (const [iBloque, bloque] of bloques.entries()) {
-                const { data: bloqueData, error: errorBloque } = await supabase
-                    .from('bloques')
-                    .insert([{
-                        rutina_base_id: rutinaBaseId,
-                        semana_inicio: bloque.semana_inicio,
-                        semana_fin: bloque.semana_fin,
-                        orden: iBloque,
-                    }])
-                    .select()
-                    .single();
+            await _guardarComponentesAnidados(rutinaBaseId, bloques);
 
-                if (errorBloque) throw errorBloque;
-                const bloqueId = bloqueData.id;
+            toast.dismiss(); // Solo un dismiss antes del success
+            toast.success(`✅ Rutina guardada correctamente`);
 
-                for (const [iSub, subbloque] of bloque.subbloques.entries()) {
-                    const { data: subData, error: errorSub } = await supabase
-                        .from('subbloques')
-                        .insert([{
-                            bloque_id: bloqueId,
-                            tipo: subbloque.tipo,
-                            nombre: subbloque.nombre,
-                            orden: iSub,
-                        }])
-                        .select()
-                        .single();
-
-                    if (errorSub) throw errorSub;
-                    const subbloqueId = subData.id;
-
-                    if (subbloque.tipo === 'simple' || !subbloque.tipo) {
-                        for (const [iEj, ejercicio] of subbloque.ejercicios.entries()) {
-                            const { data: ejData, error: errorEj } = await supabase
-                                .from('subbloques_ejercicios')
-                                .insert([{ subbloque_id: subbloqueId, ejercicio_id: ejercicio.ejercicio_id, orden: iEj }])
-                                .select().single();
-                            if (errorEj) throw errorEj;
-                            const subEjId = ejData.id;
-
-                            for (const [iSerie, serie] of ejercicio.series.entries()) {
-                                const { error: errorSerie } = await supabase
-                                    .from('series_subejercicio')
-                                    .insert([{
-                                        subbloque_ejercicio_id: subEjId,
-                                        nro_set: iSerie + 1,
-                                        reps: serie.reps,
-                                        pausa: serie.pausa,
-                                    }]);
-                                if (errorSerie) throw errorSerie;
-                            }
-                        }
-                    } else {
-                        const numSets = parseInt(subbloque.shared_config?.num_sets || 0, 10);
-                        const sharedRest = subbloque.shared_config?.shared_rest || '';
-
-                        for (const [iEj, ejercicio] of subbloque.ejercicios.entries()) {
-                            const { data: ejData, error: errorEj } = await supabase
-                                .from('subbloques_ejercicios')
-                                .insert([{ subbloque_id: subbloqueId, ejercicio_id: ejercicio.ejercicio_id, orden: iEj }])
-                                .select().single();
-                            if (errorEj) throw errorEj;
-                            const subEjId = ejData.id;
-
-                            const sets = ejercicio.sets_config?.length ? ejercicio.sets_config : createDefaultSetsConfig(numSets);
-
-                            for (let k = 0; k < numSets; k++) {
-                                const config = sets[k];
-                                const { error: errorSerie } = await supabase
-                                    .from('series_subejercicio')
-                                    .insert([{
-                                        subbloque_ejercicio_id: subEjId,
-                                        nro_set: k + 1,
-                                        reps: config.reps,
-                                        carga_sugerida: config.carga,
-                                        pausa: sharedRest || null,
-                                    }]);
-                                if (errorSerie) throw errorSerie;
-                            }
-                        }
-                    }
-                }
+            if (modo === 'crear') { // Reset form only in create mode
+                setNombre('');
+                setTipo('');
+                setDescripcion('');
+                setBloques([]);
             }
 
-            toast.dismiss();
-            toast.success('✅ Rutina guardada correctamente');
-            setNombre('');
-            setTipo('');
-            setDescripcion('');
-            setBloques([]);
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            if (onGuardar) {
+                onGuardar({ id: rutinaBaseId, nombre, tipo, descripcion, bloques });
+            }
         } catch (error) {
             toast.dismiss();
-            console.error(error.message);
+            console.error("Error al guardar rutina:", error.message);
             toast.error(`❌ Error al guardar: ${error.message}`);
+        }
+    };
+
+    const actualizarRutina = async () => {
+        if (!rutinaInicial?.id || !nombre || bloques.length === 0) {
+            toast.error('Faltan datos: ID de rutina, nombre o bloques');
+            return;
+        }
+
+        try {
+            toast.loading('Actualizando rutina...');
+            const rutinaId = rutinaInicial.id;
+
+            // 1. Actualizar rutina_base
+            const { error: errorRutina } = await supabase
+                .from('rutinas_base')
+                .update({ nombre, tipo, descripcion })
+                .eq('id', rutinaId);
+
+            if (errorRutina) throw errorRutina;
+
+            // 2. Eliminar bloques, subbloques, subbloques_ejercicios y series antiguas
+            const { data: bloquesExistentes, error: errorBloquesExistentes } = await supabase
+                .from('bloques')
+                .select('id, subbloques (id, subbloques_ejercicios (id, series_subejercicio(id)))')
+                .eq('rutina_base_id', rutinaId);
+
+            if (errorBloquesExistentes) throw errorBloquesExistentes;
+
+            for (const bloqueExistente of bloquesExistentes) {
+                for (const subBloqueExistente of bloqueExistente.subbloques) {
+                    for (const subBloqueEjercicioExistente of subBloqueExistente.subbloques_ejercicios) {
+                        // Podríamos necesitar borrar series_subejercicio aquí si no se borran en cascada
+                        // o si la lógica de _guardarComponentesAnidados no las sobreescribe correctamente.
+                        // Por ahora, la estrategia es borrar y reinsertar.
+                        await supabase.from('series_subejercicio').delete().eq('subbloque_ejercicio_id', subBloqueEjercicioExistente.id);
+                    }
+                    await supabase.from('subbloques_ejercicios').delete().eq('subbloque_id', subBloqueExistente.id);
+                }
+                await supabase.from('subbloques').delete().eq('bloque_id', bloqueExistente.id);
+            }
+            await supabase.from('bloques').delete().eq('rutina_base_id', rutinaId);
+
+            // 3. Insertar nuevos componentes anidados
+            await _guardarComponentesAnidados(rutinaId, bloques);
+
+            toast.dismiss();
+            toast.success('✅ Rutina actualizada correctamente');
+            if (onGuardar) {
+                onGuardar({ id: rutinaId, nombre, tipo, descripcion, bloques });
+            }
+
+        } catch (error) {
+            toast.dismiss();
+            console.error("Error al actualizar rutina:", error.message);
+            toast.error(`❌ Error al actualizar: ${error.message}`);
+        }
+    };
+
+    const handleSubmit = () => {
+        if (modo === 'crear') {
+            guardarRutina();
+        } else if (modo === 'editar') {
+            actualizarRutina();
         }
     };
 
@@ -195,15 +322,15 @@ const RutinaForm = () => {
                     <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre" className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full" />
                     <input value={tipo} onChange={e => setTipo(e.target.value)} placeholder="Tipo" className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full" />
                     <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Descripción" rows={3} className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm resize-none w-full" />
-                    {bloques.length > 0 && <button onClick={guardarRutina} className="bg-green-600/30 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">Guardar rutina</button>}
+                    {bloques.length > 0 && <button onClick={handleSubmit} className="bg-green-600/30 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">{modo === 'crear' ? 'Guardar Rutina' : 'Actualizar Rutina'}</button>}
                     <button onClick={agregarBloque} className="bg-white/20 hover:bg-white/30 text-white font-semibold rounded-lg px-4 py-2 text-sm">Agregar mes</button>
                 </div>
             </aside>
             <section className="flex-1 pr-2 space-y-4 px-4 md:px-0">
-                {bloques.map(bloque => (
+                {Array.isArray(bloques) && bloques.map(bloque => (
                     <BloqueEditor
                         key={bloque.id}
-                        bloque={bloque} 
+                        bloque={bloque}
                         onChange={actualizarBloque}
                         onRemove={() => eliminarBloque(bloque.id)}
                         onDuplicate={duplicarBloque}
@@ -211,6 +338,7 @@ const RutinaForm = () => {
                     />
                 ))}
             </section>
+
         </div>
     );
 };

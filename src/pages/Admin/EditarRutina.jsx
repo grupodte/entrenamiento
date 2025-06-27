@@ -18,56 +18,111 @@ const EditarRutina = () => {
         const fetchRutina = async () => {
             try {
                 setLoading(true);
-                const { data, error: fetchError } = await supabase
+
+                // 1. Obtener rutina base
+                const { data: rutina, error: errorRutina } = await supabase
                     .from('rutinas_base')
-                    .select(`
-                        id, nombre, descripcion,
-                        bloques (
-                            id, orden, tipo,
-                            subbloques (
-                                id, orden, nombre, tipo,
-                                subbloques_ejercicios (
-                                    id, orden, ejercicio_id,
-                                    ejercicio: ejercicios ( id, nombre ),
-                                    series: series_subejercicio (
-                                        id, nro_set, reps, pausa, carga_sugerida
-                                    )
-                                )
-                            )
-                        )
-                    `)
+                    .select('*')
                     .eq('id', id)
                     .single();
 
-                if (fetchError) throw fetchError;
-                if (!data) throw new Error("No se encontró la rutina.");
+                if (errorRutina) throw errorRutina;
 
-                // Transformar la estructura para que sea compatible con RutinaForm
-                const transformada = {
-                    ...data,
-                    bloques: data.bloques?.map(bloque => ({
-                        ...bloque,
-                        sub_bloques: bloque.subbloques?.map(sb => ({
-                            ...sb,
-                            ejercicios: sb.subbloques_ejercicios?.map(se => ({
-                                ...se,
-                                ejercicioData: se.ejercicio,
-                                sets_config: se.series?.map(serie => ({
-                                    id: serie.id,
-                                    nro_set: serie.nro_set,
-                                    reps: serie.reps,
-                                    pausa: serie.pausa,
-                                    carga: serie.carga_sugerida
-                                })) || []
-                            })) || []
-                        })) || []
-                    })) || []
+                // 2. Obtener bloques de esa rutina
+                const { data: bloques, error: errorBloques } = await supabase
+                    .from('bloques')
+                    .select('*')
+                    .eq('rutina_base_id', id)
+                    .order('orden', { ascending: true });
+
+                if (errorBloques) throw errorBloques;
+
+                if (!bloques.length) {
+                    setRutinaParaEditar({ ...rutina, bloques: [] });
+                    return;
+                }
+
+                // 3. Obtener subbloques
+                const { data: subbloques, error: errorSubbloques } = await supabase
+                    .from('subbloques')
+                    .select('*')
+                    .in('bloque_id', bloques.map(b => b.id));
+
+                if (errorSubbloques) throw errorSubbloques;
+
+                // 4. Obtener subbloques_ejercicios
+                const { data: subEjercicios, error: errorSubEj } = await supabase
+                    .from('subbloques_ejercicios')
+                    .select(`
+                        *,
+                        ejercicio: ejercicios (id, nombre)
+                    `)
+                    .in('subbloque_id', subbloques.map(sb => sb.id));
+
+                if (errorSubEj) throw errorSubEj;
+
+                // 5. Obtener series_subejercicio
+                const { data: seriesRaw, error: errorSeries } = await supabase
+                    .from('series_subejercicio')
+                    .select('*')
+                    .in('subbloque_ejercicio_id', subEjercicios.map(se => se.id));
+
+                if (errorSeries) throw errorSeries;
+
+                // Agrupar series en ejercicios
+                const subEjerciciosAgrupados = subEjercicios.map(ej => ({
+                    id: ej.id,
+                    subbloque_id: ej.subbloque_id,
+                    ejercicio_id: ej.ejercicio_id,
+                    nombre: ej.ejercicio?.nombre || '',
+                    orden: ej.orden,
+                    ejercicioData: ej.ejercicio,
+                    series: (seriesRaw || [])
+                        .filter(s => s.subbloque_ejercicio_id === ej.id)
+                        .map(s => ({
+                            reps: s.reps || '',
+                            carga: s.carga_sugerida || '',
+                            pausa: s.pausa || ''
+                        }))
+                }));
+
+                // Agrupar subbloques
+                const subbloquesAgrupados = subbloques.map(sb => {
+                    const ejercicios = subEjerciciosAgrupados
+                        .filter(ej => ej.subbloque_id === sb.id)
+                        .sort((a, b) => a.orden - b.orden);
+
+                    const shared_config = sb.tipo !== 'simple'
+                        ? {
+                            num_sets: Math.max(...(ejercicios.map(e => e.series.length || 0))),
+                            shared_rest: sb.shared_rest || ''
+                        }
+                        : undefined;
+
+                    return {
+                        ...sb,
+                        ejercicios,
+                        shared_config
+                    };
+                });
+
+                // Agrupar bloques
+                const bloquesFinal = bloques.map(b => ({
+                    ...b,
+                    subbloques: subbloquesAgrupados.filter(sb => sb.bloque_id === b.id)
+                }));
+
+                // Estructura final para RutinaForm
+                const rutinaTransformada = {
+                    ...rutina,
+                    bloques: bloquesFinal
                 };
 
-                setRutinaParaEditar(transformada);
+                setRutinaParaEditar(rutinaTransformada);
+
             } catch (err) {
-                console.error("Error al cargar rutina:", err);
-                toast.error("No se pudo cargar la rutina.");
+                console.error("Error al cargar rutina:", err.message);
+                toast.error("No se pudo cargar la rutina: " + err.message);
                 setError(err.message);
             } finally {
                 setLoading(false);
@@ -76,6 +131,10 @@ const EditarRutina = () => {
 
         if (id) fetchRutina();
     }, [id]);
+
+    const handleGuardarEditar = (rutinaActualizada) => {
+        navigate(`/admin/rutinas`);
+    };
 
     if (loading) {
         return (
@@ -117,9 +176,13 @@ const EditarRutina = () => {
                     <p className="text-sm text-white/70 mb-6">Modificá la rutina "{rutinaParaEditar?.nombre}".</p>
                 </div>
 
-                <div className="px-4 md:px-6 mx-auto w-full flex flex-col h-full overflow-hidden ">
+                <div className="px-4 md:px-6 mx-auto w-full flex flex-col h-full overflow-hidden">
                     <div className="overscroll-contain">
-                        <RutinaForm rutinaAEditar={rutinaParaEditar} modoEdicion />
+                        <RutinaForm
+                            modo="editar"
+                            rutinaInicial={rutinaParaEditar}
+                            onGuardar={handleGuardarEditar}
+                        />
                     </div>
                 </div>
             </div>

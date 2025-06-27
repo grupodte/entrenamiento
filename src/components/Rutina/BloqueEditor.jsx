@@ -94,9 +94,10 @@ const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDispo
 
             <DndContext onDragEnd={handleDragEnd}>
                 <SortableContext
-                    items={bloque.subbloques.map(sb => sb.id)}
+                    items={(bloque.subbloques || []).map(sb => sb.id)}
                     strategy={verticalListSortingStrategy}
                 >
+
                     {(bloque.subbloques || []).map((subbloque) => (
                         <SubbloqueEditor
                             key={subbloque.id}

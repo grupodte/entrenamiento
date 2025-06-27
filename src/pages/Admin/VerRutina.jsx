@@ -69,7 +69,7 @@ const VerRutina = () => {
                         className="bg-white/5 border border-white/10 rounded-lg p-5 shadow-sm"
                     >
                         <h2 className="text-2xl font-semibold text-sky-400 mb-4">
-                            🧱 Bloque {bloque.orden} — {bloque.tipo}
+                             Mes {bloque.orden +1} 
                         </h2>
 
                         {bloque.subbloques?.map((subbloque) => (
