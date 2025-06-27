@@ -31,7 +31,7 @@ const RutinaItem = ({ rutina }) => {
     return (
         <li
             ref={setNodeRef}
-            style={combinedStyle}
+            style={combinedStyle}   
             {...listeners}
             {...attributes}
             className={`cursor-grab active:cursor-grabbing p-3 rounded-md border transition-colors ${draggingClass}

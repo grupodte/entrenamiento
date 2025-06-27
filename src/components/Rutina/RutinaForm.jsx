@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
 import BloqueEditor from '../../components/Rutina/BloqueEditor';
+import { guardarEstructuraRutina } from '../../utils/guardarEstructuraRutina'; // Importar la nueva función
 
 const createDefaultSetsConfig = (numSets, reps = '', carga = '') => {
     return Array(numSets).fill(null).map(() => ({ reps, carga }));
@@ -72,7 +73,7 @@ const RutinaForm = ({ modo = "crear", rutinaInicial = null, onGuardar }) => {
             setBloques([]);
         }
     }, [modo, rutinaInicial]);
-    
+
 
     // Eliminados los useEffect relacionados con localStorage
 
@@ -111,106 +112,8 @@ const RutinaForm = ({ modo = "crear", rutinaInicial = null, onGuardar }) => {
     };
 
     // Helper function to insert bloques, subbloques, ejercicios, and series
-    const _guardarComponentesAnidados = async (rutinaId, bloquesArray) => {
-        for (const [iBloque, bloque] of bloquesArray.entries()) {
-            const { data: bloqueData, error: errorBloque } = await supabase
-                .from('bloques')
-                .insert([{
-                    rutina_base_id: rutinaId,
-                    semana_inicio: bloque.semana_inicio,
-                    semana_fin: bloque.semana_fin,
-                    orden: iBloque,
-                }])
-                .select()
-                .single();
-
-            if (errorBloque) throw errorBloque;
-            const bloqueId = bloqueData.id;
-
-            for (const [iSub, subbloque] of bloque.subbloques.entries()) {
-                const { data: subData, error: errorSub } = await supabase
-                    .from('subbloques')
-                    .insert([{
-                        bloque_id: bloqueId,
-                        tipo: subbloque.tipo,
-                        nombre: subbloque.nombre,
-                        orden: iSub
-                    }])
-                
-                    .select()
-                    .single();
-
-                if (errorSub) throw errorSub;
-                const subbloqueId = subData.id;
-
-                if (subbloque.tipo === 'simple' || !subbloque.tipo) {
-                    for (const [iEj, ejercicio] of subbloque.ejercicios.entries()) {
-                        const { data: ejData, error: errorEj } = await supabase
-                            .from('subbloques_ejercicios')
-                            .insert([{
-                                subbloque_id: subbloqueId,
-                                ejercicio_id: ejercicio.ejercicio_id,
-                                orden: iEj
-                            }])
-                            .select().single();
-                        if (errorEj) throw errorEj;
-                        const subEjId = ejData.id;
-
-                        for (const [iSerie, serie] of ejercicio.series.entries()) {
-                            const { error: errorSerie } = await supabase
-                                .from('series_subejercicio')
-                                .insert([{
-                                    subbloque_ejercicio_id: subEjId,
-                                    nro_set: iSerie + 1,
-                                    reps: serie.reps,
-                                    pausa: serie.pausa,
-                                    // Carga sugerida no aplica a series simples en este modelo
-                                }]);
-                            if (errorSerie) throw errorSerie;
-                        }
-                    }
-                } else {
-                    const numSets = parseInt(subbloque.shared_config?.num_sets || 0, 10);
-                    const sharedRest = subbloque.shared_config?.shared_rest || '';
-
-                    for (const [iEj, ejercicio] of subbloque.ejercicios.entries()) {
-                        const { data: ejData, error: errorEj } = await supabase
-                            .from('subbloques_ejercicios')
-                            .insert([{
-                                subbloque_id: subbloqueId,
-                                ejercicio_id: ejercicio.ejercicio_id,
-                                orden: iEj
-                            }])
-                            .select()
-                            .single();
-                        if (errorEj) throw errorEj;
-                        const subEjId = ejData.id;
-
-                        // Usamos los sets personalizados del ejercicio, si existen
-                        const sets = ejercicio.sets_config?.length
-                        ? ejercicio.sets_config
-                        : createDefaultSetsConfig(numSets);
-                    
-
-                        for (let iSet = 0; iSet < sets.length; iSet++) {
-                            const set = sets[iSet];
-                            const { error: errorSerie } = await supabase
-                                .from('series_subejercicio')
-                                .insert([{
-                                    subbloque_ejercicio_id: subEjId,
-                                    nro_set: iSet + 1,
-                                    reps: set.reps || '',
-                                    carga_sugerida: set.carga || '',
-                                    pausa: set.pausa || sharedRest || '',
-                                }]);
-                            if (errorSerie) throw errorSerie;
-                        }
-                    }
-                }
-                
-            }
-        }
-    };
+    // _guardarComponentesAnidados ha sido movido a src/utils/guardarEstructuraRutina.js
+    // Ya no es necesario aquí.
 
     const guardarRutina = async () => {
         if (!nombre || bloques.length === 0) {
@@ -229,7 +132,12 @@ const RutinaForm = ({ modo = "crear", rutinaInicial = null, onGuardar }) => {
             if (errorRutina) throw errorRutina;
             const rutinaBaseId = rutinaBase.id;
 
-            await _guardarComponentesAnidados(rutinaBaseId, bloques);
+            // Usar la nueva función refactorizada
+            await guardarEstructuraRutina({
+                rutinaId: rutinaBaseId,
+                bloques: bloques,
+                tipoRutina: 'base'
+            });
 
             toast.dismiss(); // Solo un dismiss antes del success
             toast.success(`✅ Rutina guardada correctamente`);
@@ -291,8 +199,12 @@ const RutinaForm = ({ modo = "crear", rutinaInicial = null, onGuardar }) => {
             }
             await supabase.from('bloques').delete().eq('rutina_base_id', rutinaId);
 
-            // 3. Insertar nuevos componentes anidados
-            await _guardarComponentesAnidados(rutinaId, bloques);
+            // 3. Insertar nuevos componentes anidados usando la función refactorizada
+            await guardarEstructuraRutina({
+                rutinaId: rutinaId,
+                bloques: bloques,
+                tipoRutina: 'base'
+            });
 
             toast.dismiss();
             toast.success('✅ Rutina actualizada correctamente');
