@@ -5,6 +5,8 @@ import AdminLayout from '../../layouts/AdminLayout';
 import DiaCard from '../../components/Rutina/DiaCard';
 import RutinasSidebar from '../../components/Rutina/RutinasSidebar';
 import RutinaItem from '../../components/Rutina/RutinaItem';
+// No necesitamos useAuthUser ni clonarRutinaBaseHaciaPersonalizada aquí para asignación directa
+import { toast } from 'react-hot-toast'; // Para notificaciones
 
 import {
     DndContext,
@@ -18,12 +20,13 @@ import {
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 const AlumnoPerfil = () => {
-    const { id } = useParams();
+    const { id } = useParams(); // Este es el alumnoId
     const [alumno, setAlumno] = useState(null);
     const [asignacionesPorDia, setAsignacionesPorDia] = useState({});
     const [rutinasBase, setRutinasBase] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeId, setActiveId] = useState(null);
+    // Ya no se necesita perfilEntrenador aquí para la asignación directa
 
     const sensors = useSensors(
         useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -84,53 +87,76 @@ const AlumnoPerfil = () => {
             return;
         }
 
-        const diaIndex = Number(overId.replace('dia-', ''));
+        const diaSemanaTexto = diasSemana[Number(overId.replace('dia-', ''))];
+        const fechaHoy = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
 
-        if (asignacionesPorDia[diaIndex] && asignacionesPorDia[diaIndex].asignacion) {
-            console.warn(`Día ${diaIndex} ya tiene una rutina asignada.`);
+        if (asignacionesPorDia[Number(overId.replace('dia-', ''))] && asignacionesPorDia[Number(overId.replace('dia-', ''))].asignacion) {
+            toast.error(`El ${diaSemanaTexto} ya tiene una rutina asignada.`);
             return;
         }
+
+        // Ya no se verifica el entrenador aquí, se asigna directamente la rutina base.
+        const diaIndex = Number(overId.replace('dia-', '')); // Necesitamos el índice numérico para la BD
 
         try {
             if (itemId.startsWith('rutina-')) {
                 const rutinaBaseId = itemId.replace('rutina-', '');
+                const alumnoId = id; // id de useParams es el alumnoId
 
+                toast.loading(`Asignando rutina a ${diaSemanaTexto}...`);
+
+                // Verificar si ya existe una asignación para este alumno y día
+                // Esto es importante si el estado local `asignacionesPorDia` no está perfectamente sincronizado
+                // o para prevenir condiciones de carrera.
                 const { data: existingAsignacion, error: fetchError } = await supabase
                     .from('asignaciones')
                     .select('id')
-                    .eq('alumno_id', id)
+                    .eq('alumno_id', alumnoId)
                     .eq('dia_semana', diaIndex)
                     .maybeSingle();
 
                 if (fetchError) {
                     console.error("Error al verificar asignación existente:", fetchError);
+                    toast.dismiss();
+                    toast.error('Error al verificar asignaciones previas.');
                     return;
                 }
 
                 if (existingAsignacion) {
-                    console.warn(`El día ${diaIndex} ya tiene una rutina asignada en BD.`);
-                    fetchData(true); // actualiza sin loader
+                    toast.dismiss();
+                    toast.warn(`El ${diaSemanaTexto} ya tiene una rutina asignada.`);
+                    fetchData(true); // Sincronizar estado local si es necesario
                     return;
                 }
 
-                await supabase
+                // Crear la asignación directa a rutina_base_id
+                const { error: insertError } = await supabase
                     .from('asignaciones')
-                    .upsert({
-                        alumno_id: id,
+                    .insert({
+                        alumno_id: alumnoId,
                         dia_semana: diaIndex,
                         rutina_base_id: rutinaBaseId,
-                        rutina_personalizada_id: null,
-                    }, {
-                        onConflict: 'alumno_id,dia_semana',
+                        rutina_personalizada_id: null, // Explícitamente null
+                        fecha_inicio: fechaHoy, // Asignar con fecha de hoy por defecto
+                        // Otros campos de 'asignaciones' si son necesarios y tienen valor por defecto
                     });
 
-                console.log(`Rutina ${rutinaBaseId} asignada al día ${diaIndex}`);
-                fetchData(true); // refrescar sin loader
+                if (insertError) {
+                    throw insertError;
+                }
+
+                toast.dismiss();
+                toast.success(`Rutina base asignada al ${diaSemanaTexto}.`);
+                fetchData(true); // Refrescar datos para mostrar la nueva asignación
+
             } else {
-                console.warn(`Item no soportado: ${itemId}`);
+                console.warn(`Item no soportado para asignación: ${itemId}`);
+                toast.error('Este elemento no se puede asignar como rutina.');
             }
         } catch (error) {
-            console.error("Error al asignar rutina:", error);
+            toast.dismiss();
+            console.error("Error al asignar rutina base:", error);
+            toast.error(`Error: ${error.message || 'No se pudo asignar la rutina.'}`);
         }
     };
 
@@ -157,10 +183,12 @@ const AlumnoPerfil = () => {
                                 <DiaCard
                                     key={i}
                                     index={i}
-                                    id={`dia-${i}`}
-                                    dia={dia}
-                                    diaInfo={asignacionesPorDia[i]}
-                                    onAsignacionEliminada={() => fetchData(true)} // actualización silenciosa
+                                    id={`dia-${i}`} // El ID para dnd-kit
+                                    dia={dia} // Nombre del día
+                                    diaInfo={asignacionesPorDia[i]} // Información de la asignación para este día
+                                    alumnoId={id} // Pasar el alumnoId al DiaCard
+                                    onAsignacionEliminada={() => fetchData(true)}
+                                    onRutinaPersonalizada={() => fetchData(true)} // Para refrescar tras clonar/actualizar asignación
                                 />
                             ))}
                         </div>
