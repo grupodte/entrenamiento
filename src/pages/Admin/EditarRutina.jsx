@@ -214,8 +214,8 @@ const EditarRutina = () => {
 
     return (
         <AdminLayout>
-            <div className="w-full min-h-screen flex flex-col bg-neutral-900 text-white">
-                <div className="p-4 md:p-6">
+            <div className="p-6 max-w-6xl mx-auto space-y-6 text-white pb-[calc(6rem+env(safe-area-inset-bottom))]">
+  <div className="p-4 md:p-6">
                     <button
                         onClick={() => navigate(-1)}
                         className="flex items-center gap-2 text-skyblue hover:text-white transition mb-4 text-sm"

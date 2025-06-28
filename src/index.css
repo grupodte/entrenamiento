@@ -15,6 +15,10 @@ body,
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  scroll-padding-bottom: 4rem;
+}
+
 body {
   @apply font-product bg-black text-white select-none overflow-hidden;
   touch-action: manipulation;

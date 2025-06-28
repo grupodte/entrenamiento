@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { VideoProvider, useVideo } from '../context/VideoContext';
 import VideoPanel from './VideoPanel';
@@ -48,10 +47,10 @@ const LayoutContent = () => {
             <div
                 ref={scrollRef}
                 data-scroll
-                className="relative z-10 flex flex-col min-h-screen overflow-y-auto px-4 sm:px-6 lg:px-8 pl-safe pr-safe overscroll-contain" // Padding lateral base + safe area lateral + overscroll
+                className="relative z-10 flex flex-col min-h-screen overflow-y-auto"
             >
-                {/* Barra superior fija DENTRO del flujo scrollable y del padding general */}
-                <div className="h-[25px] backdrop-blur-xl bg-black border-b border-white/10 flex items-center justify-center sticky top-0 z-20 pt-safe"> {/* Sticky y pt-safe para la barra */}
+                {/* Barra superior fija dentro del flujo */}
+                <div className="h-[25px] backdrop-blur-xl bg-black border-b border-white/10 flex items-center justify-center">
                     <img
                         src="/icons/iconodte.svg"
                         alt="Icono"
@@ -60,17 +59,9 @@ const LayoutContent = () => {
                 </div>
 
                 {/* Contenido real */}
-                {/* El contenedor del Outlet ahora solo necesita preocuparse por el padding para la barra fija y el pb-safe. */}
-                {/* Los paddings laterales y sus safe areas son manejados por el contenedor scrollable padre. */}
-                <motion.div
-                    className="flex-1 pt-[25px] pb-safe"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                >
+                <div className="flex-1">
                     <Outlet />
-                </motion.div>
+                </div>
             </div>
 
             {/* Panel global video */}

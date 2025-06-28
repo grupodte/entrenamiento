@@ -57,8 +57,8 @@ const VerRutina = () => {
 
     return (
         <AdminLayout>
-            <div className="p-6 max-w-6xl mx-auto space-y-6 text-white">
-                <div>
+            <div className="p-6 max-w-6xl mx-auto space-y-6 text-white pb-[calc(4rem+env(safe-area-inset-bottom))]">
+  <div>
                     <h1 className="text-3xl font-bold mb-1">{rutina.nombre}</h1>
                     <p className="text-white/70">{rutina.descripcion}</p>
                 </div>

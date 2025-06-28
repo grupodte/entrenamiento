@@ -16,6 +16,7 @@ import {
     useSensors,
     DragOverlay,
 } from '@dnd-kit/core';
+import { useDragState } from '../../context/DragStateContext';
 
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -25,8 +26,8 @@ const AlumnoPerfil = () => {
     const [asignacionesPorDia, setAsignacionesPorDia] = useState({});
     const [rutinasBase, setRutinasBase] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [activeId, setActiveId] = useState(null);
-    // Ya no se necesita perfilEntrenador aquí para la asignación directa
+    const [activeId, setActiveId] = useState(null); // dnd-kit active drag ID
+    const { setIsDragging } = useDragState(); // Context setter for global drag state
 
     const sensors = useSensors(
         useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -164,8 +165,18 @@ const AlumnoPerfil = () => {
         <AdminLayout>
             <DndContext
                 sensors={sensors}
-                onDragStart={(event) => setActiveId(event.active.id)}
-                onDragEnd={handleDrop}
+                onDragStart={(event) => {
+                    setActiveId(event.active.id);
+                    setIsDragging(true);
+                }}
+                onDragEnd={(event) => { // handleDrop also clears activeId
+                    handleDrop(event); // Ensure handleDrop is called
+                    setIsDragging(false);
+                }}
+                onDragCancel={() => {
+                    setActiveId(null);
+                    setIsDragging(false);
+                }}
                 autoScroll={true}
             >
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-4">
