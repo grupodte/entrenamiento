@@ -80,6 +80,15 @@ html {
 /* GENERAL UX */
 *:focus {
   outline: none;
+  /* Mantenemos esto para resetear el default en navegadores que no soportan bien :focus-visible o para consistencia inicial */
+}
+
+*:not(input):not(textarea):not(select):focus-visible {
+  outline: 2px solid theme('colors.ios.primary');
+  /* Usa un color del tema de Tailwind */
+  outline-offset: 2px;
+  border-radius: theme('borderRadius.ios-sm');
+  /* Opcional: para que el outline siga el borde redondeado */
 }
 
 *,
@@ -128,6 +137,35 @@ img {
 
 
 .listbox-z {
-  z-index: 9999 !important;
+  z-index: 9999;
+  /* Eliminado !important */
   position: absolute;
+}
+
+/* SAFEZONE UTILITIES */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+
+.pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Combinadas para conveniencia */
+.px-safe {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.py-safe {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext'; // ⬅️ Asegurate de tener esto configurado
 import AdminSidebarDesktop from '../components/AdminSidebarDesktop';
 import AdminSidebarMobile from '../components/AdminSidebarMobile';
@@ -10,7 +11,7 @@ const AdminLayout = ({ children }) => {
     const navigate = useNavigate();
     const { logout } = useAuth();
 
-  
+
 
     useEffect(() => {
         const setViewportHeight = () => {
@@ -50,19 +51,21 @@ const AdminLayout = ({ children }) => {
             {/* Layout principal con scroll interno */}
             <div
                 ref={scrollRef}
-                className="relative z-10 flex h-full overflow-y-scroll overscroll-contain"
+                className="relative z-10 flex h-full overflow-y-scroll overscroll-contain pt-safe pb-safe" // py-safe ya estaba, overscroll-contain ya estaba. No hay cambios aquí en esta pasada.
             >
                 <AdminSidebarDesktop />
-
-                
-
-                <main className="flex-1 min-h-full">
+                {/* AdminSidebarDesktop podría necesitar su propio pl-safe si es fijo y está al borde */}
+                <motion.main
+                    className="flex-1 min-h-full px-4 sm:px-6 lg:px-8 pl-safe pr-safe" /* Paddings laterales y safe-area para el contenido principal */
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
                     {/* Botón de logout */}
-       
-
                     {children}
-                </main>
-
+                </motion.main>
+                {/* AdminSidebarMobile, si es un overlay, podría necesitar su propio manejo de safe-area */}
                 <AdminSidebarMobile />
             </div>
         </div>

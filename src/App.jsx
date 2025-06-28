@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { AnimatePresence } from 'framer-motion';
 
 // --- LAYOUT Y COMPONENTES GLOBALES ---
 import AppLayout from './components/AppLayout';
@@ -68,11 +69,11 @@ function InstallBanner() {
   if (!showInstallButton) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 shadow-lg px-4 py-2 rounded-xl z-50 flex items-center gap-4 border">
+    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 shadow-lg px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] rounded-xl z-50 flex items-center gap-4 border"> {/* 0.5rem es py-2. Se suma pb-safe */}
       <span className="text-black dark:text-white">¿Querés instalar la app?</span>
       <button
         onClick={handleInstallClick}
-        className="px-3 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+        className="px-3 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 active:scale-95 transition-all duration-150"
       >
         Instalar
       </button>
@@ -80,12 +81,14 @@ function InstallBanner() {
   );
 }
 
-const App = () => {
+const AppContent = () => {
+  const location = useLocation(); // Hook para obtener la ubicación actual
+
   return (
-    <AuthProvider>
-      <Router>
-        <InstallBanner />
-        <Routes>
+    <>
+      <InstallBanner />
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}> {/* Usar location y key */}
           {/* --- RUTAS PÚBLICAS --- */}
           <Route path="/" element={<RedireccionInicial />} />
           <Route path="/login" element={<AuthPage />} />
@@ -228,6 +231,16 @@ const App = () => {
             />
           </Route>
         </Routes>
+      </AnimatePresence>
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppContent />
       </Router>
     </AuthProvider>
   );

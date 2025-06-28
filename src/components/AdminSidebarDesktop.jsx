@@ -9,13 +9,13 @@ const navItems = [
 const AdminSidebarDesktop = () => {
     const location = useLocation();
 
-      const handleLogout = async () => {
-            await logout(); // ⬅️ Esto debería limpiar el token o sesión
-            navigate('/login');
-        };
+    const handleLogout = async () => {
+        await logout(); // ⬅️ Esto debería limpiar el token o sesión
+        navigate('/login');
+    };
 
     return (
-        <aside className="hidden md:flex md:w-64 flex-col gap-4 h-screen sticky top-0 backdrop-blur-lg bg-white/70 dark:bg-black/40 border-r border-white/10 p-6 shadow-xl">
+        <aside className="hidden md:flex md:w-64 flex-col gap-4 h-screen sticky top-0 backdrop-blur-lg bg-white/70 dark:bg-black/40 border-r border-white/10 p-6 shadow-xl pt-safe pb-safe">
             <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">FitApp Panel</h2>
             <nav className="flex flex-col gap-2">
                 {navItems.map(({ path, label }) => (
@@ -23,19 +23,19 @@ const AdminSidebarDesktop = () => {
                         key={path}
                         to={path}
                         className={`px-4 py-2 rounded-lg transition-all duration-200 ${location.pathname === path
-                                ? 'bg-blue-600 text-white'
-                                : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100/50 dark:hover:bg-white/10'
+                            ? 'bg-blue-600 text-white active:bg-blue-700' // Active state for current path
+                            : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100/50 dark:hover:bg-white/10 active:bg-gray-200/70 dark:active:bg-white/20' // Active state for inactive path
                             }`}
                     >
                         {label}
                     </Link>
-                    
-                 
+
+
                 ))}
             </nav>
             <button
                 onClick={handleLogout}
-                className="bg-white text-black px-4 py-2 rounded-md hover:bg-gray-200 transition"
+                className="bg-white text-black px-4 py-2 rounded-md hover:bg-gray-200 active:bg-gray-300 active:scale-95 transition-all duration-150"
             >
                 Cerrar sesión
             </button>

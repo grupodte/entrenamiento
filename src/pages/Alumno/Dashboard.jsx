@@ -68,12 +68,12 @@ const Dashboard = () => {
                             Panel Principal
                         </h1>
                         <p className="text-sm text-gray-500">
-                            Bienvenido, {nombre }
+                            Bienvenido, {nombre}
                         </p>
                     </div>
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-800 transition"
+                        className="flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-800 active:text-red-900 active:scale-95 transition-all duration-150"
                     >
                         <FaSignOutAlt />
                         Cerrar sesión
@@ -88,7 +88,7 @@ const Dashboard = () => {
                         <button
                             key={option.title}
                             onClick={() => navigate(option.path)}
-                            className={`relative w-full p-6 rounded-2xl text-white overflow-hidden group transition-transform duration-300 hover:scale-105 bg-gradient-to-br ${option.color}`}
+                            className={`relative w-full p-6 rounded-2xl text-white overflow-hidden group transition-all duration-200 hover:scale-105 active:scale-100 active:brightness-90 bg-gradient-to-br ${option.color}`}
                         >
                             <div className="relative z-10 flex flex-col items-start h-full">
                                 <div className="mb-4 p-3 bg-white/20 rounded-full">
