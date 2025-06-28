@@ -188,17 +188,14 @@ const EditarRutina = () => {
 
     if (loading) {
         return (
-            <AdminLayout>
                 <div className="flex justify-center items-center min-h-screen">
                     <BrandedLoader />
                 </div>
-            </AdminLayout>
         );
     }
 
     if (error || !rutinaParaEditar) {
         return (
-            <AdminLayout>
                 <div className="p-4 text-center text-red-500">
                     <p>{error || 'No se encontró la rutina para editar.'}</p>
                     <button
@@ -208,13 +205,11 @@ const EditarRutina = () => {
                         Volver a Rutinas
                     </button>
                 </div>
-            </AdminLayout>
         );
     }
 
     return (
-        <AdminLayout>
-            <div className="p-6 max-w-6xl mx-auto space-y-6 text-white pb-[calc(6rem+env(safe-area-inset-bottom))]">
+        <div className="w-full min-h-screen flex flex-col text-white">
   <div className="p-4 md:p-6">
                     <button
                         onClick={() => navigate(-1)}
@@ -243,7 +238,6 @@ const EditarRutina = () => {
                     </div>
                 </div>
             </div>
-        </AdminLayout>
     );
 };
 

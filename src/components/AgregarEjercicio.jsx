@@ -88,6 +88,22 @@ const EjerciciosManager = () => {
     };
   }, []);
 
+
+  const borrarEjercicio = async (id) => {
+    if (confirm("¿Estás seguro de que deseas borrar este ejercicio?")) {
+      const { error } = await supabase
+        .from("ejercicios")
+        .delete()
+        .eq("id", id);
+      if (!error) {
+        setEjercicios((prev) => prev.filter((ej) => ej.id !== id));
+      } else {
+        console.error("❌ Error al borrar:", error.message);
+      }
+    }
+  };
+  
+
   return (
     <div className="space-y-10 relative z-0  ">
       {/* Formulario */}
@@ -196,29 +212,49 @@ const EjerciciosManager = () => {
       {/* Lista de ejercicios */}
       <div
         ref={listaRef}
-        className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+        className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
       >
         {ejercicios.map((ej, i) => (
           <FadeContent
             key={ej.id}
-            className="bg-white/5 backdrop-blur-lg p-4 rounded-xl border border-white/10 transition hover:scale-[1.01]"
+            className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl p-5 rounded-2xl border border-white/10 shadow-lg transition hover:scale-[1.02] flex flex-col justify-between h-full"
             delay={i * 80}
             blur
           >
-            <h3 className="text-lg font-bold text-white">{ej.nombre}</h3>
-            <p className="text-sm text-white/80 mt-1">{ej.descripcion}</p>
-            <p className="text-xs text-white/50 mt-1">{ej.grupo_muscular}</p>
-            {ej.video_url && (
+            {/* Contenido superior */}
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-2">{ej.nombre}</h3>
+              {ej.grupo_muscular && (
+                <span className="inline-block bg-skyblue/20 text-skyblue px-2 py-0.5 rounded-full text-xs mb-2">
+                  {ej.grupo_muscular}
+                </span>
+              )}
+              <p className="text-sm text-white/80 mb-4">{ej.descripcion || 'Sin descripción'}</p>
+            </div>
+
+            {/* Acciones abajo */}
+            <div className="flex items-center justify-between mt-4 border-t border-white/10 pt-3">
+              {ej.video_url ? (
+                <button
+                  onClick={() => showVideo(ej.video_url)}
+                  className="text-skyblue text-sm hover:underline flex items-center gap-1"
+                >
+                  <span>▶</span> Ver video
+                </button>
+              ) : (
+                <span className="text-white/40 text-xs">Sin video</span>
+              )}
               <button
-                onClick={() => showVideo(ej.video_url)}
-                className="text-skyblue underline mt-2 text-sm"
+                onClick={() => borrarEjercicio(ej.id)}
+                className="text-red-400 text-sm hover:underline flex items-center gap-1"
               >
-                ▶ Ver video
+                <span>🗑</span> Eliminar
               </button>
-            )}
+            </div>
           </FadeContent>
         ))}
       </div>
+
 
 
       {/* Modal de video */}

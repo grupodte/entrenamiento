@@ -26,12 +26,12 @@ const ComboboxEjercicios = ({ ejerciciosDisponibles, onSelect, defaultValue = nu
             <Combobox value={selected} onChange={handleSelect}>
                 <div className="relative">
                     {/* Input + Icon */}
-                    <div className="relative w-full overflow-hidden rounded-xl bg-white/10 shadow-sm backdrop-blur-sm text-white">
-                        <div className="absolute left-2 top-2.5">
-                            <Search className="h-4 w-4 text-white/40" />
+                    <div className="relative w-full ios-glass border border-white/10 shadow-inner focus-within:ring-2 focus-within:ring-skyblue transition">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <Search className="h-4 w-4 text-white/50" />
                         </div>
                         <Combobox.Input
-                            className="w-full bg-transparent py-2 pl-8 pr-3 text-sm placeholder-white/50 focus:outline-none"
+                            className="w-full bg-transparent py-2 pl-10 pr-3 rounded-xl text-sm placeholder-white/50 focus:outline-none"
                             placeholder="Buscar ejercicio..."
                             displayValue={(ej) => ej?.label}
                             onChange={(event) => setQuery(event.target.value)}
@@ -41,41 +41,54 @@ const ComboboxEjercicios = ({ ejerciciosDisponibles, onSelect, defaultValue = nu
                     {/* Lista de resultados */}
                     <Transition
                         as={Fragment}
-                        leave="transition ease-in duration-100"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
+                        leave="transition ease-in duration-150"
+                        leaveFrom="opacity-100 translate-y-0"
+                        leaveTo="opacity-0 translate-y-1"
                         afterLeave={() => setQuery('')}
                     >
-                        <Combobox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-zinc-800 py-1 text-sm shadow-xl ring-1 ring-black/20 focus:outline-none">
-                            {ejerciciosFiltrados.length === 0 && (
-                                <div className="cursor-default select-none px-4 py-2 text-white/50">Sin resultados...</div>
-                            )}
-                            {ejerciciosFiltrados.map((ejercicio) => (
-                                <Combobox.Option
-                                    key={ejercicio.id}
-                                    value={{
-                                        value: ejercicio.id,
-                                        label: `${ejercicio.nombre} (${ejercicio.grupo_muscular || 'Sin grupo'})`,
-                                    }}
-                                    className={({ active }) =>
-                                        `cursor-pointer select-none px-4 py-2 ${active ? 'bg-skyblue text-white' : 'text-white/90'
-                                        }`
-                                    }
-                                >
-                                    {({ selected }) => (
-                                        <div className="flex justify-between items-center">
-                                            <span className={`truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                                {ejercicio.nombre}
-                                                <span className="ml-2 text-xs text-white/40">
-                                                    ({ejercicio.grupo_muscular || 'Sin grupo'})
+                        <Combobox.Options
+                            className="
+    absolute z-50 mt-2 w-full
+    rounded-xl
+    bg-black/80 backdrop-blur
+    border border-white/10
+    py-1 text-sm shadow-xl ring-1 ring-white/10 focus:outline-none
+  "
+                        >
+                            <div className="max-h-60 overflow-auto">
+                                {ejerciciosFiltrados.length === 0 && (
+                                    <div className="cursor-default select-none px-4 py-2 text-white/50">
+                                        Sin resultados...
+                                    </div>
+                                )}
+                                {ejerciciosFiltrados.map((ejercicio) => (
+                                    <Combobox.Option
+                                        key={ejercicio.id}
+                                        value={{
+                                            value: ejercicio.id,
+                                            label: `${ejercicio.nombre} (${ejercicio.grupo_muscular || 'Sin grupo'})`,
+                                        }}
+                                        className={({ active }) =>
+                                            `cursor-pointer select-none px-4 py-2 rounded transition
+           ${active ? 'bg-skyblue text-white' : 'text-white/90'}`
+                                        }
+                                    >
+                                        {({ selected }) => (
+                                            <div className="flex justify-between items-center">
+                                                <span className={`truncate ${selected ? 'font-semibold' : 'font-normal'}`}>
+                                                    {ejercicio.nombre}
+                                                    <span className="ml-2 text-xs text-white/50">
+                                                        ({ejercicio.grupo_muscular || 'Sin grupo'})
+                                                    </span>
                                                 </span>
-                                            </span>
-                                            {selected && <Check className="h-4 w-4 text-white" />}
-                                        </div>
-                                    )}
-                                </Combobox.Option>
-                            ))}
+                                                {selected && <Check className="h-4 w-4 text-white" />}
+                                            </div>
+                                        )}
+                                    </Combobox.Option>
+                                ))}
+                            </div>
                         </Combobox.Options>
+
                     </Transition>
                 </div>
             </Combobox>

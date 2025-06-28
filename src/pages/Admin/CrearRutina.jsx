@@ -14,13 +14,12 @@ const CrearRutina = () => {
     };
 
     return (
-        <AdminLayout>
-            <div className="w-full min-h-screen flex flex-col bg-neutral-900 text-white">
+            <div className="w-full min-h-screen flex flex-col text-white">
                 <div className="p-4 md:p-6">
                     <h1 className="text-2xl font-bold text-white mb-1">Crear Nueva Rutina</h1>
                     <p className="text-sm text-white/70 mb-6">Diseña una nueva rutina desde cero.</p>
                 </div>
-                <div className="px-4 md:px-6 mx-auto w-full flex flex-col h-full overflow-hidden ">
+                <div className="px-4 md:px-6 mx-auto w-full flex flex-col h-full ">
                     <div className="overscroll-contain">
                         <RutinaForm
                             modo="crear"
@@ -29,7 +28,6 @@ const CrearRutina = () => {
                     </div>
                 </div>
             </div>
-        </AdminLayout>
     );
 };
 

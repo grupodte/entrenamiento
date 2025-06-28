@@ -399,8 +399,8 @@ const RutinaForm = ({
 
     return (
         <div className="flex flex-col md:flex-row h-full gap-4">
-            <aside className="w-full md:w-[280px] p-4 space-y-4 overflow-y-auto bg-white/5 border-b md:border-b-0 md:border-r border-white/10">
-                <div className="flex flex-col gap-3">
+            <aside className="w-full md:w-[280px] p-4 space-y-4   border-b md:border-b-0 md:border-r border-white/10">
+                <div className="flex md:fixed flex-col gap-3">
                     <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre" className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full" />
                     <input value={tipo} onChange={e => setTipo(e.target.value)} placeholder="Tipo" className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full" />
                     <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Descripción" rows={3} className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm resize-none w-full" />

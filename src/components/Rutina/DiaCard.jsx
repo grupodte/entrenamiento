@@ -1,22 +1,31 @@
-import React from 'react';
-import { useDroppable } from '@dnd-kit/core';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabaseClient';
-import { useAuthUser } from '../../hooks/useAuthUser'; // Para obtener el entrenadorId
-import { clonarRutinaBaseHaciaPersonalizada } from '../../utils/clonarRutina'; // Función de clonación
-import { toast } from 'react-hot-toast'; // Para notificaciones
+import React from "react";
+import { useDroppable } from "@dnd-kit/core";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../../lib/supabaseClient";
+import { useAuthUser } from "../../hooks/useAuthUser";
+import { toast } from "react-hot-toast";
+import { Pencil, Trash2, Brush, Star, Book } from "lucide-react";
 
-// Props actualizadas: alumnoId y onRutinaPersonalizada
-const DiaCard = ({ index, dia, diaInfo, id, alumnoId, onAsignacionEliminada, onRutinaPersonalizada }) => {
+const DiaCard = ({
+    index,
+    dia,
+    diaInfo,
+    id,
+    alumnoId,
+    onAsignacionEliminada,
+}) => {
     const { isOver, setNodeRef } = useDroppable({ id });
     const navigate = useNavigate();
     const { perfil: perfilEntrenador, isLoading: isLoadingAuthUser } = useAuthUser();
 
     const asignacionActual = diaInfo?.asignacion;
     const tieneAsignacion = !!asignacionActual;
-    // Asegurarse de que rutina_personalizada_id y rutina_base_id se lean de asignacionActual
-    const esPersonalizada = tieneAsignacion && !!asignacionActual.rutina_personalizada_id;
-    const esBase = tieneAsignacion && !!asignacionActual.rutina_base_id && !asignacionActual.rutina_personalizada_id;
+    const esPersonalizada =
+        tieneAsignacion && !!asignacionActual.rutina_personalizada_id;
+    const esBase =
+        tieneAsignacion &&
+        !!asignacionActual.rutina_base_id &&
+        !asignacionActual.rutina_personalizada_id;
 
     const nombreRutina =
         esPersonalizada
@@ -26,126 +35,129 @@ const DiaCard = ({ index, dia, diaInfo, id, alumnoId, onAsignacionEliminada, onR
                 : null;
 
     const cardBgClass = isOver
-        ? 'bg-blue-100 border-blue-300'
-        : esPersonalizada
-            ? 'bg-purple-50 border-purple-200'
-            : esBase
-                ? 'bg-green-50 border-green-200'
-                : 'bg-gray-50 border-gray-200';
+        ? "bg-white/30 border-indigo-300"
+        : "bg-white/10 border-gray-200 backdrop-blur-sm";
 
-    const labelTipo = esPersonalizada
-        ? '⭐ Personalizada'
-        : esBase
-            ? '📘 Base'
-            : null;
+    const badge = esPersonalizada ? (
+        <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-semibold">
+            <Star className="w-3 h-3" />
+            Personalizada
+        </span>
+    ) : esBase ? (
+        <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+            <Book className="w-3 h-3" />
+            Base
+        </span>
+    ) : null;
 
-    const handlePersonalizarYEditar = () => { // Ya no es async, solo navega
-        if (!esBase || !asignacionActual?.rutina_base_id || !alumnoId || !asignacionActual?.id) {
-            toast.error("Falta información para iniciar la personalización.");
-            console.error("Datos faltantes para personalizar:", { esBase, asignacionActual, alumnoId });
+    const handlePersonalizarYEditar = () => {
+        if (!esBase || !asignacionActual?.rutina_base_id || !alumnoId) {
+            toast.error("Faltan datos para personalizar.");
             return;
         }
-
-        const idRutinaBaseOriginal = asignacionActual.rutina_base_id;
-        const idAsignacionOriginal = asignacionActual.id;
-
-        // Navegar al formulario de edición en modo "personalizar"
-        // Se pasa el ID de la rutina base original para cargar sus datos
-        // y los IDs de alumno y asignación para el proceso de guardado posterior.
-        navigate(`/admin/rutinas/editar/${idRutinaBaseOriginal}?alumnoId=${alumnoId}&asignacionId=${idAsignacionOriginal}&modo=personalizar`);
-
+        navigate(
+            `/admin/rutinas/editar/${asignacionActual.rutina_base_id}?alumnoId=${alumnoId}&asignacionId=${asignacionActual.id}&modo=personalizar`
+        );
     };
 
     const handleEditarRutinaPersonalizada = () => {
-        if (!esPersonalizada || !asignacionActual?.rutina_personalizada_id) return;
-        // La ruta para editar rutinas personalizadas podría ser diferente a la de rutinas base
-        // Asumiendo que tienes una ruta como /admin/editar-rutina/:id que maneja ambos tipos o una específica
-        navigate(`/admin/rutinas/editar/${asignacionActual.rutina_personalizada_id}?tipo=personalizada`);
+        if (!esPersonalizada) return;
+        navigate(
+            `/admin/rutinas/editar/${asignacionActual.rutina_personalizada_id}?tipo=personalizada`
+        );
     };
 
+    const handleVerRutina = () => {
+        if (esBase && asignacionActual?.rutina_base_id) {
+            navigate(`/admin/rutinas/ver/${asignacionActual.rutina_base_id}`);
+        } else if (esPersonalizada && asignacionActual?.rutina_personalizada_id) {
+            navigate(`/admin/rutinas/ver/${asignacionActual.rutina_personalizada_id}?tipo=personalizada`);
+        } else {
+            toast.error("No se encontró la rutina para ver.");
+        }
+    };
 
     const handleEliminar = async () => {
         if (!asignacionActual?.id) return;
-        const confirmacion = window.confirm(`¿Estás seguro de que quieres eliminar la rutina "${nombreRutina}" del ${dia}?`);
-        if (!confirmacion) return;
+        if (
+            !window.confirm(`¿Eliminar la rutina "${nombreRutina}" de ${dia}?`)
+        )
+            return;
 
         try {
-            toast.loading("Eliminando asignación...");
+            toast.loading("Eliminando...");
             const { error } = await supabase
-                .from('asignaciones')
+                .from("asignaciones")
                 .delete()
-                .eq('id', asignacionActual.id);
-
+                .eq("id", asignacionActual.id);
             if (error) throw error;
-
-            // Si la rutina era personalizada Y NO está asignada a ningún otro día para este alumno (o globalmente, según reglas de negocio)
-            // podrías ofrecer eliminar también la rutina personalizada en sí.
-            // Por ahora, solo eliminamos la asignación.
-            // if (esPersonalizada && asignacionActual.rutina_personalizada_id) {
-            //     // Verificar si hay otras asignaciones para esta rutina personalizada...
-            //     // const { count } = await supabase.from('asignaciones').select('*', { count: 'exact' }).eq('rutina_personalizada_id', asignacionActual.rutina_personalizada_id);
-            //     // if (count === 0) { /* ofrecer eliminar rutina_personalizada */ }
-            // }
-
             toast.dismiss();
             toast.success("Asignación eliminada.");
-            if (typeof onAsignacionEliminada === 'function') {
-                onAsignacionEliminada();
-            }
-        } catch (error) {
+            onAsignacionEliminada?.();
+        } catch (err) {
             toast.dismiss();
-            console.error("Error al eliminar asignación:", error);
-            toast.error("No se pudo eliminar la asignación.");
+            toast.error("No se pudo eliminar.");
+            console.error(err);
         }
     };
 
     return (
         <div
             ref={setNodeRef}
-            className={`border rounded p-4 transition-all duration-300 hover:shadow-md ${cardBgClass} flex flex-col justify-between min-h-[150px]`}
+            className={` rounded-2xl p-4 transition-all duration-300 hover:shadow-md ${cardBgClass} flex flex-col justify-between min-h-[160px]`}
         >
             <div>
-                <h3 className="font-bold text-black mb-1">{dia}</h3>
-                {tieneAsignacion && labelTipo && (
-                    <span className="text-xs font-semibold bg-white/60 px-2 py-0.5 rounded-full text-gray-700 mb-2 inline-block shadow-sm">
-                        {labelTipo}
-                    </span>
-                )}
+                <h3 className="text-base font-bold mb-2 text-white">{dia}</h3>
                 {tieneAsignacion && (
-                    <p className="text-sm text-gray-700 mt-1">
-                        <span className="font-medium">{nombreRutina || 'Rutina sin nombre'}</span>
-                    </p>
+                    <div className="flex items-center gap-2 mb-1">
+                        {badge}
+                        <span className="text-sm truncate font-medium text-white max-w-[140px]">
+                            {nombreRutina || "Sin nombre"}
+                        </span>
+                    </div>
                 )}
             </div>
 
             {tieneAsignacion ? (
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 pt-2 border-t border-gray-200/60">
+                <div className="flex flex-wrap gap-2 mt-4 border-t pt-3 border-gray-200">
                     {esBase && (
                         <button
                             onClick={handlePersonalizarYEditar}
                             disabled={isLoadingAuthUser}
-                            className="text-xs text-indigo-600 hover:underline disabled:opacity-50"
+                            className="flex items-center gap-1 text-xs px-3 py-1 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition w-full sm:w-auto"
                         >
-                            🎨 Personalizar y Editar
+                            <Brush className="w-3 h-3" />
+                            Personalizar
                         </button>
                     )}
                     {esPersonalizada && (
                         <button
                             onClick={handleEditarRutinaPersonalizada}
-                            className="text-xs text-blue-600 hover:underline"
+                            className="flex items-center gap-1 text-xs px-3 py-1 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition w-full sm:w-auto"
                         >
-                            ✏️ Editar Rutina
+                            <Pencil className="w-3 h-3" />
+                            Editar
                         </button>
                     )}
                     <button
-                        onClick={handleEliminar}
-                        className="text-xs text-red-600 hover:underline"
+                        onClick={handleVerRutina}
+                        className="flex items-center gap-1 text-xs px-3 py-1 rounded-md bg-sky-600 text-white hover:bg-sky-700 transition w-full sm:w-auto"
                     >
-                        🗑️ Eliminar Asignación
+                        <Book className="w-3 h-3" />
+                        Ver
+                    </button>
+                    <button
+                        onClick={handleEliminar}
+                        className="flex items-center gap-1 text-xs px-3 py-1 rounded-md bg-red-600 text-white hover:bg-red-700 transition w-full sm:w-auto"
+                    >
+                        <Trash2 className="w-3 h-3" />
+                        Eliminar
                     </button>
                 </div>
             ) : (
-                <p className="text-sm text-gray-400 mt-2 self-center">Sin rutina asignada</p>
+                <div className="flex items-center justify-center text-gray-400 text-xs italic mt-4 border-t pt-3 border-gray-200">
+                    Sin rutina asignada
+                </div>
             )}
         </div>
     );

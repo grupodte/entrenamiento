@@ -62,7 +62,6 @@ const SeleccionarEjercicios = () => {
     );
 
     return (
-        <AdminLayout>
         <div className="max-w-5xl mx-auto p-6 bg-white rounded shadow mt-8">
             <h1 className="text-2xl font-bold mb-6">Seleccionar ejercicios</h1>
 
@@ -97,7 +96,6 @@ const SeleccionarEjercicios = () => {
                 </div>
             )}
         </div>
-        </AdminLayout>
     );
 };
 

@@ -5,12 +5,13 @@ import { AnimatePresence } from 'framer-motion';
 
 // --- LAYOUT Y COMPONENTES GLOBALES ---
 import AppLayout from './components/AppLayout';
+import AdminLayout from './layouts/AdminLayout'; // Asegúrate que la ruta sea correcta
 import RutaProtegida from './components/RutaProtegida';
 import RedireccionInicial from './pages/RedireccionInicial';
 
 // --- PÁGINAS PÚBLICAS ---
 import AuthPage from './pages/AuthPage';
-import Tyc from './pages/tyc'
+import Tyc from './pages/tyc';
 import PoliticaPrivacidad from './pages/PoliticaPrivacidad';
 
 // --- PÁGINAS DE ALUMNO ---
@@ -22,8 +23,8 @@ import RutinaDetalle from './pages/Alumno/RutinaDetalle';
 import AdminPanel from './pages/Admin/AdminPanel';
 import AlumnoPerfil from './pages/Admin/AlumnoPerfil';
 import CrearRutina from './pages/Admin/CrearRutina';
-import EditarRutina from './pages/Admin/EditarRutina'; // Importar EditarRutina
-import VerRutina from './pages/Admin/VerRutina'; // Importar VerRutina
+import EditarRutina from './pages/Admin/EditarRutina';
+import VerRutina from './pages/Admin/VerRutina';
 import SeleccionarEjercicios from './pages/Admin/SeleccionarEjercicios';
 import AdminRutinas from './pages/Admin/AdminRutinas';
 import AdminAlumnos from './pages/Admin/AdminAlumnos';
@@ -31,15 +32,10 @@ import AdminEjercicios from './pages/Admin/AdminEjercicios';
 import AsignarRutina from './pages/Admin/AsignarRutina';
 import EditarDia from './pages/Admin/EditarDia';
 
-// --- LAYOUTS
-import AdminLayout from './layouts/AdminLayout'
-
 // --- COMPONENTE PWA ---
 function InstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
-
-
 
   useEffect(() => {
     const handler = (e) => {
@@ -69,7 +65,7 @@ function InstallBanner() {
   if (!showInstallButton) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 shadow-lg px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] rounded-xl z-50 flex items-center gap-4 border"> {/* 0.5rem es py-2. Se suma pb-safe */}
+    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 shadow-lg px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] rounded-xl z-50 flex items-center gap-4 border">
       <span className="text-black dark:text-white">¿Querés instalar la app?</span>
       <button
         onClick={handleInstallClick}
@@ -82,26 +78,23 @@ function InstallBanner() {
 }
 
 const AppContent = () => {
-  const location = useLocation(); // Hook para obtener la ubicación actual
+  const location = useLocation();
 
   return (
     <>
       <InstallBanner />
       <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}> {/* Usar location y key */}
-          {/* --- RUTAS PÚBLICAS --- */}
-          <Route path="/" element={<RedireccionInicial />} />
-          <Route path="/login" element={<AuthPage />} />
-          <Route path="/register" element={<AuthPage />} /> // opcional, redirecciona al mismo
-          <Route path="/tyc" element={<Tyc />} />
-          <Route path="/privacidad" element={<PoliticaPrivacidad />} />
-
-
-
-          {/* --- RUTAS PROTEGIDAS CON LAYOUT GENERAL --- */}
+        <Routes location={location} key={location.pathname}>
+          {/* --- RUTAS PÚBLICAS Y DE ALUMNO CON AppLayout --- */}
           <Route element={<AppLayout />}>
+            {/* Rutas Públicas */}
+            <Route path="/" element={<RedireccionInicial />} />
+            <Route path="/login" element={<AuthPage />} />
+            <Route path="/register" element={<AuthPage />} />
+            <Route path="/tyc" element={<Tyc />} />
+            <Route path="/privacidad" element={<PoliticaPrivacidad />} />
 
-            {/* --- RUTAS DE ALUMNO --- */}
+            {/* Rutas de Alumno */}
             <Route
               path="/dashboard"
               element={
@@ -126,110 +119,34 @@ const AppContent = () => {
                 </RutaProtegida>
               }
             />
-
-            {/* --- RUTAS DE ADMIN --- */}
-            <Route
-              path="/admin"
-              element={
-                <RutaProtegida rolPermitido="admin">
-                  <AdminLayout>
-                    <AdminPanel />
-                  </AdminLayout>
-                </RutaProtegida>
-              }
-            />
-
-            <Route
-              path="/admin/alumnos"
-              element={
-                <RutaProtegida rolPermitido="admin">
-                  <AdminAlumnos />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/admin/alumnos/:id"
-              element={
-                <RutaProtegida rolPermitido="admin">
-                  <AlumnoPerfil />
-                </RutaProtegida>
-              }
-            />
-            {/* RUTA ALTERNATIVA /alumno/:id si aún se usa en algún lugar */}
-            <Route
-              path="/admin/alumno/:id"
-              element={
-                <RutaProtegida rolPermitido="admin">
-                  <AlumnoPerfil />
-                </RutaProtegida>
-              }
-            />
-
-            <Route
-              path="/admin/rutinas"
-              element={
-                <RutaProtegida rolPermitido="admin">
-                  <AdminRutinas />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/admin/rutinas/crear"
-              element={
-                <RutaProtegida rolPermitido="admin">
-                  <CrearRutina />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/admin/rutinas/editar/:id" // Ruta para editar rutina
-              element={
-                <RutaProtegida rolPermitido="admin">
-                  <EditarRutina />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/admin/rutinas/ver/:id" // Ruta para ver rutina
-              element={
-                <RutaProtegida rolPermitido="admin">
-                  <VerRutina />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/admin/rutinas/editar-dia/:id"
-              element={
-                <RutaProtegida rolPermitido="admin">
-                  <EditarDia />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/admin/ejercicios"
-              element={
-                <RutaProtegida rolPermitido="admin">
-                  <AdminEjercicios />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/admin/ejercicios/seleccionar"
-              element={
-                <RutaProtegida rolPermitido="admin">
-                  <SeleccionarEjercicios />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/admin/asignar-rutina/:id"
-              element={
-                <RutaProtegida rolPermitido="admin">
-                  <AsignarRutina />
-                </RutaProtegida>
-              }
-            />
           </Route>
+
+          {/* --- RUTAS DE ADMIN CON AdminLayout --- */}
+          <Route
+            path="/admin"
+            element={
+              <RutaProtegida rolPermitido="admin">
+                <AdminLayout />
+              </RutaProtegida>
+            }
+          >
+            <Route index element={<AdminPanel />} />
+            <Route path="alumnos" element={<AdminAlumnos />} />
+            <Route path="alumnos/:id" element={<AlumnoPerfil />} />
+            {/* Mantengo la ruta alternativa por si acaso, aunque idealmente se unificaría */}
+            <Route path="alumno/:id" element={<AlumnoPerfil />} />
+            <Route path="rutinas" element={<AdminRutinas />} />
+            <Route path="rutinas/crear" element={<CrearRutina />} />
+            <Route path="rutinas/editar/:id" element={<EditarRutina />} />
+            <Route path="rutinas/ver/:id" element={<VerRutina />} />
+            <Route path="rutinas/editar-dia/:id" element={<EditarDia />} />
+            <Route path="ejercicios" element={<AdminEjercicios />} />
+            <Route path="ejercicios/seleccionar" element={<SeleccionarEjercicios />} />
+            <Route path="asignar-rutina/:id" element={<AsignarRutina />} />
+          </Route>
+
+          {/* Aquí podrías añadir una ruta catch-all para 404 si es necesario */}
+          {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Routes>
       </AnimatePresence>
     </>

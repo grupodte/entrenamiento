@@ -76,11 +76,11 @@ const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDispo
         <div
             ref={setNodeRef}
             style={style}
-            className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-4"
+            className="bg-white/5  p-4 rounded-xl border border-white/10 space-y-4"
         >
             <div className="flex flex-wrap justify-between items-center gap-3">
                 <span className="text-white text-sm font-medium">
-                    🧩 Semana ({semanaInicio} - {semanaFin})
+                    Semana ({semanaInicio} - {semanaFin})
                 </span>
                 <div className="flex gap-2">
                     <button onClick={duplicarBloque} className="text-yellow-400 hover:text-yellow-500 text-sm">
@@ -115,7 +115,7 @@ const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDispo
                     onClick={agregarSubbloque}
                     className="text-white/90 text-sm font-semibold hover:text-skyblue transition"
                 >
-                    ➕ Agregar subbloque
+                    Agregar ejercicio
                 </button>
             </div>
         </div>

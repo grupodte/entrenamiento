@@ -162,7 +162,6 @@ const AlumnoPerfil = () => {
     };
 
     return (
-        <AdminLayout>
             <DndContext
                 sensors={sensors}
                 onDragStart={(event) => {
@@ -212,7 +211,6 @@ const AlumnoPerfil = () => {
                     ) : null}
                 </DragOverlay>
             </DndContext>
-        </AdminLayout>
     );
 };
 

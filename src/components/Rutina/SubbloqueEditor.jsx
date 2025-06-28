@@ -191,30 +191,64 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
 
                     {/* Resumen */}
                     {!open && (
-                        <div className="bg-white/5 p-3 rounded-lg text-white/80 text-sm space-y-2">
+                        <div className="bg-white/5 p-3 rounded-lg text-xs text-white/80 space-y-2">
                             {currentSubbloque.ejercicios.length === 0 ? (
                                 <div className="italic text-white/50">Sin ejercicios aún.</div>
                             ) : (
                                 <>
-                                    <div className="text-xs mb-1">
-                                        Contiene <strong>{currentSubbloque.ejercicios.length}</strong> ejercicio(s)
+                                   
+
+                                    <div className="w-full overflow-x-auto">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="text-white/60 border-b border-white/10">
+                                                    <th className="py-1 px-2">Ejercicio</th>
+                                                    <th className="py-1 px-2 text-center">Reps</th>
+                                                    <th className="py-1 px-2 text-center">Series</th>
+                                                    <th className="py-1 px-2 text-center">Pausa</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {currentSubbloque.ejercicios.map((ej, index) => {
+                                                    const sets = ej.series || ej.sets_config || [];
+                                                    const reps = sets.map((s) => s.reps || '-').join(', ');
+                                                    const nroSeries = sets.length || '-';
+                                                    const pausa = sets[0]?.pausa || '-';
+
+                                                    return (
+                                                        <tr
+                                                            key={ej.id}
+                                                            className="border-b border-white/10 hover:bg-white/5 transition"
+                                                        >
+                                                            <td className="py-1 px-2 truncate">{ej.nombre}</td>
+                                                            <td className="py-1 px-2 text-center">{reps}</td>
+                                                            {index === 0 && (
+                                                                <>
+                                                                    <td
+                                                                        className="py-1 px-2 text-center"
+                                                                        rowSpan={currentSubbloque.ejercicios.length}
+                                                                    >
+                                                                        {nroSeries}
+                                                                    </td>
+                                                                    <td
+                                                                        className="py-1 px-2 text-center"
+                                                                        rowSpan={currentSubbloque.ejercicios.length}
+                                                                    >
+                                                                        {pausa}s
+                                                                    </td>
+                                                                </>
+                                                            )}
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
                                     </div>
-                                    <ul className="space-y-1 text-xs">
-                                        {currentSubbloque.ejercicios.map((ej) => {
-                                            const sets = ej.series || ej.sets_config || [];
-                                            const reps = sets.map((s) => s.reps || '-').join(', ');
-                                            return (
-                                                <li key={ej.id} className="flex justify-between border-b border-white/10 pb-1">
-                                                    <span className="font-medium text-white/90 truncate">{ej.nombre}</span>
-                                                    <span className="text-white/60 text-right">{sets.length}x [{reps}]</span>
-                                                </li>
-                                            );
-                                        })}
-                                    </ul>
                                 </>
                             )}
                         </div>
                     )}
+
 
                     <Disclosure.Panel className="space-y-4 pt-2">
                         {isShared && (

@@ -50,7 +50,6 @@ const AsignarRutina = () => {
     };
 
     return (
-        <AdminLayout>
             <div className="max-w-3xl mx-auto p-6 mt-10 bg-white rounded shadow">
                 <button
                     onClick={() => navigate(-1)}
@@ -82,7 +81,6 @@ const AsignarRutina = () => {
                 )}
                 {mensaje && <p className="mt-4 text-green-600 font-medium">{mensaje}</p>}
             </div>
-        </AdminLayout>
     );
 };
 
