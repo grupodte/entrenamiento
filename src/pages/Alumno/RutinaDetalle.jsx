@@ -61,7 +61,7 @@ const RutinaDetalle = () => {
                   subbloques (id, orden, nombre, tipo, pausa_entre_series_superset, num_series_superset,
                     subbloques_ejercicios (id, orden_en_subbloque,
                       ejercicio: ejercicios (id, nombre, video_url),
-                      series: series_subejercicio (id, nro_set, reps, peso, pausa)
+                      series: series_subejercicio (id, nro_set, reps, carga_sugerida, pausa)
                     )
                   )
                 )
