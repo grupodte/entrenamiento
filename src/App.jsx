@@ -5,7 +5,7 @@ import { AnimatePresence } from 'framer-motion';
 
 // --- LAYOUT Y COMPONENTES GLOBALES ---
 import AppLayout from './components/AppLayout';
-import AdminLayout from './layouts/AdminLayout'; // Asegúrate que la ruta sea correcta
+import AdminLayout from './layouts/AdminLayout';
 import RutaProtegida from './components/RutaProtegida';
 import RedireccionInicial from './pages/RedireccionInicial';
 
@@ -18,6 +18,8 @@ import PoliticaPrivacidad from './pages/PoliticaPrivacidad';
 import DashboardAlumno from './pages/Alumno/Dashboard';
 import DashboardRutinas from './pages/Alumno/DashboardRutinas';
 import RutinaDetalle from './pages/Alumno/RutinaDetalle';
+import PerfilAlumno from './pages/Alumno/Perfil';
+import SeleccionOrdenBloques from './pages/Alumno/SeleccionOrdenBloques'; // nuevo import
 
 // --- PÁGINAS DE ADMIN ---
 import AdminPanel from './pages/Admin/AdminPanel';
@@ -119,6 +121,22 @@ const AppContent = () => {
                 </RutaProtegida>
               }
             />
+            <Route
+              path="/rutina/:id/orden"
+              element={
+                <RutaProtegida rolPermitido="alumno">
+                  <SeleccionOrdenBloques />
+                </RutaProtegida>
+              }
+            />
+            <Route
+              path="/alumno/perfil"
+              element={
+                <RutaProtegida rolPermitido="alumno">
+                  <PerfilAlumno />
+                </RutaProtegida>
+              }
+            />
           </Route>
 
           {/* --- RUTAS DE ADMIN CON AdminLayout --- */}
@@ -133,7 +151,6 @@ const AppContent = () => {
             <Route index element={<AdminPanel />} />
             <Route path="alumnos" element={<AdminAlumnos />} />
             <Route path="alumnos/:id" element={<AlumnoPerfil />} />
-            {/* Mantengo la ruta alternativa por si acaso, aunque idealmente se unificaría */}
             <Route path="alumno/:id" element={<AlumnoPerfil />} />
             <Route path="rutinas" element={<AdminRutinas />} />
             <Route path="rutinas/crear" element={<CrearRutina />} />
@@ -145,7 +162,7 @@ const AppContent = () => {
             <Route path="asignar-rutina/:id" element={<AsignarRutina />} />
           </Route>
 
-          {/* Aquí podrías añadir una ruta catch-all para 404 si es necesario */}
+          {/* Podrías agregar aquí un catch-all de 404 si querés */}
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Routes>
       </AnimatePresence>

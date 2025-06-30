@@ -1,376 +1,343 @@
 // src/pages/Alumno/RutinaDetalle.jsx
+import { useEffect, useState } from "react";
+import { useParams, useLocation, Link } from "react-router-dom";
+import { supabase } from "../../lib/supabaseClient";
 
-import { useEffect, useState } from 'react';
-import { useLocation, useParams, Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabaseClient';
-import { FaPause, FaPlay, FaArrowLeft, FaCheck, FaStopwatch, FaTrophy, FaSave } from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion';
-import RestTimer from '../../components/RestTimer';
-import EjercicioItem from '../../components/EjercicioItem';
-
-
-
-// --- CRONÓMETRO GENERAL (MODIFICADO PARA RECIBIR ESTADO) ---
-const Chronometer = ({ time, isRunning, onToggle }) => {
-    const formatTime = (s) => {
-        const h = `0${Math.floor(s / 3600)}`.slice(-2);
-        const m = `0${Math.floor((s % 3600) / 60)}`.slice(-2);
-        const sec = `0${s % 60}`.slice(-2);
-        return `${h}:${m}:${sec}`;
-    };
-
-    return (
-        <motion.div initial={{ y: -100 }} animate={{ y: 0 }} className="sticky top-0 z-30 bg-gray-900 text-white shadow-lg">
-            <div className="max-w-4xl mx-auto flex justify-between items-center px-6 py-3">
-                <span className="text-sm font-semibold uppercase tracking-wider">Tiempo Total</span>
-                <span className="text-3xl font-mono font-bold">{formatTime(time)}</span>
-                <button onClick={onToggle} className="p-3 rounded-full text-white bg-white/20 hover:bg-white/30" aria-label={isRunning ? 'Pausar' : 'Reanudar'}>
-                    {isRunning ? <FaPause /> : <FaPlay />}
-                </button>
-            </div>
-        </motion.div>
-    );
-};
-
-
-
-
-// --- MODAL DE FINALIZACIÓN ---
-const WorkoutCompleteModal = ({ onSave, isSaving }) => (
-    <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-    >
-        <motion.div
-            initial={{ scale: 0.8, y: 50 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.8, y: 50 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="bg-white rounded-2xl shadow-2xl p-8 text-center max-w-sm w-full"
-        >
-            <FaTrophy className="text-5xl text-yellow-400 mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">¡Entrenamiento Finalizado!</h2>
-            <p className="text-b mb-6">Guarda los resultados para registrar tu progreso.</p>
-            <div className="flex flex-col gap-3">
-                <button
-                    onClick={onSave}
-                    disabled={isSaving}
-                    className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:bg-green-400"
-                >
-                    <FaSave />
-                    {isSaving ? 'Guardando...' : 'Guardar Resultados'}
-                </button>
-            </div>
-        </motion.div>
-    </motion.div>
-);
-
-// --- COMPONENTE PRINCIPAL ---
 const RutinaDetalle = () => {
-    const { id: rutinaId } = useParams();
+    const { id } = useParams();
     const location = useLocation();
-    const navigate = useNavigate();
     const [rutina, setRutina] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [tipoRutina, setTipoRutina] = useState(null);
 
-    const [time, setTime] = useState(0);
-    const [isTimerRunning, setIsTimerRunning] = useState(false);
-    const [restInfo, setRestInfo] = useState({ active: false, duration: 0, exerciseName: '' });
+    // Paso 1: guardar series realizadas en estado local
+    const [seriesRealizadas, setSeriesRealizadas] = useState([]);
 
-    const [isWorkoutComplete, setIsWorkoutComplete] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
+    // Paso 2: temporizador de pausa
+    const [temporizadorActivo, setTemporizadorActivo] = useState(false);
+    const [tiempoRestante, setTiempoRestante] = useState(0);
 
-    useEffect(() => {
-        let interval = null;
-        if (isTimerRunning) {
-            interval = setInterval(() => setTime(prev => prev + 1), 1000);
-        }
-        return () => clearInterval(interval);
-    }, [isTimerRunning]);
+    const searchParams = new URLSearchParams(location.search);
+    const tipo = searchParams.get("tipo") || "base";
+    const bloqueSeleccionado = searchParams.get("bloque");
 
     useEffect(() => {
-        const fetchRutinaDetails = async () => {
-            setLoading(true);
-            setError(null);
+        const fetchRutina = async () => {
+            let res;
 
-            const searchParams = new URLSearchParams(location.search);
-            const tipo = searchParams.get('tipo');
-            setTipoRutina(tipo);
-
-            if (!tipo || !rutinaId) {
-                setError("No se pudo identificar la rutina. Falta el tipo o el ID.");
-                setLoading(false);
-                return;
+            if (tipo === "personalizada") {
+                res = await supabase
+                    .from("rutinas_personalizadas")
+                    .select(`
+            id,
+            nombre,
+            descripcion,
+            bloques (
+              id,
+              orden,
+              subbloques (
+                id,
+                orden,
+                nombre,
+                tipo,
+                subbloques_ejercicios (
+                  id,
+                  ejercicio: ejercicios ( nombre ),
+                  series: series_subejercicio (
+                    id,
+                    nro_set,
+                    reps,
+                    pausa
+                  )
+                )
+              )
+            )
+          `)
+                    .eq("id", id)
+                    .single();
+            } else {
+                res = await supabase
+                    .from("rutinas_base")
+                    .select(`
+            id,
+            nombre,
+            descripcion,
+            bloques (
+              id,
+              orden,
+              subbloques (
+                id,
+                orden,
+                nombre,
+                tipo,
+                subbloques_ejercicios (
+                  id,
+                  ejercicio: ejercicios ( nombre ),
+                  series: series_subejercicio (
+                    id,
+                    nro_set,
+                    reps,
+                    pausa
+                  )
+                )
+              )
+            )
+          `)
+                    .eq("id", id)
+                    .single();
             }
 
-            try {
-                let data = null;
-                let fetchError = null;
-
-                if (tipo === 'base') {
-                    ({ data, error: fetchError } = await supabase
-                        .from('rutinas_base')
-                        .select(`
-                            nombre,
-                            ejercicios_de_rutina:rutinas_base_ejercicios (
-                                orden,  
-                                ejercicios:ejercicios ( id, nombre, video_url ),
-                                rutinas_base_series ( id, nro_set, reps, pausa, carga_sugerida )
-                            )
-                        `)
-                        .eq('id', rutinaId)
-                        .maybeSingle()
-                    );
-                } else {
-                    ({ data, error: fetchError } = await supabase
-                        .from('rutinas_personalizadas')
-                        .select(`
-                            nombre,
-                            ejercicios_asignados:rutinas_personalizadas_ejercicios (
-                                orden,
-                                ejercicios:ejercicios ( id, nombre, video_url  ),
-                                rutinas_personalizadas_series ( id, nro_set, reps, pausa, carga )
-                            )
-                        `)
-                        .eq('id', rutinaId)
-                        .maybeSingle()
-                    );
+            if (res.error) {
+                console.error("Error al cargar rutina:", res.error);
+            } else {
+                let data = res.data;
+                if (bloqueSeleccionado) {
+                    data.bloques = data.bloques.filter((b) => b.id === bloqueSeleccionado);
                 }
-
-                if (fetchError || !data) {
-                    console.error("Error fetching routine:", fetchError);
-                    setError(`No se pudieron cargar los detalles de la rutina. Error: ${fetchError?.message || 'Error desconocido'}`);
-                    setLoading(false);
-                    return;
-                }
-
-                // Elegí el alias correcto según el tipo
-                const joinKey = tipo === 'base' ? 'ejercicios_de_rutina' : 'ejercicios_asignados';
-                const seriesKey = tipo === 'base' ? 'rutinas_base_series' : 'rutinas_personalizadas_series';
-                const cargaField = tipo === 'base' ? 'carga_sugerida' : 'carga';
-
-                const ejerciciosData = (data[joinKey] || []).filter(d => d.ejercicios);
-                ejerciciosData.sort((a, b) => a.orden - b.orden);
-
-                const ejerciciosConSets = ejerciciosData.map(d => {
-                    const setsData = d[seriesKey] || [];
-                    setsData.sort((a, b) => a.nro_set - b.nro_set);
-
-                    return {
-                        id: d.ejercicios.id,
-                        nombre: d.ejercicios.nombre,
-                        video_url: d.ejercicios.video_url, 
-                        sets: setsData.map(set => ({
-                            id: set.id,
-                            reps: set.reps,
-                            descanso: set.pausa > 0 ? set.pausa : 60,
-                            completed: false,
-                            cargaSugerida: set[cargaField] || '',
-                            cargaRealizada: tipo === 'base' ? '' : (set[cargaField] || ''),
-                        }))
-                    };
-                });
-
-                setRutina({ nombre: data.nombre, ejercicios: ejerciciosConSets });
-                setIsTimerRunning(location?.state?.startTimer === true);
-
-            } catch (err) {
-                console.error('❌ Error general cargando rutina:', err);
-                setError(err.message || "Ocurrió un error inesperado al cargar la rutina.");
-            } finally {
-                setLoading(false);
+                setRutina(data);
             }
-        };
-        
-        fetchRutinaDetails();
-    }, [rutinaId, location.state]);
-    const handleCargaChange = (ejercicioId, setId, carga) => {
-        if (!rutina) return;
-        const updatedEjercicios = rutina.ejercicios.map(ej => {
-            if (ej.id === ejercicioId) {
-                const updatedSets = ej.sets.map(set =>
-                    set.id === setId ? { ...set, cargaRealizada: carga } : set
-                );
-                return { ...ej, sets: updatedSets };
-            }
-            return ej;
-        });
-        setRutina(prev => ({ ...prev, ejercicios: updatedEjercicios }));
-    };
-
-    const handleSetComplete = async (ejercicioId, setId) => {
-        if (!rutina) return;
-        let completedSet = null;
-        const updatedEjercicios = rutina.ejercicios.map(ej => {
-            if (ej.id === ejercicioId) {
-                const updatedSets = ej.sets.map(set => {
-                    if (set.id === setId && !set.completed) {
-                        completedSet = { ...set, completed: true };
-                        return completedSet;
-                    }
-                    return set;
-                });
-                return { ...ej, sets: updatedSets };
-            }
-            return ej;
-        });
-
-        if (!completedSet) return;
-        setRutina(prev => ({ ...prev, ejercicios: updatedEjercicios }));
-
-        const allSetsCompleted = updatedEjercicios.every(ej => ej.sets.every(s => s.completed));
-
-        if (allSetsCompleted) {
-            setIsTimerRunning(false);
-            setRestInfo({ active: false, duration: 0, exerciseName: '' });
-            setIsWorkoutComplete(true);
-        } else {
-            const currentExerciseIndex = rutina.ejercicios.findIndex(e => e.id === ejercicioId);
-            const currentExercise = updatedEjercicios[currentExerciseIndex];
-            const currentSetIndex = currentExercise.sets.findIndex(s => s.id === setId);
-
-            let nextExerciseName = "¡Entrenamiento finalizado!";
-            if (currentSetIndex < currentExercise.sets.length - 1) {
-                nextExerciseName = currentExercise.nombre;
-            } else if (currentExerciseIndex < updatedEjercicios.length - 1) {
-                nextExerciseName = updatedEjercicios[currentExerciseIndex + 1].nombre;
-            }
-            setRestInfo({ active: true, duration: completedSet.descanso, exerciseName: nextExerciseName });
-        }
-    };
-
-    // Reemplaza tu función handleSaveResults en RutinaDetalle.jsx con esta:
-
-    const handleSaveResults = async () => {
-        setIsSaving(true);
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            alert('No se pudo identificar al usuario. Por favor, inicia sesión de nuevo.');
-            setIsSaving(false);
-            return;
-        }
-
-        // --- INICIO DE LA CORRECCIÓN ---
-
-        // 1. Crear un objeto base para la sesión
-        const sesionPayload = {
-            alumno_id: user.id,
-            duracion_segundos: time
+            setLoading(false);
         };
 
-        // 2. Añadir el ID de la rutina correcta según el tipo
-        if (tipoRutina === 'base') {
-            sesionPayload.rutina_base_id = rutinaId;
-        } else {
-            // Asumimos que si no es 'base', es 'personalizada'
-            sesionPayload.rutina_personalizada_id = rutinaId;
-        }
+        fetchRutina();
+    }, [id, tipo, bloqueSeleccionado]);
 
-        // 3. Insertar el objeto dinámico en la base de datos
-        const { data: sesionData, error: sesionError } = await supabase
-            .from('sesiones_entrenamiento')
-            .insert(sesionPayload)
-            .select()
-            .single();
+    // Paso 1: toggle marcar serie
+    const toggleSerieRealizada = (serieId) => {
+        setSeriesRealizadas((prev) =>
+            prev.includes(serieId) ? prev.filter((s) => s !== serieId) : [...prev, serieId]
+        );
+    };
 
-        // --- FIN DE LA CORRECCIÓN ---
+    // Paso 2: iniciar temporizador
+    const iniciarTemporizador = (segundos) => {
+        setTiempoRestante(segundos);
+        setTemporizadorActivo(true);
+    };
 
-        if (sesionError) {
-            console.error('Error creando la sesión:', sesionError);
-            alert('Ocurrió un error al guardar la sesión. Revisa la consola para más detalles.');
-            setIsSaving(false);
-            return;
-        }
+    // Paso 2: manejar countdown
+    useEffect(() => {
+        if (!temporizadorActivo) return;
 
-        // El resto de la lógica para guardar las series ya es genérica y debería funcionar bien.
-        const seriesDataToInsert = [];
-        rutina.ejercicios.forEach((ej, ejIndex) => {
-            ej.sets.forEach((set, setIndex) => {
-                if (set.completed) {
-                    seriesDataToInsert.push({
-                        sesion_id: sesionData.id,
-                        ejercicio_id: ej.id,
-                        nro_set: setIndex + 1,
-                        reps_realizadas: set.reps,
-                        carga_realizada: set.cargaRealizada || '0'
-                    });
+        const interval = setInterval(() => {
+            setTiempoRestante((prev) => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    setTemporizadorActivo(false);
+                    // Podés agregar aquí un sonido o vibración si querés
+                    return 0;
                 }
+                return prev - 1;
             });
-        });
+        }, 1000);
 
-        if (seriesDataToInsert.length > 0) {
-            const { error: seriesError } = await supabase
-                .from('sesiones_series')
-                .insert(seriesDataToInsert);
-            if (seriesError) {
-                console.error('Error guardando las series:', seriesError);
-                alert('Ocurrió un error al guardar el detalle de las series.');
-                setIsSaving(false);
-                return;
-            }
-        }
+        return () => clearInterval(interval);
+    }, [temporizadorActivo]);
 
-        alert('¡Resultados guardados con éxito!');
-        navigate('/dashboard/rutinas');
-        setIsSaving(false);
-    };
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-gray-700">
+                Cargando tu rutina...
+            </div>
+        );
+    }
 
-    if (loading) return <div className="min-h-screen flex items-center justify-center"><p>Cargando detalles de la rutina...</p></div>;
-    if (error) return <div className="min-h-screen flex items-center justify-center text-red-500"><p>{error}</p></div>;
+    if (!rutina) return null;
 
     return (
-        <div className="bg-gray-100 min-h-screen pb-20">
-            {isTimerRunning && (
-                <Chronometer
-                    time={time}
-                    isRunning={isTimerRunning}
-                    onToggle={() => setIsTimerRunning(!isTimerRunning)}
-                />
-            )}
-            {restInfo.active && (
-                <RestTimer duration={restInfo.duration} exerciseName={restInfo.exerciseName} onFinish={() => setRestInfo({ active: false, duration: 0, exerciseName: '' })} />
-            )}
+        <div className="p-6 max-w-6xl mx-auto text-white pb-[calc(4rem+env(safe-area-inset-bottom))] space-y-6">
+            <div>
+                <h1 className="text-3xl font-bold mb-1">{rutina.nombre}</h1>
+                <p className="text-white/70">{rutina.descripcion}</p>
+                <Link
+                    to="/dashboard/rutinas"
+                    className="text-indigo-400 hover:underline text-sm block mt-2"
+                >
+                    ← Volver a mis rutinas
+                </Link>
+            </div>
 
-            <AnimatePresence>
-                {isWorkoutComplete && (
-                    <WorkoutCompleteModal
-                        onSave={handleSaveResults}
-                        isSaving={isSaving}
-                    />
-                )}
-            </AnimatePresence>
-
-            <header className="bg-white p-4 shadow-sm">
-                <div className="max-w-4xl mx-auto">
-                    <Link to="/dashboard/rutinas" className="inline-flex items-center gap-2 text-sm text-indigo-600 hover:underline">
-                        <FaArrowLeft />
-                        Volver a Mis Rutinas
-                    </Link>
+            {/* Temporizador visual */}
+            {temporizadorActivo && (
+                <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-sky-700 text-white px-4 py-2 rounded-full shadow-lg z-50 animate-pulse">
+                    Descanso: {tiempoRestante}s
                 </div>
-            </header>
+            )}
 
-            <main className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
-                <h1 className="text-3xl md:text-4xl font-extrabold text-gray-800 mb-6">{rutina?.nombre || 'Rutina'}</h1>
-                {rutina?.ejercicios?.length > 0 ? (
-                    rutina.ejercicios.map(ej => (
-                        <EjercicioItem
-                            key={ej.id}
-                            ejercicio={ej}
-                            onSetComplete={handleSetComplete}
-                            onCargaChange={handleCargaChange}
-                        />
-                    ))
-                ) : (
-                    <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-                        <p className="font-semibold text-gray-700">Esta rutina aún no tiene ejercicios asignados.</p>
-                        <p className="text-sm text-gray-500 mt-1">Contacta a tu entrenador para más detalles.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {rutina.bloques?.map((bloque) => (
+                    <div
+                        key={bloque.id}
+                        className="bg-white/5 border border-white/10 rounded-lg p-5 shadow-sm space-y-6"
+                    >
+                        <h2 className="text-xl font-semibold text-sky-400 mb-2">
+                            Semana {bloque.orden * 4 + 1}–{(bloque.orden + 1) * 4}
+                        </h2>
+
+                        {[...(bloque.subbloques ?? [])]
+                            .sort((a, b) => {
+                                const prioridad = (nombre) => {
+                                    nombre = nombre.toLowerCase();
+                                    if (nombre.includes("calentamiento")) return 0;
+                                    if (nombre.includes("principal")) return 1;
+                                    if (nombre.includes("cooldown")) return 2;
+                                    if (nombre.includes("estiramiento")) return 3;
+                                    return 4;
+                                };
+                                return prioridad(a.nombre) - prioridad(b.nombre);
+                            })
+                            .map((subbloque) => (
+                                <div key={subbloque.id}>
+                                    <h3
+                                        className={`text-lg font-bold px-2 py-1 rounded ${subbloque.tipo === "superset"
+                                                ? "bg-purple-700 text-white"
+                                                : "bg-sky-700 text-white"
+                                            }`}
+                                    >
+                                        {subbloque.nombre}
+                                        <span className="text-xs font-normal text-white/70 ml-2">
+                                            ({subbloque.tipo})
+                                        </span>
+                                    </h3>
+                                    {subbloque.tipo === "superset" && (
+                                        <p className="text-xs italic text-white/70 mt-1 ml-2">
+                                            Realizá en forma alternada: ejercicio 1 serie 1 → ejercicio 2
+                                            serie 1 → pausa → repetir hasta completar todas las series.
+                                        </p>
+                                    )}
+
+                                    <div className="overflow-x-auto rounded-md border border-white/10 mt-2">
+                                        <table className="min-w-full text-xs text-left border-collapse">
+                                            <thead className="bg-white/10 uppercase text-white">
+                                                <tr>
+                                                    <th className="px-3 py-2 border border-white/10">Ejercicio</th>
+                                                    <th className="px-3 py-2 border border-white/10">Series</th>
+                                                    <th className="px-3 py-2 border border-white/10">Reps</th>
+                                                    <th className="px-3 py-2 border border-white/10">Pausa</th>
+                                                    <th className="px-3 py-2 border border-white/10">Timer</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {subbloque.tipo === "superset"
+                                                    ? subbloque.subbloques_ejercicios?.map((se, index) => {
+                                                        const primerSerie = se.series?.[0];
+                                                        const maxSeries = Math.max(
+                                                            ...subbloque.subbloques_ejercicios.flatMap((e) =>
+                                                                e.series?.map((s) => s.nro_set) || []
+                                                            ),
+                                                            0
+                                                        );
+                                                        const pause = primerSerie?.pausa ? `${primerSerie.pausa}s` : "-";
+                                                        // identificador a nivel subbloque
+                                                        const serieId = `superset-${subbloque.id}`;
+
+                                                        return (
+                                                            <tr
+                                                                key={se.id}
+                                                                className={`cursor-pointer border-b border-white/10 transition ${seriesRealizadas.includes(serieId)
+                                                                        ? "bg-green-700 text-white"
+                                                                        : "hover:bg-white/10"
+                                                                    }`}
+                                                                onClick={() => toggleSerieRealizada(serieId)}
+                                                            >
+                                                                <td className="px-3 py-2 border-r border-white/10">
+                                                                    {se.ejercicio?.nombre}
+                                                                </td>
+                                                                {index === 0 && (
+                                                                    <td
+                                                                        className="px-3 py-2 border-r border-white/10"
+                                                                        rowSpan={subbloque.subbloques_ejercicios.length}
+                                                                    >
+                                                                        {maxSeries}
+                                                                    </td>
+                                                                )}
+                                                                <td className="px-3 py-2 border-r border-white/10">
+                                                                    {primerSerie?.reps ?? "-"}
+                                                                </td>
+                                                                {index === 0 && (
+                                                                    <>
+                                                                        <td
+                                                                            className="px-3 py-2 border-r border-white/10"
+                                                                            rowSpan={subbloque.subbloques_ejercicios.length}
+                                                                        >
+                                                                            {pause}
+                                                                        </td>
+                                                                        <td
+                                                                            className="px-3 py-2 border-r border-white/10"
+                                                                            rowSpan={subbloque.subbloques_ejercicios.length}
+                                                                        >
+                                                                            {primerSerie?.pausa ? (
+                                                                                <button
+                                                                                    className="bg-indigo-600 hover:bg-indigo-700 transition px-2 py-1 rounded text-xs"
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        iniciarTemporizador(primerSerie.pausa);
+                                                                                    }}
+                                                                                >
+                                                                                    Iniciar
+                                                                                </button>
+                                                                            ) : (
+                                                                                "-"
+                                                                            )}
+                                                                        </td>
+                                                                    </>
+                                                                )}
+                                                            </tr>
+                                                        );
+                                                    })
+                                                    : subbloque.subbloques_ejercicios?.map((se) => {
+                                                        const series = se.series || [];
+                                                        const maxSeries = Math.max(
+                                                            ...series.map((s) => s.nro_set),
+                                                            0
+                                                        );
+                                                        const primerSerie = series[0];
+                                                        const serieId = `${subbloque.id}-${se.id}-${primerSerie?.nro_set}`;
+                                                        return (
+                                                            <tr
+                                                                key={se.id}
+                                                                className={`cursor-pointer border-b border-white/10 transition ${seriesRealizadas.includes(serieId)
+                                                                        ? "bg-green-700 text-white"
+                                                                        : "hover:bg-white/10"
+                                                                    }`}
+                                                                onClick={() => toggleSerieRealizada(serieId)}
+                                                            >
+                                                                <td className="px-3 py-2 border-r border-white/10">
+                                                                    {se.ejercicio?.nombre}
+                                                                </td>
+                                                                <td className="px-3 py-2 border-r border-white/10">{maxSeries}</td>
+                                                                <td className="px-3 py-2 border-r border-white/10">
+                                                                    {primerSerie?.reps ?? "-"}
+                                                                </td>
+                                                                <td className="px-3 py-2 border-r border-white/10">
+                                                                    {primerSerie?.pausa ? `${primerSerie.pausa}s` : "-"}
+                                                                </td>
+                                                                <td className="px-3 py-2 border-r border-white/10">
+                                                                    {primerSerie?.pausa ? (
+                                                                        <button
+                                                                            className="bg-indigo-600 hover:bg-indigo-700 transition px-2 py-1 rounded text-xs"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                iniciarTemporizador(primerSerie.pausa);
+                                                                            }}
+                                                                        >
+                                                                            Iniciar
+                                                                        </button>
+                                                                    ) : (
+                                                                        "-"
+                                                                    )}
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                            </tbody>
+
+                                        </table>
+                                    </div>
+                                </div>
+                            ))}
                     </div>
-                )}
-            </main>
+                ))}
+            </div>
         </div>
     );
 };
