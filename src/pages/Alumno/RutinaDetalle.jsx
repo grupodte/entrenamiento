@@ -56,16 +56,30 @@ const RutinaDetalle = () => {
             setLoading(true);
             let res;
             const selectQuery = `
-                id, nombre, descripcion,
-                bloques (id, orden,
-                  subbloques (id, orden, nombre, tipo, pausa_entre_series_superset, num_series_superset,
-                    subbloques_ejercicios (id, orden_en_subbloque,
-                      ejercicio: ejercicios (id, nombre, video_url),
-                      series: series_subejercicio (id, nro_set, reps, carga_sugerida, pausa)
-                    )
+            id,
+            nombre,
+            descripcion,
+            bloques (
+              id,
+              orden,
+              subbloques (
+                id,
+                orden,
+                nombre,
+                tipo,
+                subbloques_ejercicios (
+                  id,
+                  ejercicio: ejercicios ( nombre ),
+                  series: series_subejercicio (
+                    id,
+                    nro_set,
+                    reps,
+                    pausa
                   )
                 )
-            `;
+              )
+            )
+          `;
             if (tipo === "personalizada") res = await supabase.from("rutinas_personalizadas").select(selectQuery).eq("id", id).single();
             else res = await supabase.from("rutinas_base").select(selectQuery).eq("id", id).single();
 
