@@ -20,7 +20,7 @@ const AppLayout = () => {
     return (
         // Se simplificó el div principal, eliminando clases de fixed, inset, etc.
         // y el fondo específico que ahora irá en AdminLayout.
-        <div className="relative flex flex-col min-h-screen">
+        <div className="relative flex flex-col h-screen bg-black text-white">
             {/* Se mantuvo la barra superior simple si es necesaria para todas las rutas públicas */}
             <div className="h-[25px] bg-black border-b border-white/10 flex items-center justify-center">
                 <img

@@ -18,7 +18,7 @@ const SerieItem = React.forwardRef(({
     onPausaManualClick,
     // isSupersetEjercicio = false, // Podría usarse para variar estilos si es necesario
 }, ref) => {
-
+    
     const baseClasses = "flex items-center p-1.5 sm:p-2 rounded cursor-pointer transition-all duration-200 ease-in-out";
     // Clases actualizadas para mayor contraste y claridad
     const completadaClasses = "bg-green-600/90 hover:bg-green-600/70 text-white";
@@ -31,9 +31,9 @@ const SerieItem = React.forwardRef(({
     } else if (isActive) {
         currentClasses = activaClasses;
     }
-
+    
     return (
-        <div
+        <div 
             ref={ref}
             onClick={onItemClick}
             className={`${baseClasses} ${currentClasses}`}
@@ -46,7 +46,7 @@ const SerieItem = React.forwardRef(({
             <span className="flex-1 text-xs sm:text-sm">{textoPrincipal}</span>
             {isCompletada ? <CheckIcon /> : (isActive && <span className="text-xs text-sky-200 animate-pulse ml-1 font-semibold">ACTUAL</span>)}
             {!isCompletada && !isActive && showPausaButton && pausaDuracion > 0 &&
-                <button
+                <button 
                     onClick={(e) => { e.stopPropagation(); onPausaManualClick(); }}
                     className="ml-2 bg-indigo-600 hover:bg-indigo-500 text-white text-[0.65rem] sm:text-xs px-1.5 py-0.5 rounded shrink-0"
                     aria-label={`Iniciar pausa de ${pausaDuracion} segundos`}
