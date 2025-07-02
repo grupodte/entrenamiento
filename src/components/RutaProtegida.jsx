@@ -4,24 +4,20 @@ import BrandedLoader from './BrandedLoader';
 
 const RutaProtegida = ({ children, rolPermitido }) => {
     const { user, rol, loading } = useAuth();
+    const rolPersistido = localStorage.getItem("authUserRol");
 
-    // detectar valor guardado
-    const rolLocal = localStorage.getItem('authUserRol');
+    const rolEvaluado = rol || rolPersistido;
 
-    // Mientras cargamos
-    if (loading || (user && rol === null && !rolLocal)) {
-        return <BrandedLoader />;
-    }
-
+    if (loading) return <BrandedLoader />;
     if (!user) return <Navigate to="/login" replace />;
 
-    // priorizar rol reactivo o localStorage
-    const rolEvaluado = rol || rolLocal;
+    if (user && !rolEvaluado) return <BrandedLoader />;
 
-    if (rolEvaluado !== rolPermitido) return <Navigate to="/" replace />;
+    if (rolPermitido && rolEvaluado !== rolPermitido) {
+        return <Navigate to="/" replace />;
+    }
 
     return children;
 };
-
 
 export default RutaProtegida;
