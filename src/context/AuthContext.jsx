@@ -4,14 +4,12 @@ import { supabase } from '../lib/supabaseClient';
 
 const AuthContext = createContext();
 
-// localStorage keys
 const LOCAL_STORAGE_USER_ID_KEY = 'authUserId';
 const LOCAL_STORAGE_USER_ROL_KEY = 'authUserRol';
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [rol, setRol] = useState(() => {
-        // recover from localStorage on initial load
         return localStorage.getItem(LOCAL_STORAGE_USER_ROL_KEY) || null;
     });
     const [loading, setLoading] = useState(true);
@@ -44,9 +42,7 @@ export const AuthProvider = ({ children }) => {
             }
 
             console.warn('[AuthContext] ⚠️ No se obtuvo rol tras reintentos, manteniendo rol de localStorage.');
-            // NO sobrescribimos el rol
-            // simplemente dejamos el que ya está en localStorage
-            
+            // NO sobrescribimos el rol si ya había algo en localStorage
         };
 
         const fetchUserAndRol = async () => {
@@ -66,9 +62,18 @@ export const AuthProvider = ({ children }) => {
 
                 console.log('[AuthContext] 🔍 session.user:', currentUser);
                 setUser(currentUser);
+
                 if (currentUser) {
                     localStorage.setItem(LOCAL_STORAGE_USER_ID_KEY, currentUser.id);
-                    tryFetchRol(currentUser.id);
+
+                    // 👇 NEW
+                    const rolEnStorage = localStorage.getItem(LOCAL_STORAGE_USER_ROL_KEY);
+                    if (rolEnStorage) {
+                        console.log("[AuthContext] ✅ Rol recuperado desde localStorage:", rolEnStorage);
+                        setRol(rolEnStorage);
+                    } else {
+                        await tryFetchRol(currentUser.id);
+                    }
                 } else {
                     setRol(null);
                     localStorage.removeItem(LOCAL_STORAGE_USER_ID_KEY);
@@ -84,6 +89,7 @@ export const AuthProvider = ({ children }) => {
                 setLoading(false);
             }
         };
+          
 
         fetchUserAndRol();
 
@@ -102,56 +108,51 @@ export const AuthProvider = ({ children }) => {
                         .eq('id', currentUser.id)
                         .maybeSingle();
 
-                    const nombre =
-                        currentUser.user_metadata?.name ||
-                        currentUser.user_metadata?.full_name ||
-                        currentUser.user_metadata?.user_name ||
-                        '';
-                    const avatar_url = currentUser.user_metadata?.avatar_url || '';
+                    console.log("[AuthContext] perfil from supabase:", perfil, "error:", perfilError);
 
-                    if (!perfil && !perfilError) {
-                        console.log('[AuthContext] 🆕 Insertando perfil Google...');
+                    if (perfilError) {
+                        console.warn("[AuthContext] Error leyendo perfil Google, usando rol localStorage");
+                        const rolEnStorage = localStorage.getItem(LOCAL_STORAGE_USER_ROL_KEY);
+                        setRol(rolEnStorage || null);
+                        return;
+                    }
+
+                    if (!perfil) {
+                        console.log("[AuthContext] Insertando nuevo perfil Google con rol alumno");
                         await supabase.from('perfiles').insert({
                             id: currentUser.id,
                             email: currentUser.email,
-                            nombre,
-                            avatar_url,
+                            nombre: currentUser.user_metadata?.name || '',
+                            avatar_url: currentUser.user_metadata?.avatar_url || '',
                             estado: 'Aprobado',
-                            rol: 'alumno',
+                            rol: 'alumno'
                         });
-
-                        // 👇 ASIGNAMOS rol sin depender de query
                         setRol('alumno');
                         localStorage.setItem(LOCAL_STORAGE_USER_ROL_KEY, 'alumno');
-
                         return;
-                    } else if (perfil) {
-                        const actualizaciones = {};
-                        if (perfil.estado !== 'Aprobado') actualizaciones.estado = 'Aprobado';
-                        if (!perfil.nombre && nombre) actualizaciones.nombre = nombre;
-                        if (!perfil.avatar_url && avatar_url) actualizaciones.avatar_url = avatar_url;
+                    }
 
-                        if (Object.keys(actualizaciones).length > 0) {
-                            await supabase
-                                .from('perfiles')
-                                .update(actualizaciones)
-                                .eq('id', currentUser.id);
-                        }
-
-                        // 👇 ASIGNAMOS rol directo desde el perfil sin requery
-                        if (perfil.rol) {
-                            setRol(perfil.rol);
-                            localStorage.setItem(LOCAL_STORAGE_USER_ROL_KEY, perfil.rol);
-                        }
-
+                    // perfil existente
+                    if (perfil.rol) {
+                        setRol(perfil.rol);
+                        localStorage.setItem(LOCAL_STORAGE_USER_ROL_KEY, perfil.rol);
+                        return;
+                    } else {
+                        console.warn("[AuthContext] perfil sin rol, asignando alumno");
+                        setRol('alumno');
+                        localStorage.setItem(LOCAL_STORAGE_USER_ROL_KEY, 'alumno');
                         return;
                     }
                 }
-                
 
-                // si no es Google, intentamos rol normalmente
-                tryFetchRol(currentUser.id);
-
+                // usuario no Google
+                const rolEnStorage = localStorage.getItem(LOCAL_STORAGE_USER_ROL_KEY);
+                if (rolEnStorage) {
+                    console.log("[AuthContext] No Google, rol desde localStorage:", rolEnStorage);
+                    setRol(rolEnStorage);
+                } else {
+                    await tryFetchRol(currentUser.id);
+                }
             } else {
                 console.log('[AuthContext] 🔒 Usuario deslogueado');
                 setUser(null);
@@ -160,8 +161,7 @@ export const AuthProvider = ({ children }) => {
                 localStorage.removeItem(LOCAL_STORAGE_USER_ROL_KEY);
             }
         });
-        
-
+          
         return () => {
             isMounted = false;
             subscription.unsubscribe();
