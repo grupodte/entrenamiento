@@ -20,7 +20,7 @@ html {
 }
 
 body {
-  @apply font-product bg-black text-white select-none overflow-hidden;
+  @apply font-product select-none overflow-hidden;
   touch-action: manipulation;
   overscroll-behavior: none;
   font-smoothing: antialiased;
