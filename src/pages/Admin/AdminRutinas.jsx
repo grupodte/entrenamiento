@@ -1,5 +1,4 @@
 // src/pages/Admin/AdminRutinas.jsx
-import AdminLayout from '../../layouts/AdminLayout';
 import RutinasManager from '../../components/RutinasManager';
 
 const AdminRutinas = () => {
