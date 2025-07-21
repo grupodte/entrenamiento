@@ -4,7 +4,7 @@ import RutinasManager from '../../components/RutinasManager';
 
 const AdminRutinas = () => {
     return (
-            <div className="space-y-10 px-4 md:px-8 py-10">
+        <div className="p-6 max-w-6xl mx-auto space-y-6 text-white pb-[calc(4rem+env(safe-area-inset-bottom))]">
                 <RutinasManager />
             </div>
     );
