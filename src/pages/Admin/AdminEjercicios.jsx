@@ -1,4 +1,3 @@
-import AdminLayout from '../../layouts/AdminLayout';
 import EjerciciosManager from '../../components/AgregarEjercicio';
 import { FaDumbbell } from 'react-icons/fa';
 
