@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'; // Mantengo React por si acaso, aunque puede no ser necesario
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import AdminSidebarDesktop from '../components/AdminSidebarDesktop';
 import AdminSidebarMobile from '../components/AdminSidebarMobile';
@@ -10,7 +10,6 @@ import { VideoProvider, useVideo } from '../context/VideoContext';
 import VideoPanel from '../components/VideoPanel';
 
 const AdminLayoutInternal = () => {
-    const location = useLocation();
     const { isOpen, videoUrl, hideVideo } = useVideo();
     const { isDragging } = useDragState();
 
@@ -43,7 +42,7 @@ const AdminLayoutInternal = () => {
           pb-[50px]     // deja lugar para la AdminSidebarMobile en móviles
           md:pb-0       // en desktop sin espacio extra
         "
-        >            <div className="absolute inset-0 -z-20">
+      >            <div className="absolute inset-0 -z-20">
                 <img
                     src="/backgrounds/admin-blur.png"
                     alt="Fondo panel de administración"
@@ -52,13 +51,17 @@ const AdminLayoutInternal = () => {
             </div>
             <div className="absolute inset-0 -z-10 backdrop-blur-xl bg-black/30" />
 
-            <div
+            <PullToRefreshIndicator
+                isRefreshing={isRefreshing}
+                pullDistance={pullDistance}
+            />
+
+<div
                 ref={scrollRef}
                 className="
     relative
     z-10
     flex
-    flex-col
     h-full
     overflow-y-scroll
     overscroll-contain
@@ -67,24 +70,17 @@ const AdminLayoutInternal = () => {
     scrollbar-hide
   "
             >
-                <PullToRefreshIndicator
-                    isRefreshing={isRefreshing}
-                    pullDistance={pullDistance}
-                />
-                <div className="flex flex-1">
-                    <AdminSidebarDesktop />
-                    <motion.main
-                        className="flex-1 min-h-full p-4 sm:p-6 lg:p-8 pl-safe pr-safe"
-                        key={location.pathname}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                    >
-                        <Outlet /> {/* Usar Outlet para renderizar contenido de rutas anidadas */}
-                    </motion.main>
-                    <AdminSidebarMobile />
-                </div>
+                <AdminSidebarDesktop />
+                <motion.main
+                    className="flex-1 min-h-full px-4 sm:px-6 lg:px-8 pl-safe pr-safe"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                    <Outlet /> {/* Usar Outlet para renderizar contenido de rutas anidadas */}
+                </motion.main>
+                <AdminSidebarMobile />
             </div>
             <VideoPanel open={isOpen} onClose={hideVideo} videoUrl={videoUrl} /> {/* VideoPanel añadido */}
         </div>
