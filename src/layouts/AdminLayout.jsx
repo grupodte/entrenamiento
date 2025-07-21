@@ -80,7 +80,6 @@ const AdminLayoutInternal = () => {
                 >
                     <Outlet /> {/* Usar Outlet para renderizar contenido de rutas anidadas */}
                 </motion.main>
-                <AdminSidebarMobile />
             </div>
             <VideoPanel open={isOpen} onClose={hideVideo} videoUrl={videoUrl} /> {/* VideoPanel añadido */}
         </div>
