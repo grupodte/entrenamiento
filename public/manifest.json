@@ -1,12 +1,12 @@
 {
-    "name": "FitApp Trainer",
-    "short_name": "FitApp",
-    "description": "Tu aplicación de entrenamiento y seguimiento personalizado.",
-    "start_url": "/",
+    "name": "FitApp - Panel de Entrenador",
+    "short_name": "FitApp Admin",
+    "description": "La herramienta definitiva para gestionar alumnos, rutinas y ejercicios en FitApp.",
+    "start_url": "/admin",
     "display": "standalone",
     "orientation": "portrait",
-    "theme_color": "#007AFF",
-    "background_color": "#FFFFFF",
+    "theme_color": "#121212",
+    "background_color": "#121212",
     "icons": [
         {
             "src": "/icons/icon-192x192.png",
@@ -19,7 +19,7 @@
             "sizes": "512x512"
         },
         {
-            "src": "/icons/icon-512x512-removebg-preview.png",
+            "src": "/icons/icon-512x512-maskable.png",
             "type": "image/png",
             "sizes": "512x512",
             "purpose": "maskable"
