@@ -40,8 +40,8 @@ const AdminSidebarMobile = () => {
               rounded-full
               transition-all duration-200 text-xs font-medium
               ${isActive
-                ? 'bg-blue-600 text-white shadow-lg scale-105'
-                : 'text-gray-600 dark:text-gray-300 hover:text-blue-500 active:text-blue-600 active:bg-blue-100/50 dark:active:bg-blue-500/20 active:scale-95'
+                ? 'bg-ios-primary text-white shadow-lg scale-105'
+                : 'text-gray-600 dark:text-gray-300 hover:text-ios-primary active:text-ios-primary active:bg-ios-primary/10 dark:active:bg-ios-primary/20 active:scale-95'
               }
             `}
             style={{ minWidth: 60 }}

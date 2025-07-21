@@ -5,7 +5,7 @@ module.exports = {
         extend: {
             colors: {
                 ios: {
-                    primary: '#007AFF', // Azul Apple
+                    primary: '#0A84FF', // Azul Apple moderno
                     secondary: '#5856D6', // Morado iOS moderno
                     accent: '#FF2D55',
                     neutral: {
@@ -16,6 +16,9 @@ module.exports = {
                     },
                     glass: 'rgba(255, 255, 255, 0.1)',
                 },
+                background: {
+                    dark: '#121212',
+                }
             },
             fontFamily: {
                 ios: ['"SF Pro"', 'system-ui', '-apple-system', 'sans-serif'],
@@ -37,9 +40,8 @@ module.exports = {
                 'ios-hover': '0 8px 24px rgba(0, 0, 0, 0.15)',
             },
 
-       
+
         },
     },
     plugins: [require('@tailwindcss/forms')],
 };
-  

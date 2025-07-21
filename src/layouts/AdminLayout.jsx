@@ -42,21 +42,14 @@ const AdminLayoutInternal = () => {
           pb-[70px]     // deja lugar para la AdminSidebarMobile en móviles
           md:pb-0       // en desktop sin espacio extra
         "
-      >            <div className="absolute inset-0 -z-20">
-                <img
-                    src="/backgrounds/admin-blur.png"
-                    alt="Fondo panel de administración"
-                    className="w-full h-full object-cover opacity-40"
-                />
-            </div>
-            <div className="absolute inset-0 -z-10 backdrop-blur-xl bg-black/30" />
+        >            <div className="absolute inset-0 -z-20 bg-background-dark" />
 
             <PullToRefreshIndicator
                 isRefreshing={isRefreshing}
                 pullDistance={pullDistance}
             />
 
-<div
+            <div
                 ref={scrollRef}
                 className="
     relative

@@ -31,8 +31,8 @@ const AdminSidebarDesktop = () => {
                         key={path}
                         to={path}
                         className={`px-4 py-2 rounded-lg transition-all duration-200 ${location.pathname.startsWith(path) && path !== '/admin' || location.pathname === path
-                                ? 'bg-blue-600 text-white active:bg-blue-700'
-                                : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100/50 dark:hover:bg-white/10 active:bg-gray-200/70 dark:active:bg-white/20'
+                            ? 'bg-ios-primary text-white active:bg-ios-primary/90'
+                            : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100/50 dark:hover:bg-white/10 active:bg-gray-200/70 dark:active:bg-white/20'
                             }`}
                     >
                         {label}
