@@ -44,61 +44,70 @@ const RutinasManager = () => {
   };
 
   return (
-    <div className="relative z-0 min-h-screen">
-      {/* Encabezado con botón flotante */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <FaClipboardList /> Rutinas creadas
-        </h1>
-        <button
-          onClick={() => navigate('/admin/rutinas/crear')}
-          className="bg-skyblue text-white font-semibold px-5 py-2 rounded-xl hover:bg-white/20 transition"
-        >
-          + Crear rutina
-        </button>
-      </div>
+    <div className="px-2 md:px-6 py-4 transition-all">
+      <h1 className="text-2xl font-bold mb-4 text-white flex items-center gap-2">
+        <FaClipboardList /> Rutinas creadas
+      </h1>
 
-      {/* Lista animada */}
-      <div ref={listaRef} className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {rutinas.map((rutina, i) => (
-          <FadeContent
-            key={rutina.id}
-            className="bg-white/5 backdrop-blur-lg p-4 rounded-xl border border-white/10 transition hover:scale-[1.01] flex flex-col justify-between"
-            delay={i * 80}
-            blur
-          >
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-bold text-white">{rutina.nombre}</h3>
-                <button
-                  onClick={() => eliminarRutina(rutina.id)}
-                  title="Eliminar rutina"
-                  className="text-red-400 hover:text-red-600 transition"
-                >
-                  <FaTrashAlt size={16} />
-                </button>
-              </div>
-              <p className="text-sm text-white/80">{rutina.descripcion || 'Sin descripción'}</p>
-              <p className="text-xs text-white/50 italic mt-1">{rutina.tipo || 'Sin tipo definido'}</p>
-            </div>
+      <input
+        type="text"
+        placeholder="Buscar por nombre..."
+        className="mb-6 w-full md:w-1/2 px-4 py-2 rounded-lg bg-white/10 backdrop-blur text-white placeholder-gray-300"
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+      />
 
-            <div className="mt-4 flex gap-3">
-              <button
-                onClick={() => navigate(`/admin/rutinas/ver/${rutina.id}`)}
-                className="text-skyblue text-sm underline hover:text-white transition"
-              >
-                Ver
-              </button>
-              <button
-                onClick={() => navigate(`/admin/rutinas/editar/${rutina.id}`)}
-                className="text-yellow-400 text-sm underline hover:text-white transition"
-              >
-                Editar
-              </button>
-            </div>
-          </FadeContent>
-        ))}
-      </div>
+      {cargando ? (
+        <div className="space-y-4">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="h-16 bg-white/10 rounded-lg animate-pulse"
+            ></div>
+          ))}
+        </div>
+      ) : (
+        <ul className="grid gap-4">
+          {rutinasFiltradas.map((rutina, index) => (
+            <Transition
+              appear
+              show
+              key={rutina.id}
+              enter="transition-opacity duration-500 delay-[index*50] ease-out"
+              enterFrom="opacity-0 translate-y-2"
+              enterTo="opacity-100 translate-y-0"
+            >
+              <li className="p-4 bg-white/10 backdrop-blur rounded-xl shadow-md flex justify-between items-center hover:bg-white/20 transition duration-300">
+                <div>
+                  <p className="font-semibold text-white">{rutina.nombre}</p>
+                  <p className="text-sm text-gray-300">{rutina.descripcion || 'Sin descripción'}</p>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => navigate(`/admin/rutinas/ver/${rutina.id}`)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
+                  >
+                    Ver
+                  </button>
+                  <button
+                    onClick={() => navigate(`/admin/rutinas/editar/${rutina.id}`)}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => eliminarRutina(rutina.id)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </li>
+            </Transition>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
