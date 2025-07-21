@@ -39,7 +39,7 @@ const AdminLayoutInternal = () => {
           h-[calc(var(--vh,1vh)*100)]
           text-white
           overflow-hidden
-          pb-[50px]     // deja lugar para la AdminSidebarMobile en móviles
+          pb-[70px]     // deja lugar para la AdminSidebarMobile en móviles
           md:pb-0       // en desktop sin espacio extra
         "
       >            <div className="absolute inset-0 -z-20">
