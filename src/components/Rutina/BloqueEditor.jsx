@@ -5,7 +5,7 @@ import { DndContext } from '@dnd-kit/core';
 import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDisponibles, className = "", dragHandleProps }) => {
+const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDisponibles, className = "" }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: bloque.id });
 
     const style = {
@@ -72,8 +72,8 @@ const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDispo
                         type="button"
                         className="cursor-grab active:cursor-grabbing text-white/40 hover:text-yellow-400 transition p-1"
                         aria-label="Mover bloque"
-                        {...(dragHandleProps ? listeners : {})}
-                        {...(dragHandleProps ? attributes : {})}
+                        {...listeners}
+                        {...attributes}
                     >
                         <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><circle cx="6" cy="7" r="1.5" fill="currentColor"/><circle cx="6" cy="12" r="1.5" fill="currentColor"/><circle cx="6" cy="17" r="1.5" fill="currentColor"/><circle cx="12" cy="7" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="17" r="1.5" fill="currentColor"/><circle cx="18" cy="7" r="1.5" fill="currentColor"/><circle cx="18" cy="12" r="1.5" fill="currentColor"/><circle cx="18" cy="17" r="1.5" fill="currentColor"/></svg>
                     </button>

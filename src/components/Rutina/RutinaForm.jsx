@@ -454,8 +454,8 @@ const RutinaForm = ({
     };
 
     return (
-        <div className="flex flex-col md:flex-row h-full gap-4">
-            <aside className="w-full max-w-[300px] mx-auto md:mx-0 md:w-[300px] p-3 md:p-4 border border-white/10 rounded-xl bg-white/5/80 backdrop-blur-md flex flex-col items-center justify-center">
+        <div className="  flex flex-col md:flex-row h-full gap-4">
+            <aside className="w-full max-w-[300px] mx-auto md:mx-0 md:w-[300px] p-3 md:p-4 border border-white/10 rounded-xl bg-white/5/80 backdrop-blur-md flex flex-col items-top justify-top">
                 <div className="flex flex-col gap-3 w-full">
                     {/* Inputs con etiquetas */}
                     <div className="space-y-0.5">
@@ -534,10 +534,6 @@ const RutinaForm = ({
                                             onRemove={() => eliminarBloque(bloque.id)}
                                             onDuplicate={() => duplicarBloque(bloque)}
                                             ejerciciosDisponibles={ejerciciosDisponibles}
-                                            dragHandleProps={{
-                                                // These will be spread on the drag handle in BloqueEditor
-                                                id: bloque.id,
-                                            }}
                                         />
                                     </motion.div>
                                 );
