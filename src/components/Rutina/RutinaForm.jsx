@@ -455,55 +455,50 @@ const RutinaForm = ({
 
     return (
         <div className="flex flex-col md:flex-row h-full gap-4">
-            
-            <aside className="w-full md:w-[300px] p-4 border-b md:border-b-0 md:border-r border-white/10">
-                <div className="flex md:fixed md:w-[280px] flex-col gap-4">
-
+            <aside className="w-full max-w-[300px] mx-auto md:mx-0 md:w-[300px] p-3 md:p-4 border border-white/10 rounded-xl bg-white/5/80 backdrop-blur-md flex flex-col items-center justify-center">
+                <div className="flex flex-col gap-3 w-full">
                     {/* Inputs con etiquetas */}
-                    <div className="space-y-1">
-                        <label className="text-[10px] md-text-[12px] text-white/70 font-medium">Nombre</label>
+                    <div className="space-y-0.5">
+                        <label className="text-[11px] text-white/70 font-medium">Nombre</label>
                         <input
                             value={nombre}
                             onChange={e => setNombre(e.target.value)}
                             placeholder="Ej. Rutina Hipertrofia A"
-                            className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            className="rounded-md bg-white/10 backdrop-blur px-2 py-1.5 text-white placeholder-white/50 text-sm w-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
                         />
                     </div>
-
-                    <div className="space-y-1">
-                        <label className=" text-[10px] md-text-[12px] text-white/70 font-medium">Tipo</label>
+                    <div className="space-y-0.5">
+                        <label className="text-[11px] text-white/70 font-medium">Tipo</label>
                         <input
                             value={tipo}
                             onChange={e => setTipo(e.target.value)}
                             placeholder="Ej. Fuerza, Cardio, etc."
-                            className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            className="rounded-md bg-white/10 backdrop-blur px-2 py-1.5 text-white placeholder-white/50 text-sm w-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
                         />
                     </div>
-
-                    <div className="space-y-1">
-                        <label className=" text-[10px] md-text-[12px]  text-white/70 font-medium">Descripción</label>
+                    <div className="space-y-0.5">
+                        <label className="text-[11px] text-white/70 font-medium">Descripción</label>
                         <textarea
                             value={descripcion}
                             onChange={e => setDescripcion(e.target.value)}
                             placeholder="Describe brevemente la rutina"
-                            rows={3}
-                            className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm resize-none w-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            rows={2}
+                            className="rounded-md bg-white/10 backdrop-blur px-2 py-1.5 text-white placeholder-white/50 text-sm resize-none w-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
                         />
                     </div>
-
                     {/* Botones de acción */}
-                    <div className="pt-2 flex flex-col gap-2">
+                    <div className="pt-1 flex flex-col gap-1.5">
                         {bloques.length > 0 && (
                             <button
                                 onClick={handleSubmit}
-                                className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition"
+                                className="bg-green-600 hover:bg-green-700 text-white font-semibold px-3 py-1.5 rounded-md text-sm transition"
                             >
                                 {modo === 'crear' ? 'Guardar Rutina' : 'Actualizar Rutina'}
                             </button>
                         )}
                         <button
                             onClick={agregarBloque}
-                            className="bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2 rounded-lg text-sm transition"
+                            className="bg-white/10 hover:bg-white/20 text-white font-medium px-3 py-1.5 rounded-md text-sm transition"
                         >
                             + Agregar mes
                         </button>

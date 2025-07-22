@@ -13,7 +13,36 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AuthProvider>
       <App />
-      <Toaster position="top-center" />
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          style: {
+            marginTop: 'env(safe-area-inset-top, 16px)',
+            background: 'rgba(24, 24, 27, 0.92)', // fondo oscuro translúcido
+            color: '#fff',
+            borderRadius: '12px',
+            border: '1.5px solid rgba(255,255,255,0.10)',
+            fontWeight: 600,
+            fontSize: '1rem',
+            boxShadow: '0 4px 24px 0 rgba(0,0,0,0.18)',
+            padding: '12px 20px',
+            letterSpacing: '0.01em',
+            zIndex: 9999,
+          },
+          success: {
+            iconTheme: {
+              primary: '#facc15', // amarillo
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444', // rojo
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
     </AuthProvider>
   </React.StrictMode>
 );
