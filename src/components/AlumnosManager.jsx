@@ -57,7 +57,6 @@ const AlumnosManager = () => {
 
     return (
         <div className="px-2 md:px-6 py-4 transition-all">
-            <h1 className="text-2xl font-bold mb-4 text-white">👥 Alumnos registrados</h1>
 
             <input
                 type="text"
@@ -77,41 +76,44 @@ const AlumnosManager = () => {
                     ))}
                 </div>
             ) : (
-                <ul className="grid gap-4">
-                    {alumnosFiltrados.map((alumno, index) => (
-                        <Transition
-                            appear
-                            show
-                            key={alumno.id}
-                            enter="transition-opacity duration-500 delay-[index*50] ease-out"
-                            enterFrom="opacity-0 translate-y-2"
-                            enterTo="opacity-100 translate-y-0"
-                        >
-                            <li className="p-4 bg-white/10 backdrop-blur rounded-xl shadow-md flex justify-between items-center hover:bg-white/20 transition duration-300">
-                                <div className="flex items-center gap-4" onClick={() => navigate(`/admin/alumno/${alumno.id}`)}>
-                                    {alumno.avatar_url ? (
-                                        <img
-                                            src={alumno.avatar_url}
-                                            alt={`${alumno.nombre} ${alumno.apellido}`}
-                                            className="w-12 h-12 rounded-full object-cover border border-white/20"
-                                        />
-                                    ) : (
-                                        <div className="bg-white/20 rounded-full p-3">
-                                            <FaUser className="text-white text-[12px]" />
-                                        </div>
-                                    )}
+                    <ul className="grid gap-4">
+                        {alumnosFiltrados.map((alumno, index) => (
+                            <Transition
+                                appear
+                                show
+                                key={alumno.id}
+                                enter="transition-opacity duration-500 delay-[index*50] ease-out"
+                                enterFrom="opacity-0 translate-y-2"
+                                enterTo="opacity-100 translate-y-0"
+                            >
+                                <li
+                                    onClick={() => navigate(`/admin/alumno/${alumno.id}`)}
+                                    className="p-4 bg-white/10 backdrop-blur rounded-xl shadow-md flex justify-between items-center hover:bg-white/20 transition duration-300 cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        {alumno.avatar_url ? (
+                                            <img
+                                                src={alumno.avatar_url}
+                                                alt={`${alumno.nombre} ${alumno.apellido}`}
+                                                className="w-12 h-12 rounded-full object-cover border border-white/20"
+                                            />
+                                        ) : (
+                                            <div className="bg-white/20 rounded-full p-3">
+                                                <FaUser className="text-white text-[12px]" />
+                                            </div>
+                                        )}
 
-                                    <div>
-                                        <p className="font-semibold text-[12px] text-white">
-                                            {alumno.nombre} {alumno.apellido}
-                                        </p>
+                                        <div>
+                                            <p className="font-semibold text-[12px] text-white">
+                                                {alumno.nombre} {alumno.apellido}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                             
-                            </li>
-                        </Transition>
-                    ))}
-                </ul>
+                                </li>
+                            </Transition>
+                        ))}
+                    </ul>
+
             )}
         </div>
     );
