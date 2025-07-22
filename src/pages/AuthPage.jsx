@@ -200,7 +200,7 @@ const AuthPage = () => {
                         className="w-full py-2 rounded-full bg-white hover:bg-gray-200 text-black font-semibold flex items-center justify-center gap-2 transition"
                     >
                         <FcGoogle size={20} />
-                        {isLogin ? 'Ingresar con Google' : 'Registrarme con Google'}
+                        {isLogin ? 'Ingresar con Google' : 'Registrarme'}
                     </button>
 
                     <p className="text-sm text-center mt-6 text-white/80">
