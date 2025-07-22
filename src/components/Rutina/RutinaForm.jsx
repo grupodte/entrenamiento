@@ -6,7 +6,9 @@ import { supabase } from '../../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
 import BloqueEditor from '../../components/Rutina/BloqueEditor';
 import { guardarEstructuraRutina } from '../../utils/guardarEstructuraRutina'; // Importar la nueva función
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { DndContext, closestCenter } from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
 const createDefaultSetsConfig = (numSets, reps = '', carga = '') => {
     return Array(numSets).fill(null).map(() => ({ reps, carga })); // reps y carga deben ser strings aquí
@@ -31,6 +33,7 @@ const RutinaForm = ({
     const [bloques, setBloques] = useState([]);
     const [ejerciciosDisponibles, setEjerciciosDisponibles] = useState([]);
     const [bloqueAnimadoId, setBloqueAnimadoId] = useState(null);
+    const [bloqueEliminadoId, setBloqueEliminadoId] = useState(null);
 
     // Llamar a useAuthUser dentro del cuerpo del componente
     const { perfil: perfilEntrenador, isLoading: isLoadingAuthUserHook, error: errorAuthUserHook } = useAuthUser();
@@ -162,15 +165,28 @@ const RutinaForm = ({
         }));
     };
 
+    const onDragEnd = (event) => {
+        const { active, over } = event;
+        if (active?.id && over?.id && active.id !== over.id) {
+            const oldIndex = bloques.findIndex(b => b.id === active.id);
+            const newIndex = bloques.findIndex(b => b.id === over.id);
+            if (oldIndex !== -1 && newIndex !== -1) {
+                const nuevosBloques = arrayMove(bloques, oldIndex, newIndex);
+                setBloques(recalcularSemanas(nuevosBloques));
+            }
+        }
+    };
+
     const agregarBloque = () => {
         const nuevoBloque = {
             id: uuidv4(),
-            semana_inicio: 1, // will be recalculated
-            semana_fin: 4,    // will be recalculated
+            semana_inicio: 1, // recalculado luego
+            semana_fin: 4,
             subbloques: [],
         };
         const nuevosBloques = [...bloques, nuevoBloque];
         setBloques(recalcularSemanas(nuevosBloques));
+        setBloqueAnimadoId(nuevoBloque.id);
     };
 
     const actualizarBloque = (bloqueActualizado) => {
@@ -178,8 +194,12 @@ const RutinaForm = ({
     };
 
     const eliminarBloque = (bloqueId) => {
-        const nuevosBloques = bloques.filter(b => b.id !== bloqueId);
-        setBloques(recalcularSemanas(nuevosBloques));
+        setBloqueEliminadoId(bloqueId);
+        setTimeout(() => {
+            const nuevosBloques = bloques.filter(b => b.id !== bloqueId);
+            setBloques(recalcularSemanas(nuevosBloques));
+            setBloqueEliminadoId(null);
+        }, 350); // debe coincidir con la duración de la animación exit
     };
 
     const duplicarBloque = (bloqueADuplicar) => {
@@ -495,33 +515,41 @@ const RutinaForm = ({
 
             
             <section className="flex-1 space-y-4 ">
-                {Array.isArray(bloques) && bloques.map(bloque => {
-                    const isAnimado = bloque.id === bloqueAnimadoId;
-                    const bloqueEditor = (
-                        <BloqueEditor
-                            key={bloque.id}
-                            bloque={bloque}
-                            onChange={actualizarBloque}
-                            onRemove={() => eliminarBloque(bloque.id)}
-                            onDuplicate={() => duplicarBloque(bloque)}
-                            ejerciciosDisponibles={ejerciciosDisponibles}
-                        />
-                    );
-                    if (isAnimado) {
-                        return (
-                            <motion.div
-                                key={bloque.id}
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ duration: 0.4 }}
-                                onAnimationComplete={() => setBloqueAnimadoId(null)}
-                            >
-                                {bloqueEditor}
-                            </motion.div>
-                        );
-                    }
-                    return bloqueEditor;
-                })}
+                <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+                    <SortableContext items={bloques.map(b => b.id)} strategy={verticalListSortingStrategy}>
+                        <AnimatePresence initial={false}>
+                            {Array.isArray(bloques) && bloques.map((bloque, idx) => {
+                                const isAnimado = bloque.id === bloqueAnimadoId;
+                                const isEliminando = bloque.id === bloqueEliminadoId;
+                                return (
+                                    <motion.div
+                                        key={bloque.id}
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.9, x: 40 }}
+                                        transition={{ duration: 0.35 }}
+                                        onAnimationComplete={() => {
+                                            if (isAnimado) setBloqueAnimadoId(null);
+                                        }}
+                                        layout
+                                    >
+                                        <BloqueEditor
+                                            bloque={bloque}
+                                            onChange={actualizarBloque}
+                                            onRemove={() => eliminarBloque(bloque.id)}
+                                            onDuplicate={() => duplicarBloque(bloque)}
+                                            ejerciciosDisponibles={ejerciciosDisponibles}
+                                            dragHandleProps={{
+                                                // These will be spread on the drag handle in BloqueEditor
+                                                id: bloque.id,
+                                            }}
+                                        />
+                                    </motion.div>
+                                );
+                            })}
+                        </AnimatePresence>
+                    </SortableContext>
+                </DndContext>
             </section>
 
         </div>

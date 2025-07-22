@@ -5,12 +5,15 @@ import { DndContext } from '@dnd-kit/core';
 import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDisponibles, className = "" }) => {
-    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: bloque.id });
+const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDisponibles, className = "", dragHandleProps }) => {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: bloque.id });
 
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
+        zIndex: isDragging ? 10 : undefined,
+        boxShadow: isDragging ? '0 8px 32px 0 rgba(0,0,0,0.25)' : undefined,
+        opacity: isDragging ? 0.85 : 1,
     };
 
     const semanaInicio = bloque.semana_inicio ?? 1;
@@ -56,14 +59,24 @@ const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDispo
         <div
             ref={setNodeRef}
             style={style}
-            className={`bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 max-w-[300px] md:max-w-5xl mx-auto space-y-3 sm:space-y-4 ${className}`}
+            className={`bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 max-w-[300px] md:max-w-5xl mx-auto space-y-3 sm:space-y-4 ${className} ${isDragging ? 'ring-2 ring-yellow-400' : ''}`}
         >
             {/* Encabezado del bloque */}
             <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
                 <span className="text-sm text-white/80 font-semibold">
                     Semana {semanaInicio} – {semanaFin}
                 </span>
-                <div className="flex gap-3 text-xs">
+                <div className="flex gap-3 text-xs items-center">
+                    {/* Drag handle */}
+                    <button
+                        type="button"
+                        className="cursor-grab active:cursor-grabbing text-white/40 hover:text-yellow-400 transition p-1"
+                        aria-label="Mover bloque"
+                        {...(dragHandleProps ? listeners : {})}
+                        {...(dragHandleProps ? attributes : {})}
+                    >
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><circle cx="6" cy="7" r="1.5" fill="currentColor"/><circle cx="6" cy="12" r="1.5" fill="currentColor"/><circle cx="6" cy="17" r="1.5" fill="currentColor"/><circle cx="12" cy="7" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="17" r="1.5" fill="currentColor"/><circle cx="18" cy="7" r="1.5" fill="currentColor"/><circle cx="18" cy="12" r="1.5" fill="currentColor"/><circle cx="18" cy="17" r="1.5" fill="currentColor"/></svg>
+                    </button>
                     <button
                         onClick={() => onDuplicate(bloque)}
                         className="text-yellow-400 hover:text-yellow-300 transition"
