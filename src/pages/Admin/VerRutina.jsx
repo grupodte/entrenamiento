@@ -225,7 +225,7 @@ const VerRutina = () => {
                         </div>
                     ))}
                 </div>
-            </div>
+        </div>
         
     );
 };

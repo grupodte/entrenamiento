@@ -38,7 +38,7 @@ const AdminLayoutInternal = () => {
             h-screen
           text-white
           overflow-hidden
-          md:pb-0
+    
         "
         >
             <div className="absolute inset-0 -z-20">
