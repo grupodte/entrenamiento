@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Outlet, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import AdminSidebarDesktop from '../components/AdminSidebarDesktop';
 import AdminSidebarMobile from '../components/AdminSidebarMobile';
 import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
@@ -9,9 +9,16 @@ import { DragStateProvider, useDragState } from '../context/DragStateContext';
 import { VideoProvider, useVideo } from '../context/VideoContext';
 import VideoPanel from '../components/VideoPanel';
 
+const pageVariants = {
+  initial: { opacity: 0, x: 40, scale: 0.98 },
+  animate: { opacity: 1, x: 0, scale: 1, transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] } },
+  exit: { opacity: 0, x: -40, scale: 0.98, transition: { duration: 0.25, ease: [0.4, 0, 0.2, 1] } }
+};
+
 const AdminLayoutInternal = () => {
     const { isOpen, videoUrl, hideVideo } = useVideo();
     const { isDragging } = useDragState();
+    const location = useLocation();
 
     useEffect(() => {
         const setViewportHeight = () => {
@@ -70,15 +77,18 @@ const AdminLayoutInternal = () => {
                 "
             >
                 <AdminSidebarDesktop />
-                <motion.main
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.main
+                    key={location.pathname}
                     className="flex-1 min-h-full px-4 sm:px-6 lg:px-8 pl-safe pr-safe"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                >
+                    variants={pageVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                  >
                     <Outlet />
-                </motion.main>
+                  </motion.main>
+                </AnimatePresence>
                 <AdminSidebarMobile />
             </div>
             <VideoPanel open={isOpen} onClose={hideVideo} videoUrl={videoUrl} />
