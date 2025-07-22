@@ -44,54 +44,51 @@ const RutinasManager = () => {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6 text-white pb-[calc(4rem+env(safe-area-inset-bottom))]">
+    <div className=" md:max-w-6xl mx-auto text-white">
       {/* Encabezado con botón flotante */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          Rutinas creadas
-        </h1>
         <button
           onClick={() => navigate('/admin/rutinas/crear')}
-          className="bg-skyblue text-white font-semibold px-5 py-2 rounded-xl hover:bg-white/20 transition"
+          className="bg-white/20 text-white text-[14px]  px-3 py-2 rounded-lg  focus:ring-2 focus:ring-yellow-300"
         >
-          + Crear rutina
+          Nueva rutina
         </button>
       </div>
 
       {/* Lista animada */}
-      <div ref={listaRef} className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div ref={listaRef} className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
         {rutinas.map((rutina, i) => (
           <FadeContent
             key={rutina.id}
-            className="bg-white/5 backdrop-blur-lg p-4 rounded-xl border border-white/10 transition hover:scale-[1.01] flex flex-col justify-between"
+            className="bg-white/5 backdrop-blur-lg p-4 rounded-xl border border-white/10 transition flex flex-col justify-between"
             delay={i * 80}
             blur
           >
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-bold text-white">{rutina.nombre}</h3>
+              <div className="flex items-center justify-between">
+                <h3 className=" text-[12px] md:text-[14px] font-bold text-white">{rutina.nombre}</h3>
                 <button
                   onClick={() => eliminarRutina(rutina.id)}
-                  title="Eliminar rutina"
-                  className="text-red-400 hover:text-red-600 transition"
+                
+                  className="text-red-400"
                 >
-                  <FaTrashAlt size={16} />
+                  <FaTrashAlt size={12} />
                 </button>
               </div>
-              <p className="text-sm text-white/80">{rutina.descripcion || 'Sin descripción'}</p>
-              <p className="text-xs text-white/50 italic mt-1">{rutina.tipo || 'Sin tipo definido'}</p>
+              <p className=" text-[10px] md:text-[12px]  text-white/80">{rutina.descripcion || 'Sin descripción'}</p>
+              <p className="text-[10px] md:text-[12px] text-white/50 italic mt-1">{rutina.tipo || 'Sin tipo definido'}</p>
             </div>
 
             <div className="mt-4 flex gap-3">
               <button
                 onClick={() => navigate(`/admin/rutinas/ver/${rutina.id}`)}
-                className="text-skyblue text-sm underline hover:text-white transition"
+                className="text-[10px] md:text-[12px] underline hover:text-white transition"
               >
                 Ver
               </button>
               <button
                 onClick={() => navigate(`/admin/rutinas/editar/${rutina.id}`)}
-                className="text-yellow-400 text-sm underline hover:text-white transition"
+                className="text-yellow-400 text-[10px] md:text-[12px] underline hover:text-white transition"
               >
                 Editar
               </button>

@@ -5,8 +5,9 @@ import { DndContext } from '@dnd-kit/core';
 import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDisponibles }) => {
+const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDisponibles, className = "" }) => {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: bloque.id });
+
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
@@ -39,27 +40,6 @@ const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDispo
         actualizarSubbloques((bloque.subbloques || []).filter((sb) => sb.id !== id));
     };
 
-    const duplicarBloque = () => {
-        const semanasPorBloque = semanaFin - semanaInicio + 1;
-        const bloqueDuplicado = {
-            ...bloque,
-            id: uuidv4(),
-            semana_inicio: semanaFin + 1,
-            semana_fin: semanaFin + semanasPorBloque,
-            subbloques: bloque.subbloques.map(sb => ({
-                ...sb,
-                id: uuidv4(),
-                ejercicios: sb.ejercicios.map(ej => ({
-                    ...ej,
-                    id: uuidv4(),
-                    series: ej.series?.map(s => ({ ...s })) || [],
-                    sets_config: ej.sets_config?.map(s => ({ ...s })) || []
-                }))
-            }))
-        };
-        onDuplicate(bloqueDuplicado);
-    };
-
     const handleDragEnd = (event) => {
         const { active, over } = event;
         if (active.id !== over?.id) {
@@ -76,46 +56,56 @@ const BloqueEditor = ({ bloque, onChange, onRemove, onDuplicate, ejerciciosDispo
         <div
             ref={setNodeRef}
             style={style}
-            className="bg-white/5  p-4 rounded-xl border border-white/10 space-y-4"
+            className={`bg-white/5 border border-white/10 rounded-xl p-3 md:p-4 max-w-[300px] md:max-w-5xl mx-auto space-y-3 sm:space-y-4 ${className}`}
         >
-            <div className="flex flex-wrap justify-between items-center gap-3">
-                <span className="text-white text-sm font-medium">
-                    Semana ({semanaInicio} - {semanaFin})
+            {/* Encabezado del bloque */}
+            <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+                <span className="text-sm text-white/80 font-semibold">
+                    Semana {semanaInicio} – {semanaFin}
                 </span>
-                <div className="flex gap-2">
-                    <button onClick={duplicarBloque} className="text-yellow-400 hover:text-yellow-500 text-sm">
+                <div className="flex gap-3 text-xs">
+                    <button
+                        onClick={() => onDuplicate(bloque)}
+                        className="text-yellow-400 hover:text-yellow-300 transition"
+                    >
                         Duplicar
                     </button>
-                    <button onClick={onRemove} className="text-red-400 hover:text-red-600 text-sm">
+                    <button
+                        onClick={onRemove}
+                        className="text-red-400 hover:text-red-300 transition"
+                    >
                         Eliminar
                     </button>
                 </div>
             </div>
 
+            {/* Subbloques con drag & drop */}
             <DndContext onDragEnd={handleDragEnd}>
                 <SortableContext
                     items={(bloque.subbloques || []).map(sb => sb.id)}
                     strategy={verticalListSortingStrategy}
                 >
-
-                    {(bloque.subbloques || []).map((subbloque) => (
-                        <SubbloqueEditor
-                            key={subbloque.id}
-                            subbloque={subbloque}
-                            onChange={actualizarSubbloque}
-                            onRemove={() => eliminarSubbloque(subbloque.id)}
-                            ejerciciosDisponibles={ejerciciosDisponibles}
-                        />
-                    ))}
+                    <div className="space-y-3 sm:space-y-4">
+                        {(bloque.subbloques || []).map((subbloque) => (
+                            <SubbloqueEditor
+                                key={subbloque.id}
+                                subbloque={subbloque}
+                                onChange={actualizarSubbloque}
+                                onRemove={() => eliminarSubbloque(subbloque.id)}
+                                ejerciciosDisponibles={ejerciciosDisponibles}
+                            />
+                        ))}
+                    </div>
                 </SortableContext>
             </DndContext>
 
+            {/* Botón agregar subbloque */}
             <div className="pt-2">
                 <button
                     onClick={agregarSubbloque}
-                    className="text-white/90 text-sm font-semibold hover:text-skyblue transition"
+                    className="text-sm text-white/80 font-medium hover:text-sky-400 transition"
                 >
-                    Agregar ejercicio
+                    + Agregar subbloque
                 </button>
             </div>
         </div>

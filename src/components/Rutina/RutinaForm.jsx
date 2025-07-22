@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
 import BloqueEditor from '../../components/Rutina/BloqueEditor';
 import { guardarEstructuraRutina } from '../../utils/guardarEstructuraRutina'; // Importar la nueva función
+import { motion } from 'framer-motion';
 
 const createDefaultSetsConfig = (numSets, reps = '', carga = '') => {
     return Array(numSets).fill(null).map(() => ({ reps, carga })); // reps y carga deben ser strings aquí
@@ -13,6 +14,8 @@ const createDefaultSetsConfig = (numSets, reps = '', carga = '') => {
 
 // Nuevas props añadidas: esModoPersonalizar, alumnoIdParaPersonalizar, asignacionIdParaPersonalizar, idRutinaOriginal, tipoEntidadOriginal
 const RutinaForm = ({
+
+    
     modo = "crear",
     rutinaInicial = null,
     onGuardar,
@@ -27,6 +30,7 @@ const RutinaForm = ({
     const [descripcion, setDescripcion] = useState('');
     const [bloques, setBloques] = useState([]);
     const [ejerciciosDisponibles, setEjerciciosDisponibles] = useState([]);
+    const [bloqueAnimadoId, setBloqueAnimadoId] = useState(null);
 
     // Llamar a useAuthUser dentro del cuerpo del componente
     const { perfil: perfilEntrenador, isLoading: isLoadingAuthUserHook, error: errorAuthUserHook } = useAuthUser();
@@ -130,15 +134,43 @@ const RutinaForm = ({
         fetchEjercicios();
     }, []);
 
+    // Helper to deep copy a block (with new IDs for block, subblocks, exercises, and series)
+    const deepCopyBloque = (bloqueADuplicar) => {
+        return {
+            ...bloqueADuplicar,
+            id: uuidv4(),
+            subbloques: (bloqueADuplicar.subbloques || []).map(sb => ({
+                ...sb,
+                id: uuidv4(),
+                ejercicios: (sb.ejercicios || []).map(ej => ({
+                    ...ej,
+                    id: uuidv4(),
+                    series: ej.series?.map(s => ({ ...s })) || [],
+                    sets_config: ej.sets_config?.map(s => ({ ...s })) || [],
+                })),
+            })),
+        };
+    };
+
+    // Helper to recalculate weeks for all blocks
+    const recalcularSemanas = (bloquesArr) => {
+        const semanasPorBloque = 4;
+        return bloquesArr.map((b, i) => ({
+            ...b,
+            semana_inicio: i * semanasPorBloque + 1,
+            semana_fin: (i + 1) * semanasPorBloque,
+        }));
+    };
+
     const agregarBloque = () => {
-        const ultimaSemana = bloques[bloques.length - 1]?.semana_fin || 0;
         const nuevoBloque = {
             id: uuidv4(),
-            semana_inicio: ultimaSemana + 1,
-            semana_fin: ultimaSemana + 4,
+            semana_inicio: 1, // will be recalculated
+            semana_fin: 4,    // will be recalculated
             subbloques: [],
         };
-        setBloques(prev => [...prev, nuevoBloque]);
+        const nuevosBloques = [...bloques, nuevoBloque];
+        setBloques(recalcularSemanas(nuevosBloques));
     };
 
     const actualizarBloque = (bloqueActualizado) => {
@@ -146,11 +178,15 @@ const RutinaForm = ({
     };
 
     const eliminarBloque = (bloqueId) => {
-        setBloques(prev => prev.filter(b => b.id !== bloqueId));
+        const nuevosBloques = bloques.filter(b => b.id !== bloqueId);
+        setBloques(recalcularSemanas(nuevosBloques));
     };
 
-    const duplicarBloque = (bloqueDuplicado) => {
-        setBloques(prev => [...prev, bloqueDuplicado]);
+    const duplicarBloque = (bloqueADuplicar) => {
+        const nuevoBloque = deepCopyBloque(bloqueADuplicar);
+        const nuevosBloques = [...bloques, nuevoBloque];
+        setBloques(recalcularSemanas(nuevosBloques));
+        setBloqueAnimadoId(nuevoBloque.id);
     };
 
     // Helper function to insert bloques, subbloques, ejercicios, and series
@@ -399,26 +435,93 @@ const RutinaForm = ({
 
     return (
         <div className="flex flex-col md:flex-row h-full gap-4">
-            <aside className="w-full md:w-[280px] p-4 space-y-4   border-b md:border-b-0 md:border-r border-white/10">
-                <div className="flex md:fixed flex-col gap-3">
-                    <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre" className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full" />
-                    <input value={tipo} onChange={e => setTipo(e.target.value)} placeholder="Tipo" className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full" />
-                    <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Descripción" rows={3} className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm resize-none w-full" />
-                    {bloques.length > 0 && <button onClick={handleSubmit} className="bg-green-600/30 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">{modo === 'crear' ? 'Guardar Rutina' : 'Actualizar Rutina'}</button>}
-                    <button onClick={agregarBloque} className="bg-white/20 hover:bg-white/30 text-white font-semibold rounded-lg px-4 py-2 text-sm">Agregar mes</button>
+            
+            <aside className="w-full md:w-[300px] p-4 border-b md:border-b-0 md:border-r border-white/10">
+                <div className="flex md:fixed md:w-[280px] flex-col gap-4">
+
+                    {/* Inputs con etiquetas */}
+                    <div className="space-y-1">
+                        <label className="text-[10px] md-text-[12px] text-white/70 font-medium">Nombre</label>
+                        <input
+                            value={nombre}
+                            onChange={e => setNombre(e.target.value)}
+                            placeholder="Ej. Rutina Hipertrofia A"
+                            className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        />
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className=" text-[10px] md-text-[12px] text-white/70 font-medium">Tipo</label>
+                        <input
+                            value={tipo}
+                            onChange={e => setTipo(e.target.value)}
+                            placeholder="Ej. Fuerza, Cardio, etc."
+                            className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        />
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className=" text-[10px] md-text-[12px]  text-white/70 font-medium">Descripción</label>
+                        <textarea
+                            value={descripcion}
+                            onChange={e => setDescripcion(e.target.value)}
+                            placeholder="Describe brevemente la rutina"
+                            rows={3}
+                            className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm resize-none w-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        />
+                    </div>
+
+                    {/* Botones de acción */}
+                    <div className="pt-2 flex flex-col gap-2">
+                        {bloques.length > 0 && (
+                            <button
+                                onClick={handleSubmit}
+                                className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition"
+                            >
+                                {modo === 'crear' ? 'Guardar Rutina' : 'Actualizar Rutina'}
+                            </button>
+                        )}
+                        <button
+                            onClick={agregarBloque}
+                            className="bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2 rounded-lg text-sm transition"
+                        >
+                            + Agregar mes
+                        </button>
+                    </div>
                 </div>
             </aside>
-            <section className="flex-1 pr-2 space-y-4 px-4 md:px-0">
-                {Array.isArray(bloques) && bloques.map(bloque => (
-                    <BloqueEditor
-                        key={bloque.id}
-                        bloque={bloque}
-                        onChange={actualizarBloque}
-                        onRemove={() => eliminarBloque(bloque.id)}
-                        onDuplicate={duplicarBloque}
-                        ejerciciosDisponibles={ejerciciosDisponibles}
-                    />
-                ))}
+
+
+
+            
+            <section className="flex-1 space-y-4 ">
+                {Array.isArray(bloques) && bloques.map(bloque => {
+                    const isAnimado = bloque.id === bloqueAnimadoId;
+                    const bloqueEditor = (
+                        <BloqueEditor
+                            key={bloque.id}
+                            bloque={bloque}
+                            onChange={actualizarBloque}
+                            onRemove={() => eliminarBloque(bloque.id)}
+                            onDuplicate={() => duplicarBloque(bloque)}
+                            ejerciciosDisponibles={ejerciciosDisponibles}
+                        />
+                    );
+                    if (isAnimado) {
+                        return (
+                            <motion.div
+                                key={bloque.id}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.4 }}
+                                onAnimationComplete={() => setBloqueAnimadoId(null)}
+                            >
+                                {bloqueEditor}
+                            </motion.div>
+                        );
+                    }
+                    return bloqueEditor;
+                })}
             </section>
 
         </div>
