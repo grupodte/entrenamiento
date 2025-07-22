@@ -48,7 +48,7 @@ const RutinasManager = () => {
       {/* Encabezado con botón flotante */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <FaClipboardList /> Rutinas creadas
+          Rutinas creadas
         </h1>
         <button
           onClick={() => navigate('/admin/rutinas/crear')}
