@@ -149,7 +149,7 @@ const AuthPage = () => {
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: isLogin ? -300 : 300, opacity: 0 }}
                     transition={transition}
-                    className="relative z-10 p-8 rounded-[30px] bg-gradient-to-br from-white/10 to-black/30 backdrop-blur-md shadow-xl w-full max-w-sm text-white"
+                    className="relative z-10 p-8 rounded-[30px] bg-gradient-to-br from-white/10 to-black/30 backdrop-blur-md shadow-xl w-[265px] max-w-sm text-white"
                 >
                     <h2 className="text-2xl font-bold text-white mb-6 text-center tracking-tight">
                         {isLogin ? 'Iniciá sesión' : 'Creá tu cuenta'}

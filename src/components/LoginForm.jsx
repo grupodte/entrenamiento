@@ -68,7 +68,7 @@ const LoginForm = ({ onLoginSuccess }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5 ">
             <div>
                 <label className="text-sm text-white/80">Correo electrónico</label>
                 <input

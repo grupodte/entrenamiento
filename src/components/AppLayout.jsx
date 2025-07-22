@@ -14,13 +14,7 @@ const AppLayout = () => {
 
     return (
         <div className="            h-screen flex flex-col">
-            <div className="h-[25px] bg-black border-b border-white/10 flex items-center justify-center shrink-0">
-                <img
-                    src="/icons/iconodte.svg"
-                    alt="Icono"
-                    className="h-3 opacity-80"
-                />
-            </div>
+           
 
             <main className="flex-1 overflow-y-auto">
                 <Outlet />
