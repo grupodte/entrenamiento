@@ -80,7 +80,6 @@ const AdminLayoutInternal = () => {
                 >
                     <Outlet />
                 </motion.main>
-                <AdminSidebarMobile />
             </div>
             <VideoPanel open={isOpen} onClose={hideVideo} videoUrl={videoUrl} />
         </div>
