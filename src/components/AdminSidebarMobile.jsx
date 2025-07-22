@@ -1,43 +1,57 @@
-import { useNavigate, useLocation } from 'react-router-dom';
-import { VscHome, VscArchive, VscAccount, VscSettingsGear } from 'react-icons/vsc';
-import Dock from './Dock'; // Asegurate de tener el Dock importado correctamente
+import { Link, useLocation } from 'react-router-dom';
+import { FaUsers, FaClipboardList, FaDumbbell } from 'react-icons/fa';
+
+const navItems = [
+  { path: '/admin/alumnos', title: 'Alumnos', icon: <FaUsers /> },
+  { path: '/admin/rutinas', title: 'Rutinas', icon: <FaClipboardList /> },
+  { path: '/admin/ejercicios', title: 'Ejercicios', icon: <FaDumbbell /> },
+];
 
 const AdminSidebarMobile = () => {
-  const navigate = useNavigate();
   const location = useLocation();
 
-  const items = [
-    {
-      icon: <VscHome size={22} />,
-      label: 'Inicio',
-      onClick: () => navigate('/admin'),
-    },
-    {
-      icon: <VscArchive size={22} />,
-      label: 'Rutinas',
-      onClick: () => navigate('/admin/rutinas'),
-    },
-    {
-      icon: <VscAccount size={22} />,
-      label: 'Alumnos',
-      onClick: () => navigate('/admin/alumnos'),
-    },
-    {
-      icon: <VscSettingsGear size={22} />,
-      label: 'Perfil',
-      onClick: () => navigate('/admin/perfil'),
-    },
-  ];
-
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-      <Dock
-        items={items}
-        panelHeight={68}
-        baseItemSize={50}
-        magnification={70}
-      />
-    </div>
+    <nav
+      className="
+        fixed bottom-0 left-0 right-0 z-50
+        bg-white/80 dark:bg-black/70 backdrop-blur-md
+        border-t border-white/20 dark:border-white/10
+        shadow-[0_-2px_10px_rgba(0,0,0,0.15)]
+        px-4
+        pt-1
+        pb-[calc(1rem+env(safe-area-inset-bottom))]
+        flex justify-around items-center
+        h-[72px]
+        md:hidden
+      "
+      role="navigation"
+      aria-label="Menú inferior de administración"
+    >
+      {navItems.map(({ path, title, icon }) => {
+        const isActive = location.pathname.startsWith(path);
+        return (
+          <Link
+            key={path}
+            to={path}
+            aria-label={title}
+            className={`
+              flex flex-col items-center justify-center
+              gap-0.5
+              px-3 py-1.5
+              rounded-xl
+              transition-all duration-200 ease-in-out text-xs font-medium
+              ${isActive
+                ? 'bg-white/10 text-white shadow-md scale-[0.85] active:scale-[1]'
+                : 'text-gray-700 dark:text-gray-300 hover:text-ios-primary active:text-ios-primary active:bg-ios-primary/10 dark:active:bg-ios-primary/20 active:scale-95'
+              }
+            `}
+          >
+            <span className="text-[20px]">{icon}</span>
+            <span className="text-[11px] leading-none">{title}</span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 };
 
