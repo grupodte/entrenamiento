@@ -19,9 +19,8 @@ const AdminSidebarMobile = () => {
         shadow-[0_-2px_10px_rgba(0,0,0,0.15)]
         px-4
         pt-1
-        pb-[calc(1rem+env(safe-area-inset-bottom))]
         flex justify-around items-center
-        h-[72px]
+        h-[75px]
         md:hidden
       "
       role="navigation"

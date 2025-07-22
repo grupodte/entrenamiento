@@ -88,7 +88,7 @@ const AlumnosManager = () => {
                             enterTo="opacity-100 translate-y-0"
                         >
                             <li className="p-4 bg-white/10 backdrop-blur rounded-xl shadow-md flex justify-between items-center hover:bg-white/20 transition duration-300">
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-4" onClick={() => navigate(`/admin/alumno/${alumno.id}`)}>
                                     {alumno.avatar_url ? (
                                         <img
                                             src={alumno.avatar_url}
@@ -97,23 +97,17 @@ const AlumnosManager = () => {
                                         />
                                     ) : (
                                         <div className="bg-white/20 rounded-full p-3">
-                                            <FaUser className="text-white text-lg" />
+                                            <FaUser className="text-white text-[12px]" />
                                         </div>
                                     )}
 
                                     <div>
-                                        <p className="font-semibold text-white">
+                                        <p className="font-semibold text-[12px] text-white">
                                             {alumno.nombre} {alumno.apellido}
                                         </p>
-                                        <p className="text-sm text-gray-300">{alumno.email}</p>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => navigate(`/admin/alumno/${alumno.id}`)}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
-                                >
-                                    Ver Perfil
-                                </button>
+                             
                             </li>
                         </Transition>
                     ))}
