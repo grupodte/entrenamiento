@@ -35,10 +35,9 @@ const AdminLayoutInternal = () => {
             className="
           relative
           w-full
-          h-[calc(var(--vh,1vh)*100)]
+            h-screen
           text-white
           overflow-hidden
-          pb-[70px]
           md:pb-0
         "
         >
@@ -62,7 +61,7 @@ const AdminLayoutInternal = () => {
                     relative
                     z-10
                     flex
-                    h-full
+                   h-screen
                     overflow-y-scroll
                     overscroll-contain
                     pt-safe
