@@ -209,7 +209,7 @@ const EditarRutina = () => {
     }
 
     return (
-        <div className="w-full min-h-screen flex flex-col text-white">
+        <div className="w-full min-h-[calc(100dvh-4rem)] pb-[90px] flex flex-col text-white">
   <div className="p-4 md:p-6">
                     <button
                         onClick={() => navigate(-1)}

@@ -89,7 +89,7 @@ const VerRutina = () => {
     if (!rutina) return null;
 
     return (
-        <div className="p-6 max-w-6xl mx-auto space-y-6 text-white ">
+        <div className="p-6 max-w-6xl mx-auto space-y-6 text-white  min-h-[calc(100dvh-4rem)] pb-[90px]">
                 <div>
                     <h1 className="text-3xl font-bold mb-1">{rutina.nombre}</h1>
                     <p className="text-white/70">{rutina.descripcion}</p>
