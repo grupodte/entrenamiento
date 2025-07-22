@@ -13,7 +13,7 @@ const AppLayout = () => {
     }, []);
 
     return (
-        <div className="min-h-[calc(var(--vh,1vh)*100)] flex flex-col bg-black text-white">
+        <div className="            h-screen flex flex-col">
             <div className="h-[25px] bg-black border-b border-white/10 flex items-center justify-center shrink-0">
                 <img
                     src="/icons/iconodte.svg"
