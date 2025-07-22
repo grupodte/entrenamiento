@@ -12,26 +12,19 @@ const AppLayout = () => {
         return () => window.removeEventListener('resize', setViewportHeight);
     }, []);
 
-    // Se eliminó el useEffect que modificaba document.body.style.overflow
-    // Se eliminó la lógica de usePullToRefresh
-    // Se eliminó VideoProvider y VideoPanel
-    // Se eliminó el fondo con imagen y el backdrop-blur
-
     return (
-        // Se simplificó el div principal, eliminando clases de fixed, inset, etc.
-        // y el fondo específico que ahora irá en AdminLayout.
-        <div className="relative flex flex-col h-[calc(var(--vh,1vh)*100)] bg-black text-white">
-            {/* Se mantuvo la barra superior simple si es necesaria para todas las rutas públicas */}
-            <div className="h-[25px] bg-black border-b border-white/10 flex items-center justify-center">
+        <div className="min-h-[calc(var(--vh,1vh)*100)] flex flex-col bg-black text-white">
+            <div className="h-[25px] bg-black border-b border-white/10 flex items-center justify-center shrink-0">
                 <img
                     src="/icons/iconodte.svg"
                     alt="Icono"
                     className="h-3 opacity-80"
                 />
             </div>
-            <div className="h-full">
+
+            <main className="flex-1 overflow-y-auto">
                 <Outlet />
-            </div>
+            </main>
         </div>
     );
 };
