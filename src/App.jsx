@@ -9,6 +9,8 @@ import AdminLayout from './layouts/AdminLayout';
 import RutaProtegida from './components/RutaProtegida';
 import RedireccionInicial from './pages/RedireccionInicial';
 
+import AlumnoLayout from './layouts/AlumnoLayout';
+
 // --- PÁGINAS PÚBLICAS ---
 import AuthPage from './pages/AuthPage';
 import Tyc from './pages/tyc';
@@ -16,7 +18,7 @@ import PoliticaPrivacidad from './pages/PoliticaPrivacidad';
 
 // --- PÁGINAS DE ALUMNO ---
 import DashboardAlumno from './pages/Alumno/Dashboard';
-import DashboardRutinas from './pages/Alumno/DashboardRutinas';
+
 import RutinaDetalle from './pages/Alumno/RutinaDetalle';
 import PerfilAlumno from './pages/Alumno/Perfil';
 import SeleccionOrdenBloques from './pages/Alumno/SeleccionOrdenBloques';
@@ -40,56 +42,28 @@ const AppContent = () => {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        {/* --- RUTAS PÚBLICAS Y DE ALUMNO CON AppLayout --- */}
+        {/* --- RUTAS DE ALUMNO CON AlumnoLayout --- */}
+        <Route
+          element={
+            <RutaProtegida rolPermitido="alumno">
+              <AlumnoLayout />
+            </RutaProtegida>
+          }
+        >
+          <Route path="/dashboard" element={<DashboardAlumno />} />
+          
+          <Route path="/rutina/:id" element={<RutinaDetalle />} />
+          <Route path="/rutina/:id/orden" element={<SeleccionOrdenBloques />} />
+          <Route path="/alumno/perfil" element={<PerfilAlumno />} />
+        </Route>
+
+        {/* --- RUTAS PÚBLICAS --- */}
         <Route element={<AppLayout />}>
-          {/* Rutas Públicas */}
           <Route path="/" element={<RedireccionInicial />} />
           <Route path="/login" element={<AuthPage />} />
           <Route path="/register" element={<AuthPage />} />
           <Route path="/tyc" element={<Tyc />} />
           <Route path="/privacidad" element={<PoliticaPrivacidad />} />
-
-          {/* Rutas de Alumno */}
-          <Route
-            path="/dashboard"
-            element={
-              <RutaProtegida rolPermitido="alumno">
-                <DashboardAlumno />
-              </RutaProtegida>
-            }
-          />
-          <Route
-            path="/dashboard/rutinas"
-            element={
-              <RutaProtegida rolPermitido="alumno">
-                <DashboardRutinas />
-              </RutaProtegida>
-            }
-          />
-          <Route
-            path="/rutina/:id"
-            element={
-              <RutaProtegida rolPermitido="alumno">
-                <RutinaDetalle />
-              </RutaProtegida>
-            }
-          />
-          <Route
-            path="/rutina/:id/orden"
-            element={
-              <RutaProtegida rolPermitido="alumno">
-                <SeleccionOrdenBloques />
-              </RutaProtegida>
-            }
-          />
-          <Route
-            path="/alumno/perfil"
-            element={
-              <RutaProtegida rolPermitido="alumno">
-                <PerfilAlumno />
-              </RutaProtegida>
-            }
-          />
         </Route>
 
         {/* --- RUTAS DE ADMIN CON AdminLayout --- */}

@@ -1,26 +1,25 @@
-// src/pages/Alumno/RutinaDetalle.jsx
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useParams, useLocation, Link } from "react-router-dom";
+import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import RestTimer from "../../components/RestTimer";
 import BloqueDisplay from "../../components/RutinaDetalle/BloqueDisplay";
 import { generarIdSerieSimple, generarIdEjercicioEnSerieDeSuperset } from '../../utils/rutinaIds';
-
+import { FaArrowLeft, FaCheck, FaPlay } from "react-icons/fa";
+import { motion, AnimatePresence } from 'framer-motion';
 
 let orderedInteractiveElementIds = [];
 
 const RutinaDetalle = () => {
     const { id } = useParams();
     const location = useLocation();
+    const navigate = useNavigate();
     const [rutina, setRutina] = useState(null);
     const [loading, setLoading] = useState(true);
     const [elementosCompletados, setElementosCompletados] = useState({});
-
     const [showRestTimer, setShowRestTimer] = useState(false);
     const [timerDuration, setTimerDuration] = useState(0);
     const [nextExerciseName, setNextExerciseName] = useState("Siguiente ejercicio");
     const [currentTimerOriginId, setCurrentTimerOriginId] = useState(null);
-
     const [elementoActivoId, setElementoActivoId] = useState(null);
     const elementoRefs = useRef({});
 
@@ -55,31 +54,7 @@ const RutinaDetalle = () => {
         const fetchRutina = async () => {
             setLoading(true);
             let res;
-            const selectQuery = `
-            id,
-            nombre,
-            descripcion,
-            bloques (
-              id,
-              orden,
-              subbloques (
-                id,
-                orden,
-                nombre,
-                tipo,
-                subbloques_ejercicios (
-                  id,
-                  ejercicio: ejercicios ( nombre ),
-                  series: series_subejercicio (
-                    id,
-                    nro_set,
-                    reps,
-                    pausa
-                  )
-                )
-              )
-            )
-          `;
+            const selectQuery = `id, nombre, descripcion, bloques (id, orden, subbloques (id, orden, nombre, tipo, num_series_superset, pausa_entre_series_superset, subbloques_ejercicios (id, orden_en_subbloque, ejercicio: ejercicios ( nombre ), series: series_subejercicio (id, nro_set, reps, pausa))))`;
             if (tipo === "personalizada") res = await supabase.from("rutinas_personalizadas").select(selectQuery).eq("id", id).single();
             else res = await supabase.from("rutinas_base").select(selectQuery).eq("id", id).single();
 
@@ -94,16 +69,10 @@ const RutinaDetalle = () => {
                     ...data,
                     bloques: data.bloques?.map(b => ({
                         ...b,
-                        subbloques: b.subbloques?.map(sb => {
-                            let num_s_ss = sb.num_series_superset;
-                            if (sb.tipo === "superset" && !num_s_ss) {
-                                num_s_ss = sb.subbloques_ejercicios?.[0]?.series?.reduce((max, s) => Math.max(max, s.nro_set), 0) || 1;
-                            }
-                            return {
-                                ...sb, num_series_superset: num_s_ss || 1,
-                                subbloques_ejercicios: sb.subbloques_ejercicios?.sort((a, b) => a.orden_en_subbloque - b.orden_en_subbloque) || []
-                            };
-                        }) || []
+                        subbloques: b.subbloques?.map(sb => ({
+                            ...sb,
+                            subbloques_ejercicios: sb.subbloques_ejercicios?.sort((a, b) => a.orden_en_subbloque - b.orden_en_subbloque) || []
+                        })) || []
                     })) || []
                 };
                 setRutina(processedData);
@@ -124,33 +93,23 @@ const RutinaDetalle = () => {
 
     const getElementNameById = useCallback((elementId) => {
         if (!rutina || !elementId) return "Ejercicio";
-        const parts = elementId.split('-'); // simple-subId-sbeId-setN  OR  superset-subId-sbeId-setN
-        const type = parts[0];
+        const parts = elementId.split('-');
         const subId = parts[1];
         const sbeId = parts[2];
-        const setNumStr = parts[parts.length - 1];
-        const setNum = parseInt(setNumStr.replace('set', ''), 10);
 
         for (const bloque of rutina.bloques) {
             for (const subbloque of bloque.subbloques) {
                 if (subbloque.id.toString() === subId) {
                     for (const sbe_iter of subbloque.subbloques_ejercicios) {
                         if (sbe_iter.id.toString() === sbeId) {
-                            if (type === 'simple') return `${sbe_iter.ejercicio.nombre} - S${setNum}`;
-                            if (type === 'superset') return `${sbe_iter.ejercicio.nombre} (Superset S${setNum})`;
+                            return sbe_iter.ejercicio.nombre;
                         }
-                    }
-                    // Fallback para IDs de pausa de superset (que pueden no tener sbeId en el formato esperado por esta func)
-                    if (type === 'superset' && elementId.includes('-serie') && elementId.endsWith('-pausa')) {
-                        const serieNumPart = elementId.split('-').find(part => part.startsWith('serie'));
-                        return `Pausa del Superset ${subbloque.nombre || ''} ${serieNumPart || ''}`;
                     }
                 }
             }
         }
         return "Siguiente Ejercicio";
     }, [rutina]);
-
 
     const obtenerSiguienteElementoInfo = useCallback((currentElementId) => {
         const currentIndex = orderedInteractiveElementIds.findIndex(id => id === currentElementId);
@@ -159,17 +118,15 @@ const RutinaDetalle = () => {
             return { id: nextId, nombre: getElementNameById(nextId) };
         }
         return null;
-    }, [getElementNameById]); // getElementNameById ya depende de rutina
+    }, [getElementNameById]);
 
     const handleRestTimerFinish = useCallback(() => {
         setShowRestTimer(false);
         const siguienteElemento = obtenerSiguienteElementoInfo(currentTimerOriginId);
         if (siguienteElemento && siguienteElemento.id) {
             setElementoActivoId(siguienteElemento.id);
-            setNextExerciseName(siguienteElemento.nombre);
         } else {
             setElementoActivoId(null);
-            setNextExerciseName("¡Rutina Completada!");
         }
         setCurrentTimerOriginId(null);
     }, [currentTimerOriginId, obtenerSiguienteElementoInfo]);
@@ -192,23 +149,21 @@ const RutinaDetalle = () => {
             const acabaDeCompletarse = nState[elementoId];
 
             if (acabaDeCompletarse) {
-                setElementoActivoId(elementoId);
                 let pausaDuracion = 0;
-
                 if (detalles.tipoElemento === 'simple' && detalles.pausa) {
                     pausaDuracion = detalles.pausa;
                 } else if (detalles.tipoElemento === 'superset_ejercicio') {
                     const sb = rutina?.bloques.flatMap(b => b.subbloques).find(s => s.id.toString() === detalles.subbloqueId.toString());
                     if (sb?.subbloques_ejercicios.every(sbe_c => nState[generarIdEjercicioEnSerieDeSuperset(detalles.subbloqueId, sbe_c.id, detalles.numSerieSupersetActual)])) {
-                        if (detalles.pausaSuperset && detalles.numSerieSupersetActual < detalles.totalSeriesSuperset) {
-                            pausaDuracion = detalles.pausaSuperset;
+                        if (sb.pausa_entre_series_superset && detalles.numSerieSupersetActual < sb.num_series_superset) {
+                            pausaDuracion = sb.pausa_entre_series_superset;
                         }
                     }
                 }
 
                 if (pausaDuracion > 0 && !showRestTimer) {
-                    activarTemporizadorPausa(pausaDuracion, elementoId); // originId es el elemento que se completó
-                } else if (pausaDuracion === 0 || pausaDuracion === undefined) {
+                    activarTemporizadorPausa(pausaDuracion, elementoId);
+                } else {
                     const siguienteElemento = obtenerSiguienteElementoInfo(elementoId);
                     if (siguienteElemento && siguienteElemento.id) {
                         setElementoActivoId(siguienteElemento.id);
@@ -223,62 +178,79 @@ const RutinaDetalle = () => {
         });
     }, [rutina, activarTemporizadorPausa, showRestTimer, obtenerSiguienteElementoInfo]);
 
-    const handleComenzarEntrenamiento = () => {
-        if (elementoActivoId && elementoRefs.current[elementoActivoId] && !elementosCompletados[elementoActivoId]) {
-            elementoRefs.current[elementoActivoId].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else {
-            const primerNoCompletado = orderedInteractiveElementIds.find(id => !elementosCompletados[id]);
-            if (primerNoCompletado) {
-                setElementoActivoId(primerNoCompletado);
-            } else if (orderedInteractiveElementIds.length > 0) {
-                setElementoActivoId(orderedInteractiveElementIds[0]);
-            }
+    const handleComenzarSiguiente = () => {
+        const primerNoCompletado = orderedInteractiveElementIds.find(id => !elementosCompletados[id]);
+        if (primerNoCompletado) {
+            setElementoActivoId(primerNoCompletado);
+        } else if (orderedInteractiveElementIds.length > 0) {
+            setElementoActivoId(orderedInteractiveElementIds[0]);
         }
+    };
+
+    const finalizarEntrenamiento = async () => {
+        // Lógica para guardar en Supabase
+        navigate('/dashboard'); // Redirigir
     };
 
     if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-200 px-4 text-center">Cargando tu rutina...</div>;
     if (!rutina) return <div className="p-6 text-white text-center">No se encontró la rutina.</div>;
 
-    const displayProps = {
-        elementosCompletados,
-        elementoActivoId,
-        toggleElementoCompletado,
-        activarTemporizadorPausa,
-        showRestTimer,
-        elementoRefs,
-        // Pasar rutina para que los componentes hijos puedan acceder si es estrictamente necesario (ej. para nombres en pausa manual si no se centraliza)
-        // rutina: rutina, // Descomentar si es necesario y los componentes lo usan.
-        // O, mejor, funciones específicas que ya tienen acceso a 'rutina' a través de su closure/scope
-        // como getElementNameById (si fuera necesario para un botón de pausa manual en un hijo)
-    };
+    const todosCompletados = orderedInteractiveElementIds.length > 0 && orderedInteractiveElementIds.every(id => elementosCompletados[id]);
+
+    const displayProps = { elementosCompletados, elementoActivoId, toggleElementoCompletado, elementoRefs };
 
     return (
-        <div className="px-2 sm:px-4 md:px-6 max-w-2xl mx-auto text-white pb-[calc(8rem+env(safe-area-inset-bottom))] space-y-5 sm:space-y-6">
-            <div>
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 text-sky-300">{rutina.nombre}</h1>
-                <p className="text-xs sm:text-sm text-white/70">{rutina.descripcion}</p>
-                <div className="mt-3 flex gap-2">
-                    <button
-                        onClick={handleComenzarEntrenamiento}
-                        className="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors text-sm sm:text-base"
+        <div className="min-h-screen bg-gray-900 text-white font-sans">
+            <header className="sticky top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-4 flex items-center gap-4 border-b border-gray-800">
+                <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
+                    <FaArrowLeft />
+                </Link>
+                <div>
+                    <h1 className="text-xl font-bold text-white">{rutina.nombre}</h1>
+                    <p className="text-sm text-gray-400">Entrenamiento en curso</p>
+                </div>
+            </header>
+
+            <main className="p-4 pb-32 space-y-6">
+                {rutina.bloques?.map(bloque => (
+                    <BloqueDisplay key={bloque.id} bloque={bloque} {...displayProps} />
+                ))}
+
+                {todosCompletados && (
+                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-6 bg-gray-800 rounded-2xl">
+                        <h2 className="text-2xl font-bold text-green-400">¡Entrenamiento completado!</h2>
+                        <p className="text-gray-300 mt-2">¡Gran trabajo! Has finalizado todos los ejercicios.</p>
+                        <button 
+                            onClick={finalizarEntrenamiento}
+                            className="mt-6 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105"
+                        >
+                            Finalizar y Guardar
+                        </button>
+                    </motion.div>
+                )}
+            </main>
+
+            <AnimatePresence>
+                {showRestTimer && (
+                    <RestTimer 
+                        key={currentTimerOriginId}
+                        duration={timerDuration} 
+                        exerciseName={nextExerciseName} 
+                        onFinish={handleRestTimerFinish} 
+                    />
+                )}
+            </AnimatePresence>
+
+            {!todosCompletados && (
+                <div className="fixed bottom-0 left-0 right-0 p-4 pb-safe-bottom bg-gray-900/80 backdrop-blur-lg border-t border-gray-800 z-20">
+                    <button 
+                        onClick={handleComenzarSiguiente}
+                        className="w-full flex items-center justify-center gap-3 bg-cyan-400 text-gray-900 font-bold py-4 px-5 rounded-full shadow-lg hover:bg-cyan-300 transition-all duration-300 transform hover:scale-105"
                     >
-                        {elementoActivoId && !elementosCompletados[elementoActivoId] ? "Ir al Actual" : "Guiar Entrenamiento"}
+                        {elementoActivoId ? <><FaPlay/> Siguiente Ejercicio</> : <><FaPlay/> Comenzar Entrenamiento</>}
                     </button>
                 </div>
-                <Link to="/dashboard/rutinas" className="text-indigo-400 hover:text-indigo-300 text-sm block mt-4">&larr; Volver a mis rutinas</Link>
-            </div>
-
-            {showRestTimer && <RestTimer key={(currentTimerOriginId || "timer") + "-" + timerDuration} duration={timerDuration} exerciseName={nextExerciseName} onFinish={handleRestTimerFinish} />}
-
-            <div className="space-y-5 sm:space-y-6">
-                {rutina.bloques?.map(bloque => (
-                    <BloqueDisplay
-                        key={bloque.id}
-                        bloque={bloque}
-                        {...displayProps}
-                    />
-                ))}
-            </div>
+            )}
         </div>
     );
 };

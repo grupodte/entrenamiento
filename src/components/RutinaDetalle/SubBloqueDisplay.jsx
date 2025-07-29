@@ -1,38 +1,37 @@
 import React from 'react';
 import EjercicioSimpleDisplay from './EjercicioSimpleDisplay';
 import SupersetDisplay from './SupersetDisplay';
+import { FaFire, FaSyncAlt } from 'react-icons/fa';
 
-const SubBloqueDisplay = (props) => { // Passthrough de todas las props necesarias
+const SubBloqueDisplay = (props) => {
     const { subbloque } = props;
 
+    const Icon = subbloque.tipo === 'superset' ? FaSyncAlt : FaFire;
+
     return (
-        <div className="border-t border-slate-700 pt-3 sm:pt-4 first:pt-0 first:border-none">
-            <h3 className={`text-base sm:text-lg font-bold px-2 sm:px-3 py-1.5 sm:py-2 rounded-t-md ${subbloque.tipo === "superset" ? "bg-purple-700/80" : "bg-sky-700/80"} text-white`}>
-                {subbloque.nombre || "Sub-bloque"}
-                <span className="text-xs font-normal text-white/70 ml-1.5">({subbloque.tipo})</span>
-            </h3>
+        <div className="relative pl-10">
+            <div className="absolute left-4 top-4 -translate-x-1/2 w-4 h-4 bg-gray-600 rounded-full border-2 border-gray-900"></div>
+            <div className="mb-4">
+                <h3 className={`text-md font-semibold flex items-center gap-2 ${subbloque.tipo === "superset" ? "text-purple-300" : "text-amber-300"}`}>
+                    <Icon />
+                    {subbloque.nombre || "Sub-bloque"}
+                </h3>
+            </div>
 
-            {subbloque.tipo === "superset" && (
-                <p className="text-[0.65rem] sm:text-xs italic text-purple-300 mb-2 px-2 sm:px-3 bg-purple-700/40 py-1 rounded-b-md">
-                    Ejercicios consecutivos por serie. Pausa después de cada serie del superset.
-                </p>
-            )}
-
-            <div className="space-y-2.5 sm:space-y-3 mt-1.5 sm:mt-2">
+            <div className="space-y-3">
                 {subbloque.tipo === 'simple' && subbloque.subbloques_ejercicios?.map(sbe => (
                     <EjercicioSimpleDisplay
                         key={sbe.id}
                         sbe={sbe}
                         subbloqueId={subbloque.id}
-                        {...props} // Pasa el resto de las props
+                        {...props}
                     />
                 ))}
 
                 {subbloque.tipo === 'superset' && (
                     <SupersetDisplay
-                        // key={subbloque.id} // El key ya está en el map que llama a SubBloqueDisplay
-                        subbloque={subbloque} // Pasa el subbloque completo
-                        {...props} // Pasa el resto de las props
+                        subbloque={subbloque}
+                        {...props}
                     />
                 )}
             </div>

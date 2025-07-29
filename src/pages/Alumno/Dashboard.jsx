@@ -2,131 +2,194 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { FaDumbbell, FaUtensils, FaEnvelope, FaUserCircle } from 'react-icons/fa';
-import UserMenu from '../../components/UserMenu'; // Importa el componente UserMenu
+import { FaDumbbell, FaUtensils, FaEnvelope, FaUserCircle, FaPlayCircle, FaCheckCircle, FaArrowRight } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+
+const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 const Dashboard = () => {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
     const [nombre, setNombre] = useState('');
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [rutinas, setRutinas] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const todayIndex = (new Date().getDay() + 6) % 7;
 
     useEffect(() => {
-        const fetchPerfil = async () => {
-            if (!user?.id) return;
+        if (!user?.id) {
+            setLoading(false);
+            return;
+        }
 
-            const { data, error } = await supabase
+        const fetchPerfilYRutinas = async () => {
+            setLoading(true);
+
+            // Fetch perfil
+            const { data: perfilData, error: perfilError } = await supabase
                 .from('perfiles')
                 .select('nombre')
                 .eq('id', user.id)
                 .single();
 
-            if (error) {
-                console.error('Error al obtener perfil:', error.message);
-            } else {
-                setNombre(data?.nombre || 'Usuario');
+            if (perfilError) console.error('Error al obtener perfil:', perfilError.message);
+            else setNombre(perfilData?.nombre || 'Usuario');
+
+            // Fetch rutinas
+            const { data: asignaciones, error: errorAsignaciones } = await supabase
+                .from('asignaciones')
+                .select('dia_semana, rutina_personalizada_id, rutinas_personalizadas ( nombre ), rutina_base_id, rutinas_base ( nombre )')
+                .eq('alumno_id', user.id);
+
+            if (errorAsignaciones) {
+                console.error('Error al cargar asignaciones:', errorAsignaciones);
+                setRutinas([]);
+                setLoading(false);
+                return;
             }
+
+            const hoy = new Date();
+            const inicioDelDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).toISOString();
+            const finDelDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 1).toISOString();
+
+            const { data: sesionesCompletadas, error: errorSesiones } = await supabase
+                .from('sesiones_entrenamiento')
+                .select('rutina_personalizada_id, rutina_base_id')
+                .eq('alumno_id', user.id)
+                .gte('created_at', inicioDelDia)
+                .lt('created_at', finDelDia);
+
+            if (errorSesiones) console.error('Error al verificar sesiones completadas:', errorSesiones);
+
+            const idsCompletados = new Set();
+            sesionesCompletadas?.forEach(sesion => {
+                if (sesion.rutina_personalizada_id) idsCompletados.add(sesion.rutina_personalizada_id);
+                if (sesion.rutina_base_id) idsCompletados.add(sesion.rutina_base_id);
+            });
+
+            const formateadas = asignaciones
+                .map((a) => {
+                    const esPersonalizada = !!a.rutina_personalizada_id;
+                    const rutinaId = esPersonalizada ? a.rutina_personalizada_id : a.rutina_base_id;
+                    const nombre = esPersonalizada ? a.rutinas_personalizadas?.nombre : a.rutinas_base?.nombre;
+                    const tipo = esPersonalizada ? 'personalizada' : 'base';
+                    return {
+                        dia: a.dia_semana,
+                        rutinaId,
+                        nombre: nombre || 'Rutina Asignada',
+                        tipo,
+                        isCompleted: idsCompletados.has(rutinaId)
+                    };
+                })
+                .sort((a, b) => a.dia - b.dia);
+
+            setRutinas(formateadas);
+            setLoading(false);
         };
 
-        fetchPerfil();
+        fetchPerfilYRutinas();
     }, [user]);
 
-    const handleLogout = async () => {
-        await logout();
-        navigate('/login');
-    };
+    const iniciarRutina = (rutina) => {
+        navigate(`/rutina/${rutina.rutinaId}/orden`, {
+            state: { tipo: rutina.tipo, startTimer: true }
+        });
+    }
 
-    const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+    const rutinaHoy = rutinas.find(r => r.dia === todayIndex);
+    const proximasRutinas = rutinas.filter(r => r.dia !== todayIndex);
 
-    const menuOptions = [
-        {
-            title: "Mis Rutinas",
-            description: "Consulta tu plan de entrenamiento semanal.",
-            icon: <FaDumbbell className="text-3xl text-white" />,
-            path: "/dashboard/rutinas",
-            color: "from-blue-500 to-indigo-600",
-        },
-        {
-            title: "Mi Dieta",
-            description: "Accede a tu plan de nutrición y comidas.",
-            icon: <FaUtensils className="text-3xl text-white" />,
-            path: "/dashboard/dieta",
-            color: "from-green-500 to-teal-600",
-        },
-        {
-            title: "Mensajes",
-            description: "Comunícate con tu entrenador.",
-            icon: <FaEnvelope className="text-3xl text-white" />,
-            path: "/dashboard/mensajes",
-            color: "from-orange-500 to-red-600",
-        },
-    ];
+    const Card = ({ children, className }) => (
+        <div className={`bg-gray-800 rounded-2xl p-6 shadow-lg ${className}`}>
+            {children}
+        </div>
+    );
 
     return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white font-inter">
-            {/* Header */}
-            <header className="w-full bg-gray-900 shadow-md sticky top-0 z-50">
-                <div className="max-w-screen-xl mx-auto flex justify-between items-center px-4 py-3 sm:px-6">
-                    <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-white">
-                            Panel Principal
-                        </h1>
-                        <p className="text-xs sm:text-sm text-gray-400">
-                            Bienvenido, {nombre}
-                        </p>
-                    </div>
-                    <div className="relative">
-                        <button
-                            onClick={toggleMenu}
-                            className="p-2 rounded-full hover:bg-gray-700 transition-colors"
-                        >
-                            <FaUserCircle className="text-2xl sm:text-3xl text-white" />
-                        </button>
-                        {isMenuOpen && (
-                            <UserMenu
-                                onLogout={handleLogout}
-                                onEditProfile={() => {
-                                    navigate('/alumno/perfil');
-                                    setIsMenuOpen(false);
-                                }}
-                                onClose={() => setIsMenuOpen(false)}
-                            />
-                        )}
-                    </div>
-                </div>
+        <div className="p-4 pb-24 font-sans">
+            <header className="mb-8">
+                <p className="text-gray-400 text-lg">Hola de nuevo,</p>
+                <h1 className="text-3xl font-bold text-white">{nombre}</h1>
             </header>
 
-            {/* Tarjetas */}
-            <main className="flex-grow max-w-screen-xl mx-auto p-4 sm:p-6 w-full">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {menuOptions.map((option) => (
-                        <button
-                            key={option.title}
-                            onClick={() => navigate(option.path)}
-                            className={`relative w-full p-5 rounded-xl text-white overflow-hidden group transition-all duration-300 ease-in-out hover:shadow-lg hover:scale-105 active:scale-95 bg-gradient-to-br ${option.color} shadow-md`}
-                        >
-                            <div className="relative z-10 flex flex-col items-start h-full">
-                                <div className="mb-3 p-2.5 bg-white/25 rounded-lg">
-                                    {option.icon}
-                                </div>
-                                <h3 className="text-lg sm:text-xl font-semibold">{option.title}</h3>
-                                <p className="text-xs sm:text-sm text-white/80 mt-1 mb-3">{option.description}</p>
-                                <span className="mt-auto text-xs sm:text-sm font-medium group-hover:underline">
-                                    Acceder →
-                                </span>
-                            </div>
-                            <div className="absolute top-0 right-0 -mt-8 -mr-8 text-white/10 transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110">
-                                <div className="text-8xl sm:text-9xl">{option.icon}</div>
-                            </div>
-                        </button>
-                    ))}
+            {loading ? (
+                <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
                 </div>
-            </main>
+            ) : (
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                    <h2 className="text-xl font-semibold text-white mb-4">Tu rutina de hoy</h2>
+                    {rutinaHoy ? (
+                        <Card className={`border-2 ${rutinaHoy.isCompleted ? 'border-green-500' : 'border-cyan-400'}`}>
+                            <div className="flex flex-col justify-between h-full">
+                                <div>
+                                    <p className="font-bold text-sm text-gray-400 uppercase tracking-wider">{diasSemana[rutinaHoy.dia]}</p>
+                                    <h3 className="text-2xl font-bold text-white mt-1">{rutinaHoy.nombre}</h3>
+                                </div>
+                                {rutinaHoy.isCompleted ? (
+                                    <div className="mt-6 flex items-center gap-3 text-green-400 font-bold py-3 px-5 rounded-full bg-gray-700">
+                                        <FaCheckCircle className="text-2xl" />
+                                        <span>Entrenamiento Completado</span>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => iniciarRutina(rutinaHoy)}
+                                        className="mt-6 w-full flex items-center justify-center gap-3 bg-cyan-400 text-gray-900 font-bold py-3 px-5 rounded-full shadow-lg hover:bg-cyan-300 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-cyan-400/50"
+                                    >
+                                        <FaPlayCircle className="text-xl" />
+                                        <span>Iniciar Entrenamiento</span>
+                                    </button>
+                                )}
+                            </div>
+                        </Card>
+                    ) : (
+                        <Card>
+                            <p className="text-gray-300">No tienes ninguna rutina para hoy. ¡Día de descanso!</p>
+                        </Card>
+                    )}
 
-            {/* Footer (opcional, para dar sensación de app móvil) */}
-            <footer className="w-full bg-gray-900 py-3 text-center text-xs text-gray-500 shadow-md">
-                © {new Date().getFullYear()} DTE App. Todos los derechos reservados.
-            </footer>
+                    {proximasRutinas.length > 0 && (
+                        <div className="mt-10">
+                            <h3 className="text-xl font-semibold text-white mb-4">Próximos entrenamientos</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {proximasRutinas.map(rutina => (
+                                    <Card key={rutina.dia} className="flex justify-between items-center hover:bg-gray-700 transition-colors duration-200 cursor-pointer" onClick={() => iniciarRutina(rutina)}>
+                                        <div>
+                                            <p className="text-sm text-gray-400 font-medium">{diasSemana[rutina.dia]}</p>
+                                            <p className="font-semibold text-lg text-white mt-1">{rutina.nombre}</p>
+                                        </div>
+                                        <FaArrowRight className="text-gray-500" />
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="mt-10">
+                         <h3 className="text-xl font-semibold text-white mb-4">Más opciones</h3>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Card className="flex items-center gap-4 hover:bg-gray-700 transition-colors duration-200">
+                                <div className="p-3 bg-green-500/20 rounded-lg">
+                                    <FaUtensils className="text-2xl text-green-400" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-lg text-white">Mi Dieta</h4>
+                                    <p className="text-sm text-gray-400">Accede a tu plan de nutrición.</p>
+                                </div>
+                            </Card>
+                             <Card className="flex items-center gap-4 hover:bg-gray-700 transition-colors duration-200">
+                                <div className="p-3 bg-red-500/20 rounded-lg">
+                                    <FaEnvelope className="text-2xl text-red-400" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-lg text-white">Mensajes</h4>
+                                    <p className="text-sm text-gray-400">Habla con tu entrenador.</p>
+                                </div>
+                            </Card>
+                         </div>
+                    </div>
+                </motion.div>
+            )}
         </div>
     );
 };

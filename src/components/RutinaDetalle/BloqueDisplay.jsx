@@ -1,10 +1,9 @@
 import React from 'react';
 import SubBloqueDisplay from './SubBloqueDisplay';
 
-const BloqueDisplay = (props) => { // Passthrough de todas las props necesarias
+const BloqueDisplay = (props) => {
     const { bloque } = props;
 
-    // Función de ordenamiento de sub-bloques (puede ser pasada como prop si es más compleja o varía)
     const sortSubBloques = (a, b) => {
         const prioridad = (nombre = "") => {
             nombre = nombre.toLowerCase();
@@ -18,18 +17,21 @@ const BloqueDisplay = (props) => { // Passthrough de todas las props necesarias
     };
 
     return (
-        <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-3 sm:p-4 shadow-lg space-y-3 sm:space-y-4">
-            <h2 className="text-lg sm:text-xl font-semibold text-sky-400">Bloque {bloque.orden + 1}</h2>
-
-            {[...(bloque.subbloques ?? [])]
-                .sort(sortSubBloques)
-                .map(subbloque => (
-                    <SubBloqueDisplay
-                        key={subbloque.id}
-                        subbloque={subbloque}
-                        {...props} // Pasa todas las props hacia abajo
-                    />
-                ))}
+        <div className="bg-gray-800/60 border border-gray-700 rounded-2xl p-4 shadow-md">
+            <h2 className="text-lg font-bold text-cyan-300 mb-4">Bloque {bloque.orden + 1}</h2>
+            <div className="relative space-y-4">
+                 {/* Línea de tiempo visual */}
+                <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-gray-700"></div>
+                {[...(bloque.subbloques ?? [])]
+                    .sort(sortSubBloques)
+                    .map(subbloque => (
+                        <SubBloqueDisplay
+                            key={subbloque.id}
+                            subbloque={subbloque}
+                            {...props}
+                        />
+                    ))}
+            </div>
         </div>
     );
 };
