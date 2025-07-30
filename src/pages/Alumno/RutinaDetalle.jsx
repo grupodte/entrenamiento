@@ -22,6 +22,17 @@ const RutinaDetalle = () => {
     const [currentTimerOriginId, setCurrentTimerOriginId] = useState(null);
     const [elementoActivoId, setElementoActivoId] = useState(null);
     const elementoRefs = useRef({});
+    const timerActiveRef = useRef(false);
+
+    const verificarSupersetCompletado = useCallback((subbloqueId, numSerieSuperset, estadoActual, elementoActual) => {
+        const sb = rutina?.bloques.flatMap(b => b.subbloques).find(s => s.id.toString() === subbloqueId.toString());
+        if (!sb) return false;
+        const estadoTemporal = { ...estadoActual, [elementoActual]: true };
+        return sb.subbloques_ejercicios.every(sbe_c => {
+            const elementoId = generarIdEjercicioEnSerieDeSuperset(subbloqueId, sbe_c.id, numSerieSuperset);
+            return estadoTemporal[elementoId];
+        });
+    }, [rutina]);
 
     const searchParams = new URLSearchParams(location.search);
     const tipo = searchParams.get("tipo") || "base";
@@ -54,7 +65,17 @@ const RutinaDetalle = () => {
         const fetchRutina = async () => {
             setLoading(true);
             let res;
-            const selectQuery = `id, nombre, descripcion, bloques (id, orden, subbloques (id, orden, nombre, tipo, num_series_superset, pausa_entre_series_superset, subbloques_ejercicios (id, orden_en_subbloque, ejercicio: ejercicios ( nombre ), series: series_subejercicio (id, nro_set, reps, pausa))))`;
+            const selectQuery = `
+            id, nombre, descripcion,
+            bloques (id, orden,
+                subbloques (id, orden, nombre, tipo,
+                    subbloques_ejercicios (id, 
+                        ejercicio: ejercicios ( nombre ),
+                        series: series_subejercicio (id, nro_set, reps, pausa)
+                    )
+                )
+            )
+          `;
             if (tipo === "personalizada") res = await supabase.from("rutinas_personalizadas").select(selectQuery).eq("id", id).single();
             else res = await supabase.from("rutinas_base").select(selectQuery).eq("id", id).single();
 
@@ -69,10 +90,18 @@ const RutinaDetalle = () => {
                     ...data,
                     bloques: data.bloques?.map(b => ({
                         ...b,
-                        subbloques: b.subbloques?.map(sb => ({
-                            ...sb,
-                            subbloques_ejercicios: sb.subbloques_ejercicios?.sort((a, b) => a.orden_en_subbloque - b.orden_en_subbloque) || []
-                        })) || []
+                        subbloques: b.subbloques?.map(sb => {
+                            let num_s_ss = 1;
+                            if (sb.tipo === "superset" && sb.subbloques_ejercicios?.length > 0) {
+                                const maxSets = Math.max(...sb.subbloques_ejercicios.map(sbe => sbe.series?.length || 0));
+                                num_s_ss = maxSets > 0 ? maxSets : 1;
+                            }
+                            return {
+                                ...sb, 
+                                num_series_superset: num_s_ss,
+                                subbloques_ejercicios: sb.subbloques_ejercicios || []
+                            };
+                        }) || []
                     })) || []
                 };
                 setRutina(processedData);
@@ -122,6 +151,7 @@ const RutinaDetalle = () => {
 
     const handleRestTimerFinish = useCallback(() => {
         setShowRestTimer(false);
+        timerActiveRef.current = false;
         const siguienteElemento = obtenerSiguienteElementoInfo(currentTimerOriginId);
         if (siguienteElemento && siguienteElemento.id) {
             setElementoActivoId(siguienteElemento.id);
@@ -132,14 +162,18 @@ const RutinaDetalle = () => {
     }, [currentTimerOriginId, obtenerSiguienteElementoInfo]);
 
     const activarTemporizadorPausa = useCallback((duracion, originId) => {
-        if (duracion > 0) {
+        if (duracion > 0 && !timerActiveRef.current) {
             const siguienteDelQuePausa = obtenerSiguienteElementoInfo(originId);
             const nombreSiguiente = siguienteDelQuePausa ? siguienteDelQuePausa.nombre : "¡Rutina Completada!";
 
+            console.log('Activando timer:', duracion, 'segundos, siguiente:', nombreSiguiente);
+            timerActiveRef.current = true;
             setTimerDuration(duracion);
             setNextExerciseName(nombreSiguiente);
             setCurrentTimerOriginId(originId);
             setShowRestTimer(true);
+        } else if (duracion > 0 && timerActiveRef.current) {
+            console.log('Timer ya activo, ignorando nueva activación');
         }
     }, [obtenerSiguienteElementoInfo]);
 
@@ -153,15 +187,39 @@ const RutinaDetalle = () => {
                 if (detalles.tipoElemento === 'simple' && detalles.pausa) {
                     pausaDuracion = detalles.pausa;
                 } else if (detalles.tipoElemento === 'superset_ejercicio') {
-                    const sb = rutina?.bloques.flatMap(b => b.subbloques).find(s => s.id.toString() === detalles.subbloqueId.toString());
-                    if (sb?.subbloques_ejercicios.every(sbe_c => nState[generarIdEjercicioEnSerieDeSuperset(detalles.subbloqueId, sbe_c.id, detalles.numSerieSupersetActual)])) {
-                        if (sb.pausa_entre_series_superset && detalles.numSerieSupersetActual < sb.num_series_superset) {
-                            pausaDuracion = sb.pausa_entre_series_superset;
+                    console.log('=== PROCESANDO SUPERSET ===');
+                    console.log('Elemento actual:', elementoId);
+                    console.log('Detalles:', detalles);
+                    console.log('Estado anterior:', prev);
+
+                    const todosCompletados = verificarSupersetCompletado(
+                        detalles.subbloqueId,
+                        detalles.numSerieSupersetActual,
+                        prev,
+                        elementoId
+                    );
+
+                    if (todosCompletados) {
+                        const sb = rutina?.bloques.flatMap(b => b.subbloques).find(s => s.id.toString() === detalles.subbloqueId.toString());
+                        const primeraSerieDelPrimerEjercicio = sb.subbloques_ejercicios[0]?.series?.[0];
+                        let pausaFinal = primeraSerieDelPrimerEjercicio?.pausa ?? 30; // valor por defecto 30s si no hay configurado
+
+                        console.log('Primera serie del primer ejercicio:', primeraSerieDelPrimerEjercicio);
+                        console.log('Serie actual:', detalles.numSerieSupersetActual, 'de', sb.num_series_superset);
+                        console.log('Pausa final decidida:', pausaFinal);
+
+                        if (pausaFinal > 0) {
+                            pausaDuracion = pausaFinal;
+                            console.log('✅ Superset completado, pausa activada:', pausaDuracion, 'segundos');
+                        } else {
+                            console.log('❌ No hay pausa configurada para activar');
                         }
+                    } else {
+                        console.log('❌ No todos los ejercicios del superset están completados');
                     }
                 }
 
-                if (pausaDuracion > 0 && !showRestTimer) {
+                if (pausaDuracion > 0) {
                     activarTemporizadorPausa(pausaDuracion, elementoId);
                 } else {
                     const siguienteElemento = obtenerSiguienteElementoInfo(elementoId);
@@ -176,16 +234,7 @@ const RutinaDetalle = () => {
             }
             return nState;
         });
-    }, [rutina, activarTemporizadorPausa, showRestTimer, obtenerSiguienteElementoInfo]);
-
-    const handleComenzarSiguiente = () => {
-        const primerNoCompletado = orderedInteractiveElementIds.find(id => !elementosCompletados[id]);
-        if (primerNoCompletado) {
-            setElementoActivoId(primerNoCompletado);
-        } else if (orderedInteractiveElementIds.length > 0) {
-            setElementoActivoId(orderedInteractiveElementIds[0]);
-        }
-    };
+    }, [rutina, activarTemporizadorPausa, obtenerSiguienteElementoInfo, verificarSupersetCompletado]);
 
     const finalizarEntrenamiento = async () => {
         // Lógica para guardar en Supabase
@@ -241,16 +290,7 @@ const RutinaDetalle = () => {
                 )}
             </AnimatePresence>
 
-            {!todosCompletados && (
-                <div className="fixed bottom-0 left-0 right-0 p-4 pb-safe-bottom bg-gray-900/80 backdrop-blur-lg border-t border-gray-800 z-20">
-                    <button 
-                        onClick={handleComenzarSiguiente}
-                        className="w-full flex items-center justify-center gap-3 bg-cyan-400 text-gray-900 font-bold py-4 px-5 rounded-full shadow-lg hover:bg-cyan-300 transition-all duration-300 transform hover:scale-105"
-                    >
-                        {elementoActivoId ? <><FaPlay/> Siguiente Ejercicio</> : <><FaPlay/> Comenzar Entrenamiento</>}
-                    </button>
-                </div>
-            )}
+            
         </div>
     );
 };

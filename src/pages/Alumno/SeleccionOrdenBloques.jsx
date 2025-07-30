@@ -1,9 +1,9 @@
-// src/pages/Alumno/SeleccionOrdenBloques.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
-import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaCalendarAlt } from 'react-icons/fa';
 import BrandedLoader from '../../components/BrandedLoader';
+import { motion } from 'framer-motion';
 
 const SeleccionOrdenBloques = () => {
     const { id: rutinaId } = useParams();
@@ -12,6 +12,7 @@ const SeleccionOrdenBloques = () => {
     const { tipo } = location.state || {};
 
     const [bloques, setBloques] = useState([]);
+    const [rutinaNombre, setRutinaNombre] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -22,19 +23,27 @@ const SeleccionOrdenBloques = () => {
             return;
         }
 
-        const fetchBloques = async () => {
+        const fetchDatos = async () => {
             setLoading(true);
             setError(null);
 
+            // Fetch nombre de la rutina
+            const fromTable = tipo === 'base' ? 'rutinas_base' : 'rutinas_personalizadas';
+            const { data: rutinaData, error: rutinaError } = await supabase
+                .from(fromTable)
+                .select('nombre')
+                .eq('id', rutinaId)
+                .single();
+            
+            if (rutinaError) console.error("Error fetching rutina nombre:", rutinaError);
+            else setRutinaNombre(rutinaData?.nombre || 'Rutina');
+
+            // Fetch bloques
             let query = supabase.from('bloques');
             if (tipo === 'base') {
                 query = query.select('id, nombre, orden, semana_inicio, semana_fin').eq('rutina_base_id', rutinaId);
-            } else if (tipo === 'personalizada') {
-                query = query.select('id, nombre, orden, semana_inicio, semana_fin').eq('rutina_personalizada_id', rutinaId);
             } else {
-                setError("Tipo de rutina no válido.");
-                setLoading(false);
-                return;
+                query = query.select('id, nombre, orden, semana_inicio, semana_fin').eq('rutina_personalizada_id', rutinaId);
             }
 
             const { data, error: dbError } = await query.order('orden', { ascending: true });
@@ -56,7 +65,7 @@ const SeleccionOrdenBloques = () => {
             setLoading(false);
         };
 
-        fetchBloques();
+        fetchDatos();
     }, [rutinaId, tipo]);
 
     const handleElegirBloque = (bloqueId) => {
@@ -64,72 +73,72 @@ const SeleccionOrdenBloques = () => {
     };
 
     if (loading) return <BrandedLoader />;
-    if (error) {
-        return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-                <p className="text-red-500 text-xl">{error}</p>
-                <button
-                    onClick={() => navigate(-1)}
-                    className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center"
-                >
-                    <FaArrowLeft className="mr-2" /> Volver
-                </button>
-            </div>
-        );
-    }
+    
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
 
-    if (bloques.length === 0) {
-        return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4 text-center">
-                <p className="text-gray-700 text-xl mb-4">Esta rutina no tiene bloques definidos.</p>
-                <button
-                    onClick={() => navigate(-1)}
-                    className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 mt-4 flex items-center"
-                >
-                    <FaArrowLeft className="mr-2" /> Volver
-                </button>
-            </div>
-        );
-    }
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: { y: 0, opacity: 1 }
+    };
 
     return (
-        <div className="min-h-screen bg-gray-100 font-inter pb-20">
-            <header className="bg-white shadow-sm sticky top-0 z-10">
-                <div className="max-w-3xl mx-auto flex items-center justify-between p-4">
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="text-indigo-600 hover:text-indigo-800 flex items-center"
-                    >
-                        <FaArrowLeft className="mr-2" /> Volver
-                    </button>
-                    <h1 className="text-xl font-bold text-gray-800">Elegir Mes de Entrenamiento</h1>
-                    <div style={{ width: '60px' }}></div>
+        <div className="min-h-screen bg-gray-900 text-white font-sans">
+             <header className="sticky top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-4 flex items-center gap-4 border-b border-gray-800">
+                <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
+                    <FaArrowLeft />
+                </Link>
+                <div>
+                    <h1 className="text-xl font-bold text-white">{rutinaNombre}</h1>
+                    <p className="text-sm text-gray-400">Selecciona un bloque</p>
                 </div>
             </header>
 
-            <main className="max-w-3xl mx-auto p-6">
-                <p className="text-gray-600 mb-6 text-center">
-                    Selecciona con qué mes/semana querés empezar tu rutina:
-                </p>
-
-                <div className="space-y-4">
-                    {bloques.map((bloque) => (
-                        <div
-                            key={bloque.id}
-                            className="flex justify-between items-center bg-white shadow rounded-lg p-4 border"
-                        >
-                            <span className="text-lg font-semibold text-gray-700">
-                                {bloque.nombre}
-                            </span>
-                            <button
-                                onClick={() => handleElegirBloque(bloque.id)}
-                                className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-                            >
-                                Iniciar <FaArrowRight className="ml-2" />
-                            </button>
-                        </div>
-                    ))}
-                </div>
+            <main className="p-4 pb-24">
+                {error ? (
+                    <div className="text-center p-6 bg-red-900/50 rounded-lg">
+                        <p className="text-red-300">{error}</p>
+                    </div>
+                ) : bloques.length === 0 ? (
+                    <div className="text-center p-6 bg-gray-800 rounded-lg">
+                        <p className="text-gray-300">Esta rutina no tiene bloques definidos.</p>
+                    </div>
+                ) : (
+                    <motion.div 
+                        className="space-y-4"
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        {bloques.map((bloque) => (
+                            <motion.div key={bloque.id} variants={itemVariants}>
+                                <div
+                                    className="flex justify-between items-center bg-gray-800 shadow-lg rounded-xl p-5 border border-gray-700 hover:border-cyan-400 transition-colors duration-300"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <FaCalendarAlt className="text-cyan-300 text-xl"/>
+                                        <span className="text-lg font-semibold text-white">
+                                            {bloque.nombre}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => handleElegirBloque(bloque.id)}
+                                        className="flex items-center bg-cyan-500 text-gray-900 font-bold px-4 py-2 rounded-lg hover:bg-cyan-400 transition-transform transform hover:scale-105"
+                                    >
+                                        Iniciar <FaArrowRight className="ml-2" />
+                                    </button>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                )}
             </main>
         </div>
     );
