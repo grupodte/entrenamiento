@@ -97,7 +97,7 @@ const Dashboard = () => {
     );
 
     return (
-        <div className="p-4 pb-24 font-sans">
+        <div className="font-sans">
             <header className="mb-8">
                 <p className="text-gray-400 text-lg">{getSaludo()}</p>
                 <h1 className="text-3xl font-bold text-white">{nombre}</h1>
