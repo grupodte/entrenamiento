@@ -68,8 +68,7 @@ const AdminLayoutInternal = () => {
                     relative
                     z-10
                     flex
-                   h-screen
-                    overflow-y-scroll
+                    flex-1
                     overscroll-contain
                     pt-safe
                     pb-safe

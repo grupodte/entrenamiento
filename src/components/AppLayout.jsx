@@ -13,7 +13,7 @@ const AppLayout = () => {
     }, []);
 
     return (
-        <div className="            h-full flex flex-col">
+        <div className="min-h-screen flex flex-col overflow-hidden">
            
 
             <main className="flex-1 overflow-y-auto">

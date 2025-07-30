@@ -27,7 +27,7 @@ const AlumnoLayout = () => {
       <AnimatePresence mode="wait" initial={false}>
         <motion.main
           key={location.pathname}
-          className="pb-24 pt-safe px-4 sm:px-6 lg:px-8"
+          className="flex-1 overflow-y-auto pb-24 pt-safe px-4 sm:px-6 lg:px-8"
           variants={pageVariants}
           initial="initial"
           animate="animate"
