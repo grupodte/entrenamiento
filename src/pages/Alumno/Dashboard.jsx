@@ -1,5 +1,5 @@
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { FaDumbbell, FaUtensils, FaEnvelope, FaUserCircle, FaPlayCircle, FaCheckCircle, FaArrowRight, FaChevronDown } from 'react-icons/fa';
@@ -98,99 +98,98 @@ const Dashboard = () => {
 
     return (
         <div className="font-sans">
-            <header className="mb-8">
-                <p className="text-gray-400 text-lg">{getSaludo()}</p>
-                <h1 className="text-3xl font-bold text-white">{nombre}</h1>
-            </header>
+            
 
-            {loading ? (
-                <div className="flex justify-center items-center h-64">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
-                </div>
-            ) : (
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                    <h2 className="text-xl font-semibold text-white mb-4">Tu rutina de hoy</h2>
-                    {rutinaHoy ? (
-                        <Card className={`border-2 ${rutinaHoy.isCompleted ? 'border-green-500' : 'border-cyan-400'}`}>
-                            <div className="flex flex-col justify-between h-full">
-                                <div>
-                                    <p className="font-bold text-sm text-gray-400 uppercase tracking-wider">{diasSemana[rutinaHoy.dia]}</p>
-                                    <h3 className="text-2xl font-bold text-white mt-1">{rutinaHoy.nombre}</h3>
-                                </div>
-                                {rutinaHoy.isCompleted ? (
-                                    <div className="mt-6 flex items-center gap-3 text-green-400 font-bold py-3 px-5 rounded-full bg-gray-700">
-                                        <FaCheckCircle className="text-2xl" />
-                                        <span>Entrenamiento Completado</span>
+            <main className="pt-safe">
+                {loading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
+                    </div>
+                ) : (
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="p-4">
+                        <h2 className="text-xl font-semibold text-white mb-4">Tu rutina de hoy</h2>
+                        {rutinaHoy ? (
+                            <Card className={`border-2 ${rutinaHoy.isCompleted ? 'border-green-500' : 'border-cyan-400'}`}>
+                                <div className="flex flex-col justify-between h-full">
+                                    <div>
+                                        <p className="font-bold text-sm text-gray-400 uppercase tracking-wider">{diasSemana[rutinaHoy.dia]}</p>
+                                        <h3 className="text-2xl font-bold text-white mt-1">{rutinaHoy.nombre}</h3>
                                     </div>
-                                ) : (
-                                    <button
-                                        onClick={() => iniciarRutina(rutinaHoy)}
-                                        className="mt-6 w-full flex items-center justify-center gap-3 bg-cyan-400 text-gray-900 font-bold py-3 px-5 rounded-full shadow-lg hover:bg-cyan-300 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-cyan-400/50"
-                                    >
-                                        <FaPlayCircle className="text-xl" />
-                                        <span>Iniciar Entrenamiento</span>
+                                    {rutinaHoy.isCompleted ? (
+                                        <div className="mt-6 flex items-center gap-3 text-green-400 font-bold py-3 px-5 rounded-full bg-gray-700">
+                                            <FaCheckCircle className="text-2xl" />
+                                            <span>Entrenamiento Completado</span>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => iniciarRutina(rutinaHoy)}
+                                            className="mt-6 w-full flex items-center justify-center gap-3 bg-cyan-400 text-gray-900 font-bold py-3 px-5 rounded-full shadow-lg hover:bg-cyan-300 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-cyan-400/50"
+                                        >
+                                            <FaPlayCircle className="text-xl" />
+                                            <span>Iniciar Entrenamiento</span>
+                                        </button>
+                                    )}
+                                </div>
+                            </Card>
+                        ) : (
+                            <Card>
+                                <p className="text-gray-300">No tienes ninguna rutina para hoy. ¡Día de descanso!</p>
+                            </Card>
+                        )}
+
+                        {proximasRutinas.length > 0 && (
+                            <div className="mt-10">
+                                <h3 className="text-xl font-semibold text-white mb-4">Próximos entrenamientos</h3>
+                                <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <AnimatePresence>
+                                        {rutinasVisibles.map(rutina => (
+                                            <motion.div key={rutina.dia} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                                <Card className="flex justify-between items-center hover:bg-gray-700 transition-colors duration-200 cursor-pointer" onClick={() => iniciarRutina(rutina)}>
+                                                    <div>
+                                                        <p className="text-sm text-gray-400 font-medium">{diasSemana[rutina.dia]}</p>
+                                                        <p className="font-semibold text-lg text-white mt-1">{rutina.nombre}</p>
+                                                    </div>
+                                                    <FaArrowRight className="text-gray-500" />
+                                                </Card>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                </motion.div>
+                                {proximasRutinas.length > 2 && (
+                                    <button onClick={() => setMostrarTodas(!mostrarTodas)} className="w-full mt-4 flex items-center justify-center gap-2 text-cyan-300 font-semibold hover:text-cyan-200 transition-colors">
+                                        {mostrarTodas ? 'Mostrar menos' : 'Mostrar todos'}
+                                        <motion.div animate={{ rotate: mostrarTodas ? 180 : 0 }}><FaChevronDown /></motion.div>
                                     </button>
                                 )}
                             </div>
-                        </Card>
-                    ) : (
-                        <Card>
-                            <p className="text-gray-300">No tienes ninguna rutina para hoy. ¡Día de descanso!</p>
-                        </Card>
-                    )}
+                        )}
 
-                    {proximasRutinas.length > 0 && (
                         <div className="mt-10">
-                            <h3 className="text-xl font-semibold text-white mb-4">Próximos entrenamientos</h3>
-                            <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <AnimatePresence>
-                                    {rutinasVisibles.map(rutina => (
-                                        <motion.div key={rutina.dia} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                            <Card className="flex justify-between items-center hover:bg-gray-700 transition-colors duration-200 cursor-pointer" onClick={() => iniciarRutina(rutina)}>
-                                                <div>
-                                                    <p className="text-sm text-gray-400 font-medium">{diasSemana[rutina.dia]}</p>
-                                                    <p className="font-semibold text-lg text-white mt-1">{rutina.nombre}</p>
-                                                </div>
-                                                <FaArrowRight className="text-gray-500" />
-                                            </Card>
-                                        </motion.div>
-                                    ))}
-                                </AnimatePresence>
-                            </motion.div>
-                            {proximasRutinas.length > 2 && (
-                                <button onClick={() => setMostrarTodas(!mostrarTodas)} className="w-full mt-4 flex items-center justify-center gap-2 text-cyan-300 font-semibold hover:text-cyan-200 transition-colors">
-                                    {mostrarTodas ? 'Mostrar menos' : 'Mostrar todos'}
-                                    <motion.div animate={{ rotate: mostrarTodas ? 180 : 0 }}><FaChevronDown /></motion.div>
-                                </button>
-                            )}
+                            <h3 className="text-xl font-semibold text-white mb-4">Más opciones</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Card className="flex items-center gap-4 hover:bg-gray-700 transition-colors duration-200 cursor-not-allowed opacity-50">
+                                    <div className="p-3 bg-green-500/20 rounded-lg">
+                                        <FaUtensils className="text-2xl text-green-400" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-lg text-white">Mi Dieta</h4>
+                                        <p className="text-sm text-gray-400">Próximamente...</p>
+                                    </div>
+                                </Card>
+                                <Card className="flex items-center gap-4 hover:bg-gray-700 transition-colors duration-200 cursor-not-allowed opacity-50">
+                                    <div className="p-3 bg-red-500/20 rounded-lg">
+                                        <FaEnvelope className="text-2xl text-red-400" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-lg text-white">Mensajes</h4>
+                                        <p className="text-sm text-gray-400">Próximamente...</p>
+                                    </div>
+                                </Card>
+                            </div>
                         </div>
-                    )}
-
-                    <div className="mt-10">
-                         <h3 className="text-xl font-semibold text-white mb-4">Más opciones</h3>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Card className="flex items-center gap-4 hover:bg-gray-700 transition-colors duration-200 cursor-not-allowed opacity-50">
-                                <div className="p-3 bg-green-500/20 rounded-lg">
-                                    <FaUtensils className="text-2xl text-green-400" />
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold text-lg text-white">Mi Dieta</h4>
-                                    <p className="text-sm text-gray-400">Próximamente...</p>
-                                </div>
-                            </Card>
-                             <Card className="flex items-center gap-4 hover:bg-gray-700 transition-colors duration-200 cursor-not-allowed opacity-50">
-                                <div className="p-3 bg-red-500/20 rounded-lg">
-                                    <FaEnvelope className="text-2xl text-red-400" />
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold text-lg text-white">Mensajes</h4>
-                                    <p className="text-sm text-gray-400">Próximamente...</p>
-                                </div>
-                            </Card>
-                         </div>
-                    </div>
-                </motion.div>
-            )}
+                    </motion.div>
+                )}
+            </main>
         </div>
     );
 };
