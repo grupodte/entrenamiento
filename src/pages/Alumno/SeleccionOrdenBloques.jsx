@@ -101,7 +101,7 @@ const SeleccionOrdenBloques = () => {
                 </div>
             </header>
 
-            <main className="p-4 pb-24">
+            <main className="pt-safe pb-24">
                 {error ? (
                     <div className="text-center p-6 bg-red-900/50 rounded-lg">
                         <p className="text-red-300">{error}</p>

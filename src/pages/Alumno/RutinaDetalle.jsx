@@ -260,7 +260,7 @@ const RutinaDetalle = () => {
                 </div>
             </header>
 
-            <main className="p-4 pb-32 space-y-6">
+            <main className="pt-safe space-y-6">
                 {rutina.bloques?.map(bloque => (
                     <BloqueDisplay key={bloque.id} bloque={bloque} {...displayProps} />
                 ))}

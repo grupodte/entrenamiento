@@ -111,11 +111,15 @@ const PerfilPage = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col">
-            <header className="bg-gray-900 py-3 px-4 flex items-center shadow">
-                <button onClick={() => navigate(-1)} className="mr-3 hover:opacity-70"><FaArrowLeft /></button>
-                <h1 className="font-bold text-xl">Editar Perfil</h1>
+            <header className="sticky top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-4 flex items-center gap-4 border-b border-gray-800">
+                <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
+                    <FaArrowLeft />
+                </Link>
+                <div>
+                    <h1 className="text-xl font-bold text-white">Editar Perfil</h1>
+                </div>
             </header>
-            <main className="flex-grow p-4 max-w-xl mx-auto">
+            <main className="flex-grow max-w-xl mx-auto w-full pt-safe">
                 <form onSubmit={handleSubmit} className="space-y-4 bg-gray-800 rounded p-6 shadow">
                     <div className="flex flex-col items-center">
                         {preview ? <img src={preview} alt="avatar" className="w-24 h-24 rounded-full object-cover mb-2" /> : <FaUserCircle className="text-6xl mb-2 text-blue-400" />}
