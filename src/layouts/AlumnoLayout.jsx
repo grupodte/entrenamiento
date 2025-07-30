@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavBar from '../components/BottomNavBar';
 
 const pageVariants = {
-  initial: { opacity: 0, x: 20 },
-  animate: { opacity: 1, x: 0, transition: { duration: 0.3, ease: 'easeInOut' } },
-  exit: { opacity: 0, x: -20, transition: { duration: 0.3, ease: 'easeInOut' } }
+  initial: { opacity: 0, x: 50 }, // Más desplazamiento para una entrada más notoria
+  animate: { opacity: 1, x: 0, transition: { duration: 0.35, ease: 'easeOut' } }, // Duración ligeramente mayor, ease más rápido al final
+  exit: { opacity: 0, x: -50, transition: { duration: 0.35, ease: 'easeOut' } } // Más desplazamiento para una salida más notoria
 };
 
 const AlumnoLayout = () => {

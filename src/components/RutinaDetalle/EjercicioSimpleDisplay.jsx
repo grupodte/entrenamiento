@@ -6,9 +6,9 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, ...props }) => {
     const ejercicio = sbe.ejercicio;
 
     return (
-        <div className="bg-gray-800/50 p-3 rounded-lg">
-            <h4 className="font-semibold text-white mb-3 text-base">{ejercicio?.nombre || 'Ejercicio'}</h4>
-            <div className="space-y-2">
+        <div className="bg-gray-800/50 p-2.5 rounded-md">
+            <h4 className="font-semibold text-white mb-2 text-sm">{ejercicio?.nombre || 'Ejercicio'}</h4>
+            <div className="space-y-1.5">
                 {sbe.series?.map(serie => {
                     const serieId = generarIdSerieSimple(subbloqueId, sbe.id, serie.nro_set);
                     return (

@@ -6,7 +6,7 @@ import { FaCheckCircle } from 'react-icons/fa';
 const SupersetDisplay = ({ subbloque, ...props }) => {
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-2">
             {Array.from({ length: subbloque.num_series_superset || 1 }).map((_, setIndex) => {
                 const setNumeroSuperset = setIndex + 1;
                 const todosEjerciciosDeEstaSerieCompletados = subbloque.subbloques_ejercicios.every(sbe_c =>
@@ -16,14 +16,14 @@ const SupersetDisplay = ({ subbloque, ...props }) => {
                 return (
                     <div
                         key={`ss-${subbloque.id}-s${setNumeroSuperset}`}
-                        className={`p-3 rounded-lg transition-colors duration-300 ${
+                        className={`p-2.5 rounded-md transition-colors duration-300 ${
                             todosEjerciciosDeEstaSerieCompletados ? 'bg-green-800/50' : 'bg-gray-800/50'
                         }`}>
-                        <h5 className="font-semibold text-white mb-3 flex justify-between items-center text-base">
+                        <h5 className="font-semibold text-white mb-2 flex justify-between items-center text-sm">
                             <span>Superset - Serie {setNumeroSuperset}</span>
                             {todosEjerciciosDeEstaSerieCompletados && <FaCheckCircle className="text-green-400" />}
                         </h5>
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             {subbloque.subbloques_ejercicios.map((sbe, sbeIdx) => {
                                 const elementoId = generarIdEjercicioEnSerieDeSuperset(subbloque.id, sbe.id, setNumeroSuperset);
                                 const detalleSerieEjercicio = sbe.series?.find(s => s.nro_set === setNumeroSuperset) || sbe.series?.[0];

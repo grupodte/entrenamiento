@@ -21,6 +21,7 @@ import DashboardAlumno from './pages/Alumno/Dashboard';
 
 import RutinaDetalle from './pages/Alumno/RutinaDetalle';
 import PerfilAlumno from './pages/Alumno/Perfil';
+import EditarPerfilPage from './pages/Alumno/EditarPerfil';
 import SeleccionOrdenBloques from './pages/Alumno/SeleccionOrdenBloques';
 
 // --- PÁGINAS DE ADMIN ---
@@ -55,6 +56,7 @@ const AppContent = () => {
           <Route path="/rutina/:id" element={<RutinaDetalle />} />
           <Route path="/rutina/:id/orden" element={<SeleccionOrdenBloques />} />
           <Route path="/alumno/perfil" element={<PerfilAlumno />} />
+          <Route path="/alumno/editar-perfil" element={<EditarPerfilPage />} />
         </Route>
 
         {/* --- RUTAS PÚBLICAS --- */}

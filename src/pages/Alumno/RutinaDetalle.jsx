@@ -3,6 +3,7 @@ import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import RestTimer from "../../components/RestTimer";
 import BloqueDisplay from "../../components/RutinaDetalle/BloqueDisplay";
+import BrandedLoader from "../../components/BrandedLoader";
 import { generarIdSerieSimple, generarIdEjercicioEnSerieDeSuperset } from '../../utils/rutinaIds';
 import { FaArrowLeft, FaCheck, FaPlay } from "react-icons/fa";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -241,7 +242,7 @@ const RutinaDetalle = () => {
         navigate('/dashboard'); // Redirigir
     };
 
-    if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-200 px-4 text-center">Cargando tu rutina...</div>;
+    if (loading) return <BrandedLoader />;
     if (!rutina) return <div className="p-6 text-white text-center">No se encontró la rutina.</div>;
 
     const todosCompletados = orderedInteractiveElementIds.length > 0 && orderedInteractiveElementIds.every(id => elementosCompletados[id]);
@@ -250,28 +251,28 @@ const RutinaDetalle = () => {
 
     return (
         <div className="min-h-screen bg-gray-900 text-white font-sans">
-            <header className="sticky top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-4 flex items-center gap-4 border-b border-gray-800">
+            <header className=" top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-4 flex items-center gap-4 border-b border-gray-800">
                 <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
                     <FaArrowLeft />
                 </Link>
                 <div>
-                    <h1 className="text-xl font-bold text-white">{rutina.nombre}</h1>
-                    <p className="text-sm text-gray-400">Entrenamiento en curso</p>
+                    <h1 className="text-2xl font-bold text-white">{rutina.nombre}</h1>
+                    <p className="text-base text-gray-400">Entrenamiento en curso</p>
                 </div>
             </header>
 
-            <main className="space-y-6">
+            <main className="p-4 space-y-4">
                 {rutina.bloques?.map(bloque => (
                     <BloqueDisplay key={bloque.id} bloque={bloque} {...displayProps} />
                 ))}
 
                 {todosCompletados && (
-                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-6 bg-gray-800 rounded-2xl">
-                        <h2 className="text-2xl font-bold text-green-400">¡Entrenamiento completado!</h2>
-                        <p className="text-gray-300 mt-2">¡Gran trabajo! Has finalizado todos los ejercicios.</p>
+                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-6 bg-gray-800 rounded-xl shadow-lg">
+                        <h2 className="text-xl font-bold text-green-400">¡Entrenamiento completado!</h2>
+                        <p className="text-gray-300 mt-2 text-sm">¡Gran trabajo! Has finalizado todos los ejercicios.</p>
                         <button
                             onClick={finalizarEntrenamiento}
-                            className="mt-6 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105"
+                            className="mt-4 w-full bg-green-500 text-white font-bold py-2.5 px-6 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 text-base"
                         >
                             Finalizar y Guardar
                         </button>

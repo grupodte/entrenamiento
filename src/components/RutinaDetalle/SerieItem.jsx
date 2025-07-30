@@ -26,21 +26,21 @@ const SerieItem = React.forwardRef(({
             animate={status}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             onClick={onItemClick}
-            className="flex items-center p-3 rounded-lg cursor-pointer shadow-md"
+            className="flex items-center p-2.5 rounded-md cursor-pointer shadow-md"
             role="button"
             tabIndex={0}
             aria-pressed={isCompletada}
         >
             <div 
-                className={`w-6 h-6 rounded-full border-2 flex-shrink-0 mr-4 flex items-center justify-center transition-all duration-200 ${
+                className={`w-5 h-5 rounded-full border-2 flex-shrink-0 mr-3 flex items-center justify-center transition-all duration-200 ${
                     isCompletada ? 'bg-green-500 border-green-400' : 'border-gray-400'
                 }`}>
-                {isCompletada && <FaCheck className="text-white w-3 h-3" />}
+                {isCompletada && <FaCheck className="text-white w-2.5 h-2.5" />}
             </div>
-            <span className="flex-1 text-sm font-medium text-white">{textoPrincipal}</span>
+            <span className="flex-1 text-sm font-normal text-white">{textoPrincipal}</span>
             {isActive && !isCompletada && (
                 <motion.div 
-                    className="w-3 h-3 bg-cyan-300 rounded-full ml-3"
+                    className="w-2.5 h-2.5 bg-cyan-300 rounded-full ml-2"
                     animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
                     transition={{ repeat: Infinity, duration: 1.5 }}
                 />

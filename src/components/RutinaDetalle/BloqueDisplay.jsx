@@ -17,8 +17,8 @@ const BloqueDisplay = (props) => {
     };
 
     return (
-        <div className="bg-gray-800/60 border border-gray-700 rounded-2xl p-4 shadow-md">
-            <h2 className="text-lg font-bold text-cyan-300 mb-4">Bloque {bloque.orden + 1}</h2>
+        <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-4 shadow-lg">
+            <h2 className="text-base font-bold text-cyan-300 mb-4">Bloque {bloque.orden + 1}</h2>
             <div className="relative space-y-4">
                  {/* Línea de tiempo visual */}
                 <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-gray-700"></div>

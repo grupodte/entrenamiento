@@ -13,6 +13,7 @@ const SeleccionOrdenBloques = () => {
 
     const [bloques, setBloques] = useState([]);
     const [rutinaNombre, setRutinaNombre] = useState('');
+    const [rutinaDescripcion, setRutinaDescripcion] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -31,12 +32,15 @@ const SeleccionOrdenBloques = () => {
             const fromTable = tipo === 'base' ? 'rutinas_base' : 'rutinas_personalizadas';
             const { data: rutinaData, error: rutinaError } = await supabase
                 .from(fromTable)
-                .select('nombre')
+                .select('nombre, descripcion')
                 .eq('id', rutinaId)
                 .single();
             
             if (rutinaError) console.error("Error fetching rutina nombre:", rutinaError);
-            else setRutinaNombre(rutinaData?.nombre || 'Rutina');
+            else {
+                setRutinaNombre(rutinaData?.nombre || 'Rutina');
+                setRutinaDescripcion(rutinaData?.descripcion || '');
+            }
 
             // Fetch bloques
             let query = supabase.from('bloques');
@@ -90,29 +94,30 @@ const SeleccionOrdenBloques = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white font-sans">
-             <header className="sticky top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-4 flex items-center gap-4 border-b border-gray-800">
+        <div className="bg-gray-900 text-white font-sans">
+             <header className=" top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-4 flex items-center gap-4 border-b border-gray-800">
                 <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
                     <FaArrowLeft />
                 </Link>
                 <div>
                     <h1 className="text-xl font-bold text-white">{rutinaNombre}</h1>
+                    {rutinaDescripcion && <p className="text-sm text-gray-400 mt-1">{rutinaDescripcion}</p>}
                     <p className="text-sm text-gray-400">Selecciona un bloque</p>
                 </div>
             </header>
 
-            <main className="pb-24">
+            <main className="p-4 space-y-4">
                 {error ? (
-                    <div className="text-center p-6 bg-red-900/50 rounded-lg">
+                    <div className="text-center p-4 bg-red-900/50 rounded-lg text-sm">
                         <p className="text-red-300">{error}</p>
                     </div>
                 ) : bloques.length === 0 ? (
-                    <div className="text-center p-6 bg-gray-800 rounded-lg">
+                    <div className="text-center p-4 bg-gray-800 rounded-lg text-sm">
                         <p className="text-gray-300">Esta rutina no tiene bloques definidos.</p>
                     </div>
                 ) : (
                     <motion.div 
-                        className="space-y-4"
+                        className="space-y-3"
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
@@ -120,19 +125,19 @@ const SeleccionOrdenBloques = () => {
                         {bloques.map((bloque) => (
                             <motion.div key={bloque.id} variants={itemVariants}>
                                 <div
-                                    className="flex justify-between items-center bg-gray-800 shadow-lg rounded-xl p-5 border border-gray-700 hover:border-cyan-400 transition-colors duration-300"
+                                    className="flex justify-between items-center bg-gray-800 shadow-lg rounded-xl p-4 border border-gray-700 hover:border-cyan-400 transition-colors duration-300"
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <FaCalendarAlt className="text-cyan-300 text-xl"/>
-                                        <span className="text-lg font-semibold text-white">
+                                    <div className="flex items-center gap-3">
+                                        <FaCalendarAlt className="text-cyan-300 text-lg"/>
+                                        <span className="text-base font-semibold text-white">
                                             {bloque.nombre}
                                         </span>
                                     </div>
                                     <button
                                         onClick={() => handleElegirBloque(bloque.id)}
-                                        className="flex items-center bg-cyan-500 text-gray-900 font-bold px-4 py-2 rounded-lg hover:bg-cyan-400 transition-transform transform hover:scale-105"
+                                        className="flex items-center bg-cyan-500 text-gray-900 font-bold px-3 py-1.5 rounded-lg hover:bg-cyan-400 transition-transform transform hover:scale-105 text-sm"
                                     >
-                                        Iniciar <FaArrowRight className="ml-2" />
+                                        Iniciar <FaArrowRight className="ml-1 text-sm" />
                                     </button>
                                 </div>
                             </motion.div>
