@@ -97,7 +97,7 @@ const RutinaDetalle = () => {
                                 num_s_ss = maxSets > 0 ? maxSets : 1;
                             }
                             return {
-                                ...sb, 
+                                ...sb,
                                 num_series_superset: num_s_ss,
                                 subbloques_ejercicios: sb.subbloques_ejercicios || []
                             };
@@ -250,7 +250,7 @@ const RutinaDetalle = () => {
 
     return (
         <div className="min-h-screen bg-gray-900 text-white font-sans">
-            <header className=" top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-4 flex items-center gap-4 border-b border-gray-800">
+            <header className="sticky top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-4 flex items-center gap-4 border-b border-gray-800">
                 <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
                     <FaArrowLeft />
                 </Link>
@@ -266,10 +266,10 @@ const RutinaDetalle = () => {
                 ))}
 
                 {todosCompletados && (
-                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-6 bg-gray-800 rounded-2xl">
+                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-6 bg-gray-800 rounded-2xl">
                         <h2 className="text-2xl font-bold text-green-400">¡Entrenamiento completado!</h2>
                         <p className="text-gray-300 mt-2">¡Gran trabajo! Has finalizado todos los ejercicios.</p>
-                        <button 
+                        <button
                             onClick={finalizarEntrenamiento}
                             className="mt-6 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105"
                         >
@@ -281,16 +281,16 @@ const RutinaDetalle = () => {
 
             <AnimatePresence>
                 {showRestTimer && (
-                    <RestTimer 
+                    <RestTimer
                         key={currentTimerOriginId}
-                        duration={timerDuration} 
-                        exerciseName={nextExerciseName} 
-                        onFinish={handleRestTimerFinish} 
+                        duration={timerDuration}
+                        exerciseName={nextExerciseName}
+                        onFinish={handleRestTimerFinish}
                     />
                 )}
             </AnimatePresence>
 
-            
+
         </div>
     );
 };

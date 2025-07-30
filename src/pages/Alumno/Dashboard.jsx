@@ -12,7 +12,19 @@ const getSaludo = () => {
     if (hora < 12) return "Buenos días,";
     if (hora < 19) return "Buenas tardes,";
     return "Buenas noches,";
-}
+};
+
+// Tips del día
+const tipsDelDia = [
+    "Mantén una buena hidratación durante el día.",
+    "Haz estiramientos después de entrenar para mejorar la recuperación.",
+    "La constancia es más importante que la intensidad.",
+    "Una buena alimentación es clave para tus resultados.",
+    "Descansa bien, el sueño es parte del progreso.",
+    "Calienta antes de entrenar para evitar lesiones.",
+    "Escucha a tu cuerpo y evita sobreentrenarte."
+];
+const getTipDelDia = () => tipsDelDia[new Date().getDay() % tipsDelDia.length];
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -21,8 +33,10 @@ const Dashboard = () => {
     const [rutinas, setRutinas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [mostrarTodas, setMostrarTodas] = useState(false);
+    const [completedWorkoutsThisWeek, setCompletedWorkoutsThisWeek] = useState(0);
+    const [totalWorkoutsThisWeek, setTotalWorkoutsThisWeek] = useState(0);
 
-    const todayIndex = (new Date().getDay() + 6) % 7;
+    const todayIndex = (new Date().getDay() + 6) % 7; // Lunes = 0
 
     useEffect(() => {
         if (!user?.id) {
@@ -33,12 +47,14 @@ const Dashboard = () => {
         const fetchPerfilYRutinas = async () => {
             setLoading(true);
 
+            // Perfil
             const { data: perfilData, error: perfilError } = await supabase
                 .from('perfiles').select('nombre').eq('id', user.id).single();
 
             if (perfilError) console.error('Error al obtener perfil:', perfilError.message);
-            else setNombre(perfilData?.nombre || 'Usuario');
+            setNombre(perfilData?.nombre ?? 'Usuario');
 
+            // Asignaciones
             const { data: asignaciones, error: errorAsignaciones } = await supabase
                 .from('asignaciones')
                 .select('dia_semana, rutina_personalizada_id, rutinas_personalizadas ( nombre ), rutina_base_id, rutinas_base ( nombre )')
@@ -51,6 +67,7 @@ const Dashboard = () => {
                 return;
             }
 
+            // Sesiones de hoy
             const hoy = new Date();
             const inicioDelDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).toISOString();
             const finDelDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 1).toISOString();
@@ -63,19 +80,37 @@ const Dashboard = () => {
 
             const idsCompletados = new Set();
             sesionesCompletadas?.forEach(sesion => {
-                if (sesion.rutina_personalizada_id) idsCompletados.add(sesion.rutina_personalizada_id);
-                if (sesion.rutina_base_id) idsCompletados.add(sesion.rutina_base_id);
+                if (sesion.rutina_personalizada_id) idsCompletados.add(`p-${sesion.rutina_personalizada_id}`);
+                if (sesion.rutina_base_id) idsCompletados.add(`b-${sesion.rutina_base_id}`);
             });
 
-            const formateadas = asignaciones.map((a) => {
+            const formateadas = (asignaciones || []).map((a) => {
                 const esPersonalizada = !!a.rutina_personalizada_id;
-                const rutinaId = esPersonalizada ? a.rutina_personalizada_id : a.rutina_base_id;
+                const rutinaId = esPersonalizada ? `p-${a.rutina_personalizada_id}` : `b-${a.rutina_base_id}`;
                 const nombre = esPersonalizada ? a.rutinas_personalizadas?.nombre : a.rutinas_base?.nombre;
                 const tipo = esPersonalizada ? 'personalizada' : 'base';
                 return { dia: a.dia_semana, rutinaId, nombre: nombre || 'Rutina Asignada', tipo, isCompleted: idsCompletados.has(rutinaId) };
             }).sort((a, b) => a.dia - b.dia);
 
             setRutinas(formateadas);
+
+            // Progreso semanal
+            const startOfWeek = new Date();
+            startOfWeek.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7)); // lunes
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 7);
+
+            const { data: sesionesSemana, error: errorSemana } = await supabase
+                .from('sesiones_entrenamiento').select('id')
+                .eq('alumno_id', user.id).gte('created_at', startOfWeek.toISOString()).lt('created_at', endOfWeek.toISOString());
+
+            if (errorSemana) console.error('Error al cargar sesiones de la semana:', errorSemana);
+
+            setCompletedWorkoutsThisWeek(sesionesSemana?.length || 0);
+            setTotalWorkoutsThisWeek((asignaciones || []).length);
+
             setLoading(false);
         };
 
@@ -83,80 +118,121 @@ const Dashboard = () => {
     }, [user]);
 
     const iniciarRutina = (rutina) => {
-        navigate(`/rutina/${rutina.rutinaId}/orden`, { state: { tipo: rutina.tipo } });
-    }
+        navigate(`/rutina/${rutina.rutinaId.replace(/^[pb]-/, '')}/orden`, { state: { tipo: rutina.tipo } });
+    };
 
     const rutinaHoy = rutinas.find(r => r.dia === todayIndex);
     const proximasRutinas = rutinas.filter(r => r.dia !== todayIndex);
     const rutinasVisibles = mostrarTodas ? proximasRutinas : proximasRutinas.slice(0, 2);
 
     const Card = ({ children, className, onClick }) => (
-        <div className={`bg-gray-800 rounded-2xl p-6 shadow-lg ${className}`} onClick={onClick}>
+        <div
+            className={`bg-gray-800 rounded-xl p-4 shadow-md ${className}`}
+            onClick={onClick}
+            role={onClick ? "button" : undefined}
+            tabIndex={onClick ? 0 : undefined}
+        >
             {children}
         </div>
     );
 
+    const progreso = totalWorkoutsThisWeek > 0 ? (completedWorkoutsThisWeek / totalWorkoutsThisWeek) * 100 : 0;
+
     return (
         <div className="font-sans">
-            
-
             <main className="pt-safe">
                 {loading ? (
                     <div className="flex justify-center items-center h-64">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
                     </div>
                 ) : (
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="p-4">
-                        <h2 className="text-xl font-semibold text-white mb-4">Tu rutina de hoy</h2>
-                        {rutinaHoy ? (
-                            <Card className={`border-2 ${rutinaHoy.isCompleted ? 'border-green-500' : 'border-cyan-400'}`}>
-                                <div className="flex flex-col justify-between h-full">
-                                    <div>
-                                        <p className="font-bold text-sm text-gray-400 uppercase tracking-wider">{diasSemana[rutinaHoy.dia]}</p>
-                                        <h3 className="text-2xl font-bold text-white mt-1">{rutinaHoy.nombre}</h3>
-                                    </div>
-                                    {rutinaHoy.isCompleted ? (
-                                        <div className="mt-6 flex items-center gap-3 text-green-400 font-bold py-3 px-5 rounded-full bg-gray-700">
-                                            <FaCheckCircle className="text-2xl" />
-                                            <span>Entrenamiento Completado</span>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => iniciarRutina(rutinaHoy)}
-                                            className="mt-6 w-full flex items-center justify-center gap-3 bg-cyan-400 text-gray-900 font-bold py-3 px-5 rounded-full shadow-lg hover:bg-cyan-300 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-cyan-400/50"
-                                        >
-                                            <FaPlayCircle className="text-xl" />
-                                            <span>Iniciar Entrenamiento</span>
-                                        </button>
-                                    )}
-                                </div>
-                            </Card>
-                        ) : (
-                            <Card>
-                                <p className="text-gray-300">No tienes ninguna rutina para hoy. ¡Día de descanso!</p>
-                            </Card>
-                        )}
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="p-4 space-y-6">
+                        <header>
+                            <p className="text-gray-400 text-base">{getSaludo()}</p>
+                            <h1 className="text-2xl font-bold text-white">{nombre}</h1>
+                        </header>
 
+                        {/* Grid for Progress and Tip */}
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Weekly Progress */}
+                            <div className="bg-gray-800 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                                <h3 className="font-bold text-white text-sm mb-2">Progreso Semanal</h3>
+                                <div className="relative w-20 h-20">
+                                    <svg className="w-full h-full" viewBox="0 0 36 36">
+                                        <path className="text-gray-700" stroke="currentColor" strokeWidth="3" fill="none" d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32" />
+                                        <path className="text-cyan-400" stroke="currentColor" strokeWidth="3" fill="none" strokeDasharray={`${progreso}, 100`} strokeLinecap="round" d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32" />
+                                    </svg>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        <span className="text-white font-bold text-lg">{completedWorkoutsThisWeek}</span>
+                                        <span className="text-gray-400 text-xs">de {totalWorkoutsThisWeek}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Tip of the day */}
+                            <div className="bg-gray-800 rounded-xl p-4 flex flex-col justify-center">
+                                <h3 className="text-sm font-semibold text-cyan-300 mb-2 flex items-center gap-2">
+                                    <FaDumbbell />
+                                    Tip del Día
+                                </h3>
+                                <p className="text-gray-300 text-xs">{getTipDelDia()}</p>
+                            </div>
+                        </div>
+
+                        {/* Today's workout */}
+                        <div>
+                            <h2 className="text-lg font-semibold text-white mb-3">Tu rutina de hoy</h2>
+                            {rutinaHoy ? (
+                                <Card className={`border ${rutinaHoy.isCompleted ? 'border-green-500/50' : 'border-cyan-400/50'}`}>
+                                    <div className="flex flex-col justify-between h-full">
+                                        <div>
+                                            <p className="font-bold text-xs text-gray-400 uppercase tracking-wider">{diasSemana[rutinaHoy.dia]}</p>
+                                            <h3 className="text-xl font-bold text-white mt-1">{rutinaHoy.nombre}</h3>
+                                        </div>
+                                        {rutinaHoy.isCompleted ? (
+                                            <div className="mt-4 flex items-center gap-2 text-green-400 font-bold py-2 px-3 rounded-lg bg-gray-700 text-sm">
+                                                <FaCheckCircle className="text-lg" />
+                                                <span>Completado</span>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => iniciarRutina(rutinaHoy)}
+                                                className="mt-4 w-full flex items-center justify-center gap-2 bg-cyan-400 text-gray-900 font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-cyan-300 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+                                            >
+                                                <FaPlayCircle className="text-lg" />
+                                                <span>Iniciar</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                </Card>
+                            ) : (
+                                <Card>
+                                    <p className="text-gray-300 text-sm">No tienes ninguna rutina para hoy. ¡Día de descanso!</p>
+                                </Card>
+                            )}
+                        </div>
+
+                        {/* Next workouts */}
                         {proximasRutinas.length > 0 && (
-                            <div className="mt-10">
-                                <h3 className="text-xl font-semibold text-white mb-4">Próximos entrenamientos</h3>
-                                <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h3 className="text-lg font-semibold text-white mb-3">Próximos entrenamientos</h3>
+                                <motion.div layout className="space-y-3">
                                     <AnimatePresence>
                                         {rutinasVisibles.map(rutina => (
                                             <motion.div key={rutina.dia} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                                                 <Card className="flex justify-between items-center hover:bg-gray-700 transition-colors duration-200 cursor-pointer" onClick={() => iniciarRutina(rutina)}>
                                                     <div>
-                                                        <p className="text-sm text-gray-400 font-medium">{diasSemana[rutina.dia]}</p>
-                                                        <p className="font-semibold text-lg text-white mt-1">{rutina.nombre}</p>
+                                                        <p className="text-xs text-gray-400 font-medium">{diasSemana[rutina.dia]}</p>
+                                                        <p className="font-semibold text-base text-white">{rutina.nombre}</p>
                                                     </div>
-                                                    <FaArrowRight className="text-gray-500" />
+                                                    <FaArrowRight className="text-gray-600" />
                                                 </Card>
                                             </motion.div>
                                         ))}
                                     </AnimatePresence>
                                 </motion.div>
                                 {proximasRutinas.length > 2 && (
-                                    <button onClick={() => setMostrarTodas(!mostrarTodas)} className="w-full mt-4 flex items-center justify-center gap-2 text-cyan-300 font-semibold hover:text-cyan-200 transition-colors">
+                                    <button onClick={() => setMostrarTodas(!mostrarTodas)} className="w-full mt-3 flex items-center justify-center gap-2 text-cyan-300 text-sm font-semibold hover:text-cyan-200 transition-colors">
                                         {mostrarTodas ? 'Mostrar menos' : 'Mostrar todos'}
                                         <motion.div animate={{ rotate: mostrarTodas ? 180 : 0 }}><FaChevronDown /></motion.div>
                                     </button>
@@ -164,25 +240,26 @@ const Dashboard = () => {
                             </div>
                         )}
 
-                        <div className="mt-10">
-                            <h3 className="text-xl font-semibold text-white mb-4">Más opciones</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Card className="flex items-center gap-4 hover:bg-gray-700 transition-colors duration-200 cursor-not-allowed opacity-50">
-                                    <div className="p-3 bg-green-500/20 rounded-lg">
-                                        <FaUtensils className="text-2xl text-green-400" />
+                        {/* More options */}
+                        <div>
+                            <h3 className="text-lg font-semibold text-white mb-3">Más opciones</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <Card className="flex items-center gap-3 hover:bg-gray-700 transition-colors duration-200 cursor-not-allowed opacity-50">
+                                    <div className="p-2 bg-green-500/20 rounded-lg">
+                                        <FaUtensils className="text-xl text-green-400" />
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold text-lg text-white">Mi Dieta</h4>
-                                        <p className="text-sm text-gray-400">Próximamente...</p>
-                                    </div>
+                                        <h4 className="font-semibold text-base text-white">Mi Dieta</h4>
+                                        <p className="text-xs text-gray-400">Próximamente</p>
+                                    </div >
                                 </Card>
-                                <Card className="flex items-center gap-4 hover:bg-gray-700 transition-colors duration-200 cursor-not-allowed opacity-50">
-                                    <div className="p-3 bg-red-500/20 rounded-lg">
-                                        <FaEnvelope className="text-2xl text-red-400" />
+                                <Card className="flex items-center gap-3 hover:bg-gray-700 transition-colors duration-200 cursor-not-allowed opacity-50">
+                                    <div className="p-2 bg-red-500/20 rounded-lg">
+                                        <FaEnvelope className="text-xl text-red-400" />
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold text-lg text-white">Mensajes</h4>
-                                        <p className="text-sm text-gray-400">Próximamente...</p>
+                                        <h4 className="font-semibold text-base text-white">Mensajes</h4>
+                                        <p className="text-xs text-gray-400">Próximamente</p>
                                     </div>
                                 </Card>
                             </div>
