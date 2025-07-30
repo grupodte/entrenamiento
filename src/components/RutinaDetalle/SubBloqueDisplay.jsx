@@ -4,13 +4,21 @@ import SupersetDisplay from './SupersetDisplay';
 import { FaFire, FaSyncAlt } from 'react-icons/fa';
 
 const SubBloqueDisplay = (props) => {
-    const { subbloque } = props;
+    const { subbloque, isCompleted, isInProgress } = props;
+    console.log(`SubBloqueDisplay - SubBloque ${subbloque.nombre || subbloque.id} received isCompleted: ${isCompleted}, isInProgress: ${isInProgress}`);
 
     const Icon = subbloque.tipo === 'superset' ? FaSyncAlt : FaFire;
 
+    let circleColorClass = 'bg-gray-800 border-gray-700'; // Default: not started
+    if (isCompleted) {
+        circleColorClass = 'bg-green-400 border-green-400'; // Completed
+    } else if (isInProgress) {
+        circleColorClass = 'bg-cyan-400 border-cyan-400'; // In progress
+    }
+
     return (
-        <div className="relative pl-8">
-            <div className="absolute left-3 top-4 -translate-x-1/2 w-4 h-4 bg-gray-600 rounded-full border-2 border-gray-900"></div>
+        <div className="relative pl-5">
+            <div className={`absolute left-1 top-2 -translate-x-1/2 w-2.5 h-2.5 rounded-full border-2 transition-colors duration-300 ${circleColorClass}`}></div>
             <div className="mb-3">
                 <h3 className={`text-base font-semibold flex items-center gap-2 ${subbloque.tipo === "superset" ? "text-purple-300" : "text-amber-300"}`}>
                     <Icon />

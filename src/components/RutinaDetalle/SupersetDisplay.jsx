@@ -21,7 +21,6 @@ const SupersetDisplay = ({ subbloque, ...props }) => {
                         }`}>
                         <h5 className="font-semibold text-white mb-2 flex justify-between items-center text-sm">
                             <span>Superset - Serie {setNumeroSuperset}</span>
-                            {todosEjerciciosDeEstaSerieCompletados && <FaCheckCircle className="text-green-400" />}
                         </h5>
                         <div className="space-y-1.5">
                             {subbloque.subbloques_ejercicios.map((sbe, sbeIdx) => {

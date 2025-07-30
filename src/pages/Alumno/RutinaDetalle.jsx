@@ -250,8 +250,8 @@ const RutinaDetalle = () => {
     const displayProps = { elementosCompletados, elementoActivoId, toggleElementoCompletado, elementoRefs };
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white font-sans">
-            <header className=" top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-4 flex items-center gap-4 border-b border-gray-800">
+        <div className="bg-gray-900 text-white font-sans">
+            <header className=" top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-3 flex items-center gap-4 border-b border-gray-800">
                 <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
                     <FaArrowLeft />
                 </Link>
@@ -267,7 +267,7 @@ const RutinaDetalle = () => {
                 ))}
 
                 {todosCompletados && (
-                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-6 bg-gray-800 rounded-xl shadow-lg">
+                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-4 bg-gray-800 rounded-xl shadow-lg">
                         <h2 className="text-xl font-bold text-green-400">¡Entrenamiento completado!</h2>
                         <p className="text-gray-300 mt-2 text-sm">¡Gran trabajo! Has finalizado todos los ejercicios.</p>
                         <button
