@@ -6,7 +6,6 @@ import { toast } from 'react-hot-toast';
 import backgroundImage from '../assets/FOTO_FONDO.webp';
 import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../context/AuthContext';
-import LoginForm from '../components/LoginForm';
 
 const transition = { duration: 0.5, ease: 'easeInOut' };
 
@@ -14,11 +13,11 @@ const AuthPage = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, rol, loading } = useAuth();
+    const { user, rol, loading, login } = useAuth();
 
-    // 🔧 Altura adaptable para móviles
     useEffect(() => {
         const setViewportHeight = () => {
             const vh = window.innerHeight * 0.01;
@@ -34,17 +33,14 @@ const AuthPage = () => {
         return () => { document.body.style.overflow = ''; };
     }, []);
 
-    // ✅ Redirección automática al dashboard si ya está logueado
     useEffect(() => {
         if (!loading && user && rol !== null) {
             const destino = rol === 'admin' ? '/admin' : '/dashboard';
-            console.log('[AuthPage] Redirigiendo a:', destino);
             navigate(destino, { replace: true });
         }
     }, [user, rol, loading, navigate]);
     
 
-    // ✅ Verificación de email vía ?verified=true
     useEffect(() => {
         const activarCuentaYRedirigir = async () => {
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -79,9 +75,53 @@ const AuthPage = () => {
     }, [location, navigate]);
     
 
-    // ✅ Registro por email/password
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        try {
+            const { data, error: authError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (authError) {
+                throw new Error('El correo o la contraseña son incorrectos.');
+            }
+
+            const user = data.user;
+            const { data: perfil, error: perfilError } = await supabase
+                .from('perfiles')
+                .select('rol, estado')
+                .eq('id', user.id)
+                .single();
+
+            if (perfilError || !perfil) {
+                throw new Error('No pudimos verificar tu cuenta.');
+            }
+
+            if (perfil.estado !== 'Aprobado') {
+                throw new Error('Tu cuenta aún no fue activada. Verificá tu correo.');
+            }
+
+            login(user, perfil.rol);
+
+            if (perfil.rol === 'admin') navigate('/admin');
+            else if (perfil.rol === 'alumno') navigate('/dashboard');
+            else {
+                await supabase.auth.signOut();
+                throw new Error('Tu rol no tiene permisos para acceder.');
+            }
+        } catch (error) {
+            toast.error(`❌ ${error.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleRegister = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
 
         const { data, error: signUpError } = await supabase.auth.signUp({
             email,
@@ -101,6 +141,7 @@ const AuthPage = () => {
             } else {
                 toast.error(`❌ ${signUpError.message}`);
             }
+            setIsLoading(false);
             return;
         }
 
@@ -122,17 +163,19 @@ const AuthPage = () => {
         toast.success('📩 Revisa tu correo para verificar tu cuenta');
         setIsLogin(true);
         setPassword('');
+        setIsLoading(false);
     };
 
-    // ✅ Login con Google (redirige a esta misma página)
     const handleGoogle = async () => {
+        setIsLoading(true);
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: { redirectTo: window.location.origin }, // Asegura que vuelva a AuthPage
+            options: { redirectTo: window.location.origin },
         });
         if (error) {
             toast.error('❌ Error con Google');
             console.error('[Google login error]', error);
+            setIsLoading(false);
         }
     };
 
@@ -140,7 +183,7 @@ const AuthPage = () => {
         <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-cover bg-center z-0"
             style={{ backgroundImage: `url(${backgroundImage})` }}
         >
-            <div className="absolute inset-0 backdrop-blur-sm bg-black/40" />
+            <div className="absolute inset-0 backdrop-blur-sm bg-black/60" />
 
             <AnimatePresence mode="wait">
                 <motion.div
@@ -149,66 +192,68 @@ const AuthPage = () => {
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: isLogin ? -300 : 300, opacity: 0 }}
                     transition={transition}
-                    className="relative z-10 p-8 rounded-[30px] bg-gradient-to-br from-white/10 to-black/30 backdrop-blur-md shadow-xl w-[265px] max-w-sm text-white"
+                    className="relative z-10 p-8 rounded-3xl bg-gradient-to-br from-gray-800/50 to-black/70 backdrop-blur-lg shadow-2xl w-11/12 max-w-md text-white border border-gray-700"
                 >
-                    <h2 className="text-2xl font-bold text-white mb-6 text-center tracking-tight">
-                        {isLogin ? 'Iniciá sesión' : 'Creá tu cuenta'}
+                    <h2 className="text-3xl font-bold text-white mb-8 text-center tracking-tight">
+                        {isLogin ? 'Bienvenido de nuevo' : 'Creá tu cuenta'}
                     </h2>
 
-                    {isLogin ? (
-                        <LoginForm />
-                    ) : (
-                        <form onSubmit={handleRegister} className="space-y-5">
-                            <div>
-                                <label className="text-sm text-white/80">Correo electrónico</label>
-                                <input
-                                    type="email"
-                                    inputMode="email"
-                                    autoComplete="email"
-                                    className="w-full mt-1 px-4 py-2 rounded-full bg-black/70 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-lime-400"
-                                    placeholder="tucorreo@email.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="text-sm text-white/80">Contraseña</label>
-                                <input
-                                    type="password"
-                                    autoComplete="current-password"
-                                    className="w-full mt-1 px-4 py-2 rounded-full bg-black/70 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-lime-400"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                className="w-full py-2 rounded-full bg-lime-400 hover:bg-lime-500 text-black font-bold text-center transition shadow-sm"
-                            >
-                                Registrarme →
-                            </button>
-                        </form>
-                    )}
+                    <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-6">
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">Correo electrónico</label>
+                            <input
+                                id="email"
+                                type="email"
+                                inputMode="email"
+                                autoComplete="email"
+                                className="w-full px-4 py-3 rounded-xl bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 border border-transparent focus:border-cyan-400 transition-all duration-200"
+                                placeholder="tucorreo@email.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                disabled={isLoading}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">Contraseña</label>
+                            <input
+                                id="password"
+                                type="password"
+                                autoComplete={isLogin ? "current-password" : "new-password"}
+                                className="w-full px-4 py-3 rounded-xl bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 border border-transparent focus:border-cyan-400 transition-all duration-200"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                disabled={isLoading}
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-gray-900 font-bold text-lg text-center transition-all duration-300 shadow-lg transform hover:scale-105"
+                        >
+                            {isLoading ? (isLogin ? 'Ingresando...' : 'Registrando...') : (isLogin ? 'Ingresar' : 'Registrarme')}
+                        </button>
+                    </form>
 
-                    <div className="my-4 text-center text-white/70 text-sm">o</div>
+                    <div className="my-6 text-center text-gray-400 text-sm">o</div>
 
                     <button
                         onClick={handleGoogle}
-                        className="w-full py-2 rounded-full bg-white hover:bg-gray-200 text-black font-semibold flex items-center justify-center gap-2 transition"
+                        disabled={isLoading}
+                        className="w-full py-3 rounded-xl bg-white hover:bg-gray-100 text-gray-800 font-semibold flex items-center justify-center gap-3 transition-all duration-300 shadow-md transform hover:scale-105"
                     >
-                        <FcGoogle size={20} />
-                        {isLogin ? 'Ingresar con Google' : 'Registrarme'}
+                        <FcGoogle size={24} />
+                        {isLogin ? 'Continuar con Google' : 'Registrarme con Google'}
                     </button>
 
-                    <p className="text-sm text-center mt-6 text-white/80">
+                    <p className="text-sm text-center mt-8 text-gray-400">
                         {isLogin ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
                         <button
                             type="button"
                             onClick={() => setIsLogin(!isLogin)}
-                            className="text-lime-400 font-semibold ml-1 hover:underline"
+                            className="text-cyan-400 font-semibold ml-1 hover:underline"
                         >
                             {isLogin ? 'Registrate' : 'Iniciar sesión'}
                         </button>
