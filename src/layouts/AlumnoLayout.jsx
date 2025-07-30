@@ -23,7 +23,7 @@ const AlumnoLayout = () => {
   }, []);
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen font-sans">
+    <div className="bg-gray-900 text-white h-screen font-sans flex flex-col overflow-hidden">
       <AnimatePresence mode="wait" initial={false}>
         <motion.main
           key={location.pathname}
