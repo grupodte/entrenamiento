@@ -26,7 +26,6 @@ const RutinaDetalle = () => {
     const [currentTimerOriginId, setCurrentTimerOriginId] = useState(null);
     const [elementoActivoId, setElementoActivoId] = useState(null);
     const [tiempoTranscurrido, setTiempoTranscurrido] = useState(0);
-    const [notificationPermission, setNotificationPermission] = useState('default');
     const elementoRefs = useRef({});
     const timerActiveRef = useRef(false);
     const audioRef = useRef(null);
@@ -81,7 +80,7 @@ const RutinaDetalle = () => {
             const siguienteDelQuePausa = obtenerSiguienteElementoInfo(originId);
             const nombreSiguiente = siguienteDelQuePausa ? siguienteDelQuePausa.nombre : "¡Rutina Completada!";
 
-            if (notificationPermission === 'granted' && navigator.serviceWorker.controller) {
+            if (navigator.serviceWorker.controller) {
                 navigator.serviceWorker.controller.postMessage({
                     type: 'START_TIMER',
                     duration: duracion,
@@ -95,7 +94,7 @@ const RutinaDetalle = () => {
             setCurrentTimerOriginId(originId);
             setShowRestTimer(true);
         }
-    }, [obtenerSiguienteElementoInfo, notificationPermission]);
+    }, [obtenerSiguienteElementoInfo]);
 
     // Función que se ejecuta cuando el temporizador de descanso termina
     const handleRestTimerFinish = useCallback(() => {
@@ -151,30 +150,11 @@ const RutinaDetalle = () => {
             audioRef.current.load();
         }
 
-        if ('Notification' in window) {
-            setNotificationPermission(Notification.permission);
-        }
-
         const interval = setInterval(() => {
             setTiempoTranscurrido(prev => prev + 1);
         }, 1000);
         return () => clearInterval(interval);
     }, []);
-
-    const requestNotificationPermission = () => {
-        if (!('Notification' in window)) {
-            toast.error('Este navegador no soporta notificaciones.');
-            return;
-        }
-        Notification.requestPermission().then(permission => {
-            setNotificationPermission(permission);
-            if (permission === 'granted') {
-                toast.success('¡Notificaciones activadas!');
-            } else {
-                toast.error('No podremos notificarte cuando termine el descanso.');
-            }
-        });
-    };
 
     const formatTime = (seconds) => {
         const minutes = Math.floor(seconds / 60);
@@ -315,13 +295,6 @@ const RutinaDetalle = () => {
             </header>
 
             <main className="p-4 space-y-4 pb-20">
-                {notificationPermission === 'default' && (
-                    <div className="bg-yellow-500/20 border border-yellow-500 text-yellow-300 p-3 rounded-lg mb-4 flex items-center justify-between gap-4">
-                        <p className="text-sm">Activa las notificaciones para que te avisemos cuando termine el descanso.</p>
-                        <button onClick={requestNotificationPermission} className="bg-yellow-500 text-black font-bold py-1 px-3 rounded-md text-sm">Activar</button>
-                    </div>
-                )}
-
                 {rutina.bloques?.map(bloque => (
                     <BloqueDisplay key={bloque.id} bloque={bloque} {...displayProps} />
                 ))}
