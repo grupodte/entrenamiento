@@ -3,7 +3,7 @@ import SerieItem from './SerieItem';
 import { generarIdEjercicioEnSerieDeSuperset } from '../../utils/rutinaIds';
 import { FaCheckCircle } from 'react-icons/fa';
 
-const SupersetDisplay = ({ subbloque, ...props }) => {
+const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
 
     return (
         <div className="space-y-2">
@@ -26,7 +26,8 @@ const SupersetDisplay = ({ subbloque, ...props }) => {
                             {subbloque.subbloques_ejercicios.map((sbe, sbeIdx) => {
                                 const elementoId = generarIdEjercicioEnSerieDeSuperset(subbloque.id, sbe.id, setNumeroSuperset);
                                 const detalleSerieEjercicio = sbe.series?.find(s => s.nro_set === setNumeroSuperset) || sbe.series?.[0];
-                                const reps = detalleSerieEjercicio?.reps || 'N/A';
+                                const reps = detalleSerieEjercicio?.reps || '';
+                                const carga = detalleSerieEjercicio?.carga_sugerida || detalleSerieEjercicio?.carga || '';
 
                                 return (
                                     <SerieItem
@@ -36,11 +37,13 @@ const SupersetDisplay = ({ subbloque, ...props }) => {
                                         textoPrincipal={`${sbe.ejercicio?.nombre || 'Ej.'}: ${reps} reps`}
                                         isCompletada={!!props.elementosCompletados[elementoId]}
                                         isActive={props.elementoActivoId === elementoId}
-                                        onItemClick={() => props.toggleElementoCompletado(elementoId, {
-                                            tipoElemento: 'superset_ejercicio',
-                                            subbloqueId: subbloque.id,
-                                            numSerieSupersetActual: setNumeroSuperset,
-                                        })}
+                                        onItemClick={props.toggleElementoCompletado}
+                                        reps={reps}
+                                        carga={carga}
+                                        tipoElemento={'superset_ejercicio'}
+                                        subbloqueId={subbloque.id}
+                                        numSerieSupersetActual={setNumeroSuperset}
+                                        lastSessionData={lastSessionData}
                                     />
                                 );
                             })}

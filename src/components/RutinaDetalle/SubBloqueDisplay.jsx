@@ -4,7 +4,7 @@ import SupersetDisplay from './SupersetDisplay';
 import { FaFire, FaSyncAlt } from 'react-icons/fa';
 
 const SubBloqueDisplay = (props) => {
-    const { subbloque, isCompleted, isInProgress } = props;
+    const { subbloque, isCompleted, isInProgress, lastSessionData } = props;
     console.log(`SubBloqueDisplay - SubBloque ${subbloque.nombre || subbloque.id} received isCompleted: ${isCompleted}, isInProgress: ${isInProgress}`);
 
     const Icon = subbloque.tipo === 'superset' ? FaSyncAlt : FaFire;
@@ -33,6 +33,7 @@ const SubBloqueDisplay = (props) => {
                         sbe={sbe}
                         subbloqueId={subbloque.id}
                         {...props}
+                        lastSessionData={lastSessionData}
                     />
                 ))}
 
@@ -40,6 +41,7 @@ const SubBloqueDisplay = (props) => {
                     <SupersetDisplay
                         subbloque={subbloque}
                         {...props}
+                        lastSessionData={lastSessionData}
                     />
                 )}
             </div>

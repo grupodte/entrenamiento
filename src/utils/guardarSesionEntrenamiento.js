@@ -3,16 +3,22 @@ import { supabase } from '../lib/supabaseClient';
 export async function guardarSesionEntrenamiento({ rutinaId, tiempoTranscurrido, elementosCompletados, rutinaDetalle, alumnoId }) {
     try {
         // 1. Insertar en sesiones_entrenamiento
+        const insertObject = {
+            created_at: new Date().toISOString(),
+            duracion_segundos: tiempoTranscurrido,
+            alumno_id: alumnoId,
+        };
+
+        if (rutinaDetalle.tipo === 'personalizada') {
+            insertObject.rutina_personalizada_id = rutinaId;
+        } else {
+            insertObject.rutina_base_id = rutinaId;
+        }
+
         const { data: sesionData, error: sesionError } = await supabase
             .from('sesiones_entrenamiento')
             .insert([
-                {
-                    ...(rutinaDetalle.tipo === 'personalizada' ? { rutina_personalizada_id: rutinaId } : { rutina_base_id: rutinaId }),
-                    created_at: new Date().toISOString(),
-                    duracion_segundos: tiempoTranscurrido,
-                    alumno_id: alumnoId, // Add alumno_id here
-                    // Puedes añadir más campos aquí si los tienes en tu tabla sesiones_entrenamiento
-                },
+                insertObject
             ])
             .select()
             .single();
@@ -31,9 +37,22 @@ export async function guardarSesionEntrenamiento({ rutinaId, tiempoTranscurrido,
                 // Parsear el elementoId para obtener los detalles
                 const parts = elementoId.split('-');
                 const tipo = parts[0]; // 'simple' o 'superset'
-                const subbloqueId = parts[1];
-                const sbeId = parts[2]; // subbloques_ejercicios.id
-                const nroSet = parseInt(parts[3], 10); // nro_set para simple, o numSerieSuperset para superset
+                let subbloqueId, sbeId, nroSet;
+
+                if (tipo === 'simple') {
+                    subbloqueId = parts[1];
+                    sbeId = parts[2];
+                    nroSet = parseInt(parts[3], 10);
+                } else if (tipo === 'superset') {
+                    subbloqueId = `${parts[1]}-${parts[2]}-${parts[3]}-${parts[4]}-${parts[5]}`;
+                    sbeId = `${parts[6]}-${parts[7]}-${parts[8]}-${parts[9]}-${parts[10]}`;
+                    nroSet = parseInt(parts[11].replace('set', ''), 10);
+                } else {
+                    console.warn('Unknown element type in elementoId:', elementoId);
+                    continue; // Skip this element
+                }
+
+                console.log(`Attempting to find: subbloqueId=${subbloqueId}, sbeId=${sbeId}, nroSet=${nroSet}`);
 
                 // Buscar el ejercicio y la serie correspondiente en la estructura de la rutina
                 let ejercicioEncontrado = null;
@@ -58,14 +77,20 @@ export async function guardarSesionEntrenamiento({ rutinaId, tiempoTranscurrido,
                     });
                 });
 
-                if (ejercicioEncontrado && serieEncontrada) {
+                console.log('Found ejercicioEncontrado:', ejercicioEncontrado);
+                console.log('Found serieEncontrada:', serieEncontrada);
+
+                if (ejercicioEncontrado && elementosCompletados[elementoId]) {
+                    const completedDetails = elementosCompletados[elementoId];
+                    console.log('Processing elementoId:', elementoId);
+                    console.log('Ejercicio encontrado:', ejercicioEncontrado);
+                    console.log('Completed details:', completedDetails);
                     seriesParaInsertar.push({
                         sesion_id: sesionId,
-                        ejercicio_id: ejercicioEncontrado.id, // Asegúrate de que ejercicioEncontrado.id sea el ID del ejercicio
+                        ejercicio_id: ejercicioEncontrado.id,
                         nro_set: nroSet,
-                        reps_realizadas: serieEncontrada.reps, // O el valor real si lo capturas
-                        carga_realizada: serieEncontrada.carga_sugerida || serieEncontrada.carga, // O el valor real
-                        // Añadir cualquier otro campo relevante de la serie completada
+                        reps_realizadas: completedDetails.actualReps,
+                        carga_realizada: completedDetails.actualCarga,
                     });
                 }
             }

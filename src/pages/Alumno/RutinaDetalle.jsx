@@ -23,6 +23,7 @@ const RutinaDetalle = () => {
     const [rutina, setRutina] = useState(null);
     const [loading, setLoading] = useState(true);
     const [elementosCompletados, setElementosCompletados] = useState({});
+    const [lastSessionData, setLastSessionData] = useState({});
     const [showRestTimer, setShowRestTimer] = useState(false);
     const [timerDuration, setTimerDuration] = useState(0);
     const [nextExerciseName, setNextExerciseName] = useState("Siguiente ejercicio");
@@ -34,6 +35,11 @@ const RutinaDetalle = () => {
     const audioRef = useRef(null);
     const audioUnlocked = useRef(false);
     const { width, height } = useWindowSize();
+
+    const { state } = location; // Get state from the top-level location object
+    const tipo = state?.tipo || "base";
+    const searchParams = new URLSearchParams(location.search);
+    const bloqueSeleccionado = searchParams.get("bloque");
 
     // Función para obtener el nombre de un elemento por su ID
     const getElementNameById = useCallback((elementId) => {
@@ -116,10 +122,24 @@ const RutinaDetalle = () => {
     const toggleElementoCompletado = useCallback((elementoId, detalles) => {
         unlockAudio();
         setElementosCompletados(prev => {
-            const nState = { ...prev, [elementoId]: !prev[elementoId] };
-            const acabaDeCompletarse = nState[elementoId];
+            const nState = { ...prev };
+            const isCurrentlyCompleted = !!prev[elementoId];
 
-            if (acabaDeCompletarse) {
+            if (isCurrentlyCompleted) {
+                // If already completed, unmark it
+                delete nState[elementoId];
+                setElementoActivoId(elementoId);
+            } else {
+                // If not completed, mark it and store details
+                nState[elementoId] = {
+                    completed: true,
+                    actualReps: detalles.actualReps,
+                    actualCarga: detalles.actualCarga,
+                    pausa: detalles.pausa, // Keep original pause for timer logic
+                    tipoElemento: detalles.tipoElemento,
+                    subbloqueId: detalles.subbloqueId,
+                    numSerieSupersetActual: detalles.numSerieSupersetActual,
+                };
                 playSound();
                 if (navigator.vibrate) navigator.vibrate(100);
 
@@ -127,7 +147,7 @@ const RutinaDetalle = () => {
                 if (detalles.tipoElemento === 'simple' && detalles.pausa) {
                     pausaDuracion = detalles.pausa;
                 } else if (detalles.tipoElemento === 'superset_ejercicio') {
-                    const todosCompletados = verificarSupersetCompletado(detalles.subbloqueId, detalles.numSerieSupersetActual, prev, elementoId);
+                    const todosCompletados = verificarSupersetCompletado(detalles.subbloqueId, detalles.numSerieSupersetActual, nState, elementoId);
                     if (todosCompletados) {
                         const sb = rutina?.bloques.flatMap(b => b.subbloques).find(s => s.id.toString() === detalles.subbloqueId.toString());
                         pausaDuracion = sb?.subbloques_ejercicios[0]?.series?.[0]?.pausa ?? 30;
@@ -140,8 +160,6 @@ const RutinaDetalle = () => {
                     const siguienteElemento = obtenerSiguienteElementoInfo(elementoId);
                     setElementoActivoId(siguienteElemento ? siguienteElemento.id : null);
                 }
-            } else {
-                setElementoActivoId(elementoId);
             }
             return nState;
         });
@@ -253,14 +271,73 @@ const RutinaDetalle = () => {
                 };
                 setRutina(processedData);
                 orderedInteractiveElementIds = buildOrderedIdsInternal(processedData);
+
+                // Build a reverse lookup map for elementoId based on ejercicio_id and nro_set
+                const elementoIdLookup = {};
+                processedData.bloques.forEach(bloque => {
+                    bloque.subbloques.forEach(subbloque => {
+                        if (subbloque.tipo === 'simple') {
+                            subbloque.subbloques_ejercicios.forEach(sbe => {
+                                sbe.series.forEach(serie => {
+                                    const idKey = `${sbe.ejercicio.id}-${serie.nro_set}`;
+                                    elementoIdLookup[idKey] = generarIdSerieSimple(subbloque.id, sbe.id, serie.nro_set);
+                                });
+                            });
+                        } else if (subbloque.tipo === 'superset') {
+                            Array.from({ length: subbloque.num_series_superset || 1 }).forEach((_, setIndex) => {
+                                const setNumeroSuperset = setIndex + 1;
+                                subbloque.subbloques_ejercicios.forEach(sbe => {
+                                    const idKey = `${sbe.ejercicio.id}-${setNumeroSuperset}`;
+                                    elementoIdLookup[idKey] = generarIdEjercicioEnSerieDeSuperset(subbloque.id, sbe.id, setNumeroSuperset);
+                                });
+                            });
+                        }
+                    });
+                });
+
+                // Fetch last session data
+                let lastSessionRes;
+                if (tipo === "personalizada") {
+                    lastSessionRes = await supabase.from('sesiones_entrenamiento')
+                        .select('id, sesiones_series(ejercicio_id, nro_set, reps_realizadas, carga_realizada)')
+                        .eq('rutina_personalizada_id', id)
+                        .eq('alumno_id', user.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .single();
+                } else {
+                    lastSessionRes = await supabase.from('sesiones_entrenamiento')
+                        .select('id, sesiones_series(ejercicio_id, nro_set, reps_realizadas, carga_realizada)')
+                        .eq('rutina_base_id', id)
+                        .eq('alumno_id', user.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .single();
+                }
+
+                if (lastSessionRes.data && lastSessionRes.data.sesiones_series) {
+                    const mappedLastSessionData = {};
+                    lastSessionRes.data.sesiones_series.forEach(serie => {
+                        const idKey = `${serie.ejercicio_id}-${serie.nro_set}`;
+                        const elementoId = elementoIdLookup[idKey];
+                        if (elementoId) {
+                            mappedLastSessionData[elementoId] = {
+                                reps_realizadas: serie.reps_realizadas,
+                                carga_realizada: serie.carga_realizada,
+                            };
+                        }
+                    });
+                    setLastSessionData(mappedLastSessionData);
+                }
             }
             setLoading(false);
         };
+        const { state } = location; // Use the location object from the top-level hook
+        const tipo = state?.tipo || "base";
         const searchParams = new URLSearchParams(location.search);
-        const tipo = searchParams.get("tipo") || "base";
         const bloqueSeleccionado = searchParams.get("bloque");
         fetchRutina();
-    }, [id, location.search]);
+    }, [id, location.search, location.state]);
 
     useEffect(() => {
         if (elementoActivoId && elementoRefs.current[elementoActivoId]) {
@@ -277,6 +354,7 @@ const RutinaDetalle = () => {
     const totalSeriesCompletadas = Object.values(elementosCompletados).filter(Boolean).length;
 
     const handleFinalizarYGuardar = async () => {
+        console.log("Elementos Completados al guardar:", elementosCompletados);
         try {
             const result = await guardarSesionEntrenamiento({
                 rutinaId: rutina.id,
@@ -298,7 +376,7 @@ const RutinaDetalle = () => {
         }
     };
 
-    const displayProps = { elementosCompletados, elementoActivoId, toggleElementoCompletado, elementoRefs };
+    const displayProps = { elementosCompletados, elementoActivoId, toggleElementoCompletado, elementoRefs, lastSessionData };
 
     return (
         <div className="bg-gray-900 text-white font-sans min-h-screen">

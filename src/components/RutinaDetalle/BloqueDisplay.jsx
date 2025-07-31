@@ -4,7 +4,7 @@ import { generarIdSerieSimple, generarIdEjercicioEnSerieDeSuperset } from '../..
 import { motion } from 'framer-motion';
 
 const BloqueDisplay = (props) => {
-    const { bloque, elementosCompletados } = props;
+    const { bloque, elementosCompletados, lastSessionData } = props;
     const [progressHeight, setProgressHeight] = useState(0);
 
     const sortSubBloques = (a, b) => {
@@ -131,6 +131,7 @@ const BloqueDisplay = (props) => {
                             isCompleted={isSubBloqueCompleted(subbloque, elementosCompletados)}
                             isInProgress={isSubBloqueInProgress(subbloque, elementosCompletados)}
                             {...props}
+                            lastSessionData={lastSessionData}
                         />
                     ))}
             </div>

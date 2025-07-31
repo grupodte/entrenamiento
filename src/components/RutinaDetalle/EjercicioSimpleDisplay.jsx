@@ -2,7 +2,7 @@ import React from 'react';
 import SerieItem from './SerieItem';
 import { generarIdSerieSimple } from '../../utils/rutinaIds';
 
-const EjercicioSimpleDisplay = ({ sbe, subbloqueId, ...props }) => {
+const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props }) => {
     const ejercicio = sbe.ejercicio;
 
     return (
@@ -19,10 +19,12 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, ...props }) => {
                             textoPrincipal={`Serie ${serie.nro_set}: ${serie.reps} reps`}
                             isCompletada={!!props.elementosCompletados[serieId]}
                             isActive={props.elementoActivoId === serieId}
-                            onItemClick={() => props.toggleElementoCompletado(serieId, {
-                                tipoElemento: 'simple',
-                                pausa: serie.pausa
-                            })}
+                            onItemClick={props.toggleElementoCompletado}
+                            reps={serie.reps}
+                            carga={serie.carga_sugerida || serie.carga}
+                            pausa={serie.pausa}
+                            tipoElemento={'simple'}
+                            lastSessionData={lastSessionData}
                         />
                     );
                 })}
