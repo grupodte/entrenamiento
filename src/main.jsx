@@ -7,7 +7,19 @@ import { registerSW } from 'virtual:pwa-register';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 
-registerSW();
+// Configuración del Service Worker
+const updateSW = registerSW({
+  onNeedRefresh() {
+    // Lógica para cuando hay una nueva versión del SW (opcional)
+    if (confirm('Hay una nueva actualización disponible. ¿Recargar la página?')) {
+      updateSW(true);
+    }
+  },
+  onOfflineReady() {
+    // Lógica para cuando la app está lista para funcionar offline (opcional)
+    console.log('La aplicación está lista para funcionar sin conexión.');
+  },
+});
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
