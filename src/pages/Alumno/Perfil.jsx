@@ -69,7 +69,7 @@ const PerfilPage = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col">
-            <header className="sticky top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-4 flex items-center justify-between border-b border-gray-800">
+            <header className=" top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-4 flex items-center justify-between border-b border-gray-800">
                 <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
                     <FaArrowLeft />
                 </Link>
