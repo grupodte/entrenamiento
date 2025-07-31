@@ -1,6 +1,6 @@
 import React from 'react';
 import { FaCheck } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const SerieItem = React.forwardRef(({
     serieId,
@@ -26,12 +26,24 @@ const SerieItem = React.forwardRef(({
             animate={status}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             onClick={onItemClick}
-            className="flex items-center p-2.5 rounded-md cursor-pointer shadow-md"
+            className="flex items-center p-2.5 rounded-md cursor-pointer shadow-md w-full"
             role="button"
             tabIndex={0}
             aria-pressed={isCompletada}
         >
             <span className="flex-1 text-sm font-normal text-white">{textoPrincipal}</span>
+            <AnimatePresence>
+                {isCompletada && (
+                    <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        className="ml-2 text-white"
+                    >
+                        <FaCheck />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 });

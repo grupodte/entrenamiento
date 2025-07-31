@@ -5,8 +5,10 @@ import RestTimer from "../../components/RestTimer";
 import BloqueDisplay from "../../components/RutinaDetalle/BloqueDisplay";
 import BrandedLoader from "../../components/BrandedLoader";
 import { generarIdSerieSimple, generarIdEjercicioEnSerieDeSuperset } from '../../utils/rutinaIds';
-import { FaArrowLeft, FaCheck, FaPlay } from "react-icons/fa";
+import { FaArrowLeft, FaCheck, FaPlay, FaStopwatch } from "react-icons/fa";
 import { motion, AnimatePresence } from 'framer-motion';
+import Confetti from 'react-confetti';
+import useWindowSize from 'react-use/lib/useWindowSize';
 
 let orderedInteractiveElementIds = [];
 
@@ -22,8 +24,31 @@ const RutinaDetalle = () => {
     const [nextExerciseName, setNextExerciseName] = useState("Siguiente ejercicio");
     const [currentTimerOriginId, setCurrentTimerOriginId] = useState(null);
     const [elementoActivoId, setElementoActivoId] = useState(null);
+    const [tiempoTranscurrido, setTiempoTranscurrido] = useState(0);
     const elementoRefs = useRef({});
     const timerActiveRef = useRef(false);
+    const audioRef = useRef(null);
+    const { width, height } = useWindowSize();
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTiempoTranscurrido(prev => prev + 1);
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
+
+    const playSound = () => {
+        if (!audioRef.current) {
+            audioRef.current = new Audio('/sounds/levelup.mp3');
+        }
+        audioRef.current.play().catch(e => console.error("Error al reproducir sonido:", e));
+    };
 
     const verificarSupersetCompletado = useCallback((subbloqueId, numSerieSuperset, estadoActual, elementoActual) => {
         const sb = rutina?.bloques.flatMap(b => b.subbloques).find(s => s.id.toString() === subbloqueId.toString());
@@ -151,6 +176,11 @@ const RutinaDetalle = () => {
     }, [getElementNameById]);
 
     const handleRestTimerFinish = useCallback(() => {
+        playSound();
+        if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200]); // Vibra dos veces
+        }
+
         setShowRestTimer(false);
         timerActiveRef.current = false;
         const siguienteElemento = obtenerSiguienteElementoInfo(currentTimerOriginId);
@@ -184,15 +214,15 @@ const RutinaDetalle = () => {
             const acabaDeCompletarse = nState[elementoId];
 
             if (acabaDeCompletarse) {
+                playSound();
+                if (navigator.vibrate) {
+                    navigator.vibrate(100);
+                }
+
                 let pausaDuracion = 0;
                 if (detalles.tipoElemento === 'simple' && detalles.pausa) {
                     pausaDuracion = detalles.pausa;
                 } else if (detalles.tipoElemento === 'superset_ejercicio') {
-                    console.log('=== PROCESANDO SUPERSET ===');
-                    console.log('Elemento actual:', elementoId);
-                    console.log('Detalles:', detalles);
-                    console.log('Estado anterior:', prev);
-
                     const todosCompletados = verificarSupersetCompletado(
                         detalles.subbloqueId,
                         detalles.numSerieSupersetActual,
@@ -203,20 +233,11 @@ const RutinaDetalle = () => {
                     if (todosCompletados) {
                         const sb = rutina?.bloques.flatMap(b => b.subbloques).find(s => s.id.toString() === detalles.subbloqueId.toString());
                         const primeraSerieDelPrimerEjercicio = sb.subbloques_ejercicios[0]?.series?.[0];
-                        let pausaFinal = primeraSerieDelPrimerEjercicio?.pausa ?? 30; // valor por defecto 30s si no hay configurado
-
-                        console.log('Primera serie del primer ejercicio:', primeraSerieDelPrimerEjercicio);
-                        console.log('Serie actual:', detalles.numSerieSupersetActual, 'de', sb.num_series_superset);
-                        console.log('Pausa final decidida:', pausaFinal);
+                        let pausaFinal = primeraSerieDelPrimerEjercicio?.pausa ?? 30;
 
                         if (pausaFinal > 0) {
                             pausaDuracion = pausaFinal;
-                            console.log('✅ Superset completado, pausa activada:', pausaDuracion, 'segundos');
-                        } else {
-                            console.log('❌ No hay pausa configurada para activar');
                         }
-                    } else {
-                        console.log('❌ No todos los ejercicios del superset están completados');
                     }
                 }
 
@@ -246,33 +267,53 @@ const RutinaDetalle = () => {
     if (!rutina) return <div className="p-6 text-white text-center">No se encontró la rutina.</div>;
 
     const todosCompletados = orderedInteractiveElementIds.length > 0 && orderedInteractiveElementIds.every(id => elementosCompletados[id]);
+    const totalSeriesCompletadas = Object.values(elementosCompletados).filter(Boolean).length;
 
     const displayProps = { elementosCompletados, elementoActivoId, toggleElementoCompletado, elementoRefs };
 
     return (
-        <div className="bg-gray-900 text-white font-sans">
-            <header className=" top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-3 flex items-center gap-4 border-b border-gray-800">
-                <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
-                    <FaArrowLeft />
-                </Link>
-                <div>
-                    <h1 className="text-2xl font-bold text-white">{rutina.nombre}</h1>
-                    <p className="text-base text-gray-400">Entrenamiento en curso</p>
+        <div className="bg-gray-900 text-white font-sans min-h-screen">
+            {todosCompletados && <Confetti width={width} height={height} recycle={false} />}
+            <header className="sticky top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-3 flex items-center justify-between gap-4 border-b border-gray-800">
+                <div className="flex items-center gap-4">
+                    <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
+                        <FaArrowLeft />
+                    </Link>
+                    <div>
+                        <h1 className="text-xl font-bold text-white">{rutina.nombre}</h1>
+                        <p className="text-sm text-gray-400">Entrenamiento en curso</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2 text-cyan-400">
+                    <FaStopwatch />
+                    <span className="font-mono text-lg">{formatTime(tiempoTranscurrido)}</span>
                 </div>
             </header>
 
-            <main className="p-4 space-y-4">
+            <main className="p-4 space-y-4 pb-20">
                 {rutina.bloques?.map(bloque => (
                     <BloqueDisplay key={bloque.id} bloque={bloque} {...displayProps} />
                 ))}
 
                 {todosCompletados && (
-                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-4 bg-gray-800 rounded-xl shadow-lg">
-                        <h2 className="text-xl font-bold text-green-400">¡Entrenamiento completado!</h2>
-                        <p className="text-gray-300 mt-2 text-sm">¡Gran trabajo! Has finalizado todos los ejercicios.</p>
+                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-6 bg-gray-800 rounded-xl shadow-lg mt-6">
+                        <h2 className="text-2xl font-bold text-green-400">¡Entrenamiento completado!</h2>
+                        <p className="text-gray-300 mt-2 mb-4">¡Gran trabajo! Has finalizado todos los ejercicios.</p>
+                        
+                        <div className="grid grid-cols-2 gap-4 text-white my-4">
+                            <div className="bg-gray-700/50 p-3 rounded-lg">
+                                <p className="text-sm text-gray-400">Tiempo Total</p>
+                                <p className="text-xl font-bold">{formatTime(tiempoTranscurrido)}</p>
+                            </div>
+                            <div className="bg-gray-700/50 p-3 rounded-lg">
+                                <p className="text-sm text-gray-400">Series Completadas</p>
+                                <p className="text-xl font-bold">{totalSeriesCompletadas}</p>
+                            </div>
+                        </div>
+
                         <button
                             onClick={finalizarEntrenamiento}
-                            className="mt-4 w-full bg-green-500 text-white font-bold py-2.5 px-6 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 text-base"
+                            className="mt-4 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 text-lg"
                         >
                             Finalizar y Guardar
                         </button>
@@ -290,8 +331,6 @@ const RutinaDetalle = () => {
                     />
                 )}
             </AnimatePresence>
-
-
         </div>
     );
 };
