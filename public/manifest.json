@@ -2,7 +2,7 @@
     "name": "FitApp - Panel de Entrenador",
     "short_name": "FitApp Admin",
     "description": "La herramienta definitiva para gestionar alumnos, rutinas y ejercicios en FitApp.",
-    "start_url": "/admin",
+    "start_url": "/",
     "display": "standalone",
     "orientation": "portrait",
     "theme_color": "#121212",
