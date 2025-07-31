@@ -109,7 +109,10 @@ const Dashboard = () => {
             if (errorSemana) console.error('Error al cargar sesiones de la semana:', errorSemana);
 
             setCompletedWorkoutsThisWeek(sesionesSemana?.length || 0);
-            setTotalWorkoutsThisWeek((asignaciones || []).length);
+
+            // Calculate totalWorkoutsThisWeek based on all assigned routines for the entire current week
+            const totalAssignedWorkoutsThisWeek = (asignaciones || []).length;
+            setTotalWorkoutsThisWeek(totalAssignedWorkoutsThisWeek);
 
             setLoading(false);
         };

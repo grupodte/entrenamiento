@@ -1,10 +1,12 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
+import { useAuth } from '../../context/AuthContext';
 import { supabase } from "../../lib/supabaseClient";
 import RestTimer from "../../components/RestTimer";
 import BloqueDisplay from "../../components/RutinaDetalle/BloqueDisplay";
 import BrandedLoader from "../../components/BrandedLoader";
 import { generarIdSerieSimple, generarIdEjercicioEnSerieDeSuperset } from '../../utils/rutinaIds';
+import { guardarSesionEntrenamiento } from '../../utils/guardarSesionEntrenamiento';
 import { FaArrowLeft, FaBell, FaStopwatch } from "react-icons/fa";
 import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
@@ -17,6 +19,7 @@ const RutinaDetalle = () => {
     const { id } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [rutina, setRutina] = useState(null);
     const [loading, setLoading] = useState(true);
     const [elementosCompletados, setElementosCompletados] = useState({});
@@ -214,7 +217,7 @@ const RutinaDetalle = () => {
             bloques (id, orden,
                 subbloques (id, orden, nombre, tipo,
                     subbloques_ejercicios (id, 
-                        ejercicio: ejercicios ( nombre ),
+                        ejercicio: ejercicios ( id, nombre ),
                         series: series_subejercicio (id, nro_set, reps, pausa)
                     )
                 )
@@ -273,6 +276,28 @@ const RutinaDetalle = () => {
     const todosCompletados = orderedInteractiveElementIds.length > 0 && orderedInteractiveElementIds.every(id => elementosCompletados[id]);
     const totalSeriesCompletadas = Object.values(elementosCompletados).filter(Boolean).length;
 
+    const handleFinalizarYGuardar = async () => {
+        try {
+            const result = await guardarSesionEntrenamiento({
+                rutinaId: rutina.id,
+                tiempoTranscurrido,
+                elementosCompletados,
+                rutinaDetalle: rutina,
+                alumnoId: user.id,
+            });
+
+            if (result.success) {
+                toast.success("¡Sesión guardada exitosamente!");
+                navigate('/dashboard');
+            } else {
+                toast.error("Error al guardar la sesión.");
+            }
+        } catch (error) {
+            console.error("Error al finalizar y guardar:", error);
+            toast.error("Error inesperado al guardar la sesión.");
+        }
+    };
+
     const displayProps = { elementosCompletados, elementoActivoId, toggleElementoCompletado, elementoRefs };
 
     return (
@@ -316,7 +341,7 @@ const RutinaDetalle = () => {
                         </div>
 
                         <button
-                            onClick={() => navigate('/dashboard')}
+                            onClick={handleFinalizarYGuardar}
                             className="mt-4 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 text-lg"
                         >
                             Finalizar y Guardar
