@@ -278,7 +278,7 @@ const RutinaDetalle = () => {
     return (
         <div className="bg-gray-900 text-white font-sans min-h-screen">
             {todosCompletados && <Confetti width={width} height={height} recycle={false} />}
-            <header className="sticky top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-3 flex items-center justify-between gap-4 border-b border-gray-800">
+            <header className=" top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-3 flex items-center justify-between gap-4 border-b border-gray-800">
                 <div className="flex items-center gap-4">
                     <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
                         <FaArrowLeft />
