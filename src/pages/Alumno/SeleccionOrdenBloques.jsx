@@ -70,8 +70,11 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
     }, [rutinaId, tipo, isOpen]);
 
     const handleElegirBloque = (bloqueId) => {
-        onClose();
-        navigate(`/rutina/${rutinaId}?tipo=${tipo}&bloque=${bloqueId}`);
+        onClose(); // Inicia la animación de cierre del panel
+        // Espera a que la animación termine (aprox. 300ms) antes de navegar
+        setTimeout(() => {
+            navigate(`/rutina/${rutinaId}?tipo=${tipo}&bloque=${bloqueId}`);
+        }, 300);
     };
 
     const containerVariants = {

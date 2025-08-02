@@ -8,7 +8,7 @@ import AppLayout from './components/AppLayout';
 import AdminLayout from './layouts/AdminLayout';
 import RutaProtegida from './components/RutaProtegida';
 import RedireccionInicial from './pages/RedireccionInicial';
-
+import PageTransition from './components/PageTransition';
 import AlumnoLayout from './layouts/AlumnoLayout';
 
 // --- PÁGINAS PÚBLICAS ---
@@ -18,11 +18,9 @@ import PoliticaPrivacidad from './pages/PoliticaPrivacidad';
 
 // --- PÁGINAS DE ALUMNO ---
 import DashboardAlumno from './pages/Alumno/Dashboard';
-
 import RutinaDetalle from './pages/Alumno/RutinaDetalle';
 import PerfilAlumno from './pages/Alumno/Perfil';
 import EditarPerfilPage from './pages/Alumno/EditarPerfil';
-import SeleccionOrdenBloques from './pages/Alumno/SeleccionOrdenBloques';
 
 // --- PÁGINAS DE ADMIN ---
 import AdminPanel from './pages/Admin/AdminPanel';
@@ -51,20 +49,19 @@ const AppContent = () => {
             </RutaProtegida>
           }
         >
-          <Route path="/dashboard" element={<DashboardAlumno />} />
-          
-          <Route path="/rutina/:id" element={<RutinaDetalle />} />
-          <Route path="/alumno/perfil" element={<PerfilAlumno />} />
-          <Route path="/alumno/editar-perfil" element={<EditarPerfilPage />} />
+          <Route path="/dashboard" element={<PageTransition><DashboardAlumno /></PageTransition>} />
+          <Route path="/rutina/:id" element={<PageTransition><RutinaDetalle /></PageTransition>} />
+          <Route path="/alumno/perfil" element={<PageTransition><PerfilAlumno /></PageTransition>} />
+          <Route path="/alumno/editar-perfil" element={<PageTransition><EditarPerfilPage /></PageTransition>} />
         </Route>
 
         {/* --- RUTAS PÚBLICAS --- */}
         <Route element={<AppLayout />}>
-          <Route path="/" element={<RedireccionInicial />} />
-          <Route path="/login" element={<AuthPage />} />
-          <Route path="/register" element={<AuthPage />} />
-          <Route path="/tyc" element={<Tyc />} />
-          <Route path="/privacidad" element={<PoliticaPrivacidad />} />
+          <Route path="/" element={<PageTransition><RedireccionInicial /></PageTransition>} />
+          <Route path="/login" element={<PageTransition><AuthPage /></PageTransition>} />
+          <Route path="/register" element={<PageTransition><AuthPage /></PageTransition>} />
+          <Route path="/tyc" element={<PageTransition><Tyc /></PageTransition>} />
+          <Route path="/privacidad" element={<PageTransition><PoliticaPrivacidad /></PageTransition>} />
         </Route>
 
         {/* --- RUTAS DE ADMIN CON AdminLayout --- */}
@@ -76,18 +73,18 @@ const AppContent = () => {
             </RutaProtegida>
           }
         >
-          <Route index element={<AdminPanel />} />
-          <Route path="alumnos" element={<AdminAlumnos />} />
-          <Route path="alumnos/:id" element={<AlumnoPerfil />} />
-          <Route path="alumno/:id" element={<AlumnoPerfil />} />
-          <Route path="rutinas" element={<AdminRutinas />} />
-          <Route path="rutinas/crear" element={<CrearRutina />} />
-          <Route path="rutinas/editar/:id" element={<EditarRutina />} />
-          <Route path="rutinas/ver/:id" element={<VerRutina />} />
-          <Route path="rutinas/editar-dia/:id" element={<EditarDia />} />
-          <Route path="ejercicios" element={<AdminEjercicios />} />
-          <Route path="ejercicios/seleccionar" element={<SeleccionarEjercicios />} />
-          <Route path="asignar-rutina/:id" element={<AsignarRutina />} />
+          <Route index element={<PageTransition><AdminPanel /></PageTransition>} />
+          <Route path="alumnos" element={<PageTransition><AdminAlumnos /></PageTransition>} />
+          <Route path="alumnos/:id" element={<PageTransition><AlumnoPerfil /></PageTransition>} />
+          <Route path="alumno/:id" element={<PageTransition><AlumnoPerfil /></PageTransition>} />
+          <Route path="rutinas" element={<PageTransition><AdminRutinas /></PageTransition>} />
+          <Route path="rutinas/crear" element={<PageTransition><CrearRutina /></PageTransition>} />
+          <Route path="rutinas/editar/:id" element={<PageTransition><EditarRutina /></PageTransition>} />
+          <Route path="rutinas/ver/:id" element={<PageTransition><VerRutina /></PageTransition>} />
+          <Route path="rutinas/editar-dia/:id" element={<PageTransition><EditarDia /></PageTransition>} />
+          <Route path="ejercicios" element={<PageTransition><AdminEjercicios /></PageTransition>} />
+          <Route path="ejercicios/seleccionar" element={<PageTransition><SeleccionarEjercicios /></PageTransition>} />
+          <Route path="asignar-rutina/:id" element={<PageTransition><AsignarRutina /></PageTransition>} />
         </Route>
       </Routes>
     </AnimatePresence>

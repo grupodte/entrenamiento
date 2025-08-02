@@ -25,7 +25,9 @@ export function BottomSheet({ isOpen, onClose, children }) {
           dragConstraints={{ top: 0 }}
           dragElastic={0.2}
           onDragEnd={(event, info) => {
-            if (info.offset.y > 100 || info.velocity.y > 500) {
+            // Cierra el panel solo si se ha arrastrado hacia abajo
+            // una distancia suficiente (más de 150px).
+            if (info.offset.y > 150) {
               onClose();
             }
           }}
