@@ -1,6 +1,5 @@
 import { Dialog } from '@headlessui/react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'react-router-dom';
 
 export function BottomSheet({ isOpen, onClose, children }) {
   return (
@@ -21,11 +20,12 @@ export function BottomSheet({ isOpen, onClose, children }) {
           initial={{ y: '100%' }}
           animate={{ y: '0%' }}
           exit={{ y: '100%' }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          transition={{ type: 'tween', ease: 'easeOut', duration: 0.3 }}
           drag="y"
           dragConstraints={{ top: 0 }}
+          dragElastic={0.2}
           onDragEnd={(event, info) => {
-            if (info.offset.y > 200) {
+            if (info.offset.y > 100 || info.velocity.y > 500) {
               onClose();
             }
           }}

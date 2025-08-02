@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { FaArrowLeft, FaArrowRight, FaCalendarAlt } from 'react-icons/fa';
 import BrandedLoader from '../../components/BrandedLoader';
 import { motion } from 'framer-motion';
+import { BottomSheet } from '../../components/BottomSheet';
 
-const SeleccionOrdenBloques = () => {
-    const { id: rutinaId } = useParams();
+const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
     const navigate = useNavigate();
-    const location = useLocation();
-    const { tipo } = location.state || {};
-
     const [bloques, setBloques] = useState([]);
     const [rutinaNombre, setRutinaNombre] = useState('');
     const [rutinaDescripcion, setRutinaDescripcion] = useState('');
@@ -28,7 +25,6 @@ const SeleccionOrdenBloques = () => {
             setLoading(true);
             setError(null);
 
-            // Fetch nombre de la rutina
             const fromTable = tipo === 'base' ? 'rutinas_base' : 'rutinas_personalizadas';
             const { data: rutinaData, error: rutinaError } = await supabase
                 .from(fromTable)
@@ -42,7 +38,6 @@ const SeleccionOrdenBloques = () => {
                 setRutinaDescripcion(rutinaData?.descripcion || '');
             }
 
-            // Fetch bloques
             let query = supabase.from('bloques');
             if (tipo === 'base') {
                 query = query.select('id, nombre, orden, semana_inicio, semana_fin').eq('rutina_base_id', rutinaId);
@@ -69,23 +64,19 @@ const SeleccionOrdenBloques = () => {
             setLoading(false);
         };
 
-        fetchDatos();
-    }, [rutinaId, tipo]);
+        if (isOpen) {
+            fetchDatos();
+        }
+    }, [rutinaId, tipo, isOpen]);
 
     const handleElegirBloque = (bloqueId) => {
+        onClose();
         navigate(`/rutina/${rutinaId}?tipo=${tipo}&bloque=${bloqueId}`);
     };
 
-    if (loading) return <BrandedLoader />;
-    
     const containerVariants = {
         hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
+        visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
     };
 
     const itemVariants = {
@@ -94,25 +85,22 @@ const SeleccionOrdenBloques = () => {
     };
 
     return (
-        <div className="bg-gray-900 text-white font-sans">
-             <header className=" top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-4 flex items-center gap-4 border-b border-gray-800">
-                <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
-                    <FaArrowLeft />
-                </Link>
-                <div>
+        <BottomSheet isOpen={isOpen} onClose={onClose}>
+            <div className="bg-gray-800 text-white font-sans p-4">
+                <div className="mb-4">
                     <h1 className="text-xl font-bold text-white">{rutinaNombre}</h1>
                     {rutinaDescripcion && <p className="text-sm text-gray-400 mt-1">{rutinaDescripcion}</p>}
                     <p className="text-sm text-gray-400">Selecciona un bloque</p>
                 </div>
-            </header>
 
-            <main className="p-4 space-y-4">
-                {error ? (
+                {loading ? (
+                    <BrandedLoader />
+                ) : error ? (
                     <div className="text-center p-4 bg-red-900/50 rounded-lg text-sm">
                         <p className="text-red-300">{error}</p>
                     </div>
                 ) : bloques.length === 0 ? (
-                    <div className="text-center p-4 bg-gray-800 rounded-lg text-sm">
+                    <div className="text-center p-4 bg-gray-700 rounded-lg text-sm">
                         <p className="text-gray-300">Esta rutina no tiene bloques definidos.</p>
                     </div>
                 ) : (
@@ -125,7 +113,7 @@ const SeleccionOrdenBloques = () => {
                         {bloques.map((bloque) => (
                             <motion.div key={bloque.id} variants={itemVariants}>
                                 <div
-                                    className="flex justify-between items-center bg-gray-800 shadow-lg rounded-xl p-4 border border-gray-700 hover:border-cyan-400 transition-colors duration-300"
+                                    className="flex justify-between items-center bg-gray-700 shadow-lg rounded-xl p-4 border border-gray-600 hover:border-cyan-400 transition-colors duration-300"
                                 >
                                     <div className="flex items-center gap-3">
                                         <FaCalendarAlt className="text-cyan-300 text-lg"/>
@@ -144,8 +132,8 @@ const SeleccionOrdenBloques = () => {
                         ))}
                     </motion.div>
                 )}
-            </main>
-        </div>
+            </div>
+        </BottomSheet>
     );
 };
 

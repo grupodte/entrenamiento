@@ -54,7 +54,6 @@ const AppContent = () => {
           <Route path="/dashboard" element={<DashboardAlumno />} />
           
           <Route path="/rutina/:id" element={<RutinaDetalle />} />
-          <Route path="/rutina/:id/orden" element={<SeleccionOrdenBloques />} />
           <Route path="/alumno/perfil" element={<PerfilAlumno />} />
           <Route path="/alumno/editar-perfil" element={<EditarPerfilPage />} />
         </Route>

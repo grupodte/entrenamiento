@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { FaDumbbell, FaUtensils, FaEnvelope, FaUserCircle, FaPlayCircle, FaCheckCircle, FaArrowRight, FaChevronDown } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import SeleccionOrdenBloques from './SeleccionOrdenBloques';
 
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -35,6 +36,8 @@ const Dashboard = () => {
     const [mostrarTodas, setMostrarTodas] = useState(false);
     const [completedWorkoutsThisWeek, setCompletedWorkoutsThisWeek] = useState(0);
     const [totalWorkoutsThisWeek, setTotalWorkoutsThisWeek] = useState(0);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [selectedRutina, setSelectedRutina] = useState(null);
 
     const todayIndex = (new Date().getDay() + 6) % 7; // Lunes = 0
 
@@ -121,7 +124,8 @@ const Dashboard = () => {
     }, [user]);
 
     const iniciarRutina = (rutina) => {
-        navigate(`/rutina/${rutina.rutinaId.replace(/^[pb]-/, '')}/orden`, { state: { tipo: rutina.tipo } });
+        setSelectedRutina(rutina);
+        setIsSheetOpen(true);
     };
 
     const rutinaHoy = rutinas.find(r => r.dia === todayIndex);
@@ -270,6 +274,14 @@ const Dashboard = () => {
                     </motion.div>
                 )}
             </main>
+            {selectedRutina && (
+                <SeleccionOrdenBloques
+                    isOpen={isSheetOpen}
+                    onClose={() => setIsSheetOpen(false)}
+                    rutinaId={selectedRutina.rutinaId.replace(/^[pb]-/, '')}
+                    tipo={selectedRutina.tipo}
+                />
+            )}
         </div>
     );
 };
