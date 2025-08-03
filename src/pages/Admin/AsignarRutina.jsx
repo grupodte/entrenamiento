@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import AdminLayout from '../../layouts/AdminLayout';
+import BrandedLoader from '../../components/BrandedLoader';
 
 const AsignarRutina = () => {
     const { id: alumnoId } = useParams();
@@ -60,7 +61,7 @@ const AsignarRutina = () => {
 
                 <h1 className="text-xl font-bold mb-4">Seleccionar rutina base para el día</h1>
                 {loading ? (
-                    <p>Cargando rutinas...</p>
+                    <BrandedLoader />
                 ) : (
                     <ul className="space-y-4">
                         {rutinas.map((r) => (

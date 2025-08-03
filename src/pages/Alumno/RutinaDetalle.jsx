@@ -347,8 +347,31 @@ const RutinaDetalle = () => {
         }
     }, [elementoActivoId]);
 
-    if (loading) return <BrandedLoader />;
-    if (!rutina) return <div className="p-6 text-white text-center">No se encontró la rutina.</div>;
+    if (!rutina) {
+        // Muestra un esqueleto o un estado de carga mínimo sin un loader a pantalla completa
+        return (
+            <div className="bg-gray-900 text-white font-sans min-h-screen">
+                <header className=" top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-3 flex items-center justify-between gap-4 border-b border-gray-800">
+                    <div className="flex items-center gap-4">
+                        <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
+                            <FaArrowLeft />
+                        </Link>
+                        <div>
+                            <h1 className="text-xl font-bold text-white">Cargando rutina...</h1>
+                            <p className="text-sm text-gray-400">Entrenamiento en curso</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-cyan-400">
+                        <FaStopwatch />
+                        <span className="font-mono text-lg">00:00</span>
+                    </div>
+                </header>
+                <main className="p-4">
+                    <BrandedLoader />
+                </main>
+            </div>
+        );
+    }
 
     const todosCompletados = orderedInteractiveElementIds.length > 0 && orderedInteractiveElementIds.every(id => elementosCompletados[id]);
     const totalSeriesCompletadas = Object.values(elementosCompletados).filter(Boolean).length;

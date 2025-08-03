@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { FaArrowLeft, FaArrowRight, FaCalendarAlt } from 'react-icons/fa';
 import BrandedLoader from '../../components/BrandedLoader';
 import { motion } from 'framer-motion';
-import { BottomSheet } from '../../components/BottomSheet';
+import { Drawer } from '../../components/Drawer';
 
 const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
     const navigate = useNavigate();
@@ -88,7 +88,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
     };
 
     return (
-        <BottomSheet isOpen={isOpen} onClose={onClose}>
+        <Drawer isOpen={isOpen} onClose={onClose}>
             <div className="bg-gray-800 text-white font-sans p-4">
                 <div className="mb-4">
                     <h1 className="text-xl font-bold text-white">{rutinaNombre}</h1>
@@ -136,7 +136,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                     </motion.div>
                 )}
             </div>
-        </BottomSheet>
+        </Drawer>
     );
 };
 

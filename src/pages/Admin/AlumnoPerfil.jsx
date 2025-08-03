@@ -17,6 +17,7 @@ import {
     DragOverlay,
 } from '@dnd-kit/core';
 import { useDragState } from '../../context/DragStateContext';
+import Drawer from '../../components/Drawer';
 
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -28,6 +29,7 @@ const AlumnoPerfil = () => {
     const [loading, setLoading] = useState(true);
     const [activeId, setActiveId] = useState(null); // dnd-kit active drag ID
     const { setIsDragging } = useDragState(); // Context setter for global drag state
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
     const sensors = useSensors(
         useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -211,6 +213,21 @@ const AlumnoPerfil = () => {
                     ) : null}
                 </DragOverlay>
             </DndContext>
+            <Drawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)}>
+                <div className="p-4">
+                    <h2 className="text-xl font-bold mb-4">Perfil del Alumno</h2>
+                    {alumno && (
+                        <div>
+                            <p><strong>Nombre:</strong> {alumno.nombre} {alumno.apellido}</p>
+                            <p><strong>Email:</strong> {alumno.email}</p>
+                            {/* Agrega más detalles del perfil aquí */}
+                        </div>
+                    )}
+                </div>
+            </Drawer>
+            <button onClick={() => setIsDrawerOpen(true)} className="fixed bottom-4 right-4 bg-cyan-500 text-white p-4 rounded-full shadow-lg">
+                Ver Perfil
+            </button>
     );
 };
 

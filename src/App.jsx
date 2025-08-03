@@ -9,6 +9,7 @@ import AdminLayout from './layouts/AdminLayout';
 import RutaProtegida from './components/RutaProtegida';
 import RedireccionInicial from './pages/RedireccionInicial';
 import PageTransition from './components/PageTransition';
+import useSmoothScroll from './hooks/useSmoothScroll';
 import AlumnoLayout from './layouts/AlumnoLayout';
 
 // --- PÁGINAS PÚBLICAS ---
@@ -92,6 +93,8 @@ const AppContent = () => {
 };
 
 const App = () => {
+  useSmoothScroll();
+
   return (
     <AuthProvider>
       <Router>
