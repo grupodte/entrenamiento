@@ -1,29 +1,20 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
-import AdminLayout from '../../layouts/AdminLayout';
-import DiaCard from '../../components/Rutina/DiaCard';
-import RutinasSidebar from '../../components/Rutina/RutinasSidebar';
-import RutinaItem from '../../components/Rutina/RutinaItem';
-// No necesitamos useAuthUser ni clonarRutinaBaseHaciaPersonalizada aquí para asignación directa
-import { toast } from 'react-hot-toast'; // Para notificaciones
-
-import {
-    DndContext,
-    MouseSensor,
-    TouchSensor,
-    useSensor,
-    useSensors,
-    DragOverlay,
-} from '@dnd-kit/core';
+import { toast } from 'react-hot-toast';
+import { MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useDragState } from '../../context/DragStateContext';
 import Drawer from '../../components/Drawer';
+import AlumnoPerfilContent from './AlumnoPerfilContent';
 
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
-const AlumnoPerfil = () => {
+const AlumnoPerfilDrawer = () => {
     const { id } = useParams(); // Este es el alumnoId
-    const [alumno, setAlumno] = useState(null);
+    const location = useLocation();
+    const { alumnoInicial } = location.state || {};
+    const [alumno, setAlumno] = useState(alumnoInicial);
+
     const [asignacionesPorDia, setAsignacionesPorDia] = useState({});
     const [rutinasBase, setRutinasBase] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -40,11 +31,11 @@ const AlumnoPerfil = () => {
         if (!silent) setLoading(true);
         try {
             const [perfilResult, rutinasResult, asignacionesResult] = await Promise.all([
-                supabase.from('perfiles').select('*').eq('id', id).single(),
+                alumnoInicial ? { data: alumnoInicial } : supabase.from('perfiles').select('id, nombre, apellido, email').eq('id', id).single(),
                 supabase.from('rutinas_base').select('id, nombre').order('nombre'),
                 supabase.from('asignaciones')
                     .select(`
-                        *,
+                        id, dia_semana, rutina_base_id, rutina_personalizada_id,
                         rutina_base:rutina_base_id (id, nombre),
                         rutina_personalizada:rutina_personalizada_id (id, nombre)
                     `)
@@ -76,8 +67,12 @@ const AlumnoPerfil = () => {
     };
 
     useEffect(() => {
-        fetchData();
-    }, [id]);
+        if (!alumnoInicial) {
+            fetchData();
+        } else {
+            setLoading(false);
+        }
+    }, [id, alumnoInicial]);
 
     const handleDrop = async (event) => {
         const itemId = event.active?.id;
@@ -98,19 +93,15 @@ const AlumnoPerfil = () => {
             return;
         }
 
-        // Ya no se verifica el entrenador aquí, se asigna directamente la rutina base.
-        const diaIndex = Number(overId.replace('dia-', '')); // Necesitamos el índice numérico para la BD
+        const diaIndex = Number(overId.replace('dia-', ''));
 
         try {
             if (itemId.startsWith('rutina-')) {
                 const rutinaBaseId = itemId.replace('rutina-', '');
-                const alumnoId = id; // id de useParams es el alumnoId
+                const alumnoId = id;
 
                 toast.loading(`Asignando rutina a ${diaSemanaTexto}...`);
 
-                // Verificar si ya existe una asignación para este alumno y día
-                // Esto es importante si el estado local `asignacionesPorDia` no está perfectamente sincronizado
-                // o para prevenir condiciones de carrera.
                 const { data: existingAsignacion, error: fetchError } = await supabase
                     .from('asignaciones')
                     .select('id')
@@ -128,20 +119,18 @@ const AlumnoPerfil = () => {
                 if (existingAsignacion) {
                     toast.dismiss();
                     toast.warn(`El ${diaSemanaTexto} ya tiene una rutina asignada.`);
-                    fetchData(true); // Sincronizar estado local si es necesario
+                    fetchData(true);
                     return;
                 }
 
-                // Crear la asignación directa a rutina_base_id
                 const { error: insertError } = await supabase
                     .from('asignaciones')
                     .insert({
                         alumno_id: alumnoId,
                         dia_semana: diaIndex,
                         rutina_base_id: rutinaBaseId,
-                        rutina_personalizada_id: null, // Explícitamente null
-                        fecha_inicio: fechaHoy, // Asignar con fecha de hoy por defecto
-                        // Otros campos de 'asignaciones' si son necesarios y tienen valor por defecto
+                        rutina_personalizada_id: null,
+                        fecha_inicio: fechaHoy,
                     });
 
                 if (insertError) {
@@ -150,7 +139,7 @@ const AlumnoPerfil = () => {
 
                 toast.dismiss();
                 toast.success(`Rutina base asignada al ${diaSemanaTexto}.`);
-                fetchData(true); // Refrescar datos para mostrar la nueva asignación
+                fetchData(true);
 
             } else {
                 console.warn(`Item no soportado para asignación: ${itemId}`);
@@ -165,55 +154,19 @@ const AlumnoPerfil = () => {
 
     return (
         <>
-            <DndContext
+            <AlumnoPerfilContent
+                alumno={alumno}
+                asignacionesPorDia={asignacionesPorDia}
+                rutinasBase={rutinasBase}
+                fetchData={fetchData}
+                diasSemana={diasSemana}
+                handleDrop={handleDrop}
+                activeId={activeId}
+                setActiveId={setActiveId}
+                setIsDragging={setIsDragging}
                 sensors={sensors}
-                onDragStart={(event) => {
-                    setActiveId(event.active.id);
-                    setIsDragging(true);
-                }}
-                onDragEnd={(event) => { // handleDrop also clears activeId
-                    handleDrop(event); // Ensure handleDrop is called
-                    setIsDragging(false);
-                }}
-                onDragCancel={() => {
-                    setActiveId(null);
-                    setIsDragging(false);
-                }}
-                autoScroll={true}
-            >
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-4">
-                    <div className="md:col-span-1">
-                        <RutinasSidebar rutinas={rutinasBase} />
-                    </div>
-
-                    <div className="md:col-span-3">
-                        <h1 className="text-2xl font-bold mb-4">
-                            Rutinas de {alumno?.nombre} {alumno?.apellido}
-                        </h1>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            {diasSemana.map((dia, i) => (
-                                <DiaCard
-                                    key={i}
-                                    index={i}
-                                    id={`dia-${i}`} // El ID para dnd-kit
-                                    dia={dia} // Nombre del día
-                                    diaInfo={asignacionesPorDia[i]} // Información de la asignación para este día
-                                    alumnoId={id} // Pasar el alumnoId al DiaCard
-                                    onAsignacionEliminada={() => fetchData(true)}
-                                    onRutinaPersonalizada={() => fetchData(true)} // Para refrescar tras clonar/actualizar asignación
-                                />
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                <DragOverlay>
-                    {activeId?.startsWith('rutina-') ? (
-                        <RutinaItem rutina={rutinasBase.find(r => `rutina-${r.id}` === activeId)} />
-                    ) : null}
-                </DragOverlay>
-            </DndContext>
+                onCloseDrawer={() => setIsDrawerOpen(false)}
+            />
             <Drawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)}>
                 <div className="p-4">
                     <h2 className="text-xl font-bold mb-4">Perfil del Alumno</h2>
@@ -221,7 +174,6 @@ const AlumnoPerfil = () => {
                         <div>
                             <p><strong>Nombre:</strong> {alumno.nombre} {alumno.apellido}</p>
                             <p><strong>Email:</strong> {alumno.email}</p>
-                            {/* Agrega más detalles del perfil aquí */}
                         </div>
                     )}
                 </div>
@@ -233,4 +185,4 @@ const AlumnoPerfil = () => {
     );
 };
 
-export default AlumnoPerfil;
+export default AlumnoPerfilDrawer;

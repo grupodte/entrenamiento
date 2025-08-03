@@ -87,7 +87,7 @@ const AlumnosManager = () => {
                                 enterTo="opacity-100 translate-y-0"
                             >
                                 <li
-                                    onClick={() => navigate(`/admin/alumno/${alumno.id}`)}
+                                    onClick={() => navigate(`/admin/alumno/${alumno.id}`, { state: { alumnoInicial: alumno } })}
                                     className="p-4 bg-white/10 backdrop-blur rounded-xl shadow-md flex justify-between items-center hover:bg-white/20 transition duration-300 cursor-pointer"
                                 >
                                     <div className="flex items-center gap-4">

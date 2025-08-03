@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import BrandedLoader from './BrandedLoader';
+
 
 const RutaProtegida = ({ children, rolPermitido }) => {
     const { user, rol, loading } = useAuth();
@@ -8,10 +8,10 @@ const RutaProtegida = ({ children, rolPermitido }) => {
 
     const rolEvaluado = rol || rolPersistido;
 
-    if (loading) return <BrandedLoader />;
+    if (loading) return null;
     if (!user) return <Navigate to="/login" replace />;
 
-    if (user && !rolEvaluado) return <BrandedLoader />;
+    if (user && !rolEvaluado) return null;
 
     if (rolPermitido && rolEvaluado !== rolPermitido) {
         return <Navigate to="/" replace />;

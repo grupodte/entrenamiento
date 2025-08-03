@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'; // Añad
 import { supabase } from '../../lib/supabaseClient';
 import RutinaForm from '../../components/Rutina/RutinaForm';
 import AdminLayout from '../../layouts/AdminLayout';
-import BrandedLoader from '../../components/BrandedLoader';
+
 import { FaArrowLeft } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
@@ -189,7 +189,7 @@ const EditarRutina = () => {
     if (loading) {
         return (
                 <div className="flex justify-center items-center min-h-screen">
-                    <BrandedLoader />
+                    {/* Puedes agregar un esqueleto de carga aquí si lo deseas */}
                 </div>
         );
     }

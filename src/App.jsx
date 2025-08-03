@@ -25,7 +25,7 @@ import EditarPerfilPage from './pages/Alumno/EditarPerfil';
 
 // --- PÁGINAS DE ADMIN ---
 import AdminPanel from './pages/Admin/AdminPanel';
-import AlumnoPerfil from './pages/Admin/AlumnoPerfil';
+import AlumnoPerfilDrawer from './pages/Admin/AlumnoPerfilDrawer';
 import CrearRutina from './pages/Admin/CrearRutina';
 import EditarRutina from './pages/Admin/EditarRutina';
 import VerRutina from './pages/Admin/VerRutina';
@@ -76,8 +76,8 @@ const AppContent = () => {
         >
           <Route index element={<PageTransition><AdminPanel /></PageTransition>} />
           <Route path="alumnos" element={<PageTransition><AdminAlumnos /></PageTransition>} />
-          <Route path="alumnos/:id" element={<PageTransition><AlumnoPerfil /></PageTransition>} />
-          <Route path="alumno/:id" element={<PageTransition><AlumnoPerfil /></PageTransition>} />
+          <Route path="alumnos/:id" element={<PageTransition><AlumnoPerfilDrawer /></PageTransition>} />
+          <Route path="alumno/:id" element={<PageTransition><AlumnoPerfilDrawer /></PageTransition>} />
           <Route path="rutinas" element={<PageTransition><AdminRutinas /></PageTransition>} />
           <Route path="rutinas/crear" element={<PageTransition><CrearRutina /></PageTransition>} />
           <Route path="rutinas/editar/:id" element={<PageTransition><EditarRutina /></PageTransition>} />

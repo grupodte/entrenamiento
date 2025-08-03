@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import AdminLayout from '../../layouts/AdminLayout';
-import BrandedLoader from '../../components/BrandedLoader';
+
 
 const AsignarRutina = () => {
     const { id: alumnoId } = useParams();

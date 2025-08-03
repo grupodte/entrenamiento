@@ -1,11 +1,13 @@
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { FaDumbbell, FaUtensils, FaEnvelope, FaUserCircle, FaPlayCircle, FaCheckCircle, FaArrowRight, FaChevronDown } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
-import BrandedLoader from '../../components/BrandedLoader';
+
 import SeleccionOrdenBloques from './SeleccionOrdenBloques';
+import { useRutinaCache } from '../../hooks/useRutinaCache';
+import { useRutinaPrefetch } from '../../hooks/useRutinaPrefetch';
 
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -31,6 +33,7 @@ const getTipDelDia = () => tipsDelDia[new Date().getDay() % tipsDelDia.length];
 const Dashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const { clearAllCache } = useRutinaCache();
     const [nombre, setNombre] = useState('');
     const [rutinas, setRutinas] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -40,7 +43,7 @@ const Dashboard = () => {
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedRutina, setSelectedRutina] = useState(null);
 
-    const todayIndex = (new Date().getDay() + 6) % 7; // Lunes = 0
+    const todayIndex = useMemo(() => (new Date().getDay() + 6) % 7, []); // Lunes = 0
 
     useEffect(() => {
         if (!user?.id) {
@@ -124,14 +127,36 @@ const Dashboard = () => {
         fetchPerfilYRutinas();
     }, [user]);
 
-    const iniciarRutina = (rutina) => {
+    // Optimizar con useCallback para evitar re-renders
+    const iniciarRutina = useCallback((rutina) => {
         setSelectedRutina(rutina);
         setIsSheetOpen(true);
-    };
+    }, []);
 
-    const rutinaHoy = rutinas.find(r => r.dia === todayIndex);
-    const proximasRutinas = rutinas.filter(r => r.dia !== todayIndex);
-    const rutinasVisibles = mostrarTodas ? proximasRutinas : proximasRutinas.slice(0, 2);
+    const handleCloseSheet = useCallback(() => {
+        setIsSheetOpen(false);
+        // Pequeño delay para permitir que la animación termine
+        setTimeout(() => setSelectedRutina(null), 300);
+    }, []);
+
+    // Memoizar cálculos pesados
+    const rutinaHoy = useMemo(() => 
+        rutinas.find(r => r.dia === todayIndex), 
+        [rutinas, todayIndex]
+    );
+    
+    const proximasRutinas = useMemo(() => 
+        rutinas.filter(r => r.dia !== todayIndex), 
+        [rutinas, todayIndex]
+    );
+    
+    const rutinasVisibles = useMemo(() => 
+        mostrarTodas ? proximasRutinas : proximasRutinas.slice(0, 2), 
+        [mostrarTodas, proximasRutinas]
+    );
+
+    // Prefetch inteligente de rutinas
+    useRutinaPrefetch(rutinas);
 
     const Card = ({ children, className, onClick }) => (
         <div
@@ -150,7 +175,9 @@ const Dashboard = () => {
         <div className="font-sans">
             <main className="pt-safe">
                 {loading ? (
-                    <BrandedLoader />
+                    <div className="flex justify-center items-center h-64">
+                        {/* Puedes agregar un esqueleto de carga aquí si lo deseas */}
+                    </div>
                 ) : (
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="p-4 space-y-6">
                         <header>
@@ -276,7 +303,7 @@ const Dashboard = () => {
             {selectedRutina && (
                 <SeleccionOrdenBloques
                     isOpen={isSheetOpen}
-                    onClose={() => setIsSheetOpen(false)}
+                    onClose={handleCloseSheet}
                     rutinaId={selectedRutina.rutinaId.replace(/^[pb]-/, '')}
                     tipo={selectedRutina.tipo}
                 />

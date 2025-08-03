@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from "../../lib/supabaseClient";
 import RestTimer from "../../components/RestTimer";
 import BloqueDisplay from "../../components/RutinaDetalle/BloqueDisplay";
-import BrandedLoader from "../../components/BrandedLoader";
+
 import { generarIdSerieSimple, generarIdEjercicioEnSerieDeSuperset } from '../../utils/rutinaIds';
 import { guardarSesionEntrenamiento } from '../../utils/guardarSesionEntrenamiento';
 import { FaArrowLeft, FaBell, FaStopwatch } from "react-icons/fa";
@@ -367,7 +367,7 @@ const RutinaDetalle = () => {
                     </div>
                 </header>
                 <main className="p-4">
-                    <BrandedLoader />
+                    {/* Aquí puedes poner un esqueleto de carga si lo deseas */}
                 </main>
             </div>
         );
