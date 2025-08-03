@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { FaArrowLeft, FaArrowRight, FaCalendarAlt } from 'react-icons/fa';
-import BrandedLoader from '../../components/BrandedLoader';
+
 import { motion } from 'framer-motion';
-import { Drawer } from '../../components/Drawer';
+import Drawer from '../../components/Drawer';
 
 const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
     const navigate = useNavigate();
@@ -96,9 +96,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                     <p className="text-sm text-gray-400">Selecciona un bloque</p>
                 </div>
 
-                {loading ? (
-                    <BrandedLoader />
-                ) : error ? (
+                {error ? (
                     <div className="text-center p-4 bg-red-900/50 rounded-lg text-sm">
                         <p className="text-red-300">{error}</p>
                     </div>
