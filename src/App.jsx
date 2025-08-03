@@ -20,8 +20,6 @@ import PoliticaPrivacidad from './pages/PoliticaPrivacidad';
 // --- PÁGINAS DE ALUMNO ---
 import DashboardAlumno from './pages/Alumno/Dashboard';
 import RutinaDetalle from './pages/Alumno/RutinaDetalle';
-import PerfilAlumno from './pages/Alumno/Perfil';
-import EditarPerfilPage from './pages/Alumno/EditarPerfil';
 
 // --- PÁGINAS DE ADMIN ---
 import AdminPanel from './pages/Admin/AdminPanel';
@@ -52,8 +50,6 @@ const AppContent = () => {
         >
           <Route path="/dashboard" element={<PageTransition><DashboardAlumno /></PageTransition>} />
           <Route path="/rutina/:id" element={<PageTransition><RutinaDetalle /></PageTransition>} />
-          <Route path="/alumno/perfil" element={<PageTransition><PerfilAlumno /></PageTransition>} />
-          <Route path="/alumno/editar-perfil" element={<PageTransition><EditarPerfilPage /></PageTransition>} />
         </Route>
 
         {/* --- RUTAS PÚBLICAS --- */}

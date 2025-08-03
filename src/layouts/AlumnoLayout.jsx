@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavBar from '../components/BottomNavBar';
+import PerfilDrawer from '../pages/Alumno/PerfilDrawer';
 
 const pageVariants = {
   initial: { opacity: 0, x: 50 }, // Más desplazamiento para una entrada más notoria
@@ -11,6 +12,15 @@ const pageVariants = {
 
 const AlumnoLayout = () => {
   const location = useLocation();
+  const [isPerfilDrawerOpen, setIsPerfilDrawerOpen] = useState(false);
+
+  const handleOpenPerfilDrawer = () => {
+    setIsPerfilDrawerOpen(true);
+  };
+
+  const handleClosePerfilDrawer = () => {
+    setIsPerfilDrawerOpen(false);
+  };
 
   useEffect(() => {
     const setViewportHeight = () => {
@@ -36,7 +46,8 @@ const AlumnoLayout = () => {
           <Outlet />
         </motion.main>
       </AnimatePresence>
-      <BottomNavBar />
+      <BottomNavBar onOpenPerfil={handleOpenPerfilDrawer} />
+      <PerfilDrawer isOpen={isPerfilDrawerOpen} onClose={handleClosePerfilDrawer} />
     </div>
   );
 };
