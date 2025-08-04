@@ -1,8 +1,11 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import useWorkoutTimer from "../../hooks/useWorkoutTimer";
+import useRestTimer from "../../hooks/useRestTimer";
 import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from "../../lib/supabaseClient";
 import RestTimer from "../../components/RestTimer";
+import RestTimerNew from "../../components/RestTimerNew";
 import BloqueDisplay from "../../components/RutinaDetalle/BloqueDisplay";
 
 import { generarIdSerieSimple, generarIdEjercicioEnSerieDeSuperset } from '../../utils/rutinaIds';
@@ -16,6 +19,23 @@ import toast from "react-hot-toast";
 let orderedInteractiveElementIds = [];
 
 const RutinaDetalle = () => {
+    const { 
+        elapsedTime: workoutTime,
+        startWorkout,
+        finishWorkout,
+        pauseWorkout,
+        resumeWorkout
+    } = useWorkoutTimer();
+
+    const {
+        isResting,
+        timeLeft: restTimeLeft,
+        exerciseName: restExerciseName,
+        startRest,
+        finishRest,
+        skipRest,
+        formatTime: formatRestTime
+    } = useRestTimer();
     const { id } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
@@ -83,27 +103,19 @@ const RutinaDetalle = () => {
         });
     }, [rutina]);
 
-    // Función para activar el temporizador de pausa
+    // Función para activar el temporizador de pausa usando el nuevo hook
     const activarTemporizadorPausa = useCallback((duracion, originId) => {
-        if (duracion > 0 && !timerActiveRef.current) {
+        if (duracion > 0 && !isResting) {
             const siguienteDelQuePausa = obtenerSiguienteElementoInfo(originId);
             const nombreSiguiente = siguienteDelQuePausa ? siguienteDelQuePausa.nombre : "¡Rutina Completada!";
 
-            if (navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({
-                    type: 'START_TIMER',
-                    duration: duracion,
-                    exerciseName: nombreSiguiente
-                });
-            }
-
-            timerActiveRef.current = true;
-            setTimerDuration(duracion);
-            setNextExerciseName(nombreSiguiente);
+            // Usar el nuevo hook para iniciar el descanso
+            startRest(duracion, nombreSiguiente);
+            
+            // Mantener compatibilidad con el sistema actual para la UI
             setCurrentTimerOriginId(originId);
-            setShowRestTimer(true);
         }
-    }, [obtenerSiguienteElementoInfo]);
+    }, [obtenerSiguienteElementoInfo, isResting, startRest]);
 
     // Función que se ejecuta cuando el temporizador de descanso termina
     const handleRestTimerFinish = useCallback(() => {
@@ -117,6 +129,20 @@ const RutinaDetalle = () => {
         }
         setCurrentTimerOriginId(null);
     }, [currentTimerOriginId, obtenerSiguienteElementoInfo]);
+
+    // Effect para manejar cuando el rest timer del hook termina
+    useEffect(() => {
+        if (!isResting && currentTimerOriginId) {
+            // El descanso terminó, activar el siguiente elemento
+            const siguienteElemento = obtenerSiguienteElementoInfo(currentTimerOriginId);
+            if (siguienteElemento && siguienteElemento.id) {
+                setElementoActivoId(siguienteElemento.id);
+            } else {
+                setElementoActivoId(null);
+            }
+            setCurrentTimerOriginId(null);
+        }
+    }, [isResting, currentTimerOriginId, obtenerSiguienteElementoInfo]);
 
     // Función para marcar un elemento como completado
     const toggleElementoCompletado = useCallback((elementoId, detalles) => {
@@ -171,13 +197,11 @@ const RutinaDetalle = () => {
             audioRef.current.load();
         }
 
-        const interval = setInterval(() => {
-            setTiempoTranscurrido(prev => prev + 1);
-        }, 1000);
-        return () => clearInterval(interval);
+        startWorkout();
+        return () => finishWorkout();
     }, []);
 
-    const formatTime = (seconds) => {
+const formatTime = (seconds) => {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
         return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
@@ -303,21 +327,19 @@ const RutinaDetalle = () => {
                         .eq('rutina_personalizada_id', id)
                         .eq('alumno_id', user.id)
                         .order('created_at', { ascending: false })
-                        .limit(1)
-                        .single();
+                        .limit(1);
                 } else {
                     lastSessionRes = await supabase.from('sesiones_entrenamiento')
                         .select('id, sesiones_series(ejercicio_id, nro_set, reps_realizadas, carga_realizada)')
                         .eq('rutina_base_id', id)
                         .eq('alumno_id', user.id)
                         .order('created_at', { ascending: false })
-                        .limit(1)
-                        .single();
+                        .limit(1);
                 }
 
-                if (lastSessionRes.data && lastSessionRes.data.sesiones_series) {
+                if (lastSessionRes.data && lastSessionRes.data.length > 0 && lastSessionRes.data[0].sesiones_series) {
                     const mappedLastSessionData = {};
-                    lastSessionRes.data.sesiones_series.forEach(serie => {
+                    lastSessionRes.data[0].sesiones_series.forEach(serie => {
                         const idKey = `${serie.ejercicio_id}-${serie.nro_set}`;
                         const elementoId = elementoIdLookup[idKey];
                         if (elementoId) {
@@ -381,7 +403,7 @@ const RutinaDetalle = () => {
         try {
             const result = await guardarSesionEntrenamiento({
                 rutinaId: rutina.id,
-                tiempoTranscurrido,
+                tiempoTranscurrido: workoutTime,
                 elementosCompletados,
                 rutinaDetalle: rutina,
                 alumnoId: user.id,
@@ -416,7 +438,7 @@ const RutinaDetalle = () => {
                 </div>
                 <div className="flex items-center gap-2 text-cyan-400">
                     <FaStopwatch />
-                    <span className="font-mono text-lg">{formatTime(tiempoTranscurrido)}</span>
+                        <span className="font-mono text-lg">{formatTime(workoutTime)}</span>
                 </div>
             </header>
 
@@ -433,7 +455,7 @@ const RutinaDetalle = () => {
                         <div className="grid grid-cols-2 gap-4 text-white my-4">
                             <div className="bg-gray-700/50 p-3 rounded-lg">
                                 <p className="text-sm text-gray-400">Tiempo Total</p>
-                                <p className="text-xl font-bold">{formatTime(tiempoTranscurrido)}</p>
+                        <p className="text-xl font-bold">{formatTime(workoutTime)}</p>
                             </div>
                             <div className="bg-gray-700/50 p-3 rounded-lg">
                                 <p className="text-sm text-gray-400">Series Completadas</p>
@@ -461,6 +483,15 @@ const RutinaDetalle = () => {
                     />
                 )}
             </AnimatePresence>
+
+            {/* Nuevo sistema de timer usando hooks */}
+            <RestTimerNew
+                isResting={isResting}
+                timeLeft={restTimeLeft}
+                exerciseName={restExerciseName}
+                onSkip={skipRest}
+                formatTime={formatRestTime}
+            />
         </div>
     );
 };
