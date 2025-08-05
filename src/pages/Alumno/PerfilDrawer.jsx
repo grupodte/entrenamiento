@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { FaEdit, FaUserCircle, FaPhone, FaBirthdayCake, FaTransgender, FaMapMarkerAlt, FaChartLine, FaChartBar, FaClock, FaSignOutAlt } from 'react-icons/fa';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Drawer from '../../components/Drawer';
-import DrawerLoader from '../../components/DrawerLoader';
+import PerfilDrawerSkeleton from '../../components/PerfilDrawerSkeleton';
 import { useNavigate } from 'react-router-dom';
 
 const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
@@ -19,24 +19,40 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
     const [loadingCharts, setLoadingCharts] = useState(false);
 
     useEffect(() => {
-        if (!isOpen || !user) return;
+        if (!isOpen || !user) {
+            // Limpiar datos y estado de carga cuando el drawer se cierra
+            setPerfil(null);
+            setWeightData([]);
+            setRepsData([]);
+            setTimeData([]);
+            setLoading(true);
+            setError('');
+            setLoadingCharts(false);
+            return;
+        }
 
-        // Retrasar la carga de datos para que el drawer se abra primero
-        const timer = setTimeout(() => {
-            const fetchPerfil = async () => {
-                setLoading(true);
-                const { data, error: err } = await supabase.from('perfiles').select('*').eq('id', user.id).single();
-                if (err) setError('No se pudo cargar el perfil.');
-                else {
-                    setPerfil(data);
-                }
-                setLoading(false);
-            };
-            fetchPerfil();
-            fetchWorkoutData();
-        }, 100); // 100ms de retraso
+        // Mostrar skeleton inmediatamente
+        setLoading(true);
+        setError('');
+        setLoadingCharts(true); // También para los gráficos
 
-        return () => clearTimeout(timer); // Limpiar el timer si el componente se desmonta
+        const fetchPerfilAndData = async () => {
+            // Fetch perfil
+            const { data: perfilData, error: perfilError } = await supabase.from('perfiles').select('*').eq('id', user.id).single();
+            if (perfilError) {
+                setError('No se pudo cargar el perfil.');
+                setPerfil(null);
+            } else {
+                setPerfil(perfilData);
+            }
+            setLoading(false); // Perfil cargado
+
+            // Fetch workout data
+            await fetchWorkoutData();
+            setLoadingCharts(false); // Gráficos cargados
+        };
+
+        fetchPerfilAndData();
     }, [isOpen, user]);
 
     const fetchWorkoutData = async () => {
@@ -198,7 +214,7 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
     return (
         <Drawer isOpen={isOpen} onClose={onClose}>
             {loading ? (
-                <DrawerLoader />
+                <PerfilDrawerSkeleton />
             ) : error ? (
                 <div className="bg-gray-800 text-white p-4">
                     <h1 className="text-xl font-bold mb-2">Error</h1>

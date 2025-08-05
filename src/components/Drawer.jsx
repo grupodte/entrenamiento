@@ -1,6 +1,6 @@
 // src/components/Drawer.jsx
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactDOM from 'react-portal';
+import ReactDOM from 'react-dom';
 import { useEffect, useCallback } from 'react';
 
 const Drawer = ({ isOpen, onClose, children }) => {
@@ -85,7 +85,16 @@ const Drawer = ({ isOpen, onClose, children }) => {
                             stiffness: 350,
                             damping: 30,
                             mass: 0.8,
-                            opacity: { duration: 0.15 }
+                            y: {
+                                type: 'spring',
+                                stiffness: 400,
+                                damping: 25,
+                            },
+                            opacity: {
+                                type: 'spring',
+                                stiffness: 400,
+                                damping: 25,
+                            }
                         }}
                         className="
                             fixed bottom-0 left-0 right-0 
@@ -140,7 +149,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
     );
 
     // Solo renderizar el portal si está abierto o cerrándose
-    if (!isOpen) return null;
+    
 
     return ReactDOM.createPortal(drawerContent, document.body);
 };
