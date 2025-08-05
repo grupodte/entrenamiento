@@ -1,15 +1,9 @@
 // src/components/Drawer.jsx
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactDOM from 'react-dom';
 
 const Drawer = ({ isOpen, onClose, children }) => {
-    const handleDragEnd = (event, info) => {
-        // Si se arrastra hacia abajo más de 100px, cerrar
-        if (info.offset.y > 100) {
-            onClose();
-        }
-    };
-
-    return (
+    const drawerContent = (
         <AnimatePresence>
             {isOpen && (
                 <>
@@ -19,14 +13,14 @@ const Drawer = ({ isOpen, onClose, children }) => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.25 }}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000]"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
                         onClick={onClose}
                     />
 
                     {/* Drawer */}
                     <motion.div
                         drag="y"
-                        onDragEnd={handleDragEnd}
+                        onDragEnd={(e, info) => info.offset.y > 100 && onClose()}
                         dragConstraints={{ top: 0, bottom: 0 }}
                         dragElastic={{ top: 0, bottom: 0.5 }}
                         initial={{ y: '100%' }}
@@ -39,7 +33,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                             bg-gray-900/95 
                             text-white 
                             shadow-2xl 
-                            z-[1001] 
+                            z-[9999] 
                             rounded-t-2xl 
                             overflow-y-auto 
                             overscroll-contain
@@ -47,12 +41,12 @@ const Drawer = ({ isOpen, onClose, children }) => {
                             pb-safe
                         "
                     >
-                        {/* Handle para indicar que se puede arrastrar */}
+                        {/* Handle para arrastrar */}
                         <div className="w-full flex justify-center py-3">
                             <div className="w-12 h-1.5 bg-gray-500 rounded-full" />
                         </div>
 
-                        {/* Contenido del drawer */}
+                        {/* Contenido */}
                         <div className="px-4 pb-6">
                             {children}
                         </div>
@@ -61,6 +55,8 @@ const Drawer = ({ isOpen, onClose, children }) => {
             )}
         </AnimatePresence>
     );
+
+    return ReactDOM.createPortal(drawerContent, document.body);
 };
 
 export default Drawer;
