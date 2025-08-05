@@ -66,3 +66,26 @@ button:active {
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* -------- PWA STANDALONE (iOS) -------- */
+@media all and (display-mode: standalone) {
+
+  html,
+  body,
+  #root {
+    height: -webkit-fill-available !important;
+    /* ocupa toda la pantalla */
+    background: #121212;
+  }
+
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+    /* espacio seguro bajo la nav bar */
+  }
+
+  /* Ocultar barra de scroll en standalone */
+  ::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+  }
+}
