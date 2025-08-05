@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavBar from '../components/BottomNavBar';
 import PerfilDrawer from '../pages/Alumno/PerfilDrawer';
 import EditarPerfilDrawer from '../pages/Alumno/EditarPerfil';
+import { useViewportHeight } from '../hooks/useViewportHeight'; // 👈 importamos el hook
 
 const pageVariants = {
   initial: { opacity: 0, x: 50 },
@@ -16,15 +17,8 @@ const AlumnoLayout = () => {
   const [isPerfilDrawerOpen, setIsPerfilDrawerOpen] = useState(false);
   const [isEditPerfilDrawerOpen, setIsEditPerfilDrawerOpen] = useState(false);
 
-  useEffect(() => {
-    const setViewportHeight = () => {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-    };
-    setViewportHeight();
-    window.addEventListener('resize', setViewportHeight);
-    return () => window.removeEventListener('resize', setViewportHeight);
-  }, []);
+  // 👇 Hook para altura dinámica
+  useViewportHeight();
 
   const handleOpenPerfilDrawer = () => setIsPerfilDrawerOpen(true);
   const handleClosePerfilDrawer = () => setIsPerfilDrawerOpen(false);

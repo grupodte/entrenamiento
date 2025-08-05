@@ -1,10 +1,11 @@
 {
     "name": "FitApp - Panel de Entrenador",
-    "short_name": "FitApp Admin",
+    "short_name": "FitApp",
     "description": "La herramienta definitiva para gestionar alumnos, rutinas y ejercicios en FitApp.",
     "start_url": "/",
-    "display": "standalone",
-    "orientation": "portrait",
+    "scope": "/",
+    "display": "fullscreen",
+    "orientation": "portrait-primary",
     "theme_color": "#121212",
     "background_color": "#121212",
     "icons": [
@@ -23,6 +24,12 @@
             "type": "image/png",
             "sizes": "512x512",
             "purpose": "maskable"
+        },
+        {
+            "src": "/icons/apple-touch-icon-180x180.png",
+            "type": "image/png",
+            "sizes": "180x180",
+            "purpose": "any"
         }
     ]
 }
