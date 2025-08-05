@@ -55,11 +55,22 @@ const AlumnoLayout = () => {
   }, []);
 
   return (
-    <div className="bg-gray-900 text-white font-sans flex flex-col overflow-hidden">
+    <div
+      className="text-white font-sans flex flex-col overflow-hidden"
+      style={{
+        backgroundImage: `url('/assets/FOTO_FONDO.webp')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        height: '100vh',
+        height: '100dvh',
+      }}
+    >
+      <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
       <AnimatePresence mode="wait" initial={false}>
         <motion.main
           key={location.pathname}
-          className="flex-1 overflow-y-auto pt-safe px-4 sm:px-6 lg:px-8 overscroll-y-contain scrollbar-hide pb-24"
+          className="relative z-10 flex-1 overflow-y-auto pt-safe px-4 sm:px-6 lg:px-8 overscroll-y-contain scrollbar-hide pb-24"
           variants={pageVariants}
           initial="initial"
           animate="animate"
@@ -68,7 +79,9 @@ const AlumnoLayout = () => {
           <Outlet />
         </motion.main>
       </AnimatePresence>
-      <BottomNavBar onOpenPerfil={handleOpenPerfilDrawer} />
+      <div className="relative z-20">
+        <BottomNavBar onOpenPerfil={handleOpenPerfilDrawer} />
+      </div>
       <PerfilDrawer isOpen={isPerfilDrawerOpen} onClose={handleClosePerfilDrawer} onEdit={handleOpenEditPerfilDrawer} />
       <EditarPerfilDrawer
         isOpen={isEditPerfilDrawerOpen}

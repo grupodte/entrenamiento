@@ -9,32 +9,32 @@ const navItems = [
 
 const BottomNavBar = ({ onOpenPerfil }) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 z-50 pb-safe">
-      <div className="flex justify-around max-w-md mx-auto">
+    <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md z-50">
+      <div className="ios-glass flex justify-around rounded-2xl p-1 shadow-lg">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
-            end={item.to === '/dashboard'}
+            end
             className={({ isActive }) =>
               twMerge(
-                'flex flex-col items-center justify-center w-full pt-2 pb-1 text-sm font-medium transition-colors duration-200',
+                'flex flex-col items-center justify-center w-full rounded-lg py-2 text-sm font-medium transition-all duration-300',
                 isActive
-                  ? 'text-cyan-400'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'text-cyan-300 bg-white/10 scale-105'
+                  : 'text-gray-300 hover:bg-white/5'
               )
             }
           >
-            <item.icon className="w-6 h-6 mb-1" />
-            <span>{item.label}</span>
+            <item.icon className="w-6 h-6" />
+            <span className="text-xs mt-1">{item.label}</span>
           </NavLink>
         ))}
         <button
           onClick={onOpenPerfil}
-          className="flex flex-col items-center justify-center w-full pt-2 pb-1 text-sm font-medium transition-colors duration-200 text-gray-400 hover:text-white"
+          className="flex flex-col items-center justify-center w-full rounded-lg py-2 text-sm font-medium transition-all duration-300 text-gray-300 hover:bg-white/5"
         >
-          <User className="w-6 h-6 mb-1" />
-          <span>Perfil</span>
+          <User className="w-6 h-6" />
+          <span className="text-xs mt-1">Perfil</span>
         </button>
       </div>
     </nav>

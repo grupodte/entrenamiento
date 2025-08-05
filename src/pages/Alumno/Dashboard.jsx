@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import SeleccionOrdenBloques from './SeleccionOrdenBloques';
 import { useRutinaCache } from '../../hooks/useRutinaCache';
 import { useRutinaPrefetch } from '../../hooks/useRutinaPrefetch';
+import DashboardSkeleton from '../../components/DashboardSkeleton';
 
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -140,18 +141,18 @@ const Dashboard = () => {
     }, []);
 
     // Memoizar cálculos pesados
-    const rutinaHoy = useMemo(() => 
-        rutinas.find(r => r.dia === todayIndex), 
+    const rutinaHoy = useMemo(() =>
+        rutinas.find(r => r.dia === todayIndex),
         [rutinas, todayIndex]
     );
-    
-    const proximasRutinas = useMemo(() => 
-        rutinas.filter(r => r.dia !== todayIndex), 
+
+    const proximasRutinas = useMemo(() =>
+        rutinas.filter(r => r.dia !== todayIndex),
         [rutinas, todayIndex]
     );
-    
-    const rutinasVisibles = useMemo(() => 
-        mostrarTodas ? proximasRutinas : proximasRutinas.slice(0, 2), 
+
+    const rutinasVisibles = useMemo(() =>
+        mostrarTodas ? proximasRutinas : proximasRutinas.slice(0, 2),
         [mostrarTodas, proximasRutinas]
     );
 
@@ -175,9 +176,7 @@ const Dashboard = () => {
         <div className="font-sans">
             <main className="pt-safe">
                 {loading ? (
-                    <div className="flex justify-center items-center h-64">
-                        {/* Puedes agregar un esqueleto de carga aquí si lo deseas */}
-                    </div>
+                    <DashboardSkeleton />
                 ) : (
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="p-4 space-y-6">
                         <header>
