@@ -33,11 +33,19 @@ const AlumnoLayout = () => {
       {/* Overlay oscuro */}
       <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm pointer-events-none"></div>
 
-      {/* Contenido principal */}
+      {/* Contenido principal con espacio para la navbar */}
       <AnimatePresence mode="wait" initial={false}>
         <motion.main
           key={location.pathname}
-          className="relative z-10 flex-1 overflow-y-auto pt-safe px-4 sm:px-6 lg:px-8 overscroll-y-contain scrollbar-hide"
+          className="
+            relative z-10 flex-1 
+            overflow-y-auto 
+            pt-safe 
+            pb-[80px]   /* deja espacio para el navbar */
+            px-4 sm:px-6 lg:px-8 
+            overscroll-y-contain 
+            scrollbar-hide
+          "
           variants={pageVariants}
           initial="initial"
           animate="animate"
@@ -47,10 +55,8 @@ const AlumnoLayout = () => {
         </motion.main>
       </AnimatePresence>
 
-      {/* Navbar fijo con safe area */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 pb-safe">
-        <BottomNavBar onOpenPerfil={() => setIsPerfilDrawerOpen(true)} />
-      </div>
+      {/* Navbar fijo (el padding safe va dentro del navbar, no aquí) */}
+      <BottomNavBar onOpenPerfil={() => setIsPerfilDrawerOpen(true)} />
 
       {/* Drawers */}
       <PerfilDrawer
