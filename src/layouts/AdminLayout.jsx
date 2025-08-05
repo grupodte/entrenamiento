@@ -69,10 +69,13 @@ const AdminLayoutInternal = () => {
                     z-10
                     flex
                     flex-1
-                    overscroll-contain
+                    h-full
+                    overflow-y-auto
+                    overscroll-behavior-y-contain
                     pt-safe
                     pb-safe
                     scrollbar-hide
+                    admin-scroll-container
                 "
             >
                 <AdminSidebarDesktop />

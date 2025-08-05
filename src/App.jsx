@@ -36,6 +36,7 @@ import EditarDia from './pages/Admin/EditarDia';
 
 const AppContent = () => {
   const location = useLocation();
+  useSmoothScroll();
 
   return (
     <AnimatePresence mode="wait">
@@ -89,8 +90,6 @@ const AppContent = () => {
 };
 
 const App = () => {
-  useSmoothScroll();
-
   return (
     <AuthProvider>
       <Router>

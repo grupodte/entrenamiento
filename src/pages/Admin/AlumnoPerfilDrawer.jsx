@@ -67,11 +67,7 @@ const AlumnoPerfilDrawer = () => {
     };
 
     useEffect(() => {
-        if (!alumnoInicial) {
-            fetchData();
-        } else {
-            setLoading(false);
-        }
+        fetchData();
     }, [id, alumnoInicial]);
 
     const handleDrop = async (event) => {
