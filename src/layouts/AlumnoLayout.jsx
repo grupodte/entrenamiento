@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavBar from '../components/BottomNavBar';
 import PerfilDrawer from '../pages/Alumno/PerfilDrawer';
 import EditarPerfilDrawer from '../pages/Alumno/EditarPerfil';
-import { useViewportHeight } from '../hooks/useViewportHeight'; // 👈 importamos el hook
+import { useViewportHeight } from '../hooks/useViewportHeight';
 
 const pageVariants = {
   initial: { opacity: 0, x: 50 },
@@ -17,27 +17,14 @@ const AlumnoLayout = () => {
   const [isPerfilDrawerOpen, setIsPerfilDrawerOpen] = useState(false);
   const [isEditPerfilDrawerOpen, setIsEditPerfilDrawerOpen] = useState(false);
 
-  // 👇 Hook para altura dinámica
+  // Hook global para altura dinámica
   useViewportHeight();
-
-  const handleOpenPerfilDrawer = () => setIsPerfilDrawerOpen(true);
-  const handleClosePerfilDrawer = () => setIsPerfilDrawerOpen(false);
-  const handleOpenEditPerfilDrawer = () => {
-    setIsPerfilDrawerOpen(false);
-    setIsEditPerfilDrawerOpen(true);
-  };
-  const handleCloseEditPerfilDrawer = () => setIsEditPerfilDrawerOpen(false);
-  const handleBackToProfileDrawer = () => {
-    setIsEditPerfilDrawerOpen(false);
-    setIsPerfilDrawerOpen(true);
-  };
-  const handleProfileUpdate = () => handleCloseEditPerfilDrawer();
 
   return (
     <div
       className="text-white font-sans flex flex-col relative"
       style={{
-        minHeight: 'calc(var(--vh, 1vh) * 100)',
+        height: 'calc(var(--vh, 1vh) * 100)',
         backgroundImage: `url('/assets/FOTO_FONDO.webp')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -46,7 +33,7 @@ const AlumnoLayout = () => {
       {/* Overlay oscuro */}
       <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm pointer-events-none"></div>
 
-      {/* Contenido */}
+      {/* Contenido principal */}
       <AnimatePresence mode="wait" initial={false}>
         <motion.main
           key={location.pathname}
@@ -60,22 +47,28 @@ const AlumnoLayout = () => {
         </motion.main>
       </AnimatePresence>
 
-      {/* BottomNavBar fijo con safe area */}
-      <div className="fixed bottom-0 left-0 right-0 z-20">
-        <BottomNavBar onOpenPerfil={handleOpenPerfilDrawer} />
+      {/* Navbar fijo con safe area */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 pb-safe">
+        <BottomNavBar onOpenPerfil={() => setIsPerfilDrawerOpen(true)} />
       </div>
 
       {/* Drawers */}
       <PerfilDrawer
         isOpen={isPerfilDrawerOpen}
-        onClose={handleClosePerfilDrawer}
-        onEdit={handleOpenEditPerfilDrawer}
+        onClose={() => setIsPerfilDrawerOpen(false)}
+        onEdit={() => {
+          setIsPerfilDrawerOpen(false);
+          setIsEditPerfilDrawerOpen(true);
+        }}
       />
       <EditarPerfilDrawer
         isOpen={isEditPerfilDrawerOpen}
-        onClose={handleCloseEditPerfilDrawer}
-        onBack={handleBackToProfileDrawer}
-        onProfileUpdate={handleProfileUpdate}
+        onClose={() => setIsEditPerfilDrawerOpen(false)}
+        onBack={() => {
+          setIsEditPerfilDrawerOpen(false);
+          setIsPerfilDrawerOpen(true);
+        }}
+        onProfileUpdate={() => setIsEditPerfilDrawerOpen(false)}
       />
     </div>
   );

@@ -3,12 +3,14 @@
 @tailwind components;
 @tailwind utilities;
 
-
+/* Altura dinámica PWA */
 html,
 body {
   height: -webkit-fill-available;
+  /* iOS Safari */
+  height: 100dvh;
+  /* fallback dinámico */
 }
-
 
 /* GLOBAL BASE */
 html,
@@ -37,8 +39,8 @@ body {
 #root {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
-    /* asegura altura dinámica */  /* Usa el viewport corregido */
+  height: calc(var(--vh, 1vh) * 100);
+  /* 👈 único punto de altura dinámica */
 }
 
 /* FUENTES PERSONALIZADAS */
@@ -141,12 +143,7 @@ img {
   @apply bg-ios-primary text-white font-product rounded-ios-md px-4 py-2 hover:opacity-90 active:scale-95 ios-transition shadow-md;
 }
 
-.listbox-z {
-  z-index: 9999;
-  position: absolute;
-}
-
-/* SAFEZONE UTILITIES */
+/* SAFE AREAS */
 .pt-safe {
   padding-top: env(safe-area-inset-top);
 }
@@ -173,6 +170,7 @@ img {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* SCROLL BEHAVIOR */
 .scrollbar-hide {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -182,20 +180,6 @@ img {
   display: none;
 }
 
-/* PWA SPECIFIC UTILITIES */
-.touch-action-pan-y {
-  touch-action: pan-y;
-}
-
-.touch-action-pan-x {
-  touch-action: pan-x;
-}
-
-.touch-action-none {
-  touch-action: none;
-}
-
-/* SCROLL BEHAVIOR OPTIMIZATIONS */
 .scroll-smooth {
   scroll-behavior: smooth;
 }
@@ -216,7 +200,7 @@ img {
   overscroll-behavior-y: none;
 }
 
-/* ADMIN LAYOUT SPECIFIC */
+/* ADMIN LAYOUT */
 .admin-scroll-container {
   overflow-y: auto;
   overscroll-behavior-y: contain;
@@ -230,19 +214,5 @@ img {
   .admin-scroll-container {
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: y proximity;
-  }
-
-  /* Mejor comportamiento en móviles */
-  body {
-    /* position: fixed;
-    overflow: hidden;
-    width: 100%;
-    height: 100%; */
-  }
-
-  #root {
-    min-height: 100vh;
-    min-height: 100dvh;
-    /* Dynamic viewport height */
   }
 }
