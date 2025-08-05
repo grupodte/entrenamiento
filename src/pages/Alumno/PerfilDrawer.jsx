@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
-import { FaEdit, FaUserCircle, FaPhone, FaBirthdayCake, FaTransgender, FaMapMarkerAlt, FaSave, FaArrowLeft, FaChartLine, FaChartBar, FaClock } from 'react-icons/fa';
+import { FaEdit, FaUserCircle, FaPhone, FaBirthdayCake, FaTransgender, FaMapMarkerAlt, FaChartLine, FaChartBar, FaClock, FaSignOutAlt } from 'react-icons/fa';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Drawer from '../../components/Drawer';
 import DrawerLoader from '../../components/DrawerLoader';
+import { useNavigate } from 'react-router-dom';
 
-const PerfilDrawer = ({ isOpen, onClose }) => {
+const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [perfil, setPerfil] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [isEditing, setIsEditing] = useState(false);
-    const [editPerfil, setEditPerfil] = useState({});
-    const [preview, setPreview] = useState('');
-    const [saving, setSaving] = useState(false);
-    const [success, setSuccess] = useState('');
     const [weightData, setWeightData] = useState([]);
     const [repsData, setRepsData] = useState([]);
     const [timeData, setTimeData] = useState([]);
@@ -29,8 +26,6 @@ const PerfilDrawer = ({ isOpen, onClose }) => {
             if (err) setError('No se pudo cargar el perfil.');
             else {
                 setPerfil(data);
-                setEditPerfil({ ...data });
-                setPreview(data?.avatar_url || '');
             }
             setLoading(false);
         };
@@ -179,53 +174,9 @@ const PerfilDrawer = ({ isOpen, onClose }) => {
         }
     };
 
-    // --- Métodos de edición de perfil ---
-    const handleEditProfile = () => setIsEditing(true);
-    const handleCancelEdit = () => {
-        setIsEditing(false);
-        setEditPerfil({ ...perfil });
-        setPreview(perfil?.avatar_url || '');
-    };
-    const handleChange = (e) => setEditPerfil(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setEditPerfil(prev => ({ ...prev, avatarFile: file }));
-            setPreview(URL.createObjectURL(file));
-        }
-    };
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setSaving(true);
-        setError('');
-        setSuccess('');
-        try {
-            let avatar_url = editPerfil.avatar_url;
-            if (editPerfil.avatarFile) {
-                const ext = editPerfil.avatarFile.name.split('.').pop();
-                const fileName = `${user.id}_${Date.now()}.${ext}`;
-                const filePath = `avatars/${fileName}`;
-                const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, editPerfil.avatarFile);
-                if (uploadError) throw uploadError;
-                const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
-                avatar_url = publicUrlData.publicUrl;
-            }
-            const { error: updateError } = await supabase
-                .from('perfiles')
-                .update({ ...editPerfil, avatar_url, edad: editPerfil.edad ? parseInt(editPerfil.edad) : null })
-                .eq('id', user.id);
-            if (updateError) throw updateError;
-            const updatedPerfil = { ...editPerfil, avatar_url, avatarFile: undefined };
-            setPerfil(updatedPerfil);
-            setEditPerfil(updatedPerfil);
-            setPreview(avatar_url);
-            setSuccess('Perfil actualizado correctamente');
-            setTimeout(() => setIsEditing(false), 2000);
-        } catch (err) {
-            setError(`Error al guardar cambios: ${err.message || err}`);
-        } finally {
-            setSaving(false);
-        }
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        navigate('/auth');
     };
 
     const InfoRow = ({ icon, label, value }) => value ? (
@@ -247,50 +198,18 @@ const PerfilDrawer = ({ isOpen, onClose }) => {
                     <h1 className="text-xl font-bold mb-2">Error</h1>
                     <p className="text-sm text-gray-400">{error}</p>
                 </div>
-            ) : isEditing ? (
-                // --- FORMULARIO DE EDICIÓN ---
-                <div className="bg-gray-800 text-white p-4 rounded-t-2xl">
-                    <div className="flex items-center justify-between mb-4">
-                        <button onClick={handleCancelEdit} className="p-2 rounded-full hover:bg-gray-700"><FaArrowLeft /></button>
-                        <h1 className="text-lg font-bold">Editar Perfil</h1>
-                        <div />
-                    </div>
-                    <form onSubmit={handleSubmit} className="space-y-3">
-                        <div className="flex flex-col items-center">
-                            {preview ? <img src={preview} alt="avatar" className="w-20 h-20 rounded-full border-2 border-cyan-500" /> : <FaUserCircle className="text-6xl text-blue-400" />}
-                            <label className="mt-2 text-sm text-cyan-400 cursor-pointer hover:underline">
-                                Cambiar foto
-                                <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
-                            </label>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                            <input name="nombre" value={editPerfil.nombre || ''} onChange={handleChange} placeholder="Nombre" className="p-2 rounded bg-gray-700" />
-                            <input name="apellido" value={editPerfil.apellido || ''} onChange={handleChange} placeholder="Apellido" className="p-2 rounded bg-gray-700" />
-                            <input name="edad" type="number" value={editPerfil.edad || ''} onChange={handleChange} placeholder="Edad" className="p-2 rounded bg-gray-700" />
-                            <input name="telefono" value={editPerfil.telefono || ''} onChange={handleChange} placeholder="Teléfono" className="p-2 rounded bg-gray-700" />
-                            <input name="ciudad" value={editPerfil.ciudad || ''} onChange={handleChange} placeholder="Ciudad" className="p-2 rounded bg-gray-700 col-span-2" />
-                            <input name="pais" value={editPerfil.pais || ''} onChange={handleChange} placeholder="País" className="p-2 rounded bg-gray-700 col-span-2" />
-                        </div>
-                        {error && <p className="bg-red-900/20 text-red-400 p-2 rounded">{error}</p>}
-                        {success && <p className="bg-green-900/20 text-green-400 p-2 rounded">{success}</p>}
-                        <button type="submit" disabled={saving} className="w-full py-2 bg-cyan-600 rounded hover:bg-cyan-700">{saving ? 'Guardando...' : <><FaSave className="inline mr-1" /> Guardar</>}</button>
-                    </form>
-                </div>
             ) : (
                 // --- VISTA PERFIL + GRÁFICOS ---
                 <div className="bg-gray-800 rounded-t-2xl shadow-lg p-4 min-h-[150px]">
-                    <div className="flex items-center justify-between mb-3">
-                        <div>
-                            <h1 className="text-base font-bold text-white">Mi Perfil</h1>
-                            <p className="text-xs text-gray-400">{user?.email}</p>
-                        </div>
-                        <button onClick={handleEditProfile} className="p-2 rounded-full bg-cyan-600 hover:bg-cyan-700"><FaEdit className="text-white text-sm" /></button>
-                    </div>
                     <div className="flex items-center mb-3 space-x-3">
                         {perfil.avatar_url ? <img src={perfil.avatar_url} alt="Avatar" className="w-12 h-12 rounded-full border-2 border-cyan-500" /> : <FaUserCircle className="text-4xl text-blue-400" />}
                         <div>
                             <h2 className="text-sm font-semibold text-white">{perfil.nombre} {perfil.apellido}</h2>
                             <p className="text-xs text-gray-400">{user?.email}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button onClick={onEdit} className="p-2 rounded-full bg-cyan-600 hover:bg-cyan-700"><FaEdit className="text-white text-sm" /></button>
+                            <button onClick={handleLogout} className="p-2 rounded-full bg-red-600 hover:bg-red-700"><FaSignOutAlt className="text-white text-sm" /></button>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-xs mb-4">

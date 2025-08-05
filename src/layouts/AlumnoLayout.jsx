@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavBar from '../components/BottomNavBar';
 import PerfilDrawer from '../pages/Alumno/PerfilDrawer';
+import EditarPerfilDrawer from '../pages/Alumno/EditarPerfil';
 
 const pageVariants = {
   initial: { opacity: 0, x: 50 }, // Más desplazamiento para una entrada más notoria
@@ -13,6 +14,7 @@ const pageVariants = {
 const AlumnoLayout = () => {
   const location = useLocation();
   const [isPerfilDrawerOpen, setIsPerfilDrawerOpen] = useState(false);
+  const [isEditPerfilDrawerOpen, setIsEditPerfilDrawerOpen] = useState(false);
 
   const handleOpenPerfilDrawer = () => {
     setIsPerfilDrawerOpen(true);
@@ -20,6 +22,26 @@ const AlumnoLayout = () => {
 
   const handleClosePerfilDrawer = () => {
     setIsPerfilDrawerOpen(false);
+  };
+
+  const handleOpenEditPerfilDrawer = () => {
+    setIsPerfilDrawerOpen(false); // Cierra el drawer de perfil
+    setIsEditPerfilDrawerOpen(true);
+  };
+
+  const handleCloseEditPerfilDrawer = () => {
+    setIsEditPerfilDrawerOpen(false);
+  };
+
+  const handleBackToProfileDrawer = () => {
+    setIsEditPerfilDrawerOpen(false);
+    setIsPerfilDrawerOpen(true);
+  };
+
+  const handleProfileUpdate = () => {
+    handleCloseEditPerfilDrawer();
+    // Opcional: podrías querer reabrir el drawer de perfil para ver los cambios
+    // handleOpenPerfilDrawer();
   };
 
   useEffect(() => {
@@ -47,7 +69,13 @@ const AlumnoLayout = () => {
         </motion.main>
       </AnimatePresence>
       <BottomNavBar onOpenPerfil={handleOpenPerfilDrawer} />
-      <PerfilDrawer isOpen={isPerfilDrawerOpen} onClose={handleClosePerfilDrawer} />
+      <PerfilDrawer isOpen={isPerfilDrawerOpen} onClose={handleClosePerfilDrawer} onEdit={handleOpenEditPerfilDrawer} />
+      <EditarPerfilDrawer 
+        isOpen={isEditPerfilDrawerOpen} 
+        onClose={handleCloseEditPerfilDrawer} 
+        onBack={handleBackToProfileDrawer}
+        onProfileUpdate={handleProfileUpdate} 
+      />
     </div>
   );
 };

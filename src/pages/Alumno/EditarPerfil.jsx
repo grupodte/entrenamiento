@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
-import { useNavigate, Link } from 'react-router-dom';
-import { FaArrowLeft, FaSave, FaUserCircle } from 'react-icons/fa';
+import { FaArrowLeft, FaSave, FaUserCircle, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import Drawer from '../../components/Drawer';
 
-const EditarPerfilPage = () => {
+const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
     const { user } = useAuth();
-    const navigate = useNavigate();
 
     const [perfil, setPerfil] = useState({ nombre: '', apellido: '', edad: '', objetivo: '', nivel: '',  telefono: '', genero: '', fecha_nacimiento: '', biografia: '', ciudad: '', pais: '', avatar_url: '' });
     const [email, setEmail] = useState('');
@@ -15,9 +14,10 @@ const EditarPerfilPage = () => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
 
     useEffect(() => {
-        if (!user) { navigate('/login'); return; }
+        if (!isOpen || !user) return;
         setEmail(user.email);
         const fetchPerfil = async () => {
             setLoading(true);
@@ -27,7 +27,7 @@ const EditarPerfilPage = () => {
             setLoading(false);
         };
         fetchPerfil();
-    }, [user]);
+    }, [isOpen, user]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -68,143 +68,101 @@ const EditarPerfilPage = () => {
                 avatar_url = publicUrlData.publicUrl;
             }
 
-            const { error: updateError } =
-                await supabase
-                    .from('perfiles')
-                    .update({
-                        nombre: perfil.nombre,
-                        apellido: perfil.apellido,
-                        edad: perfil.edad ? parseInt(perfil.edad) : null,
-                        objetivo: perfil.objetivo,
-                        nivel: perfil.nivel,
-                        telefono: perfil.telefono,
-                        genero: perfil.genero,
-                        fecha_nacimiento: perfil.fecha_nacimiento,
-                        biografia: perfil.biografia,
-                        ciudad: perfil.ciudad,
-                        pais: perfil.pais,
-                        avatar_url: avatar_url
-                    })
-                    .eq('id', user.id);
-          
+            const { error: updateError } = await supabase
+                .from('perfiles')
+                .update({
+                    nombre: perfil.nombre,
+                    apellido: perfil.apellido,
+                    edad: perfil.edad ? parseInt(perfil.edad) : null,
+                    objetivo: perfil.objetivo,
+                    nivel: perfil.nivel,
+                    telefono: perfil.telefono,
+                    genero: perfil.genero,
+                    fecha_nacimiento: perfil.fecha_nacimiento,
+                    biografia: perfil.biografia,
+                    ciudad: perfil.ciudad,
+                    pais: perfil.pais,
+                    avatar_url: avatar_url
+                })
+                .eq('id', user.id);
 
             if (updateError) throw updateError;
 
-            // Update local state with new avatar_url and clear avatarFile
             setPerfil(prev => ({ ...prev, avatar_url: avatar_url, avatarFile: undefined }));
             setPreview(avatar_url);
-
             setSuccess('Perfil actualizado correctamente');
+            if(onProfileUpdate) onProfileUpdate();
+            setTimeout(() => {
+                onClose();
+            }, 2000);
+
         } catch (err) {
             console.error(err);
             setError(`Error al guardar cambios: ${err.message || err}`);
         } finally {
             setSaving(false);
-            // Keep messages visible for a bit longer or until user interaction
-            setTimeout(() => {
-                setSuccess('');
-                setError('');
-            }, 5000); // Increased timeout to 5 seconds
         }
     };
-    
-
-    if (loading) return <div className="flex justify-center items-center min-h-screen text-white">Cargando perfil...</div>;
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col">
-            <header className="sticky top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-4 flex items-center gap-4 border-b border-gray-800">
-                <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
-                    <FaArrowLeft />
-                </Link>
-                <div>
-                    <h1 className="text-xl font-bold text-white">Editar Perfil</h1>
+        <Drawer isOpen={isOpen} onClose={onClose}>
+            <div className="bg-gray-800 text-white p-4 rounded-t-2xl flex flex-col h-full">
+                <div className="flex-shrink-0 flex items-center justify-between mb-4">
+                    <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-700"><FaArrowLeft /></button>
+                    <h1 className="text-lg font-bold">Editar Perfil</h1>
+                    <div />
                 </div>
-            </header>
-            <main className="flex-grow max-w-xl mx-auto w-full pt-safe p-4">
-                <form onSubmit={handleSubmit} className="space-y-4 bg-gray-800 rounded-xl p-6 shadow-lg">
-                    <div className="flex flex-col items-center mb-6">
-                        {preview ? <img src={preview} alt="avatar" className="w-28 h-28 rounded-full object-cover border-4 border-cyan-500 shadow-md" /> : <FaUserCircle className="text-7xl mb-2 text-blue-400" />}
-                        <label className="mt-3 text-sm text-cyan-400 cursor-pointer hover:underline font-medium">Cambiar foto<input type="file" className="hidden" onChange={handleFileChange} accept="image/*" /></label>
-                    </div>
+                {loading ? (
+                    <div className="flex-grow flex justify-center items-center">Cargando...</div>
+                ) : (
+                    <form onSubmit={handleSubmit} className="flex-grow flex flex-col overflow-hidden">
+                        <div className="flex-grow overflow-y-auto space-y-3 pr-2">
+                            <div className="flex flex-col items-center">
+                                {preview ? <img src={preview} alt="avatar" className="w-20 h-20 rounded-full border-2 border-cyan-500" /> : <FaUserCircle className="text-6xl text-blue-400" />}
+                                <label className="mt-2 text-sm text-cyan-400 cursor-pointer hover:underline">
+                                    Cambiar foto
+                                    <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
+                                </label>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <input name="nombre" value={perfil.nombre || ''} onChange={handleChange} placeholder="Nombre" className="p-2 rounded bg-gray-700" />
+                                <input name="apellido" value={perfil.apellido || ''} onChange={handleChange} placeholder="Apellido" className="p-2 rounded bg-gray-700" />
+                                <input name="edad" type="number" value={perfil.edad || ''} onChange={handleChange} placeholder="Edad" className="p-2 rounded bg-gray-700" />
+                                <input name="telefono" value={perfil.telefono || ''} onChange={handleChange} placeholder="Teléfono" className="p-2 rounded bg-gray-700" />
+                                <input name="ciudad" value={perfil.ciudad || ''} onChange={handleChange} placeholder="Ciudad" className="p-2 rounded bg-gray-700 col-span-2" />
+                                <input name="pais" value={perfil.pais || ''} onChange={handleChange} placeholder="País" className="p-2 rounded bg-gray-700 col-span-2" />
+                            </div>
 
-                    {/* Personal Info Section */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label htmlFor="nombre" className="block text-sm mb-1 capitalize">Nombre</label>
-                            <input id="nombre" name="nombre" value={perfil.nombre || ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-cyan-500 focus:ring focus:ring-cyan-500 focus:ring-opacity-50" placeholder="Tu nombre" />
-                        </div>
-                        <div>
-                            <label htmlFor="apellido" className="block text-sm mb-1 capitalize">Apellido</label>
-                            <input id="apellido" name="apellido" value={perfil.apellido || ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-cyan-500 focus:ring focus:ring-cyan-500 focus:ring-opacity-50" placeholder="Tu apellido" />
-                        </div>
-                        <div>
-                            <label htmlFor="edad" className="block text-sm mb-1 capitalize">Edad</label>
-                            <input id="edad" type="number" name="edad" value={perfil.edad || ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-cyan-500 focus:ring focus:ring-cyan-500 focus:ring-opacity-50" placeholder="Tu edad" />
-                        </div>
-                        <div>
-                            <label htmlFor="telefono" className="block text-sm mb-1 capitalize">Teléfono</label>
-                            <input id="telefono" type="tel" name="telefono" value={perfil.telefono || ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-cyan-500 focus:ring focus:ring-cyan-500 focus:ring-opacity-50" placeholder="Tu teléfono" />
-                        </div>
-                        <div>
-                            <label htmlFor="genero" className="block text-sm mb-1">Género</label>
-                            <select id="genero" name="genero" value={perfil.genero || ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-cyan-500 focus:ring focus:ring-cyan-500 focus:ring-opacity-50">
-                                <option value="">Seleccionar</option>
-                                <option>Masculino</option>
-                                <option>Femenino</option>
-                                <option>Otro</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="fecha_nacimiento" className="block text-sm mb-1">Fecha de nacimiento</label>
-                            <input id="fecha_nacimiento" type="date" name="fecha_nacimiento" value={perfil.fecha_nacimiento?.split('T')[0] || ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-cyan-500 focus:ring focus:ring-cyan-500 focus:ring-opacity-50" />
-                        </div>
-                    </div>
+                            <button type="button" onClick={() => setIsMoreInfoOpen(!isMoreInfoOpen)} className="w-full flex justify-between items-center p-2 rounded bg-gray-700 hover:bg-gray-600">
+                                <span>Más información</span>
+                                {isMoreInfoOpen ? <FaChevronUp /> : <FaChevronDown />}
+                            </button>
 
-                    {/* Location Info Section */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label htmlFor="ciudad" className="block text-sm mb-1 capitalize">Ciudad</label>
-                            <input id="ciudad" name="ciudad" value={perfil.ciudad || ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-cyan-500 focus:ring focus:ring-cyan-500 focus:ring-opacity-50" placeholder="Tu ciudad" />
+                            {isMoreInfoOpen && (
+                                <div className="grid grid-cols-2 gap-2 pt-2">
+                                    <input name="objetivo" value={perfil.objetivo || ''} onChange={handleChange} placeholder="Objetivo" className="p-2 rounded bg-gray-700 col-span-2" />
+                                    <input name="nivel" value={perfil.nivel || ''} onChange={handleChange} placeholder="Nivel" className="p-2 rounded bg-gray-700 col-span-2" />
+                                    <select name="genero" value={perfil.genero || ''} onChange={handleChange} className="p-2 rounded bg-gray-700 col-span-2">
+                                        <option value="">Seleccionar Género</option>
+                                        <option>Masculino</option>
+                                        <option>Femenino</option>
+                                        <option>Otro</option>
+                                    </select>
+                                    <input name="fecha_nacimiento" type="date" value={perfil.fecha_nacimiento?.split('T')[0] || ''} onChange={handleChange} placeholder="Fecha de Nacimiento" className="p-2 rounded bg-gray-700 col-span-2" />
+                                    <textarea name="biografia" value={perfil.biografia || ''} onChange={handleChange} placeholder="Biografía" className="p-2 rounded bg-gray-700 col-span-2" rows="3"></textarea>
+                                </div>
+                            )}
                         </div>
-                        <div>
-                            <label htmlFor="pais" className="block text-sm mb-1 capitalize">País</label>
-                            <input id="pais" name="pais" value={perfil.pais || ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-cyan-500 focus:ring focus:ring-cyan-500 focus:ring-opacity-50" placeholder="Tu país" />
+                        <div className="flex-shrink-0 pt-4">
+                            {error && <p className="bg-red-900/20 text-red-400 p-2 rounded mb-2">{error}</p>}
+                            {success && <p className="bg-green-900/20 text-green-400 p-2 rounded mb-2">{success}</p>}
+                            <button type="submit" disabled={saving} className="w-full py-2 bg-cyan-600 rounded hover:bg-cyan-700">{saving ? 'Guardando...' : <><FaSave className="inline mr-1" /> Guardar</>}</button>
                         </div>
-                    </div>
-
-                    {/* Goals and Level Section */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label htmlFor="objetivo" className="block text-sm mb-1 capitalize">Objetivo</label>
-                            <input id="objetivo" name="objetivo" value={perfil.objetivo || ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-cyan-500 focus:ring focus:ring-cyan-500 focus:ring-opacity-50" placeholder="Tu objetivo principal" />
-                        </div>
-                        <div>
-                            <label htmlFor="nivel" className="block text-sm mb-1 capitalize">Nivel</label>
-                            <input id="nivel" name="nivel" value={perfil.nivel || ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-cyan-500 focus:ring focus:ring-cyan-500 focus:ring-opacity-50" placeholder="Tu nivel de experiencia" />
-                        </div>
-                    </div>
-
-                    {/* Biography and Email */}
-                    <div>
-                        <label htmlFor="biografia" className="block text-sm mb-1 capitalize">Biografía</label>
-                        <textarea id="biografia" name="biografia" value={perfil.biografia || ''} onChange={handleChange} rows="3" className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-cyan-500 focus:ring focus:ring-cyan-500 focus:ring-opacity-50" placeholder="Cuéntanos sobre ti..."></textarea>
-                    </div>
-                    <div>
-                        <label htmlFor="email" className="block text-sm mb-1">Email</label>
-                        <input id="email" type="email" value={email} disabled className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-gray-400 cursor-not-allowed" />
-                    </div>
-
-                    {error && <p className="bg-red-900/20 text-red-400 p-3 rounded-lg text-center font-medium animate-pulse">{error}</p>}
-                    {success && <p className="bg-green-900/20 text-green-400 p-3 rounded-lg text-center font-medium animate-pulse">{success}</p>}
-
-                    <button type="submit" disabled={saving} className="w-full flex justify-center items-center px-4 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-cyan-600/50">
-                        {saving ? 'Guardando...' : <><FaSave className="mr-2" />Guardar Cambios</>}
-                    </button>
-                </form>
-            </main>
-        </div>
+                    </form>
+                )}
+            </div>
+        </Drawer>
     );
 };
 
-export default EditarPerfilPage;
+export default EditarPerfilDrawer;
