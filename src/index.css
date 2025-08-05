@@ -1,407 +1,52 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* -------- RESET Y ALTURA DINÁMICA -------- */
+/* RESET MINIMAL */
 html,
-body {
-  height: 100vh;
-  /* fallback estático */
-  height: 100dvh;
-  /* viewport dinámico moderno */
-  height: -webkit-fill-available;
-  /* iOS Safari específico */
-  background: #121212;
+body,
+#root {
+  height: 100%;
   margin: 0;
   padding: 0;
-  scroll-behavior: smooth;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background: #121212;
+  color: white;
+  font-family: sans-serif;
 }
 
+/* DEBUG BORDERS */
+* {
+  box-sizing: border-box;
+  outline: 1px solid rgba(255, 255, 255, 0.1);
+  /* ayuda a ver contenedores */
+}
+
+/* CONTENEDOR FLEX */
 #root {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 100%;
 }
 
-/* -------- TIPOGRAFÍA PERSONALIZADA -------- */
-@font-face {
-  font-family: 'ProductSans';
-  src: url('./assets/fonts/ProductSansRegular.woff2') format('woff2'),
-    url('./assets/fonts/ProductSansRegular.ttf') format('truetype');
-  font-weight: 400;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'ProductSans';
-  src: url('./assets/fonts/ProductSansBold.woff2') format('woff2'),
-    url('./assets/fonts/ProductSansBold.ttf') format('truetype');
-  font-weight: 700;
-  font-display: swap;
-}
-
-/* -------- ESTILOS BASE -------- */
-body {
-  @apply font-product select-none text-white bg-[#121212];
-  touch-action: manipulation;
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
-  text-rendering: optimizeLegibility;
-}
-
-/* -------- COMPONENTES BASE -------- */
-@layer base {
-
-  /* Inputs optimizados para móvil */
-  input,
-  textarea,
-  select {
-    @apply bg-white/5 text-white placeholder-white/50 rounded-ios-md px-4 py-2;
-    @apply focus:ring-2 focus:ring-ios-primary focus:outline-none;
-    @apply transition-all duration-200 ease-in-out;
-    font-size: max(16px, 1rem);
-    /* Previene zoom en iOS */
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
-  /* Focus visible para accesibilidad */
-  *:focus-visible {
-    @apply ring-2 ring-ios-primary ring-offset-2 ring-offset-gray-900;
-    outline: none;
-  }
-
-  /* Botones base */
-  button {
-    @apply transition-all duration-200 ease-in-out;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  button:active {
-    transform: scale(0.98);
-  }
-}
-
-/* -------- SCROLLBARS PERSONALIZADOS -------- */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #1f2937;
+/* BOTONES BÁSICOS */
+button {
+  background: #444;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border: none;
   border-radius: 4px;
+}
+
+/* SCROLLBAR SIMPLE */
+::-webkit-scrollbar {
+  width: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #6b7280;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
+  background: #666;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
-
-/* Ocultar scrollbar cuando sea necesario */
-.scrollbar-hide {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* -------- EFECTOS VISUALES -------- */
-.ios-glass {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 1rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
-.ios-glass-strong {
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-/* -------- COMPONENTES UI -------- */
-.ios-button {
-  @apply bg-ios-primary text-white font-product font-medium rounded-ios-md px-6 py-3;
-  @apply hover:opacity-90 active:scale-95 transition-all duration-200 ease-in-out;
-  @apply shadow-lg shadow-ios-primary/25;
-  min-height: 44px;
-  /* Área táctil mínima */
-}
-
-.ios-button-secondary {
-  @apply bg-white/10 text-white font-product font-medium rounded-ios-md px-6 py-3;
-  @apply hover:bg-white/15 active:scale-95 transition-all duration-200 ease-in-out;
-  @apply border border-white/20;
-  min-height: 44px;
-}
-
-.ios-button-ghost {
-  @apply bg-transparent text-ios-primary font-product font-medium rounded-ios-md px-6 py-3;
-  @apply hover:bg-ios-primary/10 active:scale-95 transition-all duration-200 ease-in-out;
-  min-height: 44px;
-}
-
-/* -------- TIPOGRAFÍA -------- */
-.ios-title {
-  @apply font-product text-[1.8rem] leading-[2.2rem] font-bold tracking-tight;
-}
-
-.ios-subtitle {
-  @apply font-product text-xl leading-7 font-semibold tracking-tight;
-}
-
-.ios-body {
-  @apply font-product text-base leading-6 font-normal;
-}
-
-.ios-body-large {
-  @apply font-product text-lg leading-7 font-normal;
-}
-
-.ios-caption {
-  @apply font-product text-sm leading-5 font-medium text-white/60;
-}
-
-.ios-small {
-  @apply font-product text-xs leading-4 font-medium text-white/50;
-}
-
-/* -------- SAFE AREAS -------- */
-.pt-safe {
-  padding-top: env(safe-area-inset-top);
-}
-
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.pl-safe {
-  padding-left: env(safe-area-inset-left);
-}
-
-.pr-safe {
-  padding-right: env(safe-area-inset-right);
-}
-
-.px-safe {
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-}
-
-.py-safe {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.p-safe {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-}
-
-/* -------- CONTENEDORES DE SCROLL -------- */
-.ios-scroll {
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  touch-action: pan-y;
-}
-
-.admin-scroll-container {
-  @apply ios-scroll;
-  scrollbar-gutter: stable;
-}
-
-/* -------- ANIMACIONES Y TRANSICIONES -------- */
-.fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.slide-up {
-  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* -------- ESTADOS DE CARGA -------- */
-.skeleton {
-  background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0.05) 25%,
-      rgba(255, 255, 255, 0.1) 50%,
-      rgba(255, 255, 255, 0.05) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-/* -------- RESPONSIVE BREAKPOINTS -------- */
-@media (max-width: 768px) {
-  .admin-scroll-container {
-    scroll-snap-type: y proximity;
-  }
-
-  .ios-title {
-    @apply text-2xl leading-8;
-  }
-
-  /* Optimización táctil para móvil */
-  .ios-button,
-  .ios-button-secondary,
-  .ios-button-ghost {
-    min-height: 48px;
-    /* Área táctil más grande en móvil */
-    @apply px-4 py-3;
-  }
-}
-
-@media (max-width: 480px) {
-  .ios-title {
-    @apply text-xl leading-7;
-  }
-}
-
-/* -------- PWA STANDALONE MODE -------- */
-@media all and (display-mode: standalone) {
-
-  html,
-  body {
-    height: -webkit-fill-available !important;
-    background: #121212 !important;
-  }
-
-  body {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  /* Ocultar barra de scroll en modo standalone */
-  ::-webkit-scrollbar {
-    width: 0px;
-    background: transparent;
-  }
-}
-
-/* -------- MODO LANDSCAPE EN MÓVILES -------- */
-@media screen and (orientation: landscape) and (max-height: 500px) {
-  .ios-title {
-    @apply text-lg leading-6;
-  }
-
-  .ios-button,
-  .ios-button-secondary,
-  .ios-button-ghost {
-    @apply py-2;
-    min-height: 40px;
-  }
-}
-
-/* -------- ACCESIBILIDAD -------- */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-
-  .fade-in,
-  .slide-up {
-    animation: none;
-  }
-}
-
-@media (prefers-contrast: high) {
-  .ios-glass {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
-  }
-
-  .ios-caption {
-    @apply text-white/80;
-  }
-
-  .ios-small {
-    @apply text-white/70;
-  }
-}
-
-/* -------- UTILIDADES ADICIONALES -------- */
-.text-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.shadow-glow {
-  box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
-}
-
-.border-gradient {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-  border: 1px solid transparent;
-  background-clip: padding-box;
-}
-
-/* -------- ESTADOS DE ERROR Y SUCCESS -------- */
-.state-error {
-  @apply border-red-500/50 bg-red-500/10 text-red-200;
-}
-
-.state-success {
-  @apply border-green-500/50 bg-green-500/10 text-green-200;
-}
-
-.state-warning {
-  @apply border-yellow-500/50 bg-yellow-500/10 text-yellow-200;
-}
-
-.state-info {
-  @apply border-blue-500/50 bg-blue-500/10 text-blue-200;
+/* ANIMACIONES DESACTIVADAS PARA DEBUG */
+* {
+  transition: none !important;
+  animation: none !important;
 }
