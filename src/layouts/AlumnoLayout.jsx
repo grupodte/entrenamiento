@@ -24,7 +24,7 @@ const AlumnoLayout = () => {
     <div
       className="text-white font-sans flex flex-col relative"
       style={{
-        height: 'calc(var(--vh, 1vh) * 100)',
+        height: 'var(--vh)',
         backgroundImage: `url('/assets/FOTO_FONDO.webp')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',

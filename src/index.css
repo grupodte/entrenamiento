@@ -18,7 +18,8 @@ body,
 #root {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  height: 100%;
+  overflow: hidden;
   scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
 }
@@ -39,8 +40,6 @@ body {
 #root {
   display: flex;
   flex-direction: column;
-  height: calc(var(--vh, 1vh) * 100);
-  /* 👈 único punto de altura dinámica */
 }
 
 /* FUENTES PERSONALIZADAS */

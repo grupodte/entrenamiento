@@ -8,6 +8,7 @@ import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { DragStateProvider, useDragState } from '../context/DragStateContext';
 import { VideoProvider, useVideo } from '../context/VideoContext';
 import VideoPanel from '../components/VideoPanel';
+import { useViewportHeight } from '../hooks/useViewportHeight';
 
 const pageVariants = {
     initial: { opacity: 0, x: 40, scale: 0.98 },
@@ -20,15 +21,8 @@ const AdminLayoutInternal = () => {
     const { isDragging } = useDragState();
     const location = useLocation();
 
-    useEffect(() => {
-        const setViewportHeight = () => {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-        };
-        setViewportHeight();
-        window.addEventListener('resize', setViewportHeight);
-        return () => window.removeEventListener('resize', setViewportHeight);
-    }, []);
+    // Hook global para altura dinámica
+    useViewportHeight();
 
     const handleRefresh = async () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -46,7 +40,7 @@ const AdminLayoutInternal = () => {
         overflow-hidden
       "
             style={{
-                height: 'calc(var(--vh, 1vh) * 100)',
+                height: 'var(--vh)',
             }}
         >
             {/* Fondo con blur */}

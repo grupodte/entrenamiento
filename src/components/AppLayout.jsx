@@ -38,10 +38,7 @@ const AppLayout = () => {
                 <Outlet />
             </main>
 
-            {/* Aquí va el navbar fijo con pb-safe */}
-            {/* <footer className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md py-3 px-safe pb-safe">
-                Footer / NavBar
-            </footer> */}
+ 
         </div>
     );
 };
