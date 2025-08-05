@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AnimatePresence } from 'framer-motion';
+import { AnimatedFeedback, useFeedback } from './components/animations';
 
 // --- LAYOUT Y COMPONENTES GLOBALES ---
 import AppLayout from './components/AppLayout';

@@ -4,6 +4,8 @@ import DiaCard from '../../components/Rutina/DiaCard';
 import RutinasSidebar from '../../components/Rutina/RutinasSidebar';
 import RutinaItem from '../../components/Rutina/RutinaItem';
 import { toast } from 'react-hot-toast';
+import { AnimatedLayout, AnimatedList, AnimatedListItem, AnimatedDragOverlay } from '../../components/animations';
+import { motion } from 'framer-motion';
 import {
     DndContext,
     MouseSensor,
@@ -55,26 +57,29 @@ const AlumnoPerfilContent = ({
                         Rutinas de {alumno?.nombre} {alumno?.apellido}
                     </h1>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <AnimatedList className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {diasSemana.map((dia, i) => (
-                            <DiaCard
-                                key={i}
-                                index={i}
-                                id={`dia-${i}`}
-                                dia={dia}
-                                diaInfo={asignacionesPorDia[i]}
-                                alumnoId={id}
-                                onAsignacionEliminada={() => fetchData(true)}
-                                onRutinaPersonalizada={() => fetchData(true)}
-                            />
+                            <AnimatedListItem key={i}>
+                                <DiaCard
+                                    index={i}
+                                    id={`dia-${i}`}
+                                    dia={dia}
+                                    diaInfo={asignacionesPorDia[i]}
+                                    alumnoId={id}
+                                    onAsignacionEliminada={() => fetchData(true)}
+                                    onRutinaPersonalizada={() => fetchData(true)}
+                                />
+                            </AnimatedListItem>
                         ))}
-                    </div>
+                    </AnimatedList>
                 </div>
             </div>
 
             <DragOverlay>
                 {activeId?.startsWith('rutina-') ? (
-                    <RutinaItem rutina={rutinasBase.find(r => `rutina-${r.id}` === activeId)} />
+                    <AnimatedDragOverlay>
+                        <RutinaItem rutina={rutinasBase.find(r => `rutina-${r.id}` === activeId)} />
+                    </AnimatedDragOverlay>
                 ) : null}
             </DragOverlay>
         </DndContext>
