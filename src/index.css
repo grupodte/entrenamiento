@@ -63,7 +63,6 @@ body {
   select {
     @apply bg-white/5 text-white placeholder-white/50 rounded-ios-md px-4 py-2;
     @apply focus:ring-2 focus:ring-ios-primary focus:outline-none;
-    @apply transition-all duration-200 ease-in-out;
     font-size: max(16px, 1rem);
     /* Previene zoom en iOS */
     -webkit-appearance: none;
@@ -78,7 +77,6 @@ body {
 
   /* Botones base */
   button {
-    @apply transition-all duration-200 ease-in-out;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -101,7 +99,6 @@ body {
 ::-webkit-scrollbar-thumb {
   background: #6b7280;
   border-radius: 4px;
-  transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -138,23 +135,44 @@ body {
 /* -------- COMPONENTES UI -------- */
 .ios-button {
   @apply bg-ios-primary text-white font-product font-medium rounded-ios-md px-6 py-3;
-  @apply hover:opacity-90 active:scale-95 transition-all duration-200 ease-in-out;
   @apply shadow-lg shadow-ios-primary/25;
   min-height: 44px;
   /* Área táctil mínima */
 }
 
+.ios-button:hover {
+  opacity: 0.9;
+}
+
+.ios-button:active {
+  transform: scale(0.95);
+}
+
 .ios-button-secondary {
   @apply bg-white/10 text-white font-product font-medium rounded-ios-md px-6 py-3;
-  @apply hover:bg-white/15 active:scale-95 transition-all duration-200 ease-in-out;
   @apply border border-white/20;
   min-height: 44px;
 }
 
+.ios-button-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.ios-button-secondary:active {
+  transform: scale(0.95);
+}
+
 .ios-button-ghost {
   @apply bg-transparent text-ios-primary font-product font-medium rounded-ios-md px-6 py-3;
-  @apply hover:bg-ios-primary/10 active:scale-95 transition-all duration-200 ease-in-out;
   min-height: 44px;
+}
+
+.ios-button-ghost:hover {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.ios-button-ghost:active {
+  transform: scale(0.95);
 }
 
 /* -------- TIPOGRAFÍA -------- */
@@ -230,55 +248,9 @@ body {
   scrollbar-gutter: stable;
 }
 
-/* -------- ANIMACIONES Y TRANSICIONES -------- */
-.fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.slide-up {
-  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* -------- ESTADOS DE CARGA -------- */
 .skeleton {
-  background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0.05) 25%,
-      rgba(255, 255, 255, 0.1) 50%,
-      rgba(255, 255, 255, 0.05) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-
-  100% {
-    background-position: 200% 0;
-  }
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* -------- RESPONSIVE BREAKPOINTS -------- */
@@ -338,36 +310,6 @@ body {
   .ios-button-ghost {
     @apply py-2;
     min-height: 40px;
-  }
-}
-
-/* -------- ACCESIBILIDAD -------- */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-
-  .fade-in,
-  .slide-up {
-    animation: none;
-  }
-}
-
-@media (prefers-contrast: high) {
-  .ios-glass {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
-  }
-
-  .ios-caption {
-    @apply text-white/80;
-  }
-
-  .ios-small {
-    @apply text-white/70;
   }
 }
 
