@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
-import backgroundImage from '../assets/FOTO_FONDO.webp';
+
 import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../context/AuthContext';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 
-const transition = { duration: 0.5, ease: 'easeInOut' };
+
 
 const AuthPage = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -173,18 +173,10 @@ const AuthPage = () => {
     };
 
     return (
-        <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-cover bg-center z-0"
-            style={{ backgroundImage: `url(${backgroundImage})` }}
-        >
-            <div className="absolute inset-0 backdrop-blur-sm bg-black/60" />
+        <div className="fixed inset-0 w-full h-full flex items-center justify-center">
+            <div className="absolute inset-0" />
 
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={isLogin ? 'login' : 'register'}
-                    initial={{ x: isLogin ? 300 : -300, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    exit={{ x: isLogin ? -300 : 300, opacity: 0 }}
-                    transition={transition}
+            <div
                     className="relative z-10 p-8 rounded-3xl bg-gradient-to-br from-gray-800/50 to-black/70 backdrop-blur-lg shadow-2xl w-11/12 max-w-md text-white border border-gray-700"
                 >
                     <h2 className="text-3xl font-bold text-white mb-8 text-center tracking-tight">
@@ -251,8 +243,7 @@ const AuthPage = () => {
                             {isLogin ? 'Registrate' : 'Iniciar sesión'}
                         </button>
                     </p>
-                </motion.div>
-            </AnimatePresence>
+                </div>
         </div>
     );
 };
