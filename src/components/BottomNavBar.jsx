@@ -8,33 +8,27 @@ const navItems = [
 ];
 
 const BottomNavBar = ({ onOpenPerfil }) => {
+  const location = useLocation();
+
+  const navLinkClass = ({ isActive }) =>
+    twMerge(
+      'flex items-center justify-center w-14 h-14 rounded-full ios-glass shadow-lg transition-all duration-300',
+      isActive
+        ? 'bg-cyan-400/30 text-cyan-300 scale-110'
+        : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/80'
+    );
+
   return (
-    <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md z-50">
-      <div className="ios-glass flex justify-around rounded-2xl p-1 shadow-lg">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end
-            className={({ isActive }) =>
-              twMerge(
-                'flex flex-col items-center justify-center w-full rounded-lg py-2 text-sm font-medium transition-all duration-300',
-                isActive
-                  ? 'text-cyan-300 bg-white/10 scale-105'
-                  : 'text-gray-300 hover:bg-white/5'
-              )
-            }
-          >
-            <item.icon className="w-6 h-6" />
-            <span className="text-xs mt-1">{item.label}</span>
-          </NavLink>
-        ))}
-        <button
-          onClick={onOpenPerfil}
-          className="flex flex-col items-center justify-center w-full rounded-lg py-2 text-sm font-medium transition-all duration-300 text-gray-300 hover:bg-white/5"
-        >
-          <User className="w-6 h-6" />
-          <span className="text-xs mt-1">Perfil</span>
+    <nav className="fixed bottom-0 left-0 right-0 h-24 z-50 pointer-events-none">
+      <div className="max-w-md mx-auto h-full flex justify-between items-center px-8 pointer-events-auto">
+        {/* Botón de Inicio a la izquierda */}
+        <NavLink to="/dashboard" className={navLinkClass}>
+          <Home className="w-7 h-7" />
+        </NavLink>
+
+        {/* Botón de Perfil a la derecha */}
+        <button onClick={onOpenPerfil} className={navLinkClass({ isActive: false })}>
+          <User className="w-7 h-7" />
         </button>
       </div>
     </nav>
@@ -42,3 +36,4 @@ const BottomNavBar = ({ onOpenPerfil }) => {
 };
 
 export default BottomNavBar;
+
