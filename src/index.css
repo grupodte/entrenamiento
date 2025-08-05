@@ -2,51 +2,83 @@
 @tailwind components;
 @tailwind utilities;
 
-/* RESET MINIMAL */
+/* -------- RESET + ALTURA -------- */
 html,
 body,
 #root {
-  height: 100%;
   margin: 0;
   padding: 0;
+  height: 100%;
   background: #121212;
   color: white;
-  font-family: sans-serif;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* DEBUG BORDERS */
-* {
-  box-sizing: border-box;
-  outline: 1px solid rgba(255, 255, 255, 0.1);
-  /* ayuda a ver contenedores */
+/* Evitar reflujo por vh dinámico: usar var(--vh) */
+:root {
+  --vh: 100%;
 }
 
-/* CONTENEDOR FLEX */
+body {
+  height: calc(var(--vh) * 1);
+  overflow-x: hidden;
+}
+
+/* -------- CONTENEDOR PRINCIPAL -------- */
 #root {
   display: flex;
   flex-direction: column;
 }
 
-/* BOTONES BÁSICOS */
-button {
-  background: #444;
-  color: #fff;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
+/* -------- TIPOGRAFÍA -------- */
+@font-face {
+  font-family: 'ProductSans';
+  src: url('./assets/fonts/ProductSansRegular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
 }
 
-/* SCROLLBAR SIMPLE */
+@font-face {
+  font-family: 'ProductSans';
+  src: url('./assets/fonts/ProductSansBold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* -------- ELEMENTOS INTERACTIVOS -------- */
+button {
+  @apply bg-gray-800 text-white px-4 py-2 rounded-md transition-colors duration-150;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* -------- SCROLLBAR -------- */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #666;
+  background: #555;
+  border-radius: 4px;
 }
 
-/* ANIMACIONES DESACTIVADAS PARA DEBUG */
-* {
-  transition: none !important;
-  animation: none !important;
+/* -------- ANIMACIONES (DISMINUIDAS) -------- */
+.fade-in,
+.slide-up,
+.skeleton {
+  animation: none;
+  /* desactivar animaciones al cargar */
+}
+
+/* -------- SAFE AREAS -------- */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
 }
