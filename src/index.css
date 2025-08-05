@@ -17,9 +17,9 @@ html,
 body,
 #root {
   height: 100%;
-    margin: 0;
-    padding: 0;
-    background: #121212;
+  margin: 0;
+  padding: 0;
+  background: #121212;
   scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
 }
@@ -213,5 +213,18 @@ img {
   .admin-scroll-container {
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: y proximity;
+  }
+}
+
+/* PWA SPECIFIC STYLES */
+@media all and (display-mode: standalone) {
+  html, body {
+    height: 100vh !important;
+    height: -webkit-fill-available !important;
+  }
+  
+  body {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
   }
 }

@@ -9,10 +9,10 @@ export const useViewportHeight = () => {
             if (window.visualViewport) {
                 vh = window.visualViewport.height;
 
-                // FIX para PWAs fullscreen en iOS (quita la barra inferior)
+                // FIX para PWAs fullscreen en iOS - usar altura completa
                 const isIOS = /iP(ad|hone|od)/.test(window.navigator.userAgent);
                 if (isIOS && window.navigator.standalone) {
-                    vh = window.visualViewport.height - 44; // el offset de la barra (~44px)
+                    vh = window.innerHeight; // usar altura completa en PWA
                 }
             }
 
