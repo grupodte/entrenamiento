@@ -36,4 +36,3 @@ const BottomNavBar = ({ onOpenPerfil }) => {
 };
 
 export default BottomNavBar;
-
