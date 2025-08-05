@@ -1,29 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* -------- RESET + ALTURA -------- */
+/* -------- RESET BÁSICO -------- */
 html,
 body,
 #root {
   margin: 0;
   padding: 0;
   height: 100%;
+  width: 100%;
   background: #121212;
   color: white;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* Evitar reflujo por vh dinámico: usar var(--vh) */
-:root {
-  --vh: 100%;
-}
-
-body {
-  height: calc(var(--vh) * 1);
-  overflow-x: hidden;
 }
 
 /* -------- CONTENEDOR PRINCIPAL -------- */
@@ -32,7 +24,7 @@ body {
   flex-direction: column;
 }
 
-/* -------- TIPOGRAFÍA -------- */
+/* -------- TIPOGRAFÍA PERSONALIZADA -------- */
 @font-face {
   font-family: 'ProductSans';
   src: url('./assets/fonts/ProductSansRegular.woff2') format('woff2');
@@ -47,7 +39,7 @@ body {
   font-display: swap;
 }
 
-/* -------- ELEMENTOS INTERACTIVOS -------- */
+/* -------- BOTONES BASE -------- */
 button {
   @apply bg-gray-800 text-white px-4 py-2 rounded-md transition-colors duration-150;
 }
@@ -64,14 +56,6 @@ button:active {
 ::-webkit-scrollbar-thumb {
   background: #555;
   border-radius: 4px;
-}
-
-/* -------- ANIMACIONES (DISMINUIDAS) -------- */
-.fade-in,
-.slide-up,
-.skeleton {
-  animation: none;
-  /* desactivar animaciones al cargar */
 }
 
 /* -------- SAFE AREAS -------- */
