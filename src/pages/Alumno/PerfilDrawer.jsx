@@ -20,17 +20,23 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
 
     useEffect(() => {
         if (!isOpen || !user) return;
-        const fetchPerfil = async () => {
-            setLoading(true);
-            const { data, error: err } = await supabase.from('perfiles').select('*').eq('id', user.id).single();
-            if (err) setError('No se pudo cargar el perfil.');
-            else {
-                setPerfil(data);
-            }
-            setLoading(false);
-        };
-        fetchPerfil();
-        fetchWorkoutData();
+
+        // Retrasar la carga de datos para que el drawer se abra primero
+        const timer = setTimeout(() => {
+            const fetchPerfil = async () => {
+                setLoading(true);
+                const { data, error: err } = await supabase.from('perfiles').select('*').eq('id', user.id).single();
+                if (err) setError('No se pudo cargar el perfil.');
+                else {
+                    setPerfil(data);
+                }
+                setLoading(false);
+            };
+            fetchPerfil();
+            fetchWorkoutData();
+        }, 100); // 100ms de retraso
+
+        return () => clearTimeout(timer); // Limpiar el timer si el componente se desmonta
     }, [isOpen, user]);
 
     const fetchWorkoutData = async () => {

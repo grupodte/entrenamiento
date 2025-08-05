@@ -13,7 +13,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.25 }}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
+                        className="fixed inset-0 bg-black/60 z-[9998]"
                         onClick={onClose}
                     />
 
@@ -26,7 +26,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                         initial={{ y: '100%' }}
                         animate={{ y: 0 }}
                         exit={{ y: '100%' }}
-                        transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+                        transition={{ type: 'spring', stiffness: 350, damping: 35 }}
                         className="
                             fixed bottom-0 left-0 right-0 
                             max-h-[90vh] 
@@ -37,7 +37,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                             rounded-t-2xl 
                             overflow-y-auto 
                             overscroll-contain
-                            backdrop-blur-md
+                            
                             pb-safe
                         "
                     >
