@@ -4,34 +4,31 @@ import { Home, User } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { motion } from 'framer-motion';
 
-const navItems = [
-  { to: '/dashboard', icon: Home, label: 'Inicio' },
-];
-
 const BottomNavBar = ({ onOpenPerfil }) => {
   const navLinkClass = ({ isActive }) =>
     twMerge(
-      'flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-300',
-      'backdrop-blur-md bg-black/40 border border-white/10',
+      'flex flex-col items-center justify-center flex-1 h-14 transition-all duration-300',
       isActive
-        ? 'text-cyan-300 scale-110'
-        : 'text-gray-300 hover:bg-white/10 hover:scale-105'
+        ? 'text-cyan-300'
+        : 'text-gray-300 hover:text-white'
     );
 
   return (
-    <nav className="fixed bottom-4 left-0 right-0 z-30 pointer-events-none">
-      <div className="max-w-md mx-auto flex justify-between items-center px-8 pointer-events-auto">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 pb-safe">
+      <div className="max-w-md mx-auto flex items-center justify-around bg-black/50 backdrop-blur-md border-t border-white/10 shadow-lg h-16 rounded-t-xl">
         {/* Botón Inicio */}
-        <motion.div whileTap={{ scale: 0.9 }}>
+        <motion.div whileTap={{ scale: 0.95 }}>
           <NavLink to="/dashboard" className={navLinkClass}>
-            <Home className="w-7 h-7" />
+            <Home className="w-6 h-6" />
+            <span className="text-xs mt-1">Inicio</span>
           </NavLink>
         </motion.div>
 
         {/* Botón Perfil */}
-        <motion.div whileTap={{ scale: 0.9 }}>
+        <motion.div whileTap={{ scale: 0.95 }}>
           <button onClick={onOpenPerfil} className={navLinkClass({ isActive: false })}>
-            <User className="w-7 h-7" />
+            <User className="w-6 h-6" />
+            <span className="text-xs mt-1">Perfil</span>
           </button>
         </motion.div>
       </div>

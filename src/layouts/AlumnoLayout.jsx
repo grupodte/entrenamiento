@@ -58,7 +58,7 @@ const AlumnoLayout = () => {
       <AnimatePresence mode="wait" initial={false}>
         <motion.main
           key={location.pathname}
-          className="relative z-10 flex-1 overflow-y-auto pt-safe px-4 sm:px-6 lg:px-8 overscroll-y-contain scrollbar-hide pb-[70px]" // deja espacio para el navbar fijo
+          className="relative z-10 flex-1 overflow-y-auto pt-safe px-4 sm:px-6 lg:px-8 overscroll-y-contain scrollbar-hide pb-safe"
           variants={pageVariants}
           initial="initial"
           animate="animate"
