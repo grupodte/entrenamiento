@@ -19,7 +19,6 @@ body,
   margin: 0;
   padding: 0;
   height: 100%;
-  overflow-x: hidden; /* 👈 no overflow hidden total */
   scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
 }

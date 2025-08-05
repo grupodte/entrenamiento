@@ -40,8 +40,7 @@ const AdminLayoutInternal = () => {
         overflow-hidden
       "
             style={{
-                height: 'calc(var(--vh) + env(safe-area-inset-bottom))',
-                paddingBottom: 'env(safe-area-inset-bottom)' // 👈 esto asegura que el fondo cubra el home indicator
+                height: 'var(--vh)'
             }}
         >
             {/* Fondo con blur */}

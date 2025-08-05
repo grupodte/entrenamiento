@@ -14,7 +14,7 @@ const BottomNavBar = ({ onOpenPerfil }) => {
     );
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-50">
       <div className="max-w-md mx-auto flex items-center justify-around bg-black/50 backdrop-blur-md border-t border-white/10 shadow-lg h-16 rounded-t-xl">
         {/* Botón Inicio */}
         <motion.div whileTap={{ scale: 0.95 }}>

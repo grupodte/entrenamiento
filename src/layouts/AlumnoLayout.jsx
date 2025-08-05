@@ -24,11 +24,10 @@ const AlumnoLayout = () => {
     <div
       className="text-white font-sans flex flex-col relative"
       style={{
-        height: 'calc(var(--vh) + env(safe-area-inset-bottom))',
+        height: 'var(--vh)',
         backgroundImage: `url('/assets/FOTO_FONDO.webp')`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        paddingBottom: 'env(safe-area-inset-bottom)' // 👈 esto asegura que el fondo cubra el home indicator
+        backgroundPosition: 'center'
       }}
     >
       {/* Overlay oscuro */}
