@@ -178,7 +178,7 @@ const Dashboard = () => {
                 {loading ? (
                     <DashboardSkeleton />
                 ) : (
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="p-4 space-y-6">
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="p-2 space-y-4">
                         <header>
                             <p className="text-gray-400 text-base">{getSaludo()}</p>
                             <h1 className="text-2xl font-bold text-white">{nombre}</h1>
@@ -187,7 +187,7 @@ const Dashboard = () => {
                         {/* Grid for Progress and Tip */}
                         <div className="grid grid-cols-2 gap-4">
                             {/* Weekly Progress */}
-                            <div className="bg-gray-800 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                                <div className="bg-gray-800/40 backdrop-blur-md rounded-xl p-4 flex flex-col items-center justify-center text-center">
                                 <h3 className="font-bold text-white text-sm mb-2">Progreso Semanal</h3>
                                 <div className="relative w-20 h-20">
                                     <svg className="w-full h-full" viewBox="0 0 36 36">
@@ -202,7 +202,7 @@ const Dashboard = () => {
                             </div>
 
                             {/* Tip of the day */}
-                            <div className="bg-gray-800 rounded-xl p-4 flex flex-col justify-center">
+                                <div className="bg-gray-800/40 backdrop-blur-md rounded-xl p-4 flex flex-col items-center justify-center text-center">
                                 <h3 className="text-sm font-semibold text-cyan-300 mb-2 flex items-center gap-2">
                                     <FaDumbbell />
                                     Tip del Día
@@ -213,7 +213,6 @@ const Dashboard = () => {
 
                         {/* Today's workout */}
                         <div>
-                            <h2 className="text-lg font-semibold text-white mb-3">Tu rutina de hoy</h2>
                             {rutinaHoy ? (
                                 <Card className={`border ${rutinaHoy.isCompleted ? 'border-green-500/50' : 'border-cyan-400/50'}`}>
                                     <div className="flex flex-col justify-between h-full">
@@ -252,7 +251,7 @@ const Dashboard = () => {
                                     <AnimatePresence>
                                         {rutinasVisibles.map(rutina => (
                                             <motion.div key={rutina.dia} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                                <Card className="flex justify-between items-center hover:bg-gray-700 transition-colors duration-200 cursor-pointer" onClick={() => iniciarRutina(rutina)}>
+                                                <Card className="flex items-center gap-3 hover:bg-gray-700 bg-gray-800/20 backdrop-blur-md rounded-xl transition-colors duration-200 cursor-not-allowed opacity-50">
                                                     <div>
                                                         <p className="text-xs text-gray-400 font-medium">{diasSemana[rutina.dia]}</p>
                                                         <p className="font-semibold text-base text-white">{rutina.nombre}</p>
@@ -275,8 +274,8 @@ const Dashboard = () => {
                         {/* More options */}
                         <div>
                             <h3 className="text-lg font-semibold text-white mb-3">Más opciones</h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <Card className="flex items-center gap-3 hover:bg-gray-700 transition-colors duration-200 cursor-not-allowed opacity-50">
+                            <div className="grid grid-cols-2 gap-4 ">
+                                <Card className="flex items-center gap-3 hover:bg-gray-700 bg-gray-800/20 backdrop-blur-md rounded-xl transition-colors duration-200 cursor-not-allowed opacity-50">
                                     <div className="p-2 bg-green-500/20 rounded-lg">
                                         <FaUtensils className="text-xl text-green-400" />
                                     </div>
@@ -285,7 +284,7 @@ const Dashboard = () => {
                                         <p className="text-xs text-gray-400">Próximamente</p>
                                     </div >
                                 </Card>
-                                <Card className="flex items-center gap-3 hover:bg-gray-700 transition-colors duration-200 cursor-not-allowed opacity-50">
+                                    <Card className="flex items-center gap-3 hover:bg-gray-700 bg-gray-800/20 backdrop-blur-md rounded-xl transition-colors duration-200 cursor-not-allowed opacity-50">
                                     <div className="p-2 bg-red-500/20 rounded-lg">
                                         <FaEnvelope className="text-xl text-red-400" />
                                     </div>

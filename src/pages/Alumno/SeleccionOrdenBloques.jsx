@@ -73,7 +73,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
             {isLoading ? (
                 <DrawerLoader />
             ) : currentError ? (
-                <div className="bg-gray-800 text-white font-sans p-4">
+                <div className=" text-white font-sans p-4">
                     <div className="mb-4">
                         <h1 className="text-xl font-bold text-white">Error</h1>
                         <p className="text-sm text-gray-400">Problema al cargar la rutina</p>
@@ -90,13 +90,12 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                     </div>
                 </div>
             ) : rutinaData ? (
-                <div className="bg-gray-800 text-white font-sans p-4">
+                <div className=" text-white font-sans p-4">
                     <div className="mb-4">
                         <h1 className="text-xl font-bold text-white">{rutinaData.rutina.nombre}</h1>
                         {rutinaData.rutina.descripcion && (
                             <p className="text-sm text-gray-400 mt-1">{rutinaData.rutina.descripcion}</p>
                         )}
-                        <p className="text-sm text-gray-400">Selecciona un bloque</p>
                     </div>
 
                     {rutinaData.bloques.length === 0 ? (
@@ -112,7 +111,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                         >
                             {rutinaData.bloques.map((bloque) => (
                                 <motion.div key={bloque.id} variants={itemVariants}>
-                                    <div className="flex justify-between items-center bg-gray-700 shadow-lg rounded-xl p-4 border border-gray-600 hover:border-cyan-400 transition-colors duration-300">
+                                    <div className="flex justify-between items-center bg-gray-700/10 shadow-lg rounded-xl p-4 border border-gray-600/10 hover:border-cyan-400 transition-colors duration-300">
                                         <div className="flex items-center gap-3">
                                             <FaCalendarAlt className="text-cyan-300 text-lg"/>
                                             <span className="text-base font-semibold text-white">
