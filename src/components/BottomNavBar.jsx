@@ -9,7 +9,7 @@ const navItems = [
 
 const BottomNavBar = ({ onOpenPerfil }) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 pb-safe z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 z-50">
       <div className="flex justify-around max-w-md mx-auto">
         {navItems.map((item) => (
           <NavLink
