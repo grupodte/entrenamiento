@@ -4,7 +4,7 @@
     "description": "La herramienta definitiva para gestionar alumnos, rutinas y ejercicios en FitApp.",
     "start_url": "/",
     "scope": "/",
-    "display": "fullscreen",
+    "display": "standalone",
     "orientation": "portrait-primary",
     "theme_color": "#121212",
     "background_color": "#121212",
