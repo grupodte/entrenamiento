@@ -7,7 +7,7 @@ const AppLayout = () => {
 
     return (
         <div
-            className="flex flex-col text-white font-sans overflow-hidden"
+            className="flex flex-col text-white font-sans overflow-hidden bg-[#121212]"
             style={{
                 height: 'calc(var(--vh) + env(safe-area-inset-bottom))',
                 paddingBottom: 'env(safe-area-inset-bottom)'

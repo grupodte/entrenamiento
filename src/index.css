@@ -30,7 +30,7 @@ html {
 }
 
 body {
-  @apply font-product select-none bg-[#121212] text-white;
+  @apply font-product select-none text-white;
   touch-action: manipulation;
   overscroll-behavior: none;
   font-smoothing: antialiased;

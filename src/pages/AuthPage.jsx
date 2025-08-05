@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import backgroundImage from '../assets/FOTO_FONDO.webp';
 import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../context/AuthContext';
+import { useViewportHeight } from '../hooks/useViewportHeight';
 
 const transition = { duration: 0.5, ease: 'easeInOut' };
 
@@ -18,15 +19,7 @@ const AuthPage = () => {
     const location = useLocation();
     const { user, rol, loading, login } = useAuth();
 
-    useEffect(() => {
-        const setViewportHeight = () => {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-        };
-        setViewportHeight();
-        window.addEventListener('resize', setViewportHeight);
-        return () => window.removeEventListener('resize', setViewportHeight);
-    }, []);
+    useViewportHeight();
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
