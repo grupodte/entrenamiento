@@ -101,7 +101,8 @@ const AlumnoLayout = () => {
           className="
             relative z-10 flex-1 
             overflow-y-auto 
-            pt-20       /* Espacio para el navbar flotante */
+            pt-5
+            pb-10       /* Espacio para el navbar flotante */
             px-4 sm:px-6 lg:px-8 
             overscroll-y-contain 
             scrollbar-hide
