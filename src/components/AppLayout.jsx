@@ -13,9 +13,10 @@ const AppLayout = () => {
     }, []);
 
     return (
-        <div className="min-h-screen flex flex-col overflow-hidden">
-           
-
+        <div
+            className="flex flex-col overflow-hidden"
+            style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
+        >
             <main className="flex-1 overflow-y-auto">
                 <Outlet />
             </main>
