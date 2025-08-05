@@ -3,59 +3,120 @@
 @tailwind components;
 @tailwind utilities;
 
-/* -------- RESET BÁSICO -------- */
+/* -------- RESET + ALTURA -------- */
 html,
-body,
-#root {
+body {
+  height: 100%;
+  background: #121212;
   margin: 0;
   padding: 0;
-  height: 100%;
-  width: 100%;
-  background: #121212;
-  color: white;
-  font-family: 'Inter', sans-serif;
+  -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* -------- CONTENEDOR PRINCIPAL -------- */
 #root {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 100%;
 }
 
-/* -------- TIPOGRAFÍA PERSONALIZADA -------- */
+/* -------- TIPOGRAFÍA -------- */
 @font-face {
   font-family: 'ProductSans';
-  src: url('./assets/fonts/ProductSansRegular.woff2') format('woff2');
+  src: url('./assets/fonts/ProductSansRegular.woff2') format('woff2'),
+    url('./assets/fonts/ProductSansRegular.ttf') format('truetype');
   font-weight: 400;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'ProductSans';
-  src: url('./assets/fonts/ProductSansBold.woff2') format('woff2');
+  src: url('./assets/fonts/ProductSansBold.woff2') format('woff2'),
+    url('./assets/fonts/ProductSansBold.ttf') format('truetype');
   font-weight: 700;
   font-display: swap;
 }
 
-/* -------- BOTONES BASE -------- */
-button {
-  @apply bg-gray-800 text-white px-4 py-2 rounded-md transition-colors duration-150;
+body {
+  @apply font-product select-none text-white bg-[#121212];
+  touch-action: manipulation;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  text-rendering: optimizeLegibility;
 }
 
-button:active {
-  transform: scale(0.98);
+/* -------- INPUTS -------- */
+@layer base {
+
+  input,
+  textarea,
+  select {
+    @apply bg-white/5 text-white placeholder-white/50 rounded-ios-md px-4 py-2;
+    @apply focus:ring-2 focus:ring-ios-primary focus:outline-none;
+    font-size: max(16px, 1rem);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  *:focus-visible {
+    @apply ring-2 ring-ios-primary ring-offset-2 ring-offset-gray-900;
+    outline: none;
+  }
+
+  button {
+    @apply transition-all duration-200 ease-in-out;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:active {
+    transform: scale(0.98);
+  }
 }
 
-/* -------- SCROLLBAR -------- */
-::-webkit-scrollbar {
-  width: 8px;
+/* -------- BOTONES -------- */
+.ios-button {
+  @apply bg-ios-primary text-white font-product font-medium rounded-ios-md px-6 py-3 shadow-lg shadow-ios-primary/25;
+  @apply hover:opacity-90 active:scale-95 transition-all duration-200 ease-in-out;
+  min-height: 44px;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 4px;
+.ios-button-secondary {
+  @apply bg-white/10 text-white font-product font-medium rounded-ios-md px-6 py-3 border border-white/20;
+  @apply hover:bg-white/15 active:scale-95 transition-all duration-200 ease-in-out;
+  min-height: 44px;
+}
+
+.ios-button-ghost {
+  @apply bg-transparent text-ios-primary font-product font-medium rounded-ios-md px-6 py-3;
+  @apply hover:bg-ios-primary/10 active:scale-95 transition-all duration-200 ease-in-out;
+  min-height: 44px;
+}
+
+/* -------- TIPOGRAFÍA EXTRA -------- */
+.ios-title {
+  @apply font-product text-[1.8rem] leading-[2.2rem] font-bold tracking-tight;
+}
+
+.ios-subtitle {
+  @apply font-product text-xl leading-7 font-semibold tracking-tight;
+}
+
+.ios-body {
+  @apply font-product text-base leading-6 font-normal;
+}
+
+.ios-body-large {
+  @apply font-product text-lg leading-7 font-normal;
+}
+
+.ios-caption {
+  @apply font-product text-sm leading-5 font-medium text-white/60;
+}
+
+.ios-small {
+  @apply font-product text-xs leading-4 font-medium text-white/50;
 }
 
 /* -------- SAFE AREAS -------- */
@@ -67,6 +128,70 @@ button:active {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+.pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+
+.pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
+.px-safe {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.py-safe {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.p-safe {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* -------- SCROLL -------- */
+.ios-scroll {
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+.admin-scroll-container {
+  @apply ios-scroll;
+  scrollbar-gutter: stable;
+}
+
+/* -------- SCROLLBAR -------- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1f2937;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #6b7280;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* -------- PWA STANDALONE (iOS) -------- */
 @media all and (display-mode: standalone) {
 
@@ -74,18 +199,39 @@ button:active {
   body,
   #root {
     height: -webkit-fill-available !important;
-    /* ocupa toda la pantalla */
-    background: #121212;
+    background: #121212 !important;
   }
 
   body {
     padding-bottom: env(safe-area-inset-bottom);
-    /* espacio seguro bajo la nav bar */
   }
 
-  /* Ocultar barra de scroll en standalone */
   ::-webkit-scrollbar {
     width: 0;
     background: transparent;
+  }
+}
+
+/* -------- RESPONSIVE -------- */
+@media (max-width: 768px) {
+  .admin-scroll-container {
+    scroll-snap-type: y proximity;
+  }
+
+  .ios-title {
+    @apply text-2xl leading-8;
+  }
+
+  .ios-button,
+  .ios-button-secondary,
+  .ios-button-ghost {
+    min-height: 48px;
+    @apply px-4 py-3;
+  }
+}
+
+@media (max-width: 480px) {
+  .ios-title {
+    @apply text-xl leading-7;
   }
 }

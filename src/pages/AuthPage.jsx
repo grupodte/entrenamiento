@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useViewportHeight } from '../hooks/useViewportHeight';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const AuthPage = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -72,37 +73,53 @@ const AuthPage = () => {
     };
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur">
-            <div className="p-8 rounded-2xl bg-gray-900 w-11/12 max-w-md text-white border border-gray-700">
-                <h2 className="text-2xl font-bold text-center mb-6">{isLogin ? 'Iniciar sesión' : 'Crear cuenta'}</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <input
-                        type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400"
-                        placeholder="Correo electrónico" required disabled={isLoading}
-                    />
-                    <input
-                        type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                        className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400"
-                        placeholder="Contraseña" required disabled={isLoading}
-                    />
-                    <button disabled={isLoading} className="w-full py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-bold">
-                        {isLoading ? 'Procesando...' : isLogin ? 'Ingresar' : 'Registrarme'}
+        <AnimatePresence>
+            <motion.div
+                key="overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur"
+            >
+                <motion.div
+                    key="auth-modal"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    className="p-8 rounded-2xl bg-gray-900 w-11/12 max-w-md text-white border border-gray-700 shadow-2xl will-change-transform"
+                >
+                    <h2 className="text-2xl font-bold text-center mb-6">{isLogin ? 'Iniciar sesión' : 'Crear cuenta'}</h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <input
+                            type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                            className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400"
+                            placeholder="Correo electrónico" required disabled={isLoading}
+                        />
+                        <input
+                            type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                            className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400"
+                            placeholder="Contraseña" required disabled={isLoading}
+                        />
+                        <button disabled={isLoading} className="w-full py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-bold">
+                            {isLoading ? 'Procesando...' : isLogin ? 'Ingresar' : 'Registrarme'}
+                        </button>
+                    </form>
+                    <div className="my-4 text-center text-gray-400 text-sm">o</div>
+                    <button onClick={handleGoogle} disabled={isLoading}
+                        className="w-full py-3 rounded-lg bg-white text-gray-900 font-semibold flex items-center justify-center gap-3">
+                        <FcGoogle size={24} /> {isLogin ? 'Continuar con Google' : 'Registrarme con Google'}
                     </button>
-                </form>
-                <div className="my-4 text-center text-gray-400 text-sm">o</div>
-                <button onClick={handleGoogle} disabled={isLoading}
-                    className="w-full py-3 rounded-lg bg-white text-gray-900 font-semibold flex items-center justify-center gap-3">
-                    <FcGoogle size={24} /> {isLogin ? 'Continuar con Google' : 'Registrarme con Google'}
-                </button>
-                <p className="text-sm text-center mt-6 text-gray-400">
-                    {isLogin ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
-                    <button onClick={() => setIsLogin(!isLogin)} className="text-cyan-400 font-semibold ml-1 hover:underline">
-                        {isLogin ? 'Registrate' : 'Iniciar sesión'}
-                    </button>
-                </p>
-            </div>
-        </div>
+                    <p className="text-sm text-center mt-6 text-gray-400">
+                        {isLogin ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
+                        <button onClick={() => setIsLogin(!isLogin)} className="text-cyan-400 font-semibold ml-1 hover:underline">
+                            {isLogin ? 'Registrate' : 'Iniciar sesión'}
+                        </button>
+                    </p>
+                </motion.div>
+            </motion.div>
+        </AnimatePresence>
     );
 };
 
