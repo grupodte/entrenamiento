@@ -37,28 +37,26 @@ const AlumnoLayout = () => {
     setIsEditPerfilDrawerOpen(false);
     setIsPerfilDrawerOpen(true);
   };
-  const handleProfileUpdate = () => {
-    handleCloseEditPerfilDrawer();
-  };
+  const handleProfileUpdate = () => handleCloseEditPerfilDrawer();
 
   return (
     <div
-      className="text-white font-sans flex flex-col relative overflow-hidden"
+      className="text-white font-sans flex flex-col relative"
       style={{
-        height: 'calc(var(--vh, 1vh) * 100)',
+        minHeight: 'calc(var(--vh, 1vh) * 100)',
         backgroundImage: `url('/assets/FOTO_FONDO.webp')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
     >
       {/* Overlay oscuro */}
-      <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm pointer-events-none"></div>
 
       {/* Contenido */}
       <AnimatePresence mode="wait" initial={false}>
         <motion.main
           key={location.pathname}
-          className="relative z-10 flex-1 overflow-y-auto pt-safe px-4 sm:px-6 lg:px-8 overscroll-y-contain scrollbar-hide pb-safe"
+          className="relative z-10 flex-1 overflow-y-auto pt-safe px-4 sm:px-6 lg:px-8 overscroll-y-contain scrollbar-hide"
           variants={pageVariants}
           initial="initial"
           animate="animate"
@@ -68,8 +66,8 @@ const AlumnoLayout = () => {
         </motion.main>
       </AnimatePresence>
 
-      {/* BottomNavBar fijo */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 pb-safe">
+      {/* BottomNavBar fijo con safe area */}
+      <div className="fixed bottom-0 left-0 right-0 z-20">
         <BottomNavBar onOpenPerfil={handleOpenPerfilDrawer} />
       </div>
 
