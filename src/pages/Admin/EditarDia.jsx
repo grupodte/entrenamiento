@@ -235,7 +235,7 @@ showSuccess("Cambios guardados correctamente ✅");
     }
 
     return (
-        <AnimatedLayout className="max-w-4xl mx-auto p-4 pb-[calc(4rem+env(safe-area-inset-bottom))]">
+        <AnimatedLayout className="max-w-4xl mx-auto p-4 pb-safe">
             {/* Encabezado animado */}
             <motion.div 
                 className="flex items-center gap-3 mb-6"

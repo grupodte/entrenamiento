@@ -25,7 +25,6 @@ body {
   overscroll-behavior: none;
   font-smoothing: antialiased;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 60px); /* 60px is the height of the BottomNavBar */
 }
 
 #root {

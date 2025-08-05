@@ -182,7 +182,7 @@ const AlumnoPerfil = () => {
     }
 
     return (
-        <AnimatedLayout className="p-4 max-w-6xl mx-auto text-white space-y-6">
+        <AnimatedLayout className="p-4 max-w-6xl mx-auto text-white space-y-6 pb-safe">
             {/* Header con botón de volver */}
             <div className="flex items-center gap-4 mb-6">
                 <motion.button
