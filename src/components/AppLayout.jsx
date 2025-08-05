@@ -20,7 +20,7 @@ const AppLayout = () => {
 
     return (
         <div
-            className="flex flex-col text-white font-sans bg-[#fffb00] overflow-hidden"
+            className="flex flex-col text-white font-sans overflow-hidden"
             style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
         >
             {/* Contenido principal */}
