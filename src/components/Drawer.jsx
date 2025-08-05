@@ -26,7 +26,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                         initial={{ y: '100%' }}
                         animate={{ y: 0 }}
                         exit={{ y: '100%' }}
-                        transition={{ type: 'spring', stiffness: 350, damping: 35 }}
+                        transition={{ type: 'spring', stiffness: 200, damping: 25 }}
                         className="
                             fixed bottom-0 left-0 right-0 
                             max-h-[90vh] 
