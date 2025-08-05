@@ -15,7 +15,11 @@ const BottomNavBar = ({ onOpenPerfil }) => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50">
-      <div className="max-w-md mx-auto flex items-center justify-around bg-black/50 backdrop-blur-md border-t border-white/10 shadow-lg h-16 rounded-t-xl">
+      {/* Fondo que se extiende hasta el fondo físico */}
+      <div className="absolute inset-x-0 bottom-0 bg-black/50 backdrop-blur-md" style={{ height: 'calc(4rem + env(safe-area-inset-bottom))' }}></div>
+      
+      {/* Contenido de la navbar */}
+      <div className="relative max-w-md mx-auto flex items-center justify-around border-t border-white/10 shadow-lg h-16 rounded-t-xl pb-safe">
         {/* Botón Inicio */}
         <motion.div whileTap={{ scale: 0.95 }}>
           <NavLink to="/dashboard" className={navLinkClass}>
