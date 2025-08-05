@@ -55,11 +55,11 @@ const AlumnoLayout = () => {
   }, []);
 
   return (
-    <div className="bg-gray-900 text-white h-screen font-sans flex flex-col overflow-hidden">
+    <div className="bg-gray-900 text-white font-sans flex flex-col overflow-hidden">
       <AnimatePresence mode="wait" initial={false}>
         <motion.main
           key={location.pathname}
-          className="flex-1 overflow-y-auto pt-safe px-4 sm:px-6 lg:px-8 overscroll-y-contain scrollbar-hide"
+          className="flex-1 overflow-y-auto pt-safe px-4 sm:px-6 lg:px-8 overscroll-y-contain scrollbar-hide pb-24"
           variants={pageVariants}
           initial="initial"
           animate="animate"
@@ -70,11 +70,11 @@ const AlumnoLayout = () => {
       </AnimatePresence>
       <BottomNavBar onOpenPerfil={handleOpenPerfilDrawer} />
       <PerfilDrawer isOpen={isPerfilDrawerOpen} onClose={handleClosePerfilDrawer} onEdit={handleOpenEditPerfilDrawer} />
-      <EditarPerfilDrawer 
-        isOpen={isEditPerfilDrawerOpen} 
-        onClose={handleCloseEditPerfilDrawer} 
+      <EditarPerfilDrawer
+        isOpen={isEditPerfilDrawerOpen}
+        onClose={handleCloseEditPerfilDrawer}
         onBack={handleBackToProfileDrawer}
-        onProfileUpdate={handleProfileUpdate} 
+        onProfileUpdate={handleProfileUpdate}
       />
     </div>
   );
