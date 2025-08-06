@@ -10,13 +10,13 @@ const FloatingNavBar = ({ onOpenPerfil }) => {
   const navRef = useRef(null);
   const [bounds, setBounds] = useState({ left: 0, right: 0, top: 0, bottom: 0 });
 
-  // Springs para animaciones suaves
+  // Springs para animaciones suaves - sin inercia inicial hacia abajo
   const [{ x, y, scale, rotate }, api] = useSpring(() => ({
     x: 0,
-    y: 0,
+    y: 0, // Comenzar en la posición inicial sin desplazamiento
     scale: 1,
     rotate: 0,
-    config: { mass: 1, tension: 280, friction: 30 }
+    config: { mass: 1, tension: 280, friction: 35 } // Más fricción para menos rebote
   }));
 
   // Función para calcular los límites
@@ -35,36 +35,52 @@ const FloatingNavBar = ({ onOpenPerfil }) => {
   }, []);
 
   // Función para snap a los bordes
-  const snapToEdge = useCallback((currentX, currentY, velocityX) => {
+  const snapToEdge = useCallback((currentX, currentY, velocityX, velocityY) => {
     if (typeof window === 'undefined') return { x: currentX, y: currentY };
 
     const rect = navRef.current?.getBoundingClientRect();
     if (!rect) return { x: currentX, y: currentY };
 
     const centerX = rect.left + rect.width / 2 + currentX;
-    const snapThreshold = 100;
+    const centerY = rect.top + rect.height / 2 + currentY;
+    const snapThreshold = 80;
     const margin = 20;
 
     let targetX = currentX;
     let targetY = currentY;
 
-    // Snap horizontal basado en posición y velocidad
-    if (centerX < window.innerWidth / 2) {
-      // Lado izquierdo
-      if (centerX < snapThreshold || velocityX < -300) {
+    // Solo hacer snap si la velocidad es muy baja (movimiento deliberado)
+    if (Math.abs(velocityX) < 200 && Math.abs(velocityY) < 200) {
+      // Snap horizontal solo a los bordes laterales
+      if (centerX < snapThreshold) {
         targetX = margin - rect.left;
-      }
-    } else {
-      // Lado derecho  
-      if (centerX > window.innerWidth - snapThreshold || velocityX > 300) {
+      } else if (centerX > window.innerWidth - snapThreshold) {
         targetX = window.innerWidth - rect.right - margin;
       }
-    }
 
-    // Mantener dentro de límites verticales
-    const minY = margin - rect.top;
-    const maxY = window.innerHeight - rect.bottom - margin;
-    targetY = Math.max(minY, Math.min(maxY, currentY));
+      // NO hacer snap vertical automático - mantener posición Y actual
+      // Solo ajustar si está fuera de límites
+      const minY = margin - rect.top;
+      const maxY = window.innerHeight - rect.bottom - margin;
+
+      if (currentY < minY) {
+        targetY = minY;
+      } else if (currentY > maxY) {
+        targetY = maxY;
+      } else {
+        // Mantener la posición Y actual
+        targetY = currentY;
+      }
+    } else {
+      // Con velocidad alta, solo aplicar límites, no snap
+      const minY = margin - rect.top;
+      const maxY = window.innerHeight - rect.bottom - margin;
+      targetY = Math.max(minY, Math.min(maxY, currentY));
+
+      const minX = margin - rect.left;
+      const maxX = window.innerWidth - rect.right - margin;
+      targetX = Math.max(minX, Math.min(maxX, currentX));
+    }
 
     return { x: targetX, y: targetY };
   }, []);
@@ -74,38 +90,53 @@ const FloatingNavBar = ({ onOpenPerfil }) => {
     ({ active, movement: [mx, my], velocity: [vx, vy], direction: [dx, dy], cancel, canceled }) => {
       if (canceled) return;
 
-      // Verificar límites durante el arrastre
-      const newX = Math.max(bounds.left, Math.min(bounds.right, mx));
-      const newY = Math.max(bounds.top, Math.min(bounds.bottom, my));
+      // Verificar límites durante el arrastre con menos restricción
+      const margin = 20;
+      const rect = navRef.current?.getBoundingClientRect();
+
+      let newX = mx;
+      let newY = my;
+
+      if (rect) {
+        const minX = margin - rect.left;
+        const maxX = window.innerWidth - rect.right - margin;
+        const minY = margin - rect.top;
+        const maxY = window.innerHeight - rect.bottom - margin;
+
+        newX = Math.max(minX, Math.min(maxX, mx));
+        newY = Math.max(minY, Math.min(maxY, my));
+      }
 
       if (active) {
-        // Durante el arrastre
+        // Durante el arrastre - respuesta inmediata
         api.start({
           x: newX,
           y: newY,
           scale: 1.05,
-          rotate: dx * 2, // Rotación sutil basada en dirección
+          rotate: dx * 1, // Rotación más sutil
           immediate: true
         });
       } else {
-        // Al soltar
-        const snapTarget = snapToEdge(newX, newY, vx);
+        // Al soltar - aplicar snap si es necesario
+        const snapTarget = snapToEdge(newX, newY, vx, vy);
 
         api.start({
           x: snapTarget.x,
           y: snapTarget.y,
           scale: 1,
           rotate: 0,
-          config: { mass: 1, tension: 200, friction: 25 }
+          config: { mass: 1, tension: 300, friction: 30 } // Animación más rápida
         });
       }
     },
     {
-      bounds,
-      rubberband: true,
+      // Remover bounds fijos para mejor control manual
+      rubberband: 0.1, // Menos efecto elástico
       from: () => [x.get(), y.get()],
       filterTaps: true,
-      threshold: 5
+      threshold: 8, // Mayor threshold para evitar drags accidentales
+      preventScroll: true, // Prevenir scroll durante drag
+      pointer: { touch: true } // Optimizar para touch
     }
   );
 
@@ -114,19 +145,21 @@ const FloatingNavBar = ({ onOpenPerfil }) => {
       const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       setIsTouchDevice(hasTouch);
 
-      // Calcular límites iniciales
-      const timer = setTimeout(updateBounds, 100);
+      // Calcular límites iniciales sin setTimeout para evitar movimiento inicial
+      updateBounds();
 
-      // Recalcular en resize
+      // Recalcular en resize con debounce
+      let resizeTimeout;
       const handleResize = () => {
-        updateBounds();
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(updateBounds, 150);
       };
 
       window.addEventListener('resize', handleResize);
 
       return () => {
         window.removeEventListener('resize', handleResize);
-        clearTimeout(timer);
+        clearTimeout(resizeTimeout);
       };
     }
   }, [updateBounds]);
