@@ -111,7 +111,7 @@ body {
 
 
 
-*=====SAFE AREAS (Precise Implementation)=====*/ .pt-safe {
+.pt-safe {
   padding-top: var(--sat);
 }
 
