@@ -18,6 +18,11 @@
   --text-secondary: #9ca3af;
   --accent-primary: #06b6d4;
   --accent-secondary: #10b981;
+
+  /* Márgenes personalizados para contenido */
+  --content-margin-top: max(20px, env(safe-area-inset-top));
+  --content-margin-bottom: max(24px, env(safe-area-inset-bottom));
+  --content-margin-horizontal: max(16px, env(safe-area-inset-left), env(safe-area-inset-right));
 }
 
 /* ====== RESET Y BASE ====== */
@@ -64,10 +69,7 @@ body {
 /* ====== LAYOUT PRINCIPAL ====== */
 .app-container {
   @apply h-screen flex flex-col relative;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
+  /* Removidas las safe areas del contenedor principal */
 }
 
 .main-content {
@@ -76,8 +78,13 @@ body {
 }
 
 .content-wrapper {
-  @apply px-4 pb-24;
-  min-height: 100%;
+  /* Aplicamos márgenes personalizados al contenido */
+  margin-top: var(--content-margin-top);
+  margin-bottom: calc(var(--content-margin-bottom) + 80px);
+  /* 80px para la navbar flotante */
+  margin-left: var(--content-margin-horizontal);
+  margin-right: var(--content-margin-horizontal);
+  min-height: calc(100vh - var(--content-margin-top) - var(--content-margin-bottom) - 80px);
 }
 
 /* ====== DASHBOARD STYLES ====== */
@@ -86,7 +93,7 @@ body {
 }
 
 .dashboard-header {
-  @apply space-y-1;
+  @apply space-y-1 mb-6;
 }
 
 .greeting-text {
@@ -99,7 +106,7 @@ body {
 
 /* Stats Grid */
 .stats-grid {
-  @apply grid grid-cols-2 gap-4;
+  @apply grid grid-cols-2 gap-4 mb-6;
 }
 
 .stat-card {
@@ -136,7 +143,7 @@ body {
 
 /* Today's Workout */
 .today-section {
-  @apply space-y-3;
+  @apply space-y-3 mb-6;
 }
 
 .workout-card {
@@ -181,11 +188,11 @@ body {
 
 /* Upcoming Workouts */
 .upcoming-section {
-  @apply space-y-3;
+  @apply space-y-3 mb-6;
 }
 
 .section-title {
-  @apply text-lg font-semibold text-white;
+  @apply text-lg font-semibold text-white mb-3;
 }
 
 .upcoming-list {
@@ -284,9 +291,7 @@ body {
   }
 }
 
-/* ====== SCROLLBARS ====== */
 /* ====== SCROLLBARS OCULTOS ====== */
-/* Ocultar scrollbar pero mantener funcionalidad */
 .scrollbar-hide {
   scrollbar-width: none;
   /* Firefox */
@@ -299,7 +304,6 @@ body {
   /* Safari y Chrome */
 }
 
-/* Clase utilitaria para cualquier elemento que necesite scroll sin barra */
 .scroll-smooth-hidden {
   overflow-y: auto;
   scrollbar-width: none;
@@ -314,8 +318,8 @@ body {
 
 /* ====== RESPONSIVE ====== */
 @media (min-width: 640px) {
-  .content-wrapper {
-    @apply px-6;
+  :root {
+    --content-margin-horizontal: max(24px, env(safe-area-inset-left), env(safe-area-inset-right));
   }
 
   .stats-grid {
@@ -328,8 +332,9 @@ body {
 }
 
 @media (min-width: 768px) {
-  .content-wrapper {
-    @apply px-8;
+  :root {
+    --content-margin-horizontal: max(32px, env(safe-area-inset-left), env(safe-area-inset-right));
+    --content-margin-top: max(24px, env(safe-area-inset-top));
   }
 
   .stats-grid {
@@ -343,7 +348,11 @@ body {
 
 @media (min-width: 1024px) {
   .content-wrapper {
-    @apply max-w-4xl mx-auto;
+    max-width: 1024px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--content-margin-horizontal);
+    padding-right: var(--content-margin-horizontal);
   }
 }
 
@@ -354,4 +363,25 @@ body {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   touch-action: pan-y;
+}
+
+/* ====== CLASES UTILITARIAS PARA MÁRGENES PERSONALIZADOS ====== */
+.content-margin-top {
+  margin-top: var(--content-margin-top);
+}
+
+.content-margin-bottom {
+  margin-bottom: var(--content-margin-bottom);
+}
+
+.content-margin-horizontal {
+  margin-left: var(--content-margin-horizontal);
+  margin-right: var(--content-margin-horizontal);
+}
+
+.content-margin-all {
+  margin-top: var(--content-margin-top);
+  margin-bottom: var(--content-margin-bottom);
+  margin-left: var(--content-margin-horizontal);
+  margin-right: var(--content-margin-horizontal);
 }

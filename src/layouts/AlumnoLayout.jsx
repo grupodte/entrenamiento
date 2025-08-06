@@ -48,7 +48,7 @@ const AlumnoLayout = () => {
 
   return (
     <div className="app-container">
-      {/* Contenido principal con scroll sin barra visible */}
+      {/* Contenido principal sin safe areas en el contenedor */}
       <motion.main
         key={location.pathname}
         className="main-content scroll-smooth-hidden"
@@ -57,6 +57,7 @@ const AlumnoLayout = () => {
         animate="animate"
         exit="exit"
       >
+        {/* El content-wrapper ahora maneja los márgenes personalizados */}
         <div className="content-wrapper">
           <Outlet />
         </div>
