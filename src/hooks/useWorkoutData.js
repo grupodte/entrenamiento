@@ -6,6 +6,7 @@ export const useWorkoutData = (userId, isOpen) => {
     const [weightWeeklyData, setWeightWeeklyData] = useState([]);
     const [timeData, setTimeData] = useState([]);
     const [weightDailyData, setWeightDailyData] = useState([]);
+    const [trainingDays, setTrainingDays] = useState([]); // <-- Nuevo
     const [loadingCharts, setLoadingCharts] = useState(false);
 
     useEffect(() => {
@@ -14,17 +15,20 @@ export const useWorkoutData = (userId, isOpen) => {
         const fetchWorkoutData = async () => {
             setLoadingCharts(true);
             try {
-                // Consultamos ambos RPC en paralelo
-                const [weeklyRes, dailyRes] = await Promise.all([
+                // Consultamos todos los datos en paralelo
+                const [weeklyRes, dailyRes, trainingDaysRes] = await Promise.all([
                     supabase.rpc('get_weekly_workout_data', { alumno: String(userId) }),
-                    supabase.rpc('get_daily_weight_data', { alumno: String(userId) })
+                    supabase.rpc('get_daily_weight_data', { alumno: String(userId) }),
+                    supabase.rpc('get_training_days', { alumno: String(userId) }) // <-- Nuevo RPC
                 ]);
 
                 if (weeklyRes.error) throw weeklyRes.error;
                 if (dailyRes.error) throw dailyRes.error;
+                if (trainingDaysRes.error) throw trainingDaysRes.error;
 
                 const weeklyData = weeklyRes.data || [];
                 const dailyData = dailyRes.data || [];
+                const trainingDaysData = trainingDaysRes.data || [];
 
                 const formatDate = (date) =>
                     new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
@@ -62,6 +66,9 @@ export const useWorkoutData = (userId, isOpen) => {
                         fullDate: item.fecha
                     }))
                 );
+
+                // === Días de entrenamiento (YYYY-MM-DD) ===
+                setTrainingDays(trainingDaysData.map(d => d.fecha));
             } catch (error) {
                 console.error("Error al cargar datos de entrenamiento:", error);
             } finally {
@@ -72,5 +79,12 @@ export const useWorkoutData = (userId, isOpen) => {
         fetchWorkoutData();
     }, [userId, isOpen]);
 
-    return { repsData, weightWeeklyData, timeData, weightDailyData, loadingCharts };
+    return {
+        repsData,
+        weightWeeklyData,
+        timeData,
+        weightDailyData,
+        trainingDays, // <-- Ahora disponible
+        loadingCharts
+    };
 };

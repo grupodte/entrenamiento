@@ -16,7 +16,8 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
     // Hooks personalizados para manejo de datos
     const { perfil, loading, error } = usePerfilData(user?.id, isOpen);
     // Cambiamos weightData -> weightDailyData
-    const { weightDailyData, repsData, timeData, loadingCharts } = useWorkoutData(user?.id, isOpen);
+    const { weightDailyData, repsData, timeData, trainingDays, loadingCharts } = useWorkoutData(user?.id, isOpen);
+
 
     const handleLogout = async () => {
         try {
@@ -38,9 +39,10 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
                     onLogout={handleLogout}
                 />
                 <WorkoutStats
-                    weightData={weightDailyData} // ahora pasa la data correcta
+                    weightData={weightDailyData}
                     repsData={repsData}
                     timeData={timeData}
+                    trainingDays={trainingDays}   // <--- ahora lo pasamos
                     loadingCharts={loadingCharts}
                 />
             </div>

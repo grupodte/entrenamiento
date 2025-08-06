@@ -10,6 +10,8 @@ import { useRutinaCache } from '../../hooks/useRutinaCache';
 import { useRutinaPrefetch } from '../../hooks/useRutinaPrefetch';
 import DashboardSkeleton from '../../components/DashboardSkeleton';
 
+
+
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 const getSaludo = () => {
