@@ -375,13 +375,13 @@ body {
 
 /* Altura dinámica fullscreen */
 .fullscreen {
-  height: 100dvh;
+  height: 120dvh;
   /* Altura dinámica (iOS 16.4+ y navegadores modernos) */
 }
 
-@supports not (height: 100dvh) {
+@supports not (height: 150dvh) {
   .fullscreen {
-    height: 100vh;
+    height: 120vh;
     /* Fallback para navegadores antiguos */
   }
 }
