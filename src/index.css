@@ -29,11 +29,8 @@ html {
 html,
 body {
   height: 100vh;
-  /* fallback estático */
   height: 100dvh;
-  /* viewport dinámico moderno */
   height: -webkit-fill-available;
-  /* iOS Safari específico */
   background: #121212;
   margin: 0;
   padding: 0;
@@ -79,25 +76,21 @@ body {
 /* -------- COMPONENTES BASE -------- */
 @layer base {
 
-  /* Inputs optimizados para móvil */
   input,
   textarea,
   select {
     @apply bg-white/5 text-white placeholder-white/50 rounded-ios-md px-4 py-2;
     @apply focus:ring-2 focus:ring-ios-primary focus:outline-none;
     font-size: max(16px, 1rem);
-    /* Previene zoom en iOS */
     -webkit-appearance: none;
     appearance: none;
   }
 
-  /* Focus visible para accesibilidad */
   *:focus-visible {
     @apply ring-2 ring-ios-primary ring-offset-2 ring-offset-gray-900;
     outline: none;
   }
 
-  /* Botones base */
   button {
     -webkit-tap-highlight-color: transparent;
   }
@@ -127,7 +120,6 @@ body {
   background: #9ca3af;
 }
 
-/* Ocultar scrollbar cuando sea necesario */
 .scrollbar-hide {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -159,7 +151,6 @@ body {
   @apply bg-ios-primary text-white font-product font-medium rounded-ios-md px-6 py-3;
   @apply shadow-lg shadow-ios-primary/25;
   min-height: 44px;
-  /* Área táctil mínima */
 }
 
 .ios-button:hover {
@@ -259,6 +250,12 @@ body {
 .mb-safe {
   margin-bottom: env(safe-area-inset-bottom);
 }
+
+/* === NUEVA CLASE: Ajuste de header (resta safe-area) === */
+.header-safe-offset {
+  margin-top: calc(env(safe-area-inset-top) * -0.5);
+}
+
 /* -------- CONTENEDORES DE SCROLL -------- */
 .ios-scroll {
   overflow-y: auto;
@@ -288,12 +285,10 @@ body {
     @apply text-2xl leading-8;
   }
 
-  /* Optimización táctil para móvil */
   .ios-button,
   .ios-button-secondary,
   .ios-button-ghost {
     min-height: 48px;
-    /* Área táctil más grande en móvil */
     @apply px-4 py-3;
   }
 }
@@ -317,14 +312,13 @@ body {
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* Ocultar barra de scroll en modo standalone */
   ::-webkit-scrollbar {
     width: 0px;
     background: transparent;
   }
 }
 
-/* -------- MODO LANDSCAPE EN MÓVILES -------- */
+/* -------- MODO LANDSCAPE -------- */
 @media screen and (orientation: landscape) and (max-height: 500px) {
   .ios-title {
     @apply text-lg leading-6;
@@ -356,7 +350,6 @@ body {
   background-clip: padding-box;
 }
 
-/* -------- ESTADOS DE ERROR Y SUCCESS -------- */
 .state-error {
   @apply border-red-500/50 bg-red-500/10 text-red-200;
 }
@@ -373,23 +366,15 @@ body {
   @apply border-blue-500/50 bg-blue-500/10 text-blue-200;
 }
 
-/* Altura dinámica fullscreen */
 .fullscreen {
   height: 120dvh;
-  /* Altura dinámica (iOS 16.4+ y navegadores modernos) */
 }
 
 @supports not (height: 150dvh) {
   .fullscreen {
     height: 120vh;
-    /* Fallback para navegadores antiguos */
   }
 }
-
-
-
-
-
 
 body {
   padding-top: env(safe-area-inset-top);
