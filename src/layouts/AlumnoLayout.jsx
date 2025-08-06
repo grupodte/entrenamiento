@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import FloatingNavBar from '../components/FloatingNavBar'; // Cambiado a FloatingNavBar
+import FloatingNavBar from '../components/FloatingNavBar';
 import PerfilDrawer from '../pages/Alumno/PerfilDrawer';
 import EditarPerfilDrawer from '../pages/Alumno/EditarPerfil';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 
-// Optimización: Variantes memorizadas
+// Variantes de animación optimizadas
 const pageVariants = {
   initial: {
     opacity: 0,
@@ -19,7 +19,7 @@ const pageVariants = {
     scale: 1,
     transition: {
       duration: 0.25,
-      ease: [0.23, 1, 0.32, 1] // easeOutQuart
+      ease: [0.23, 1, 0.32, 1]
     }
   },
   exit: {
@@ -38,10 +38,10 @@ const AlumnoLayout = () => {
   const [isPerfilDrawerOpen, setIsPerfilDrawerOpen] = useState(false);
   const [isEditPerfilDrawerOpen, setIsEditPerfilDrawerOpen] = useState(false);
 
-  // Hook global para altura dinámica
+  // Hook para altura dinámica de viewport
   useViewportHeight();
 
-  // Optimización: Handlers memorizados
+  // Handlers memorizados
   const handleOpenPerfil = useCallback(() => {
     setIsPerfilDrawerOpen(true);
   }, []);
@@ -68,13 +68,15 @@ const AlumnoLayout = () => {
     setIsEditPerfilDrawerOpen(false);
   }, []);
 
-  // Optimización: Estilos memorizados
-  const backgroundStyles = useMemo(() => ({
-    height: 'var(--vh)',
+  // Estilos optimizados para PWA
+  const containerStyles = useMemo(() => ({
+    height: '100dvh', // Altura dinámica del viewport (mejor para PWA)
+    minHeight: '100dvh',
     backgroundImage: `url('/assets/FOTO_FONDO.webp')`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-    backgroundAttachment: 'fixed' // Mejora el rendimiento en móviles
+    backgroundRepeat: 'no-repeat',
+    backgroundAttachment: 'fixed'
   }), []);
 
   const overlayStyles = useMemo(() => ({
@@ -85,48 +87,74 @@ const AlumnoLayout = () => {
 
   return (
     <div
-      className="text-white font-sans flex flex-col relative will-change-transform"
-      style={backgroundStyles}
+      className="
+        text-white font-sans 
+        flex flex-col 
+        relative 
+        overflow-hidden
+        will-change-transform
+      "
+      style={containerStyles}
     >
-      {/* Overlay oscuro optimizado */}
+      {/* Overlay de fondo */}
       <div
-        className="absolute inset-0 pointer-events-none will-change-[backdrop-filter]"
+        className="absolute inset-0 pointer-events-none"
         style={overlayStyles}
       />
 
-      {/* Contenido principal optimizado - SIN padding bottom ya que el navbar flota */}
+      {/* Contenido principal con safe areas */}
       <AnimatePresence mode="wait" initial={false}>
         <motion.main
           key={location.pathname}
           className="
-            relative z-10 flex-1 
-            overflow-y-auto 
-            pt-5
-            pb-[100px]       /* Espacio para el navbar flotante */
-            px-4 sm:px-6 lg:px-8 
-            overscroll-y-contain 
-            scrollbar-hide
+            relative z-10 
+            flex-1 
+            flex flex-col
+            min-h-0
+            pt-safe-top
+            pb-safe-bottom
+            overflow-hidden
             will-change-transform
           "
-          style={{
-            WebkitOverflowScrolling: 'touch',
-            scrollBehavior: 'smooth'
-          }}
           variants={pageVariants}
           initial="initial"
           animate="animate"
           exit="exit"
         >
-          <div className="pb-safe"> {/* Safe area solo para el contenido */}
-            <Outlet />
+          {/* Contenedor scrolleable sin barra visible */}
+          <div
+            className="
+              flex-1 
+              overflow-y-auto 
+              overflow-x-hidden
+              px-4 sm:px-6 lg:px-8
+              py-5
+              pb-[100px]
+              overscroll-y-contain
+              scroll-smooth
+              [-webkit-overflow-scrolling:touch]
+              [scrollbar-width:none]
+              [-ms-overflow-style:none]
+              [&::-webkit-scrollbar]:hidden
+            "
+            style={{
+              scrollBehavior: 'smooth',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            <div className="min-h-full">
+              <Outlet />
+            </div>
           </div>
         </motion.main>
       </AnimatePresence>
 
-      {/* Navbar flotante - sin clases de posicionamiento safe */}
-      <FloatingNavBar onOpenPerfil={handleOpenPerfil} />
+      {/* Navbar flotante con safe area */}
+      <div className="relative z-20">
+        <FloatingNavBar onOpenPerfil={handleOpenPerfil} />
+      </div>
 
-      {/* Drawers optimizados */}
+      {/* Drawers */}
       <PerfilDrawer
         isOpen={isPerfilDrawerOpen}
         onClose={handleClosePerfil}

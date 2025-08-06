@@ -3,386 +3,541 @@
 @tailwind components;
 @tailwind utilities;
 
-/* PWA Additional Features */
+/* ===== PWA CORE VARIABLES ===== */
 :root {
-  --sat: env(safe-area-inset-top);
-  --sab: env(safe-area-inset-bottom);
-  --sal: env(safe-area-inset-left);
-  --sar: env(safe-area-inset-right);
+  /* Safe Areas */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+
+  /* Dynamic Viewport */
+  --vh: 100vh;
+  --dvh: 100dvh;
+  --svh: 100svh;
+  /* Small viewport height */
+  --lvh: 100lvh;
+  /* Large viewport height */
+
+  /* App-like Colors */
+  --app-bg: #000000;
+  --app-surface: #121212;
+  --app-card: rgba(255, 255, 255, 0.08);
+  --app-border: rgba(255, 255, 255, 0.12);
+  --app-text: #ffffff;
+  --app-text-secondary: rgba(255, 255, 255, 0.7);
+  --app-text-tertiary: rgba(255, 255, 255, 0.5);
+
+  /* Haptic Feedback Duration */
+  --haptic-duration: 0.1s;
+  --transition-fast: 0.15s;
+  --transition-medium: 0.25s;
+  --transition-slow: 0.4s;
 }
 
-/* Prevent zoom on inputs for PWA */
-input,
-select,
-textarea {
-  font-size: 16px;
-  /* Prevents automatic zoom on iOS */
-}
-
-/* Smooth scroll for PWA */
-html {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* -------- RESET Y ALTURA DINÁMICA -------- */
-html,
-body {
-  height: 100vh;
-  height: 100dvh;
-  height: -webkit-fill-available;
-  background: #121212;
-  margin: 0;
-  padding: 0;
-  scroll-behavior: smooth;
+/* ===== BASE RESET FOR NATIVE APP FEEL ===== */
+* {
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+/* Allow text selection for specific elements */
+input,
+textarea,
+[contenteditable] {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+html {
+  height: var(--dvh);
+  overflow: hidden;
+  /* Prevent body scroll */
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  height: var(--dvh);
+  margin: 0;
+  padding: 0;
+  background: var(--app-bg);
+  font-family: 'ProductSans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--app-text);
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 #root {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--app-bg);
 }
 
-/* -------- TIPOGRAFÍA PERSONALIZADA -------- */
+/* ===== TYPOGRAPHY (Native App Style) ===== */
 @font-face {
   font-family: 'ProductSans';
-  src: url('./assets/fonts/ProductSansRegular.woff2') format('woff2'),
-    url('./assets/fonts/ProductSansRegular.ttf') format('truetype');
+  src: url('./assets/fonts/ProductSansRegular.woff2') format('woff2');
   font-weight: 400;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'ProductSans';
-  src: url('./assets/fonts/ProductSansBold.woff2') format('woff2'),
-    url('./assets/fonts/ProductSansBold.ttf') format('truetype');
+  src: url('./assets/fonts/ProductSansBold.woff2') format('woff2');
   font-weight: 700;
   font-display: swap;
 }
 
-/* -------- ESTILOS BASE -------- */
-body {
-  @apply font-product select-none text-white bg-[#121212];
-  touch-action: manipulation;
-  overscroll-behavior: none;
+/* ===== SAFE AREAS (Precise Implementation) ===== */
+.pt-safe {
+  padding-top: var(--sat);
+}
+
+.pb-safe {
+  padding-bottom: var(--sab);
+}
+
+.pl-safe {
+  padding-left: var(--sal);
+}
+
+.pr-safe {
+  padding-right: var(--sar);
+}
+
+.px-safe {
+  padding-left: var(--sal);
+  padding-right: var(--sar);
+}
+
+.py-safe {
+  padding-top: var(--sat);
+  padding-bottom: var(--sab);
+}
+
+.p-safe {
+  padding: var(--sat) var(--sar) var(--sab) var(--sal);
+}
+
+/* Margin variants */
+.mt-safe {
+  margin-top: var(--sat);
+}
+
+.mb-safe {
+  margin-bottom: var(--sab);
+}
+
+.ml-safe {
+  margin-left: var(--sal);
+}
+
+.mr-safe {
+  margin-right: var(--sar);
+}
+
+/* Height with safe areas */
+.h-screen-safe {
+  height: calc(var(--dvh) - var(--sat) - var(--sab));
+}
+
+.min-h-screen-safe {
+  min-height: calc(var(--dvh) - var(--sat) - var(--sab));
+}
+
+/* ===== SCROLLING (Native App Style) ===== */
+.native-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  text-rendering: optimizeLegibility;
-}
-
-/* -------- COMPONENTES BASE -------- */
-@layer base {
-
-  input,
-  textarea,
-  select {
-    @apply bg-white/5 text-white placeholder-white/50 rounded-ios-md px-4 py-2;
-    @apply focus:ring-2 focus:ring-ios-primary focus:outline-none;
-    font-size: max(16px, 1rem);
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
-  *:focus-visible {
-    @apply ring-2 ring-ios-primary ring-offset-2 ring-offset-gray-900;
-    outline: none;
-  }
-
-  button {
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  button:active {
-    transform: scale(0.98);
-  }
-}
-
-/* -------- SCROLLBARS PERSONALIZADOS -------- */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #1f2937;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #6b7280;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
-
-.scrollbar-hide {
+  scroll-behavior: smooth;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-.scrollbar-hide::-webkit-scrollbar {
+.native-scroll::-webkit-scrollbar {
   display: none;
 }
 
-body::-webkit-scrollbar {
-  display: none;
-  /* Chrome, Safari */
+/* Snap scrolling for native feel */
+.scroll-snap-y {
+  scroll-snap-type: y mandatory;
 }
-/* -------- EFECTOS VISUALES -------- */
-.ios-glass {
-  background: rgba(255, 255, 255, 0.08);
+
+.scroll-snap-item {
+  scroll-snap-align: start;
+}
+
+.scroll-snap-proximity {
+  scroll-snap-type: y proximity;
+}
+
+/* ===== NATIVE APP BUTTONS ===== */
+.native-button {
+  @apply relative overflow-hidden rounded-xl font-medium transition-all;
+  min-height: 44px;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.native-button:active {
+  transform: scale(0.96);
+  transition-duration: var(--haptic-duration);
+}
+
+.native-button-primary {
+  @apply native-button bg-blue-600 text-white;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
+}
+
+.native-button-primary:hover {
+  @apply bg-blue-700;
+  box-shadow: 0 6px 25px rgba(37, 99, 235, 0.4);
+}
+
+.native-button-secondary {
+  @apply native-button bg-white/10 text-white border border-white/20;
+  backdrop-filter: blur(10px);
+}
+
+.native-button-secondary:hover {
+  @apply bg-white/15;
+}
+
+.native-button-ghost {
+  @apply native-button bg-transparent text-blue-400;
+}
+
+.native-button-ghost:hover {
+  @apply bg-blue-400/10;
+}
+
+/* ===== NATIVE CARDS & SURFACES ===== */
+.native-card {
+  background: var(--app-card);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 1rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  box-shadow:
+    0 4px 30px rgba(0, 0, 0, 0.1),
+    0 1px 0 rgba(255, 255, 255, 0.1) inset;
+  transition: all var(--transition-medium) ease;
 }
 
-.ios-glass-strong {
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+.native-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.15),
+    0 1px 0 rgba(255, 255, 255, 0.1) inset;
 }
 
-/* -------- COMPONENTES UI -------- */
-.ios-button {
-  @apply bg-ios-primary text-white font-product font-medium rounded-ios-md px-6 py-3;
-  @apply shadow-lg shadow-ios-primary/25;
-  min-height: 44px;
+.native-surface {
+  background: var(--app-surface);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.ios-button:hover {
-  opacity: 0.9;
+/* ===== NATIVE INPUTS ===== */
+.native-input {
+  @apply bg-white/5 text-white placeholder-white/50 rounded-xl px-4 py-3;
+  @apply border border-white/10 transition-all duration-200;
+  @apply focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/30 focus:outline-none;
+  font-size: max(16px, 1rem);
+  /* Prevent zoom on iOS */
+  -webkit-appearance: none;
+  appearance: none;
+  backdrop-filter: blur(10px);
 }
 
-.ios-button:active {
+.native-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ===== HAPTIC FEEDBACK CLASSES ===== */
+.haptic-light {
+  transition: transform var(--haptic-duration) ease-out;
+}
+
+.haptic-light:active {
+  transform: scale(0.98);
+}
+
+.haptic-medium {
+  transition: transform var(--haptic-duration) ease-out;
+}
+
+.haptic-medium:active {
   transform: scale(0.95);
 }
 
-.ios-button-secondary {
-  @apply bg-white/10 text-white font-product font-medium rounded-ios-md px-6 py-3;
-  @apply border border-white/20;
-  min-height: 44px;
+.haptic-heavy {
+  transition: transform var(--haptic-duration) ease-out;
 }
 
-.ios-button-secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
+.haptic-heavy:active {
+  transform: scale(0.92);
 }
 
-.ios-button-secondary:active {
-  transform: scale(0.95);
+/* ===== NATIVE NAVIGATION ===== */
+.native-nav {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.3);
 }
 
-.ios-button-ghost {
-  @apply bg-transparent text-ios-primary font-product font-medium rounded-ios-md px-6 py-3;
-  min-height: 44px;
+.native-nav-item {
+  @apply flex flex-col items-center justify-center p-2 rounded-lg transition-all;
+  min-height: 60px;
+  touch-action: manipulation;
 }
 
-.ios-button-ghost:hover {
-  background: rgba(102, 126, 234, 0.1);
-}
-
-.ios-button-ghost:active {
-  transform: scale(0.95);
-}
-
-/* -------- TIPOGRAFÍA -------- */
-.ios-title {
-  @apply font-product text-[1.8rem] leading-[2.2rem] font-bold tracking-tight;
-}
-
-.ios-subtitle {
-  @apply font-product text-xl leading-7 font-semibold tracking-tight;
-}
-
-.ios-body {
-  @apply font-product text-base leading-6 font-normal;
-}
-
-.ios-body-large {
-  @apply font-product text-lg leading-7 font-normal;
-}
-
-.ios-caption {
-  @apply font-product text-sm leading-5 font-medium text-white/60;
-}
-
-.ios-small {
-  @apply font-product text-xs leading-4 font-medium text-white/50;
-}
-
-/* -------- SAFE AREAS -------- */
-.pt-safe {
-  padding-top: env(safe-area-inset-top);
-}
-
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.pl-safe {
-  padding-left: env(safe-area-inset-left);
-}
-
-.pr-safe {
-  padding-right: env(safe-area-inset-right);
-}
-
-.px-safe {
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-}
-
-.py-safe {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.p-safe {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-}
-
-.mb-safe {
-  margin-bottom: env(safe-area-inset-bottom);
-}
-
-/* === NUEVA CLASE: Ajuste de header (resta safe-area) === */
-.header-safe-offset {
-  margin-top: calc(env(safe-area-inset-top) * -0.5);
-}
-
-/* -------- CONTENEDORES DE SCROLL -------- */
-.ios-scroll {
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  touch-action: pan-y;
-}
-
-.admin-scroll-container {
-  @apply ios-scroll;
-  scrollbar-gutter: stable;
-}
-
-/* -------- ESTADOS DE CARGA -------- */
-.skeleton {
+.native-nav-item:active {
+  transform: scale(0.9);
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* -------- RESPONSIVE BREAKPOINTS -------- */
-@media (max-width: 768px) {
-  .admin-scroll-container {
-    scroll-snap-type: y proximity;
+.native-nav-item.active {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+/* ===== STATUS BAR STYLES ===== */
+.status-bar-light {
+  color-scheme: light;
+}
+
+.status-bar-dark {
+  color-scheme: dark;
+}
+
+/* ===== NATIVE ANIMATIONS ===== */
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
   }
 
-  .ios-title {
-    @apply text-2xl leading-8;
-  }
-
-  .ios-button,
-  .ios-button-secondary,
-  .ios-button-ghost {
-    min-height: 48px;
-    @apply px-4 py-3;
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
-@media (max-width: 480px) {
-  .ios-title {
-    @apply text-xl leading-7;
+@keyframes slideOutDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateY(100%);
+    opacity: 0;
   }
 }
 
-/* -------- PWA STANDALONE MODE -------- */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-slide-in-up {
+  animation: slideInUp var(--transition-medium) ease-out;
+}
+
+.animate-slide-out-down {
+  animation: slideOutDown var(--transition-medium) ease-in;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale var(--transition-medium) ease-out;
+}
+
+/* ===== NATIVE LOADING STATES ===== */
+.native-skeleton {
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0.1) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ===== PWA STANDALONE OPTIMIZATIONS ===== */
 @media all and (display-mode: standalone) {
 
   html,
   body {
     height: -webkit-fill-available !important;
-    background: #121212 !important;
+    background: var(--app-bg) !important;
+    overflow: hidden !important;
   }
 
-  body {
-    padding-bottom: env(safe-area-inset-bottom);
+  /* Hide scrollbars completely in standalone mode */
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
-  ::-webkit-scrollbar {
-    width: 0px;
-    background: transparent;
+  *::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Optimize for notch devices */
+  .notch-aware {
+    padding-top: max(var(--sat), 20px);
   }
 }
 
-/* -------- MODO LANDSCAPE -------- */
+/* ===== DEVICE-SPECIFIC OPTIMIZATIONS ===== */
+@media screen and (max-width: 430px) {
+
+  /* iPhone optimization */
+  .native-button {
+    min-height: 48px;
+  }
+
+  .native-input {
+    min-height: 48px;
+  }
+}
+
 @media screen and (orientation: landscape) and (max-height: 500px) {
-  .ios-title {
-    @apply text-lg leading-6;
-  }
 
-  .ios-button,
-  .ios-button-secondary,
-  .ios-button-ghost {
-    @apply py-2;
+  /* Landscape optimization */
+  .native-button {
     min-height: 40px;
+    padding: 8px 20px;
+  }
+
+  .native-nav-item {
+    min-height: 50px;
   }
 }
 
-/* -------- UTILIDADES ADICIONALES -------- */
-.text-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.shadow-glow {
-  box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
-}
-
-.border-gradient {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-  border: 1px solid transparent;
-  background-clip: padding-box;
-}
-
-.state-error {
-  @apply border-red-500/50 bg-red-500/10 text-red-200;
-}
-
-.state-success {
-  @apply border-green-500/50 bg-green-500/10 text-green-200;
-}
-
-.state-warning {
-  @apply border-yellow-500/50 bg-yellow-500/10 text-yellow-200;
-}
-
-.state-info {
-  @apply border-blue-500/50 bg-blue-500/10 text-blue-200;
-}
-
-.fullscreen {
-  height: 120dvh;
-}
-
-@supports not (height: 150dvh) {
-  .fullscreen {
-    height: 120vh;
+/* ===== DARK MODE OPTIMIZATIONS ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --app-bg: #000000;
+    --app-surface: #111111;
   }
 }
 
-body {
-  padding-top: env(safe-area-inset-top);
-  padding-right: env(safe-area-inset-right);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+.will-change-scroll {
+  will-change: scroll-position;
+}
+
+/* GPU acceleration for smooth animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* ===== ACCESSIBILITY FOR NATIVE FEEL ===== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .native-card {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .native-button {
+    border: 2px solid currentColor;
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+.full-bleed {
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+/* Native app typography hierarchy */
+.text-display {
+  @apply text-4xl font-bold leading-tight tracking-tight;
+}
+
+.text-headline {
+  @apply text-2xl font-bold leading-tight;
+}
+
+.text-title {
+  @apply text-xl font-semibold leading-tight;
+}
+
+.text-body {
+  @apply text-base font-normal leading-relaxed;
+}
+
+.text-caption {
+  @apply text-sm font-medium leading-tight;
+}
+
+.text-overline {
+  @apply text-xs font-bold uppercase tracking-wider;
 }
