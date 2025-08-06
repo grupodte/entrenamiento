@@ -11,7 +11,7 @@ const WorkoutStats = ({ weightData, repsData, timeData, loadingCharts }) => {
             ) : (
                 <>
                     <div className="grid grid-cols-2 gap-2">
-                        <WeightChartCard weightData={weightData} />
+                    <WeightChartCard weightDailyData={weightData} loading={loadingCharts} />
                     </div>
                     <RepsChartCard repsData={repsData} />
                     <TimeChartCard timeData={timeData} />
