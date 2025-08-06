@@ -62,8 +62,7 @@ html {
 /* -------- RESET Y ALTURA DINÁMICA -------- */
 html,
 body {
-  height: 100vh;
-  height: 100dvh;
+  height: var(--dvh); 
   height: -webkit-fill-available;
   background: #121212;
   margin: 0;
@@ -286,8 +285,8 @@ body::-webkit-scrollbar {
   padding-right: env(safe-area-inset-right);
 }
 
-.mb-safe {
-  margin-bottom: env(safe-area-inset-bottom);
+.mt-safe-negative {
+  margin-top: calc(var(--sat) * -1);
 }
 
 /* === NUEVA CLASE: Ajuste de header (resta safe-area) === */
@@ -302,6 +301,10 @@ body::-webkit-scrollbar {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   touch-action: pan-y;
+}
+
+.mt-safe {
+  margin-top: var(--sat);
 }
 
 .admin-scroll-container {
