@@ -35,6 +35,10 @@ import AdminEjercicios from './pages/Admin/AdminEjercicios';
 import AsignarRutina from './pages/Admin/AsignarRutina';
 import EditarDia from './pages/Admin/EditarDia';
 
+
+
+
+
 const AppContent = () => {
   const location = useLocation();
   useSmoothScroll();
@@ -46,10 +50,14 @@ const AppContent = () => {
         <Route
           element={
             <RutaProtegida rolPermitido="alumno">
+
               <AlumnoLayout />
+
             </RutaProtegida>
           }
         >
+
+          
           <Route path="/dashboard" element={<PageTransition><DashboardAlumno /></PageTransition>} />
           <Route path="/rutina/:id" element={<PageTransition><RutinaDetalle /></PageTransition>} />
         </Route>
