@@ -4,6 +4,8 @@ module.exports = {
     theme: {
         extend: {
             colors: {
+                'app-bg': '#121212',
+                'app-surface': '#1E1E1E',
                 ios: {
                     primary: '#007AFF', // Azul Apple
                     secondary: '#5856D6', // Morado iOS moderno
