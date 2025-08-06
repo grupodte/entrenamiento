@@ -47,7 +47,7 @@ const AlumnoLayout = () => {
   const handleProfileUpdate = useCallback(() => setIsEditPerfilDrawerOpen(false), []);
 
   return (
-    <div className="app-container my-10">
+    <div className="app-container">
       {/* Contenido principal con scroll sin barra visible */}
       <motion.main
         key={location.pathname}
