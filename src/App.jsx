@@ -45,11 +45,9 @@ const AppContent = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         {/* --- RUTAS DE ALUMNO CON AlumnoLayout --- */}
-        <Route
-          element={
-            <RutaProtegida rolPermitido="alumno">
+        <Route element={ <RutaProtegida rolPermitido="alumno">
 
-              <AlumnoLayout />
+          <AppLayout />
 
             </RutaProtegida>
           }
