@@ -260,97 +260,7 @@ body::-webkit-scrollbar {
   scrollbar-gutter: stable;
 }
 
-/* -------- ESTADOS DE CARGA -------- */
-.skeleton {
-  background: rgba(255, 255, 255, 0.1);
-}
 
-/* -------- RESPONSIVE BREAKPOINTS -------- */
-@media (max-width: 768px) {
-  .admin-scroll-container {
-    scroll-snap-type: y proximity;
-  }
-
-  .ios-title {
-    @apply text-2xl leading-8;
-  }
-
-  .ios-button,
-  .ios-button-secondary,
-  .ios-button-ghost {
-    min-height: 48px;
-    @apply px-4 py-3;
-  }
-}
-
-@media (max-width: 480px) {
-  .ios-title {
-    @apply text-xl leading-7;
-  }
-}
-
-/* -------- PWA STANDALONE MODE -------- */
-@media all and (display-mode: standalone) {
-
-  html,
-  body {
-    height: -webkit-fill-available !important;
-    background: #121212 !important;
-  }
-
-  ::-webkit-scrollbar {
-    width: 0px;
-    background: transparent;
-  }
-}
-
-/* -------- MODO LANDSCAPE -------- */
-@media screen and (orientation: landscape) and (max-height: 500px) {
-  .ios-title {
-    @apply text-lg leading-6;
-  }
-
-  .ios-button,
-  .ios-button-secondary,
-  .ios-button-ghost {
-    @apply py-2;
-    min-height: 40px;
-  }
-}
-
-/* -------- UTILIDADES ADICIONALES -------- */
-.text-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.shadow-glow {
-  box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
-}
-
-.border-gradient {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-  border: 1px solid transparent;
-  background-clip: padding-box;
-}
-
-.state-error {
-  @apply border-red-500/50 bg-red-500/10 text-red-200;
-}
-
-.state-success {
-  @apply border-green-500/50 bg-green-500/10 text-green-200;
-}
-
-.state-warning {
-  @apply border-yellow-500/50 bg-yellow-500/10 text-yellow-200;
-}
-
-.state-info {
-  @apply border-blue-500/50 bg-blue-500/10 text-blue-200;
-}
 
 .fullscreen {
   height: 120dvh;
@@ -360,9 +270,4 @@ body::-webkit-scrollbar {
   .fullscreen {
     height: 120vh;
   }
-}
-
-body {
-  padding: 0;
-    padding-bottom: env(safe-area-inset-bottom);
 }
