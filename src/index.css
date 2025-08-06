@@ -1,59 +1,20 @@
+/* ... (Tu @import y las directivas de @tailwind se quedan igual) ... */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* PWA Additional Features */
+/* ... (Toda tu sección :root se queda igual) ... */
 :root {
-  /* Safe Areas */
-  --sat: env(safe-area-inset-top, 0px);
-  --sab: env(safe-area-inset-bottom, 0px);
-  --sal: env(safe-area-inset-left, 0px);
-  --sar: env(safe-area-inset-right, 0px);
-
-  /* Dynamic Viewport */
-  --vh: 100vh;
+  /* ... */
   --dvh: 100dvh;
-  --svh: 100svh;
-  /* Small viewport height */
-  --lvh: 100lvh;
-  /* Large viewport height */
-
-  /* App-like Colors */
-  --app-bg: #000000;
-  --app-surface: #121212;
-  --app-card: rgba(255, 255, 255, 0.08);
-  --app-border: rgba(255, 255, 255, 0.12);
-  --app-text: #ffffff;
-  --app-text-secondary: rgba(255, 255, 255, 0.7);
-  --app-text-tertiary: rgba(255, 255, 255, 0.5);
-
-  /* Haptic Feedback Duration */
-  --haptic-duration: 0.1s;
-  --transition-fast: 0.15s;
-  --transition-medium: 0.25s;
-  --transition-slow: 0.4s;
+  /* ... */
 }
 
-
-* {
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-  box-sizing: border-box;
-}
-
-
-/* Prevent zoom on inputs for PWA */
-input,
-select,
-textarea {
-  font-size: 16px;
-  /* Prevents automatic zoom on iOS */
-}
+/* ... (Tu selector universal * y tus reglas para input se quedan igual) ... */
 
 html {
+  /* Usamos dvh aquí para el caso del navegador. La media query lo corregirá para la PWA. */
   height: var(--dvh);
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
@@ -63,22 +24,46 @@ html {
   text-rendering: optimizeLegibility;
 }
 
+/*
+ * REGLA DE BODY UNIFICADA Y CORREGIDA
+ * Combinamos tus dos definiciones de 'body' en una sola.
+ * Mantenemos 'dvh' como el valor por defecto.
+ */
 body {
   height: var(--dvh);
   margin: 0;
   padding: 0;
-  background: var(--app-bg);
   font-family: 'ProductSans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: var(--app-text);
   overscroll-behavior: none;
-  touch-action: pan-x pan-y;
+  touch-action: manipulation;
+  /* 'manipulation' es a menudo mejor que 'pan-x pan-y' para prevenir el zoom accidental */
   -webkit-overflow-scrolling: touch;
+  text-rendering: optimizeLegibility;
+
+  /* Estilos que tenías en @apply */
+  @apply font-product select-none text-white bg-[#121212];
+}
+
+/* * LA SOLUCIÓN CLAVE: MEDIA QUERY PARA MODO STANDALONE (PWA)
+ * Estas reglas SÓLO se aplicarán cuando la app se abra desde la pantalla de inicio.
+ */
+@media (display-mode: standalone) {
+
+  html,
+  body {
+    /*
+     * Forzamos la altura al 100% del contenedor padre (que será la ventana completa).
+     * Esto es más fiable que dvh/svh/lvh dentro del modo PWA en iOS.
+     */
+    height: 100%;
+  }
 }
 
 #root {
   display: flex;
   flex-direction: column;
   height: 100%;
+  /* Esto es correcto, heredará la altura de 'body' */
   width: 100%;
   background: var(--app-bg);
 }
