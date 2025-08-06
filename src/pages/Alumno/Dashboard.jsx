@@ -251,12 +251,15 @@ const Dashboard = () => {
                                     <AnimatePresence>
                                         {rutinasVisibles.map(rutina => (
                                             <motion.div key={rutina.dia} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                                <Card className="flex items-center gap-3 hover:bg-gray-700 bg-gray-800/20 backdrop-blur-md rounded-xl transition-colors duration-200 cursor-not-allowed opacity-50">
+                                                <Card
+                                                    className="flex items-center gap-3 hover:bg-gray-700 bg-gray-800/20 backdrop-blur-md rounded-xl transition-colors duration-200"
+                                                    onClick={() => iniciarRutina(rutina)}
+                                                >
                                                     <div>
                                                         <p className="text-xs text-gray-400 font-medium">{diasSemana[rutina.dia]}</p>
                                                         <p className="font-semibold text-base text-white">{rutina.nombre}</p>
                                                     </div>
-                                                    <FaArrowRight className="text-gray-600" />
+                                                    <FaArrowRight className="text-gray-400" />
                                                 </Card>
                                             </motion.div>
                                         ))}

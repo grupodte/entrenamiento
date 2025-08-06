@@ -9,28 +9,43 @@ import { useNavigate } from 'react-router-dom';
 const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
     const { user } = useAuth();
     const navigate = useNavigate();
+
     const [perfil, setPerfil] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [weightData, setWeightData] = useState([]);
     const [repsData, setRepsData] = useState([]);
     const [timeData, setTimeData] = useState([]);
     const [loadingCharts, setLoadingCharts] = useState(false);
 
-    useEffect(() => {
-        if (!isOpen || !user) return;
+    const [visible, setVisible] = useState(false); // Drawer visible
+    const [loading, setLoading] = useState(false); // Estado de carga
 
-        const fetchPerfil = async () => {
+    // Cargar datos cuando el Drawer "debe abrirse"
+    useEffect(() => {
+        if (!isOpen) {
+            setVisible(false); // Cerrar Drawer
+            return;
+        }
+        if (!user) return;
+
+        const fetchData = async () => {
             setLoading(true);
+            setVisible(false);
+            setError('');
             try {
                 const { data, error: err } = await supabase
                     .from('perfiles')
                     .select('*')
                     .eq('id', user.id)
                     .single();
-                if (err) setError('No se pudo cargar el perfil.');
-                else setPerfil(data);
+                if (err) {
+                    setError('No se pudo cargar el perfil.');
+                    return;
+                }
+                setPerfil(data);
                 await fetchWorkoutData();
+                // Pequeño delay opcional para que no sea brusco
+                setTimeout(() => setVisible(true), 300);
             } catch (e) {
                 setError('Error al cargar los datos');
             } finally {
@@ -38,7 +53,7 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
             }
         };
 
-        fetchPerfil();
+        fetchData();
     }, [isOpen, user]);
 
     const fetchWorkoutData = async () => {
@@ -49,21 +64,19 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(today.getDate() - 30);
 
-            const { data: sesiones, error: sessionError } = await supabase
+            const { data: sesiones } = await supabase
                 .from('sesiones_entrenamiento')
                 .select('id, created_at, duracion_segundos')
                 .eq('alumno_id', user.id)
                 .gte('created_at', thirtyDaysAgo.toISOString())
                 .order('created_at', { ascending: true });
-            if (sessionError) throw sessionError;
 
             const sessionIds = sesiones?.map(s => s.id) || [];
 
-            const { data: series, error: seriesError } = await supabase
+            const { data: series } = await supabase
                 .from('sesiones_series')
                 .select('carga_realizada, reps_realizadas, sesion_id')
                 .in('sesion_id', sessionIds);
-            if (seriesError) throw seriesError;
 
             const dataByDate = {};
             const sessionMap = {};
@@ -177,12 +190,13 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
         navigate('/auth');
     };
 
-    // Si está cargando, no mostramos nada (drawer no se abre)
-    if (loading) return null;
-
     return (
-        <Drawer isOpen={isOpen && !loading} onClose={onClose}>
-            {error ? (
+        <Drawer isOpen={visible} onClose={onClose}>
+            {loading ? (
+                <div className="bg-gray-800 text-white p-4 flex items-center justify-center min-h-[200px]">
+                    <p className="text-gray-400 animate-pulse">Cargando perfil...</p>
+                </div>
+            ) : error ? (
                 <div className="bg-gray-800 text-white p-4">
                     <h1 className="text-xl font-bold mb-2">Error</h1>
                     <p className="text-sm text-gray-400">{error}</p>

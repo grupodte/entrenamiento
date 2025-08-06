@@ -1,411 +1,57 @@
-import { useEffect, useState, useCallback, useRef } from "react";
-import useWorkoutTimer from "../../hooks/useWorkoutTimer";
-import useRestTimer from "../../hooks/useRestTimer";
-import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
+import React from "react";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext';
-import { supabase } from "../../lib/supabaseClient";
-import RestTimer from "../../components/RestTimer";
-import RestTimerNew from "../../components/RestTimerNew";
-import BloqueDisplay from "../../components/RutinaDetalle/BloqueDisplay";
-
-import { generarIdSerieSimple, generarIdEjercicioEnSerieDeSuperset } from '../../utils/rutinaIds';
-import { guardarSesionEntrenamiento } from '../../utils/guardarSesionEntrenamiento';
-import { FaArrowLeft, FaBell, FaStopwatch } from "react-icons/fa";
-import { motion, AnimatePresence } from 'framer-motion';
-import Confetti from 'react-confetti';
-import useWindowSize from 'react-use/lib/useWindowSize';
-import toast from "react-hot-toast";
-
-let orderedInteractiveElementIds = [];
+import useRutinaLogic from "../../hooks/useRutinaLogic";
+import RutinaHeader from "../../components/RutinaDetalle/RutinaHeader";
+import RutinaContent from "../../components/RutinaDetalle/RutinaContent";
+import RutinaTimersDisplay from "../../components/RutinaDetalle/RutinaTimersDisplay";
 
 const RutinaDetalle = () => {
-    const {
-        elapsedTime: workoutTime,
-        startWorkout,
-        finishWorkout,
-        pauseWorkout,
-        resumeWorkout
-    } = useWorkoutTimer();
-
-    const {
-        isResting,
-        timeLeft: restTimeLeft,
-        exerciseName: restExerciseName,
-        startRest,
-        finishRest,
-        skipRest,
-        formatTime: formatRestTime
-    } = useRestTimer();
     const { id } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
     const { user } = useAuth();
-    const [rutina, setRutina] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [elementosCompletados, setElementosCompletados] = useState({});
-    const [lastSessionData, setLastSessionData] = useState({});
-    const [showRestTimer, setShowRestTimer] = useState(false);
-    const [timerDuration, setTimerDuration] = useState(0);
-    const [nextExerciseName, setNextExerciseName] = useState("Siguiente ejercicio");
-    const [currentTimerOriginId, setCurrentTimerOriginId] = useState(null);
-    const [elementoActivoId, setElementoActivoId] = useState(null);
-    const [tiempoTranscurrido, setTiempoTranscurrido] = useState(0);
-    const elementoRefs = useRef({});
-    const timerActiveRef = useRef(false);
-    const audioRef = useRef(null);
-    const audioUnlocked = useRef(false);
-    const { width, height } = useWindowSize();
 
-    const { state } = location; // Get state from the top-level location object
+    const { state } = location;
     const tipo = state?.tipo || "base";
     const searchParams = new URLSearchParams(location.search);
     const bloqueSeleccionado = searchParams.get("bloque");
 
-    // Función para obtener el nombre de un elemento por su ID
-    const getElementNameById = useCallback((elementId) => {
-        if (!rutina || !elementId) return "Ejercicio";
-        const parts = elementId.split('-');
-        const subId = parts[1];
-        const sbeId = parts[2];
+    const {
+        rutina,
+        loading,
+        elementosCompletados,
+        lastSessionData,
+        elementoActivoId,
+        workoutTime,
+        isResting,
+        restTimeLeft,
+        restExerciseName,
+        showRestTimer,
+        timerDuration,
+        nextExerciseName,
+        currentTimerOriginId,
+        totalSeriesCompletadas,
+        todosCompletados,
+        width,
+        height,
+        toggleElementoCompletado,
+        handleFinalizarYGuardar,
+        skipRest,
+        formatRestTime,
+        formatWorkoutTime,
+        elementoRefs,
+    } = useRutinaLogic(id, tipo, bloqueSeleccionado, user);
 
-        for (const bloque of rutina.bloques) {
-            for (const subbloque of bloque.subbloques) {
-                if (subbloque.id.toString() === subId) {
-                    for (const sbe_iter of subbloque.subbloques_ejercicios) {
-                        if (sbe_iter.id.toString() === sbeId) {
-                            return sbe_iter.ejercicio.nombre;
-                        }
-                    }
-                }
-            }
-        }
-        return "Siguiente Ejercicio";
-    }, [rutina]);
-
-    // Función para obtener la información del siguiente elemento
-    const obtenerSiguienteElementoInfo = useCallback((currentElementId) => {
-        const currentIndex = orderedInteractiveElementIds.findIndex(id => id === currentElementId);
-        if (currentIndex !== -1 && currentIndex < orderedInteractiveElementIds.length - 1) {
-            const nextId = orderedInteractiveElementIds[currentIndex + 1];
-            return { id: nextId, nombre: getElementNameById(nextId) };
-        }
-        return null;
-    }, [getElementNameById]);
-
-    // Función para verificar si un superset está completado
-    const verificarSupersetCompletado = useCallback((subbloqueId, numSerieSuperset, estadoActual, elementoActual) => {
-        const sb = rutina?.bloques.flatMap(b => b.subbloques).find(s => s.id.toString() === subbloqueId.toString());
-        if (!sb) return false;
-        const estadoTemporal = { ...estadoActual, [elementoActual]: true };
-        return sb.subbloques_ejercicios.every(sbe_c => {
-            const elementoId = generarIdEjercicioEnSerieDeSuperset(subbloqueId, sbe_c.id, numSerieSuperset);
-            return estadoTemporal[elementoId];
-        });
-    }, [rutina]);
-
-    // Función para activar el temporizador de pausa usando el nuevo hook
-    const activarTemporizadorPausa = useCallback((duracion, originId) => {
-        if (duracion > 0 && !isResting) {
-            const siguienteDelQuePausa = obtenerSiguienteElementoInfo(originId);
-            const nombreSiguiente = siguienteDelQuePausa ? siguienteDelQuePausa.nombre : "¡Rutina Completada!";
-
-            // Usar el nuevo hook para iniciar el descanso
-            startRest(duracion, nombreSiguiente);
-
-            // Mantener compatibilidad con el sistema actual para la UI
-            setCurrentTimerOriginId(originId);
-        }
-    }, [obtenerSiguienteElementoInfo, isResting, startRest]);
-
-    // Función que se ejecuta cuando el temporizador de descanso termina
-    const handleRestTimerFinish = useCallback(() => {
-        setShowRestTimer(false);
-        timerActiveRef.current = false;
-        const siguienteElemento = obtenerSiguienteElementoInfo(currentTimerOriginId);
-        if (siguienteElemento && siguienteElemento.id) {
-            setElementoActivoId(siguienteElemento.id);
-        } else {
-            setElementoActivoId(null);
-        }
-        setCurrentTimerOriginId(null);
-    }, [currentTimerOriginId, obtenerSiguienteElementoInfo]);
-
-    // Effect para manejar cuando el rest timer del hook termina
-    useEffect(() => {
-        if (!isResting && currentTimerOriginId) {
-            // El descanso terminó, activar el siguiente elemento
-            const siguienteElemento = obtenerSiguienteElementoInfo(currentTimerOriginId);
-            if (siguienteElemento && siguienteElemento.id) {
-                setElementoActivoId(siguienteElemento.id);
-            } else {
-                setElementoActivoId(null);
-            }
-            setCurrentTimerOriginId(null);
-        }
-    }, [isResting, currentTimerOriginId, obtenerSiguienteElementoInfo]);
-
-    // Función para marcar un elemento como completado
-    const toggleElementoCompletado = useCallback((elementoId, detalles) => {
-        unlockAudio();
-        setElementosCompletados(prev => {
-            const nState = { ...prev };
-            const isCurrentlyCompleted = !!prev[elementoId];
-
-            if (isCurrentlyCompleted) {
-                // If already completed, unmark it
-                delete nState[elementoId];
-                setElementoActivoId(elementoId);
-            } else {
-                // If not completed, mark it and store details
-                nState[elementoId] = {
-                    completed: true,
-                    actualReps: detalles.actualReps,
-                    actualCarga: detalles.actualCarga,
-                    pausa: detalles.pausa, // Keep original pause for timer logic
-                    tipoElemento: detalles.tipoElemento,
-                    subbloqueId: detalles.subbloqueId,
-                    numSerieSupersetActual: detalles.numSerieSupersetActual,
-                };
-                playSound();
-                if (navigator.vibrate) navigator.vibrate(100);
-
-                let pausaDuracion = 0;
-                if (detalles.tipoElemento === 'simple' && detalles.pausa) {
-                    pausaDuracion = detalles.pausa;
-                } else if (detalles.tipoElemento === 'superset_ejercicio') {
-                    const todosCompletados = verificarSupersetCompletado(detalles.subbloqueId, detalles.numSerieSupersetActual, nState, elementoId);
-                    if (todosCompletados) {
-                        const sb = rutina?.bloques.flatMap(b => b.subbloques).find(s => s.id.toString() === detalles.subbloqueId.toString());
-                        pausaDuracion = sb?.subbloques_ejercicios[0]?.series?.[0]?.pausa ?? 30;
-                    }
-                }
-
-                if (pausaDuracion > 0) {
-                    activarTemporizadorPausa(pausaDuracion, elementoId);
-                } else {
-                    const siguienteElemento = obtenerSiguienteElementoInfo(elementoId);
-                    setElementoActivoId(siguienteElemento ? siguienteElemento.id : null);
-                }
-            }
-            return nState;
-        });
-    }, [rutina, activarTemporizadorPausa, obtenerSiguienteElementoInfo, verificarSupersetCompletado]);
-
-    useEffect(() => {
-        if (!audioRef.current) {
-            audioRef.current = new Audio('/sounds/levelup.mp3');
-            audioRef.current.load();
-        }
-
-        startWorkout();
-        return () => finishWorkout();
-    }, []);
-
-    const formatTime = (seconds) => {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    const handleFinalizarAndNavigate = async () => {
+        await handleFinalizarYGuardar();
+        navigate('/dashboard');
     };
 
-    const playSound = () => {
-        if (audioRef.current) {
-            audioRef.current.currentTime = 0;
-            audioRef.current.play().catch(e => console.error("Error al reproducir sonido:", e));
-        }
-    };
-
-    const unlockAudio = () => {
-        if (!audioUnlocked.current && audioRef.current) {
-            const promise = audioRef.current.play();
-            if (promise !== undefined) {
-                promise.then(() => {
-                    audioRef.current.pause();
-                    audioRef.current.currentTime = 0;
-                    audioUnlocked.current = true;
-                }).catch(() => { });
-            }
-        }
-    };
-
-    const buildOrderedIdsInternal = (currentRutina) => {
-        const ids = [];
-        currentRutina?.bloques?.forEach(bloque => {
-            bloque.subbloques?.forEach(subbloque => {
-                if (subbloque.tipo === 'simple') {
-                    subbloque.subbloques_ejercicios?.forEach(sbe => {
-                        sbe.series?.forEach(serie => {
-                            ids.push(generarIdSerieSimple(subbloque.id, sbe.id, serie.nro_set));
-                        });
-                    });
-                } else if (subbloque.tipo === 'superset') {
-                    Array.from({ length: subbloque.num_series_superset || 1 }).forEach((_, setIndex) => {
-                        const setNumeroSuperset = setIndex + 1;
-                        subbloque.subbloques_ejercicios?.forEach(sbe => {
-                            ids.push(generarIdEjercicioEnSerieDeSuperset(subbloque.id, sbe.id, setNumeroSuperset));
-                        });
-                    });
-                }
-            });
-        });
-        return ids;
-    };
-
-    useEffect(() => {
-        const fetchRutina = async () => {
-            setLoading(true);
-
-            try {
-                // Step 1: Fetch the base routine object
-                const fromTable = tipo === 'personalizada' ? 'rutinas_personalizadas' : 'rutinas_base';
-                const { data: rutinaData, error: rutinaError } = await supabase
-                    .from(fromTable)
-                    .select('id, nombre, descripcion')
-                    .eq('id', id)
-                    .single();
-
-                if (rutinaError) throw rutinaError;
-
-                // Step 2: Fetch the nested structure (bloques, subbloques, etc.)
-                const fkColumn = tipo === 'personalizada' ? 'rutina_personalizada_id' : 'rutina_base_id';
-                const { data: bloquesData, error: bloquesError } = await supabase
-                    .from('bloques')
-                    .select(`
-                        id, orden,
-                        subbloques (
-                            id, orden, nombre, tipo,
-                            subbloques_ejercicios (
-                                id, 
-                                ejercicio:ejercicios (id, nombre),
-                                series:series_subejercicio (id, nro_set, reps, pausa)
-                            )
-                        )
-                    `)
-                    .eq(fkColumn, rutinaData.id);
-
-                if (bloquesError) throw bloquesError;
-
-                // Step 3: Combine the data
-                let data = { ...rutinaData, bloques: bloquesData };
-
-                if (data?.bloques && bloqueSeleccionado) {
-                    data.bloques = data.bloques.filter((b) => String(b.id) === String(bloqueSeleccionado));
-                }
-
-                const processedData = {
-                    ...data,
-                    bloques: data.bloques?.map(b => ({
-                        ...b,
-                        subbloques: b.subbloques?.map(sb => {
-                            let num_s_ss = 1;
-                            if (sb.tipo === "superset" && sb.subbloques_ejercicios?.length > 0) {
-                                const maxSets = Math.max(...sb.subbloques_ejercicios.map(sbe => sbe.series?.length || 0));
-                                num_s_ss = maxSets > 0 ? maxSets : 1;
-                            }
-                            return {
-                                ...sb,
-                                num_series_superset: num_s_ss,
-                                subbloques_ejercicios: sb.subbloques_ejercicios || []
-                            };
-                        }) || []
-                    })) || []
-                };
-                setRutina(processedData);
-                orderedInteractiveElementIds = buildOrderedIdsInternal(processedData);
-
-                // Build a reverse lookup map for elementoId based on ejercicio_id and nro_set
-                const elementoIdLookup = {};
-                processedData.bloques.forEach(bloque => {
-                    bloque.subbloques.forEach(subbloque => {
-                        if (subbloque.tipo === 'simple') {
-                            subbloque.subbloques_ejercicios.forEach(sbe => {
-                                sbe.series.forEach(serie => {
-                                    const idKey = `${sbe.ejercicio.id}-${serie.nro_set}`;
-                                    elementoIdLookup[idKey] = generarIdSerieSimple(subbloque.id, sbe.id, serie.nro_set);
-                                });
-                            });
-                        } else if (subbloque.tipo === 'superset') {
-                            Array.from({ length: subbloque.num_series_superset || 1 }).forEach((_, setIndex) => {
-                                const setNumeroSuperset = setIndex + 1;
-                                subbloque.subbloques_ejercicios.forEach(sbe => {
-                                    const idKey = `${sbe.ejercicio.id}-${setNumeroSuperset}`;
-                                    elementoIdLookup[idKey] = generarIdEjercicioEnSerieDeSuperset(subbloque.id, sbe.id, setNumeroSuperset);
-                                });
-                            });
-                        }
-                    });
-                });
-
-                // Fetch last session data
-                let lastSessionRes;
-                if (tipo === "personalizada") {
-                    lastSessionRes = await supabase.from('sesiones_entrenamiento')
-                        .select('id, sesiones_series(ejercicio_id, nro_set, reps_realizadas, carga_realizada)')
-                        .eq('rutina_personalizada_id', id)
-                        .eq('alumno_id', user.id)
-                        .order('created_at', { ascending: false })
-                        .limit(1);
-                } else {
-                    lastSessionRes = await supabase.from('sesiones_entrenamiento')
-                        .select('id, sesiones_series(ejercicio_id, nro_set, reps_realizadas, carga_realizada)')
-                        .eq('rutina_base_id', id)
-                        .eq('alumno_id', user.id)
-                        .order('created_at', { ascending: false })
-                        .limit(1);
-                }
-
-                if (lastSessionRes.data && lastSessionRes.data.length > 0 && lastSessionRes.data[0].sesiones_series) {
-                    const mappedLastSessionData = {};
-                    lastSessionRes.data[0].sesiones_series.forEach(serie => {
-                        const idKey = `${serie.ejercicio_id}-${serie.nro_set}`;
-                        const elementoId = elementoIdLookup[idKey];
-                        if (elementoId) {
-                            mappedLastSessionData[elementoId] = {
-                                reps_realizadas: serie.reps_realizadas,
-                                carga_realizada: serie.carga_realizada,
-                            };
-                        }
-                    });
-                    setLastSessionData(mappedLastSessionData);
-                }
-
-            } catch (error) {
-                console.error("Error al cargar rutina:", error);
-                setRutina(null);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchRutina();
-    }, [id, location.search, location.state, user]);
-
-    useEffect(() => {
-        if (elementoActivoId && elementoRefs.current[elementoActivoId]) {
-            setTimeout(() => {
-                elementoRefs.current[elementoActivoId].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
-        }
-    }, [elementoActivoId]);
-
-    if (!rutina) {
-        // Muestra un esqueleto o un estado de carga mínimo sin un loader a pantalla completa
+    if (loading || !rutina) {
         return (
             <div className="bg-gray-900 text-white font-sans min-h-screen">
-                <header className=" top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-3 flex items-center justify-between gap-4 border-b border-gray-800">
-                    <div className="flex items-center gap-4">
-                        <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
-                            <FaArrowLeft />
-                        </Link>
-                        <div>
-                            <h1 className="text-xl font-bold text-white">Cargando rutina...</h1>
-                            <p className="text-sm text-gray-400">Entrenamiento en curso</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-cyan-400">
-                        <FaStopwatch />
-                        <span className="font-mono text-lg">00:00</span>
-                    </div>
-                </header>
+                <RutinaHeader rutinaNombre="Cargando rutina..." workoutTime={0} formatWorkoutTime={formatWorkoutTime} />
                 <main className="p-4">
                     {/* Aquí puedes poner un esqueleto de carga si lo deseas */}
                 </main>
@@ -413,101 +59,40 @@ const RutinaDetalle = () => {
         );
     }
 
-    const todosCompletados = orderedInteractiveElementIds.length > 0 && orderedInteractiveElementIds.every(id => elementosCompletados[id]);
-    const totalSeriesCompletadas = Object.values(elementosCompletados).filter(Boolean).length;
-
-    const handleFinalizarYGuardar = async () => {
-        console.log("Elementos Completados al guardar:", elementosCompletados);
-        try {
-            const result = await guardarSesionEntrenamiento({
-                rutinaId: rutina.id,
-                tiempoTranscurrido: workoutTime,
-                elementosCompletados,
-                rutinaDetalle: rutina,
-                alumnoId: user.id,
-            });
-
-            if (result.success) {
-                toast.success("¡Sesión guardada exitosamente!");
-                navigate('/dashboard');
-            } else {
-                toast.error("Error al guardar la sesión.");
-            }
-        } catch (error) {
-            console.error("Error al finalizar y guardar:", error);
-            toast.error("Error inesperado al guardar la sesión.");
-        }
-    };
-
-    const displayProps = { elementosCompletados, elementoActivoId, toggleElementoCompletado, elementoRefs, lastSessionData };
-
     return (
         <div className="bg-gray-900 text-white font-sans min-h-screen">
-            {todosCompletados && <Confetti width={width} height={height} recycle={false} />}
-            <header className=" top-0 bg-gray-900/80 backdrop-blur-lg z-20 p-3 flex items-center justify-between gap-4 border-b border-gray-800">
-                <div className="flex items-center gap-4">
-                    <Link to="/dashboard" className="p-2 rounded-full hover:bg-gray-700">
-                        <FaArrowLeft />
-                    </Link>
-                    <div>
-                        <h1 className="text-xl font-bold text-white">{rutina.nombre}</h1>
-                        <p className="text-sm text-gray-400">Entrenamiento en curso</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2 text-cyan-400">
-                    <FaStopwatch />
-                    <span className="font-mono text-lg">{formatTime(workoutTime)}</span>
-                </div>
-            </header>
+            <RutinaHeader
+                rutinaNombre={rutina.nombre}
+                workoutTime={workoutTime}
+                formatWorkoutTime={formatWorkoutTime}
+            />
 
-            <main className="p-4 space-y-4 pb-20">
-                {rutina.bloques?.map(bloque => (
-                    <BloqueDisplay key={bloque.id} bloque={bloque} {...displayProps} />
-                ))}
+            <RutinaContent
+                rutinaBloques={rutina.bloques}
+                elementosCompletados={elementosCompletados}
+                elementoActivoId={elementoActivoId}
+                toggleElementoCompletado={toggleElementoCompletado}
+                elementoRefs={elementoRefs}
+                lastSessionData={lastSessionData}
+                todosCompletados={todosCompletados}
+                workoutTime={workoutTime}
+                totalSeriesCompletadas={totalSeriesCompletadas}
+                handleFinalizarYGuardar={handleFinalizarAndNavigate}
+                width={width}
+                height={height}
+                formatWorkoutTime={formatWorkoutTime}
+            />
 
-                {todosCompletados && (
-                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-6 bg-gray-800 rounded-xl shadow-lg mt-6">
-                        <h2 className="text-2xl font-bold text-green-400">¡Entrenamiento completado!</h2>
-                        <p className="text-gray-300 mt-2 mb-4">¡Gran trabajo! Has finalizado todos los ejercicios.</p>
-
-                        <div className="grid grid-cols-2 gap-4 text-white my-4">
-                            <div className="bg-gray-700/50 p-3 rounded-lg">
-                                <p className="text-sm text-gray-400">Tiempo Total</p>
-                                <p className="text-xl font-bold">{formatTime(workoutTime)}</p>
-                            </div>
-                            <div className="bg-gray-700/50 p-3 rounded-lg">
-                                <p className="text-sm text-gray-400">Series Completadas</p>
-                                <p className="text-xl font-bold">{totalSeriesCompletadas}</p>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={handleFinalizarYGuardar}
-                            className="mt-4 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 text-lg"
-                        >
-                            Finalizar y Guardar
-                        </button>
-                    </motion.div>
-                )}
-            </main>
-
-            <AnimatePresence>
-                {showRestTimer && (
-                    <RestTimer
-                        key={currentTimerOriginId}
-                        duration={timerDuration}
-                        exerciseName={nextExerciseName}
-                        onFinish={handleRestTimerFinish}
-                    />
-                )}
-            </AnimatePresence>
-
-            {/* Nuevo sistema de timer usando hooks */}
-            <RestTimerNew
+            <RutinaTimersDisplay
+                showRestTimer={showRestTimer}
+                timerDuration={timerDuration}
+                nextExerciseName={nextExerciseName}
+                currentTimerOriginId={currentTimerOriginId}
+                // handleRestTimerFinish={handleRestTimerFinish} // This is now handled internally by useRutinaLogic
                 isResting={isResting}
                 timeLeft={restTimeLeft}
                 exerciseName={restExerciseName}
-                onSkip={skipRest}
+                skipRest={skipRest}
                 formatTime={formatRestTime}
             />
         </div>

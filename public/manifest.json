@@ -5,9 +5,10 @@
     "start_url": "/",
     "scope": "/",
     "display": "standalone",
-    "orientation": "portrait-primary",
+    "orientation": "any",
     "theme_color": "#121212",
     "background_color": "#121212",
+    "categories": ["productivity"],
     "icons": [
         {
             "src": "/icons/icon-192x192.png",
