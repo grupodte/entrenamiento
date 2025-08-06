@@ -4,7 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
-
+/* ... (Toda tu sección :root se queda igual) ... */
+:root {
+  /* ... */
+  --dvh: 100dvh;
+  /* ... */
+}
 
 /* ... (Tu selector universal * y tus reglas para input se quedan igual) ... */
 
@@ -50,12 +55,14 @@ body {
      * Forzamos la altura al 100% del contenedor padre (que será la ventana completa).
      * Esto es más fiable que dvh/svh/lvh dentro del modo PWA en iOS.
      */
+    height: 100%;
   }
 }
 
 #root {
   display: flex;
   flex-direction: column;
+  height: 100%;
   /* Esto es correcto, heredará la altura de 'body' */
   width: 100%;
   background: var(--app-bg);
