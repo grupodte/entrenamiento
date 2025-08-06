@@ -69,20 +69,11 @@ const AlumnoLayout = () => {
   }, []);
 
 
-  const overlayStyles = useMemo(() => ({
-    background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.6) 100%)',
-    WebkitBackdropFilter: 'blur(2px) saturate(120%)',
-    backdropFilter: 'blur(2px) saturate(120%)'
-  }), []);
-
+ 
   return (
-    <div className="fullscreen flex">
+    <div className="fullscreen flex pt-safe pb-safe">
 
-      {/* Overlay de fondo */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={overlayStyles}
-      />
+    
 
       {/* Contenido principal con safe areas */}
       <AnimatePresence mode="wait" initial={false}>
