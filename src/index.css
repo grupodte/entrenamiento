@@ -29,10 +29,8 @@ html {
 html,
 body,
 #root {
-  height: 100vh;
+  height: 100%;
   /* Fallback */
-  height: calc(var(--dvh, 1vh) * 100);
-  background: #121212;
   overscroll-behavior: none;
   /* Evita el rebote en iOS/Android */
 }
