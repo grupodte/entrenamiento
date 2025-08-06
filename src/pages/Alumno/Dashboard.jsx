@@ -187,7 +187,7 @@ const Dashboard = () => {
                         {/* Grid for Progress and Tip */}
                         <div className="grid grid-cols-2 gap-4">
                             {/* Weekly Progress */}
-                                <div className="bg-gray-800/40 backdrop-blur-md rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                            <div className="bg-gray-800/40 backdrop-blur-md rounded-xl p-4 flex flex-col items-center justify-center text-center">
                                 <h3 className="font-bold text-white text-sm mb-2">Progreso Semanal</h3>
                                 <div className="relative w-20 h-20">
                                     <svg className="w-full h-full" viewBox="0 0 36 36">
@@ -202,7 +202,7 @@ const Dashboard = () => {
                             </div>
 
                             {/* Tip of the day */}
-                                <div className="bg-gray-800/40 backdrop-blur-md rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                            <div className="bg-gray-800/40 backdrop-blur-md rounded-xl p-4 flex flex-col items-center justify-center text-center">
                                 <h3 className="text-sm font-semibold text-cyan-300 mb-2 flex items-center gap-2">
                                     <FaDumbbell />
                                     Tip del Día
@@ -284,7 +284,7 @@ const Dashboard = () => {
                                         <p className="text-xs text-gray-400">Próximamente</p>
                                     </div >
                                 </Card>
-                                    <Card className="flex items-center gap-3 hover:bg-gray-700 bg-gray-800/20 backdrop-blur-md rounded-xl transition-colors duration-200 cursor-not-allowed opacity-50">
+                                <Card className="flex items-center gap-3 hover:bg-gray-700 bg-gray-800/20 backdrop-blur-md rounded-xl transition-colors duration-200 cursor-not-allowed opacity-50">
                                     <div className="p-2 bg-red-500/20 rounded-lg">
                                         <FaEnvelope className="text-xl text-red-400" />
                                     </div>

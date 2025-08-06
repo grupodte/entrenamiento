@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Home, User } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useSpring, animated } from 'react-spring';
 import { useDrag } from '@use-gesture/react';
-import { motion } from 'framer-motion';
 
 const FloatingNavBar = ({ onOpenPerfil }) => {
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [activeButton, setActiveButton] = useState('home');
   const navRef = useRef(null);
+  const [bounds, setBounds] = useState({ left: 0, right: 0, top: 0, bottom: 0 });
 
-  // Spring principal (posición y escala)
+  // SPRING con posición, escala y rotación
   const [{ x, y, scale, rotate }, api] = useSpring(() => ({
     x: 0,
     y: 0,
@@ -18,12 +19,67 @@ const FloatingNavBar = ({ onOpenPerfil }) => {
     config: { mass: 1, tension: 280, friction: 35 },
   }));
 
-  // Hook de drag
+  // Cargar posición guardada si existe
+  useEffect(() => {
+    const saved = localStorage.getItem('floatingNavPos');
+    if (saved) {
+      const { x: savedX, y: savedY } = JSON.parse(saved);
+      api.start({ x: savedX, y: savedY, immediate: true });
+    }
+  }, [api]);
+
+  // Guardar posición actual al soltar
+  const savePosition = (xVal, yVal) => {
+    localStorage.setItem('floatingNavPos', JSON.stringify({ x: xVal, y: yVal }));
+  };
+
+  // Recalcular límites dinámicos
+  const updateBounds = useCallback(() => {
+    if (navRef.current && typeof window !== 'undefined') {
+      const rect = navRef.current.getBoundingClientRect();
+      const margin = 20;
+      setBounds({
+        left: margin - rect.left,
+        right: window.innerWidth - rect.right - margin,
+        top: margin - rect.top,
+        bottom: window.innerHeight - rect.bottom - margin,
+      });
+    }
+  }, []);
+
+  // Snap inteligente
+  const snapToEdge = useCallback((currentX, currentY, velocityX, velocityY) => {
+    if (typeof window === 'undefined') return { x: currentX, y: currentY };
+    const rect = navRef.current?.getBoundingClientRect();
+    if (!rect) return { x: currentX, y: currentY };
+
+    const centerX = rect.left + rect.width / 2 + currentX;
+    const snapThreshold = 80;
+    const margin = 20;
+
+    let targetX = currentX;
+    let targetY = currentY;
+
+    // Snap horizontal suave
+    if (Math.abs(velocityX) < 200 && centerX < snapThreshold) {
+      targetX = margin - rect.left;
+    } else if (Math.abs(velocityX) < 200 && centerX > window.innerWidth - snapThreshold) {
+      targetX = window.innerWidth - rect.right - margin;
+    }
+
+    // Respetar límites verticales
+    const minY = margin - rect.top;
+    const maxY = window.innerHeight - rect.bottom - margin;
+    targetY = Math.max(minY, Math.min(maxY, currentY));
+
+    return { x: targetX, y: targetY };
+  }, []);
+
+  // Drag con elasticidad + inercia
   const bind = useDrag(
     ({ active, movement: [mx, my], velocity: [vx, vy] }) => {
       const rect = navRef.current?.getBoundingClientRect();
       const margin = 20;
-
       let newX = mx;
       let newY = my;
 
@@ -34,18 +90,15 @@ const FloatingNavBar = ({ onOpenPerfil }) => {
         const maxY = window.innerHeight - rect.bottom - margin;
 
         if (active) {
-          // Permitir elasticidad en los bordes
+          // Elasticidad: permite un poco de "rebote"
           newX = Math.max(minX - 40, Math.min(maxX + 40, mx));
           newY = Math.max(minY - 40, Math.min(maxY + 40, my));
         } else {
-          // Ajustar posición final con límites
-          newX = Math.max(minX, Math.min(maxX, mx));
-          newY = Math.max(minY, Math.min(maxY, my));
-
-          // Snap a bordes si queda cerca
-          const snapMargin = 60;
-          if (newX < minX + snapMargin) newX = minX;
-          if (newX > maxX - snapMargin) newX = maxX;
+          // Snap final
+          const snapTarget = snapToEdge(mx, my, vx, vy);
+          newX = Math.max(minX, Math.min(maxX, snapTarget.x));
+          newY = Math.max(minY, Math.min(maxY, snapTarget.y));
+          savePosition(newX, newY);
         }
       }
 
@@ -55,8 +108,8 @@ const FloatingNavBar = ({ onOpenPerfil }) => {
         scale: active ? 1.05 : 1,
         rotate: active ? 2 : 0,
         config: active
-          ? { tension: 300, friction: 25 } // En movimiento
-          : { tension: 180, friction: 25, velocity: vx + vy }, // Inercia al soltar
+          ? { tension: 300, friction: 25 }
+          : { tension: 180, friction: 25, velocity: vx + vy },
       });
     },
     {
@@ -68,35 +121,26 @@ const FloatingNavBar = ({ onOpenPerfil }) => {
     }
   );
 
-  // Detectar dispositivo táctil
+  // Detectar touch
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       setIsTouchDevice(hasTouch);
+      updateBounds();
+      let resizeTimeout;
+      const handleResize = () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(updateBounds, 150);
+      };
+      window.addEventListener('resize', handleResize);
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        clearTimeout(resizeTimeout);
+      };
     }
-  }, []);
+  }, [updateBounds]);
 
-  // Mantener dentro de pantalla al redimensionar
-  useEffect(() => {
-    const handleResize = () => {
-      const rect = navRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const margin = 20;
-      const minX = margin - rect.left;
-      const maxX = window.innerWidth - rect.right - margin;
-      const minY = margin - rect.top;
-      const maxY = window.innerHeight - rect.bottom - margin;
-
-      api.start({
-        x: Math.max(minX, Math.min(maxX, x.get())),
-        y: Math.max(minY, Math.min(maxY, y.get())),
-      });
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [api, x, y]);
-
-  // Estilos dinámicos para botones
+  // Clases dinámicas
   const navButtonClass = (isActive) => {
     const baseClass =
       'relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 group backdrop-blur-xl border shadow-lg hover:scale-110 active:scale-95';
@@ -121,10 +165,10 @@ const FloatingNavBar = ({ onOpenPerfil }) => {
       className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 select-none"
     >
       <motion.div
-        className="flex items-center space-x-2 px-3 py-2 rounded-full bg-black/30 backdrop-blur-2xl border border-white/10 shadow-2xl"
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 100, damping: 15 }}
+        className="flex items-center space-x-2 px-3 py-2 rounded-full bg-black/30 backdrop-blur-2xl border border-white/10 shadow-2xl"
       >
         {/* Botón Inicio */}
         <motion.button
