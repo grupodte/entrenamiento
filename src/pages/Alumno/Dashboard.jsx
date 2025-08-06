@@ -180,7 +180,7 @@ const Dashboard = () => {
                 {loading ? (
                     <DashboardSkeleton />
                 ) : (
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="space-y-4">
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="space-y-4 py-12 px-6">
                         <header>
                             <p className="text-gray-400 text-base">{getSaludo()}</p>
                             <h1 className="text-2xl font-bold text-white">{nombre}</h1>
