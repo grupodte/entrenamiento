@@ -71,10 +71,6 @@ const AlumnoLayout = () => {
   // Optimización: Estilos memorizados
   const backgroundStyles = useMemo(() => ({
     height: 'var(--vh)',
-    backgroundImage: `url('/assets/FOTO_FONDO.webp')`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundAttachment: 'fixed' // Mejora el rendimiento en móviles
   }), []);
 
   const overlayStyles = useMemo(() => ({
