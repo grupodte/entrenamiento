@@ -109,8 +109,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-
-
 .pt-safe {
   padding-top: var(--sat);
 }
