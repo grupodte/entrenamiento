@@ -26,25 +26,11 @@ html {
 }
 
 /* -------- RESET Y ALTURA DINÁMICA -------- */
-html,
-body {
-  height: 100vh;
-  height: 100dvh;
-  height: -webkit-fill-available;
+html, body, #root {
+  height: 100vh; /* Fallback */
+  height: calc(var(--dvh, 1vh) * 100);
   background: #121212;
-  margin: 0;
-  padding: 0;
-  scroll-behavior: smooth;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#root {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 100%;
+  overscroll-behavior: none; /* Evita el rebote en iOS/Android */
 }
 
 /* -------- TIPOGRAFÍA PERSONALIZADA -------- */
@@ -310,10 +296,6 @@ body::-webkit-scrollbar {
   body {
     height: -webkit-fill-available !important;
     background: #121212 !important;
-  }
-
-  body {
-    padding-bottom: env(safe-area-inset-bottom);
   }
 
   ::-webkit-scrollbar {
