@@ -379,3 +379,21 @@ body {
     /* Fallback para navegadores antiguos */
   }
 }
+
+
+
+.header {
+  padding-top: env(safe-area-inset-top);
+}
+
+.footer {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+}
