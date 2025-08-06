@@ -60,26 +60,39 @@ html {
 }
 
 /* -------- RESET Y ALTURA DINÁMICA -------- */
-html,
-body {
-  height: var(--dvh); 
-  height: -webkit-fill-available;
-  background: #121212;
-  margin: 0;
-  padding: 0;
+html {
+  height: var(--dvh);
+  overflow: hidden;
+  /* Prevent body scroll */
   scroll-behavior: smooth;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  height: var(--dvh);
+  margin: 0;
+  padding: 0;
+  background: var(--app-bg);
+  font-family: 'ProductSans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--app-text);
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 #root {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--app-bg);
 }
-
 /* -------- TIPOGRAFÍA PERSONALIZADA -------- */
 @font-face {
   font-family: 'ProductSans';
