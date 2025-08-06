@@ -174,7 +174,7 @@ const Dashboard = () => {
 
     return (
         <div className="font-sans">
-            <main className="  fullscreen fixed inset-0 flex p-4 space-y-6">
+            <main className="  min-h-screen fixed inset-0 flex p-4 space-y-6">
                 {loading ? (
                     <DashboardSkeleton />
                 ) : (
