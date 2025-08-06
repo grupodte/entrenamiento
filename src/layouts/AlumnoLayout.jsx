@@ -22,7 +22,7 @@ const AlumnoLayout = () => {
 
   return (
     // 1. El contenedor principal ahora es más simple y actúa como referencia
-    <div className="fullscreen">
+    <div className="fullscreen ">
 
       {/* 2. El contenido principal ocupa el espacio restante y maneja el scroll */}
       <motion.main
