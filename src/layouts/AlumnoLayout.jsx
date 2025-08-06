@@ -111,8 +111,8 @@ const AlumnoLayout = () => {
             flex-1 
             flex flex-col
             min-h-0
-            pt-safe-top
-            pb-safe-bottom
+            pt-safe
+            pb-safe
             overflow-hidden
             will-change-transform
           "
