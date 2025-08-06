@@ -124,7 +124,7 @@ body::-webkit-scrollbar {
   /* Chrome, Safari */
 }
 
-/
+
 /* -------- SAFE AREAS -------- */
 .pt-safe {
   padding-top: env(safe-area-inset-top);
