@@ -61,7 +61,6 @@ html {
 
 /* -------- RESET Y ALTURA DINÁMICA -------- */
 html {
-  height: var(--dvh);
   overflow: hidden;
   /* Prevent body scroll */
   scroll-behavior: smooth;
@@ -73,7 +72,6 @@ html {
 }
 
 body {
-  height: var(--dvh);
   margin: 0;
   padding: 0;
   background: var(--app-bg);
