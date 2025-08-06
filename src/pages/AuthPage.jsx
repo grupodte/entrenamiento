@@ -5,9 +5,6 @@ import {
     GoogleSignInButton,
     AuthModeToggle,
 } from '../components/Auth';
-import { motion } from 'framer-motion';
-import { commonVariants } from '../components/animations';
-import { useViewportHeight } from '../hooks/useViewportHeight';
 
 const AuthPage = () => {
     const {
@@ -22,10 +19,8 @@ const AuthPage = () => {
         handleGoogle,
     } = useAuthForm();
 
-    useViewportHeight();
-
     return (
-        <div className="fixed inset-0 flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center">
             {/* Video de fondo */}
             <video
                 autoPlay
@@ -38,17 +33,11 @@ const AuthPage = () => {
                 Your browser does not support the video tag.
             </video>
 
-            {/* Capa de blur y overlay */}
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+            {/* Overlay estático */}
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
 
             {/* Modal de autenticación */}
-            <motion.div
-                variants={commonVariants.scale}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                className="relative z-10 p-8 rounded-2xl bg-gray-900/20 w-[325px] max-w-md text-white border border-gray-700/10 shadow-2xl backdrop-blur-md"
-            >
+            <div className="relative z-10 p-8 rounded-2xl bg-gray-900/20 w-[325px] max-w-md text-white border border-gray-700/10 shadow-2xl backdrop-blur-md">
                 <h2 className="text-2xl font-bold text-center mb-6">
                     {isLogin ? 'Iniciar sesión' : 'Crear cuenta'}
                 </h2>
@@ -71,7 +60,7 @@ const AuthPage = () => {
                 />
 
                 <AuthModeToggle isLogin={isLogin} setIsLogin={setIsLogin} />
-            </motion.div>
+            </div>
         </div>
     );
 };
