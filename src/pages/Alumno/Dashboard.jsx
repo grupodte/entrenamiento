@@ -9,6 +9,7 @@ import { useRutinaCache } from '../../hooks/useRutinaCache';
 import { useRutinaPrefetch } from '../../hooks/useRutinaPrefetch';
 import DashboardSkeleton from '../../components/DashboardSkeleton';
 
+// --- Helpers ---
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const getSaludo = () => {
     const hora = new Date().getHours();
@@ -100,13 +101,25 @@ const Dashboard = () => {
     );
 
     return (
-        <div className="font-sans min-h-[100dvh] flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div
+            className="font-sans min-h-[100dvh] flex flex-col overflow-y-auto"
+            style={{
+                paddingTop: 'env(safe-area-inset-top)',
+                paddingBottom: 'env(safe-area-inset-bottom)',
+                scrollbarWidth: 'none' // Firefox
+            }}
+        >
+            <style>{`
+                /* Ocultar scrollbar en Chrome/Safari */
+                ::-webkit-scrollbar { display: none; }
+            `}</style>
             <main className="flex-1">
                 {loading ? (
                     <DashboardSkeleton />
                 ) : (
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="space-y-4 py-12 px-6 flex-1">
-                            <header className="header-safe-offset">
+                        {/* Saludo */}
+                        <header>
                             <p className="text-gray-400 text-base">{getSaludo()}</p>
                             <h1 className="text-2xl font-bold text-white">{nombre}</h1>
                         </header>
