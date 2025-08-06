@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'react-hot-toast';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
-import { useViewportHeight } from '../hooks/useViewportHeight';
-
+import { motion } from 'framer-motion';
 
 const AuthPage = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -15,7 +13,6 @@ const AuthPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { user, rol, loading, login } = useAuth();
-    useViewportHeight();
 
     // Redirigir si ya está logueado
     useEffect(() => {
@@ -24,7 +21,7 @@ const AuthPage = () => {
         }
     }, [user, rol, loading, navigate]);
 
-    // Activación de cuenta
+    // Activar cuenta si viene de verificación
     useEffect(() => {
         if (location.search.includes('verified=true')) {
             (async () => {
@@ -73,97 +70,92 @@ const AuthPage = () => {
     };
 
     return (
-        
-            <div className="fixed inset-0 flex items-center justify-center">
-            
-                {/* Video de fondo */}
-                <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="absolute inset-0 w-full h-full object-cover"
-                >
-                    <source src="/backgrounds/loginbg.mp4" type="video/mp4" />
-                    Your browser does not support the video tag.
-                </video>
+        <div className="fullscreen fixed inset-0 flex items-center justify-center">
+            {/* Video de fondo */}
+            <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover">
+                <source src="/backgrounds/loginbg.mp4" type="video/mp4" />
+            </video>
 
-                {/* Capa de blur y overlay */}
-                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+            {/* Capa oscura */}
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-                {/* Modal de autenticación */}
-                <div
-                    className="relative z-10 p-8 rounded-2xl bg-gray-900/20 w-[325px] max-w-md text-white border border-gray-700/10 shadow-2xl backdrop-blur-md"
-                >
-                    <h2 className="text-2xl font-bold text-center mb-6">
-                        {isLogin ? 'Iniciar sesión' : 'Crear cuenta'}
-                    </h2>
+            {/* Modal con animación */}
+            <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.7, ease: 'easeOut' }}
+                className="relative z-10 p-8 rounded-2xl bg-gray-900/20 w-[325px] max-w-md text-white border border-gray-700/10 shadow-2xl backdrop-blur-md"
+            >
+                <h2 className="text-2xl font-bold text-center mb-6">
+                    {isLogin ? 'Iniciar sesión' : 'Crear cuenta'}
+                </h2>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-4 py-3 rounded-2xl bg-gray-900/20 text-white border border-gray-700/10 backdrop-blur-md placeholder-gray-400 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-colors duration-200"
-                            placeholder="Correo electrónico"
-                            required
-                            disabled={isLoading}
-                        />
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full px-4 py-3 rounded-2xl bg-gray-900/20 text-white border border-gray-700/10 backdrop-blur-md placeholder-gray-400 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-colors duration-200"
+                        placeholder="Correo electrónico"
+                        required
+                        disabled={isLoading}
+                    />
 
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-3 rounded-2xl bg-gray-900/20 text-white border border-gray-700/10 backdrop-blur-md placeholder-gray-400 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-colors duration-200"
-                            placeholder="Contraseña"
-                            required
-                            disabled={isLoading}
-                        />
-
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className={`w-full px-4 py-3 rounded-2xl font-bold text-lg transition-all duration-200 ${isLoading
-                                    ? "bg-cyan-600/20 text-white cursor-not-allowed"
-                                    : "bg-cyan-600/60 hover:bg-cyan-500 text-white hover:shadow-lg"
-                                }`}
-                        >
-                            {isLoading ? (
-                                <div className="flex items-center justify-center gap-2">
-                                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                    </svg>
-                                    Procesando...
-                                </div>
-                            ) : (
-                                isLogin ? 'Ingresar' : 'Registrarme'
-                            )}
-                        </button>
-                    </form>
-
-                    <div className="my-4 text-center text-gray-400 text-sm">o</div>
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full px-4 py-3 rounded-2xl bg-gray-900/20 text-white border border-gray-700/10 backdrop-blur-md placeholder-gray-400 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-colors duration-200"
+                        placeholder="Contraseña"
+                        required
+                        disabled={isLoading}
+                    />
 
                     <button
-                        onClick={handleGoogle}
+                        type="submit"
                         disabled={isLoading}
-                        className="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold flex items-center justify-center gap-3 transition-colors duration-200 disabled:opacity-50 border border-gray-700/20 backdrop-blur-md"
+                        className={`w-full px-4 py-3 rounded-2xl font-bold text-lg transition-all duration-200 ${isLoading
+                                ? "bg-cyan-600/20 text-white cursor-not-allowed"
+                                : "bg-cyan-600/60 hover:bg-cyan-500 text-white hover:shadow-lg"
+                            }`}
                     >
-                        <img src="/backgrounds/google.webp" alt="Google" className="w-6 h-6" />
-                        {isLogin ? 'Iniciar rápido' : 'Iniciar rápido'}
+                        {isLoading ? (
+                            <div className="flex items-center justify-center gap-2">
+                                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                </svg>
+                                Procesando...
+                            </div>
+                        ) : (
+                            isLogin ? 'Ingresar' : 'Registrarme'
+                        )}
                     </button>
+                </form>
 
-                    <p className="text-sm text-center mt-6 text-gray-400">
-                        {isLogin ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
-                        <button
-                            onClick={() => setIsLogin(!isLogin)}
-                            className="text-cyan-400 font-semibold ml-1 hover:underline transition-colors duration-200"
-                        >
-                            {isLogin ? 'Registrate' : 'Iniciar sesión'}
-                        </button>
-                    </p>
-                </div>
-          </div>  );
+                <div className="my-4 text-center text-gray-400 text-sm">o</div>
+
+                <button
+                    onClick={handleGoogle}
+                    disabled={isLoading}
+                    className="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold flex items-center justify-center gap-3 transition-colors duration-200 disabled:opacity-50 border border-gray-700/20 backdrop-blur-md"
+                >
+                    <img src="/backgrounds/google.webp" alt="Google" className="w-6 h-6" />
+                    Iniciar rápido
+                </button>
+
+                <p className="text-sm text-center mt-6 text-gray-400">
+                    {isLogin ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
+                    <button
+                        onClick={() => setIsLogin(!isLogin)}
+                        className="text-cyan-400 font-semibold ml-1 hover:underline transition-colors duration-200"
+                    >
+                        {isLogin ? 'Registrate' : 'Iniciar sesión'}
+                    </button>
+                </p>
+            </motion.div>
+        </div>
+    );
 };
 
 export default AuthPage;

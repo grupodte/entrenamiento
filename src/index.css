@@ -367,3 +367,15 @@ body {
   @apply border-blue-500/50 bg-blue-500/10 text-blue-200;
 }
 
+/* Altura dinámica fullscreen */
+.fullscreen {
+  height: 100dvh;
+  /* Altura dinámica (iOS 16.4+ y navegadores modernos) */
+}
+
+@supports not (height: 100dvh) {
+  .fullscreen {
+    height: 100vh;
+    /* Fallback para navegadores antiguos */
+  }
+}
