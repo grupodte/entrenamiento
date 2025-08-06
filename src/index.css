@@ -36,7 +36,7 @@ html {
 }
 
 body {
-  @apply font-sans select-none text-white;
+  @apply font-sans select-none text-white scrollbar-hide;
   background-color: var(--bg-primary);
   touch-action: manipulation;
   overscroll-behavior: none;
@@ -70,14 +70,8 @@ body {
 }
 
 .main-content {
-  @apply flex-1 overflow-y-auto;
+  @apply flex-1 overflow-y-auto scrollbar-hide;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.main-content::-webkit-scrollbar {
-  display: none;
 }
 
 .content-wrapper {
@@ -290,23 +284,31 @@ body {
 }
 
 /* ====== SCROLLBARS ====== */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* ====== SCROLLBARS OCULTOS ====== */
+/* Ocultar scrollbar pero mantener funcionalidad */
+.scrollbar-hide {
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
 }
 
-::-webkit-scrollbar-track {
-  background: #1f2937;
-  border-radius: 4px;
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  /* Safari y Chrome */
 }
 
-::-webkit-scrollbar-thumb {
-  background: #6b7280;
-  border-radius: 4px;
+/* Clase utilitaria para cualquier elemento que necesite scroll sin barra */
+.scroll-smooth-hidden {
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+.scroll-smooth-hidden::-webkit-scrollbar {
+  display: none;
 }
 
 /* ====== RESPONSIVE ====== */
@@ -351,13 +353,4 @@ body {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   touch-action: pan-y;
-}
-
-.scrollbar-hide {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
 }
