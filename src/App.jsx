@@ -45,20 +45,27 @@ const AppContent = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         {/* --- RUTAS DE ALUMNO CON AlumnoLayout --- */}
+        {/* Dashboard sin layout de alumno */}
+        <Route
+          path="/dashboard"
+          element={
+            <RutaProtegida rolPermitido="alumno">
+              <PageTransition><DashboardAlumno /></PageTransition>
+            </RutaProtegida>
+          }
+        />
+
+        {/* Rutas que sí usan AlumnoLayout */}
         <Route
           element={
             <RutaProtegida rolPermitido="alumno">
-
               <AlumnoLayout />
-
             </RutaProtegida>
           }
         >
-
-
-          <Route path="/dashboard" element={<PageTransition><DashboardAlumno /></PageTransition>} />
           <Route path="/rutina/:id" element={<PageTransition><RutinaDetalle /></PageTransition>} />
         </Route>
+
 
         {/* --- RUTAS PÚBLICAS --- */}
         <Route element={<AppLayout />}>
