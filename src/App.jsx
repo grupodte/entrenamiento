@@ -1,5 +1,5 @@
-import React from 'react';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { AnimatePresence } from 'framer-motion';
 import { AnimatedFeedback, useFeedback } from './components/animations';
@@ -39,15 +39,16 @@ import EditarDia from './pages/Admin/EditarDia';
 const AppContent = () => {
   const location = useLocation();
   useSmoothScroll();
-  const { user, rol, loading } = useAuth();
 
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         {/* --- RUTAS DE ALUMNO CON AlumnoLayout --- */}
-        <Route element={ <RutaProtegida rolPermitido="alumno">
+        <Route
+          element={
+            <RutaProtegida rolPermitido="alumno">
 
-          <AppLayout />
+              <AlumnoLayout />
 
             </RutaProtegida>
           }
@@ -60,11 +61,11 @@ const AppContent = () => {
 
         {/* --- RUTAS PÚBLICAS --- */}
         <Route element={<AppLayout />}>
+          <Route path="/" element={<PageTransition><AuthPage /></PageTransition>} />
           <Route path="/login" element={<PageTransition><AuthPage /></PageTransition>} />
           <Route path="/register" element={<PageTransition><AuthPage /></PageTransition>} />
           <Route path="/tyc" element={<PageTransition><Tyc /></PageTransition>} />
           <Route path="/privacidad" element={<PageTransition><PoliticaPrivacidad /></PageTransition>} />
-          <Route path="/" element={user ? (rol === 'admin' ? <Navigate to="/admin" replace /> : <Navigate to="/dashboard" replace />) : <Navigate to="/login" replace />} />
         </Route>
 
         {/* --- RUTAS DE ADMIN CON AdminLayout --- */}
@@ -94,7 +95,22 @@ const AppContent = () => {
 };
 
 const App = () => {
-  const { loading } = useAuth();
+  const { user, rol, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        navigate('/login');
+      } else if (rol === 'admin') {
+        navigate('/admin');
+      } else if (rol === 'alumno') {
+        navigate('/dashboard');
+      } else {
+        navigate('/login');
+      }
+    }
+  }, [user, rol, loading, navigate]);
 
   if (loading) {
     return <BrandedLoader />;
