@@ -12,13 +12,22 @@ const InfoRow = ({ icon, label, value }) => value ? (
 ) : null;
 
 const ProfileInfo = ({ user, perfil, onEdit, onLogout }) => {
+    const avatarUrl = perfil?.avatar_url;
+    const nombre = perfil?.nombre || '';
+    const apellido = perfil?.apellido || '';
+    const edad = perfil?.edad;
+    const genero = perfil?.genero;
+    const telefono = perfil?.telefono;
+    const ciudad = perfil?.ciudad;
+    const pais = perfil?.pais;
+
     return (
         <div className="flex flex-col items-center mb-3 space-y-3">
             <div className="flex items-center w-full justify-between">
                 <div className="flex items-center space-x-3">
-                    {perfil.avatar_url ? <img src={perfil.avatar_url} alt="Avatar" className="w-12 h-12 rounded-full border-2 border-cyan-500" /> : <FaUserCircle className="text-4xl text-blue-400" />}
+                    {avatarUrl ? <img src={avatarUrl} alt="Avatar" className="w-12 h-12 rounded-full border-2 border-cyan-500" /> : <FaUserCircle className="text-4xl text-blue-400" />}
                     <div>
-                        <h2 className="text-sm font-semibold text-white">{perfil.nombre} {perfil.apellido}</h2>
+                        <h2 className="text-sm font-semibold text-white">{nombre} {apellido}</h2>
                         <p className="text-xs text-gray-400">{user?.email}</p>
                     </div>
                 </div>
@@ -28,10 +37,10 @@ const ProfileInfo = ({ user, perfil, onEdit, onLogout }) => {
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-3 text-xs w-full">
-                <InfoRow icon={<FaBirthdayCake />} label="Edad" value={perfil.edad ? `${perfil.edad} años` : null} />
-                <InfoRow icon={<FaTransgender />} label="Género" value={perfil.genero} />
-                <InfoRow icon={<FaPhone />} label="Teléfono" value={perfil.telefono} />
-                <InfoRow icon={<FaMapMarkerAlt />} label="Ubicación" value={perfil.ciudad && perfil.pais ? `${perfil.ciudad}, ${perfil.pais}` : perfil.ciudad || perfil.pais} />
+                <InfoRow icon={<FaBirthdayCake />} label="Edad" value={edad ? `${edad} años` : null} />
+                <InfoRow icon={<FaTransgender />} label="Género" value={genero} />
+                <InfoRow icon={<FaPhone />} label="Teléfono" value={telefono} />
+                <InfoRow icon={<FaMapMarkerAlt />} label="Ubicación" value={ciudad && pais ? `${ciudad}, ${pais}` : ciudad || pais} />
             </div>
         </div>
     );
