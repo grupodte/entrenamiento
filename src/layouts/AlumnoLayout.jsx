@@ -97,9 +97,6 @@ const AlumnoLayout = () => {
           className="
             relative z-10 flex-1 
             overflow-y-auto 
-            pt-5
-            pb-[100px]       /* Espacio para el navbar flotante */
-            px-4 sm:px-6 lg:px-8 
             overscroll-y-contain 
             scrollbar-hide
             will-change-transform
@@ -113,9 +110,7 @@ const AlumnoLayout = () => {
           animate="animate"
           exit="exit"
         >
-          <div className="pb-safe"> {/* Safe area solo para el contenido */}
-            <Outlet />
-          </div>
+          <Outlet />
         </motion.main>
       </AnimatePresence>
 
