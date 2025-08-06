@@ -87,12 +87,19 @@ export const AuthProvider = ({ children }) => {
             subscription.subscription.unsubscribe();
         };
     }, []);
+    // Este loading es solo un estado booleano local para saber si está cargando algo en el contexto.
+    // Si quieres mostrar un spinner visual, puedes crear un componente Loading.jsx en components
+    // y usarlo en tu app donde uses useAuth y loading === true.
 
     const login = (userData, userRol) => {
-        setUser(userData);
-        setRol(userRol);
-        localStorage.setItem(LOCAL_STORAGE_USER_ID_KEY, userData.id);
-        localStorage.setItem(LOCAL_STORAGE_USER_ROL_KEY, userRol);
+        setLoading(true); // Start loading
+        setTimeout(() => {
+            setUser(userData);
+            setRol(userRol);
+            localStorage.setItem(LOCAL_STORAGE_USER_ID_KEY, userData.id);
+            localStorage.setItem(LOCAL_STORAGE_USER_ROL_KEY, userRol);
+            setLoading(false); // End loading after delay
+        }, 1000); // 1-second delay
     };
 
     const logout = async () => {

@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 import { AnimatePresence } from 'framer-motion';
 import { AnimatedFeedback, useFeedback } from './components/animations';
 
@@ -8,10 +8,10 @@ import { AnimatedFeedback, useFeedback } from './components/animations';
 import AppLayout from './components/AppLayout';
 import AdminLayout from './layouts/AdminLayout';
 import RutaProtegida from './components/RutaProtegida';
-import RedireccionInicial from './pages/RedireccionInicial';
 import PageTransition from './components/PageTransition';
 import useSmoothScroll from './hooks/useSmoothScroll';
 import AlumnoLayout from './layouts/AlumnoLayout';
+import BrandedLoader from './components/BrandedLoader'; // Import BrandedLoader
 
 // --- PÁGINAS PÚBLICAS ---
 import AuthPage from './pages/AuthPage';
@@ -36,12 +36,10 @@ import AsignarRutina from './pages/Admin/AsignarRutina';
 import EditarDia from './pages/Admin/EditarDia';
 
 
-
-
-
 const AppContent = () => {
   const location = useLocation();
   useSmoothScroll();
+  const { user, rol, loading } = useAuth();
 
   return (
     <AnimatePresence mode="wait">
@@ -64,11 +62,11 @@ const AppContent = () => {
 
         {/* --- RUTAS PÚBLICAS --- */}
         <Route element={<AppLayout />}>
-          <Route path="/" element={<PageTransition><RedireccionInicial /></PageTransition>} />
           <Route path="/login" element={<PageTransition><AuthPage /></PageTransition>} />
           <Route path="/register" element={<PageTransition><AuthPage /></PageTransition>} />
           <Route path="/tyc" element={<PageTransition><Tyc /></PageTransition>} />
           <Route path="/privacidad" element={<PageTransition><PoliticaPrivacidad /></PageTransition>} />
+          <Route path="/" element={user ? (rol === 'admin' ? <Navigate to="/admin" replace /> : <Navigate to="/dashboard" replace />) : <Navigate to="/login" replace />} />
         </Route>
 
         {/* --- RUTAS DE ADMIN CON AdminLayout --- */}
@@ -98,12 +96,14 @@ const AppContent = () => {
 };
 
 const App = () => {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return <BrandedLoader />;
+  }
+
   return (
-    <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AuthProvider>
+    <AppContent />
   );
 };
 
