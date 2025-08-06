@@ -5,7 +5,7 @@ import { FaDumbbell } from 'react-icons/fa';
 const WeightTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-gray-800 p-2 rounded-lg shadow-md border border-gray-600 text-xs">
+            <div className="bg-gray-800 p-2 rounded-lg shadow-md border  text-xs">
                 <p className="text-gray-300">
                     {new Date(label).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
                 </p>
@@ -37,7 +37,7 @@ const WeightChartCard = ({ weightDailyData = [], loading = false }) => {
     const ultimoDia = data.length > 0 ? data[data.length - 1].carga : 0;
 
     return (
-        <div className="bg-gray-700/20 backdrop-blur-sm rounded-lg p-2 border border-white/10 shadow-md">
+        <div className="bg-gray-700/20 backdrop-blur-sm rounded-lg p-2 shadow-md">
             {/* HEADER */}
             <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center space-x-1">

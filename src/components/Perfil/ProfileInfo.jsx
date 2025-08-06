@@ -1,47 +1,96 @@
 import React from 'react';
-import { FaEdit, FaUserCircle, FaPhone, FaBirthdayCake, FaTransgender, FaMapMarkerAlt, FaSignOutAlt } from 'react-icons/fa';
+import {
+    FaEdit, FaUserCircle, FaBullseye, FaWeight,
+    FaRulerVertical, FaPercentage, FaHeartbeat
+} from 'react-icons/fa';
 
-const InfoRow = ({ icon, label, value }) => value ? (
-    <div className="flex items-center text-gray-300">
-        {icon && <span className="mr-2 text-cyan-400 text-base">{icon}</span>}
-        <div>
-            <p className="text-[10px] font-semibold text-gray-400">{label}</p>
-            <p className="text-sm text-white truncate">{value}</p>
-        </div>
+const KPIBox = ({ icon, label, value, sublabel }) => (
+    <div className="flex flex-col items-center justify-center  rounded-lg p-2 flex-1">
+        <span className="text-cyan-400 text-base">{icon}</span>
+        <p className="text-[10px] text-gray-400">{label}</p>
+        <p className="text-sm font-semibold text-white">{value || '-'}</p>
+        {sublabel && <p className="text-[9px] text-gray-500">{sublabel}</p>}
     </div>
-) : null;
+);
 
-const ProfileInfo = ({ user, perfil, onEdit, onLogout }) => {
+const ProfileInfo = ({ user, perfil, onEdit }) => {
     const avatarUrl = perfil?.avatar_url;
     const nombre = perfil?.nombre || '';
-    const apellido = perfil?.apellido || '';
-    const edad = perfil?.edad;
-    const genero = perfil?.genero;
-    const telefono = perfil?.telefono;
-    const ciudad = perfil?.ciudad;
-    const pais = perfil?.pais;
+    const objetivo = perfil?.objetivo || "Definí tu objetivo";
+
+    const peso = perfil?.peso ? `${perfil.peso} kg` : '-';
+    const altura = perfil?.altura ? `${perfil.altura} cm` : '-';
+    const imc = perfil?.imc ? perfil.imc.toFixed(1) : '-';
+    const grasa = perfil?.porcentaje_grasa ? `${perfil.porcentaje_grasa.toFixed(1)}%` : '-';
+    const metaPeso = perfil?.meta_peso ? `${perfil.meta_peso} kg` : null;
+    const metaGrasa = perfil?.meta_grasa ? `${perfil.meta_grasa}%` : null;
+    const actividad = perfil?.actividad_fisica || perfil?.frecuencia_entrenamiento || null;
+    const fechaUltimoPeso = perfil?.fecha_ultimo_peso
+        ? new Date(perfil.fecha_ultimo_peso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+        : null;
 
     return (
-        <div className="flex flex-col items-center mb-3 space-y-3">
-            <div className="flex items-center w-full justify-between">
+        <div className="flex flex-col space-y-3">
+            {/* Header */}
+            <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                    {avatarUrl ? <img src={avatarUrl} alt="Avatar" className="w-12 h-12 rounded-full border-2 border-cyan-500" /> : <FaUserCircle className="text-4xl text-blue-400" />}
+                    {avatarUrl ? (
+                        <img src={avatarUrl} alt="Avatar" className="w-12 h-12 rounded-full border border-cyan-500" />
+                    ) : (
+                        <FaUserCircle className="text-4xl text-blue-400" />
+                    )}
                     <div>
-                        <h2 className="text-sm font-semibold text-white">{nombre} {apellido}</h2>
-                        <p className="text-xs text-gray-400">{user?.email}</p>
+                        <h2 className="text-sm font-semibold text-white">Hola, {nombre}</h2>
+                        <div className="flex items-center text-xs text-cyan-400 space-x-1">
+                            <FaBullseye className="text-xs" />
+                            
+                            <span>{objetivo}</span>
+                        </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button onClick={onEdit} className="p-2 rounded-full bg-cyan-600 hover:bg-cyan-700"><FaEdit className="text-white text-sm" /></button>
-                    <button onClick={onLogout} className="p-2 rounded-full bg-red-600 hover:bg-red-700"><FaSignOutAlt className="text-white text-sm" /></button>
+                <button onClick={onEdit} className="p-1.5 rounded-full bg-cyan-600 hover:bg-cyan-700">
+                    <FaEdit className="text-white text-sm" />
+                    
+                </button>
+                
+            </div>
+
+            {/* KPIs */}
+            <div className="grid grid-cols-4 gap-2">
+                
+                <KPIBox
+                
+                    icon={<FaWeight className="text-white text-sm" />} // Peso → naranja
+                    label="Peso"
+                    value={peso}
+
+                />
+                <KPIBox
+                    icon={<FaRulerVertical className="text-white text-sm" />} // Altura → azul
+                    label="Altura"
+                    value={altura}
+                />
+                <KPIBox
+                    icon={<FaHeartbeat className="text-white text-sm" />} // IMC → rojo
+                    label="IMC"
+                    value={imc}
+                />
+                <KPIBox
+                    icon={<FaPercentage className="text-white text-sm" />} // Grasa → verde
+                    label="Grasa"
+                    value={grasa}
+                />
+
+            </div>
+
+            {/* Datos complementarios */}
+            {(metaPeso || metaGrasa || actividad) && (
+                <div className="text-[10px] text-gray-400 space-y-1">
+                    {metaPeso && <p>Meta de peso: <span className="text-white">{metaPeso}</span></p>}
+                    {metaGrasa && <p>Meta de grasa: <span className="text-white">{metaGrasa}</span></p>}
+                    {actividad && <p>Actividad: <span className="text-white">{actividad}</span></p>}
                 </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3 text-xs w-full">
-                <InfoRow icon={<FaBirthdayCake />} label="Edad" value={edad ? `${edad} años` : null} />
-                <InfoRow icon={<FaTransgender />} label="Género" value={genero} />
-                <InfoRow icon={<FaPhone />} label="Teléfono" value={telefono} />
-                <InfoRow icon={<FaMapMarkerAlt />} label="Ubicación" value={ciudad && pais ? `${ciudad}, ${pais}` : ciudad || pais} />
-            </div>
+            )}
         </div>
     );
 };

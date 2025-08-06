@@ -9,7 +9,7 @@ const TimeChartCard = ({ timeData }) => {
     const lastWeekMinutes = timeData?.length > 0 ? timeData[timeData.length - 1].minutos : 0;
 
     return (
-        <div className="bg-gray-700/20 backdrop-blur-sm rounded-xl p-4 border border-white/10 shadow-lg">
+        <div className="bg-gray-700/20 backdrop-blur-sm rounded-xl p-4  shadow-lg">
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                     <div className="p-1.5 bg-green-500/20 rounded-lg">
