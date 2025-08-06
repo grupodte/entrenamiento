@@ -88,6 +88,13 @@ export const AuthProvider = ({ children }) => {
         };
     }, []);
 
+    const login = (userData, userRol) => {
+        setUser(userData);
+        setRol(userRol);
+        localStorage.setItem(LOCAL_STORAGE_USER_ID_KEY, userData.id);
+        localStorage.setItem(LOCAL_STORAGE_USER_ROL_KEY, userRol);
+    };
+
     const logout = async () => {
         await supabase.auth.signOut();
         setUser(null);
@@ -97,7 +104,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, rol, loading, logout }}>
+        <AuthContext.Provider value={{ user, rol, loading, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

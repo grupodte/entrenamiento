@@ -108,6 +108,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                             pb-safe
                             will-change-transform
                             transform-gpu
+                            flex flex-col
                         "
                         style={{
                             boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.3)',
@@ -128,7 +129,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                         {/* Contenido con scroll optimizado */}
                         <div
                             className="
-                                px-4 pb-6 h-full 
+                                px-4 pb-6 flex-grow 
                                 overflow-y-auto 
                                 overscroll-contain
                                 scrollbar-hide
