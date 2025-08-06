@@ -26,11 +26,15 @@ html {
 }
 
 /* -------- RESET Y ALTURA DINÁMICA -------- */
-html, body, #root {
-  height: 100vh; /* Fallback */
+html,
+body,
+#root {
+  height: 100vh;
+  /* Fallback */
   height: calc(var(--dvh, 1vh) * 100);
   background: #121212;
-  overscroll-behavior: none; /* Evita el rebote en iOS/Android */
+  overscroll-behavior: none;
+  /* Evita el rebote en iOS/Android */
 }
 
 /* -------- TIPOGRAFÍA PERSONALIZADA -------- */
@@ -57,4 +61,135 @@ body {
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
   text-rendering: optimizeLegibility;
+}
+
+/* -------- COMPONENTES BASE -------- */
+@layer base {
+
+  input,
+  textarea,
+  select {
+    @apply bg-white/5 text-white placeholder-white/50 rounded-ios-md px-4 py-2;
+    @apply focus:ring-2 focus:ring-ios-primary focus:outline-none;
+    font-size: max(16px, 1rem);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  *:focus-visible {
+    @apply ring-2 ring-ios-primary ring-offset-2 ring-offset-gray-900;
+    outline: none;
+  }
+
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:active {
+    transform: scale(0.98);
+  }
+}
+
+/* -------- SCROLLBARS PERSONALIZADOS -------- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1f2937;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #6b7280;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari */
+}
+
+/
+/* -------- SAFE AREAS -------- */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+
+.pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
+.px-safe {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.py-safe {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.p-safe {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom);
+}
+
+/* === NUEVA CLASE: Ajuste de header (resta safe-area) === */
+.header-safe-offset {
+  margin-top: calc(env(safe-area-inset-top) * -0.5);
+}
+
+/* -------- CONTENEDORES DE SCROLL -------- */
+.ios-scroll {
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  touch-action: pan-y;
+}
+
+.admin-scroll-container {
+  @apply ios-scroll;
+  scrollbar-gutter: stable;
+}
+
+
+
+.fullscreen {
+  height: 120dvh;
+}
+
+@supports not (height: 150dvh) {
+  .fullscreen {
+    height: 120vh;
+  }
 }
