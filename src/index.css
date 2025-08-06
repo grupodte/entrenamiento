@@ -184,6 +184,10 @@ body::-webkit-scrollbar {
 
 .fullscreen {
   height: 120dvh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
 }
 
 @supports not (height: 150dvh) {
