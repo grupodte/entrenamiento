@@ -109,317 +109,95 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* -------- COMPONENTES BASE -------- */
-@layer base {
 
-  input,
-  textarea,
-  select {
-    @apply bg-white/5 text-white placeholder-white/50 rounded-ios-md px-4 py-2;
-    @apply focus:ring-2 focus:ring-ios-primary focus:outline-none;
-    font-size: max(16px, 1rem);
-    -webkit-appearance: none;
-    appearance: none;
-  }
 
-  *:focus-visible {
-    @apply ring-2 ring-ios-primary ring-offset-2 ring-offset-gray-900;
-    outline: none;
-  }
-
-  button {
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  button:active {
-    transform: scale(0.98);
-  }
+*=====SAFE AREAS (Precise Implementation)=====*/ .pt-safe {
+  padding-top: var(--sat);
 }
 
-/* -------- SCROLLBARS PERSONALIZADOS -------- */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.pb-safe {
+  padding-bottom: var(--sab);
 }
 
-::-webkit-scrollbar-track {
-  background: #1f2937;
-  border-radius: 4px;
+.pl-safe {
+  padding-left: var(--sal);
 }
 
-::-webkit-scrollbar-thumb {
-  background: #6b7280;
-  border-radius: 4px;
+.pr-safe {
+  padding-right: var(--sar);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+.px-safe {
+  padding-left: var(--sal);
+  padding-right: var(--sar);
 }
 
-.scrollbar-hide {
+.py-safe {
+  padding-top: var(--sat);
+  padding-bottom: var(--sab);
+}
+
+.p-safe {
+  padding: var(--sat) var(--sar) var(--sab) var(--sal);
+}
+
+/* Margin variants */
+.mt-safe {
+  margin-top: var(--sat);
+}
+
+.mb-safe {
+  margin-bottom: var(--sab);
+}
+
+.ml-safe {
+  margin-left: var(--sal);
+}
+
+.mr-safe {
+  margin-right: var(--sar);
+}
+
+/* Height with safe areas */
+.h-screen-safe {
+  height: calc(var(--dvh) - var(--sat) - var(--sab));
+}
+
+.min-h-screen-safe {
+  min-height: calc(var(--dvh) - var(--sat) - var(--sab));
+}
+
+
+.native-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-.scrollbar-hide::-webkit-scrollbar {
+.native-scroll::-webkit-scrollbar {
   display: none;
 }
 
-body::-webkit-scrollbar {
-  display: none;
-  /* Chrome, Safari */
+/* Snap scrolling for native feel */
+.scroll-snap-y {
+  scroll-snap-type: y mandatory;
 }
 
-/* -------- EFECTOS VISUALES -------- */
-.ios-glass {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 1rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+.scroll-snap-item {
+  scroll-snap-align: start;
 }
 
-.ios-glass-strong {
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+.scroll-snap-proximity {
+  scroll-snap-type: y proximity;
 }
 
-/* -------- COMPONENTES UI -------- */
-.ios-button {
-  @apply bg-ios-primary text-white font-product font-medium rounded-ios-md px-6 py-3;
-  @apply shadow-lg shadow-ios-primary/25;
-  min-height: 44px;
-}
 
-.ios-button:hover {
-  opacity: 0.9;
-}
-
-.ios-button:active {
-  transform: scale(0.95);
-}
-
-.ios-button-secondary {
-  @apply bg-white/10 text-white font-product font-medium rounded-ios-md px-6 py-3;
-  @apply border border-white/20;
-  min-height: 44px;
-}
-
-.ios-button-secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.ios-button-secondary:active {
-  transform: scale(0.95);
-}
-
-.ios-button-ghost {
-  @apply bg-transparent text-ios-primary font-product font-medium rounded-ios-md px-6 py-3;
-  min-height: 44px;
-}
-
-.ios-button-ghost:hover {
-  background: rgba(102, 126, 234, 0.1);
-}
-
-.ios-button-ghost:active {
-  transform: scale(0.95);
-}
-
-/* -------- TIPOGRAFÍA -------- */
-.ios-title {
-  @apply font-product text-[1.8rem] leading-[2.2rem] font-bold tracking-tight;
-}
-
-.ios-subtitle {
-  @apply font-product text-xl leading-7 font-semibold tracking-tight;
-}
-
-.ios-body {
-  @apply font-product text-base leading-6 font-normal;
-}
-
-.ios-body-large {
-  @apply font-product text-lg leading-7 font-normal;
-}
-
-.ios-caption {
-  @apply font-product text-sm leading-5 font-medium text-white/60;
-}
-
-.ios-small {
-  @apply font-product text-xs leading-4 font-medium text-white/50;
-}
-
-/* -------- SAFE AREAS -------- */
-.pt-safe {
-  padding-top: env(safe-area-inset-top);
-}
-
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.pl-safe {
-  padding-left: env(safe-area-inset-left);
-}
-
-.pr-safe {
-  padding-right: env(safe-area-inset-right);
-}
-
-.px-safe {
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-}
-
-.py-safe {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.p-safe {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-}
-
-.mb-safe {
-  margin-bottom: env(safe-area-inset-bottom);
-}
-
-/* === NUEVA CLASE: Ajuste de header (resta safe-area) === */
-.header-safe-offset {
-  margin-top: calc(env(safe-area-inset-top) * -0.5);
-}
-
-/* -------- CONTENEDORES DE SCROLL -------- */
-.ios-scroll {
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  touch-action: pan-y;
-}
-
-.admin-scroll-container {
-  @apply ios-scroll;
-  scrollbar-gutter: stable;
-}
-
-/* -------- ESTADOS DE CARGA -------- */
-.skeleton {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* -------- RESPONSIVE BREAKPOINTS -------- */
-@media (max-width: 768px) {
-  .admin-scroll-container {
-    scroll-snap-type: y proximity;
-  }
-
-  .ios-title {
-    @apply text-2xl leading-8;
-  }
-
-  .ios-button,
-  .ios-button-secondary,
-  .ios-button-ghost {
-    min-height: 48px;
-    @apply px-4 py-3;
-  }
-}
-
-@media (max-width: 480px) {
-  .ios-title {
-    @apply text-xl leading-7;
-  }
-}
-
-/* -------- PWA STANDALONE MODE -------- */
-@media all and (display-mode: standalone) {
-
-  html,
-  body {
-    height: -webkit-fill-available !important;
-    background: #121212 !important;
-  }
-
-  body {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  ::-webkit-scrollbar {
-    width: 0px;
-    background: transparent;
-  }
-}
-
-/* -------- MODO LANDSCAPE -------- */
-@media screen and (orientation: landscape) and (max-height: 500px) {
-  .ios-title {
-    @apply text-lg leading-6;
-  }
-
-  .ios-button,
-  .ios-button-secondary,
-  .ios-button-ghost {
-    @apply py-2;
-    min-height: 40px;
-  }
-}
-
-/* -------- UTILIDADES ADICIONALES -------- */
-.text-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.shadow-glow {
-  box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
-}
-
-.border-gradient {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-  border: 1px solid transparent;
-  background-clip: padding-box;
-}
-
-.state-error {
-  @apply border-red-500/50 bg-red-500/10 text-red-200;
-}
-
-.state-success {
-  @apply border-green-500/50 bg-green-500/10 text-green-200;
-}
-
-.state-warning {
-  @apply border-yellow-500/50 bg-yellow-500/10 text-yellow-200;
-}
-
-.state-info {
-  @apply border-blue-500/50 bg-blue-500/10 text-blue-200;
-}
-
-.fullscreen {
-  height: 120dvh;
-}
-
-@supports not (height: 150dvh) {
-  .fullscreen {
-    height: 120vh;
-  }
-}
-
-body {
-  padding-top: env(safe-area-inset-top);
-  padding-right: env(safe-area-inset-right);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
+.native-surface {
+  background: var(--app-surface);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
