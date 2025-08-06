@@ -53,16 +53,8 @@ textarea {
   /* Prevents automatic zoom on iOS */
 }
 
-/* Smooth scroll for PWA */
 html {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* -------- RESET Y ALTURA DINÁMICA -------- */
-html {
-  overflow: hidden;
-  /* Prevent body scroll */
+  height: var(--dvh);
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -72,12 +64,12 @@ html {
 }
 
 body {
+  height: var(--dvh);
   margin: 0;
   padding: 0;
   background: var(--app-bg);
   font-family: 'ProductSans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--app-text);
-  overflow: hidden;
   overscroll-behavior: none;
   touch-action: pan-x pan-y;
   -webkit-overflow-scrolling: touch;
@@ -88,9 +80,9 @@ body {
   flex-direction: column;
   height: 100%;
   width: 100%;
-  overflow: hidden;
   background: var(--app-bg);
 }
+
 /* -------- TIPOGRAFÍA PERSONALIZADA -------- */
 @font-face {
   font-family: 'ProductSans';
@@ -296,8 +288,8 @@ body::-webkit-scrollbar {
   padding-right: env(safe-area-inset-right);
 }
 
-.mt-safe-negative {
-  margin-top: calc(var(--sat) * -1);
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom);
 }
 
 /* === NUEVA CLASE: Ajuste de header (resta safe-area) === */
@@ -312,10 +304,6 @@ body::-webkit-scrollbar {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   touch-action: pan-y;
-}
-
-.mt-safe {
-  margin-top: var(--sat);
 }
 
 .admin-scroll-container {
