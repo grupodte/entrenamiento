@@ -21,10 +21,10 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
     // Optimizar la carga de datos
     const loadRutinaData = useCallback(async () => {
         if (!shouldFetch) return;
-        
+
         setLoading(true);
         setError(null);
-        
+
         try {
             const data = await fetchRutinaData(rutinaId, tipo);
             setRutinaData(data);
@@ -50,7 +50,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
         onClose(); // Inicia la animación de cierre del panel
         // Espera a que la animación termine (aprox. 300ms) antes de navegar
         setTimeout(() => {
-            navigate(`/rutina/${rutinaId}?tipo=${tipo}&bloque=${bloqueId}`);
+            navigate(`/rutina/${rutinaId}?bloque=${bloqueId}`, { state: { tipo: tipo } });
         }, 300);
     };
 
@@ -81,7 +81,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                     <div className="text-center p-6 bg-red-900/50 rounded-lg">
                         <FaExclamationTriangle className="mx-auto mb-3 text-3xl text-red-400" />
                         <p className="text-red-300 mb-4">{currentError}</p>
-                        <button 
+                        <button
                             onClick={loadRutinaData}
                             className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
                         >
@@ -103,7 +103,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                             <p className="text-gray-300">Esta rutina no tiene bloques definidos.</p>
                         </div>
                     ) : (
-                        <motion.div 
+                        <motion.div
                             className="space-y-3"
                             variants={containerVariants}
                             initial="hidden"
@@ -113,7 +113,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                                 <motion.div key={bloque.id} variants={itemVariants}>
                                     <div className="flex justify-between items-center bg-gray-700/10 shadow-lg rounded-xl p-4 border border-gray-600/10 hover:border-cyan-400 transition-colors duration-300">
                                         <div className="flex items-center gap-3">
-                                            <FaCalendarAlt className="text-cyan-300 text-lg"/>
+                                            <FaCalendarAlt className="text-cyan-300 text-lg" />
                                             <span className="text-base font-semibold text-white">
                                                 {bloque.nombre}
                                             </span>

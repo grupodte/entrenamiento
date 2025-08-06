@@ -19,7 +19,7 @@ import toast from "react-hot-toast";
 let orderedInteractiveElementIds = [];
 
 const RutinaDetalle = () => {
-    const { 
+    const {
         elapsedTime: workoutTime,
         startWorkout,
         finishWorkout,
@@ -111,7 +111,7 @@ const RutinaDetalle = () => {
 
             // Usar el nuevo hook para iniciar el descanso
             startRest(duracion, nombreSiguiente);
-            
+
             // Mantener compatibilidad con el sistema actual para la UI
             setCurrentTimerOriginId(originId);
         }
@@ -201,7 +201,7 @@ const RutinaDetalle = () => {
         return () => finishWorkout();
     }, []);
 
-const formatTime = (seconds) => {
+    const formatTime = (seconds) => {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
         return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
@@ -222,7 +222,7 @@ const formatTime = (seconds) => {
                     audioRef.current.pause();
                     audioRef.current.currentTime = 0;
                     audioUnlocked.current = true;
-                }).catch(() => {});
+                }).catch(() => { });
             }
         }
     };
@@ -253,28 +253,44 @@ const formatTime = (seconds) => {
     useEffect(() => {
         const fetchRutina = async () => {
             setLoading(true);
-            let res;
-            const selectQuery = `
-            id, nombre, descripcion,
-            bloques (id, orden,
-                subbloques (id, orden, nombre, tipo,
-                    subbloques_ejercicios (id, 
-                        ejercicio: ejercicios ( id, nombre ),
-                        series: series_subejercicio (id, nro_set, reps, pausa)
-                    )
-                )
-            )
-          `;
-            if (tipo === "personalizada") res = await supabase.from("rutinas_personalizadas").select(selectQuery).eq("id", id).single();
-            else res = await supabase.from("rutinas_base").select(selectQuery).eq("id", id).single();
 
-            if (res.error) {
-                console.error("Error al cargar rutina:", res.error); setRutina(null);
-            } else {
-                let data = res.data;
+            try {
+                // Step 1: Fetch the base routine object
+                const fromTable = tipo === 'personalizada' ? 'rutinas_personalizadas' : 'rutinas_base';
+                const { data: rutinaData, error: rutinaError } = await supabase
+                    .from(fromTable)
+                    .select('id, nombre, descripcion')
+                    .eq('id', id)
+                    .single();
+
+                if (rutinaError) throw rutinaError;
+
+                // Step 2: Fetch the nested structure (bloques, subbloques, etc.)
+                const fkColumn = tipo === 'personalizada' ? 'rutina_personalizada_id' : 'rutina_base_id';
+                const { data: bloquesData, error: bloquesError } = await supabase
+                    .from('bloques')
+                    .select(`
+                        id, orden,
+                        subbloques (
+                            id, orden, nombre, tipo,
+                            subbloques_ejercicios (
+                                id, 
+                                ejercicio:ejercicios (id, nombre),
+                                series:series_subejercicio (id, nro_set, reps, pausa)
+                            )
+                        )
+                    `)
+                    .eq(fkColumn, rutinaData.id);
+
+                if (bloquesError) throw bloquesError;
+
+                // Step 3: Combine the data
+                let data = { ...rutinaData, bloques: bloquesData };
+
                 if (data?.bloques && bloqueSeleccionado) {
                     data.bloques = data.bloques.filter((b) => String(b.id) === String(bloqueSeleccionado));
                 }
+
                 const processedData = {
                     ...data,
                     bloques: data.bloques?.map(b => ({
@@ -351,15 +367,17 @@ const formatTime = (seconds) => {
                     });
                     setLastSessionData(mappedLastSessionData);
                 }
+
+            } catch (error) {
+                console.error("Error al cargar rutina:", error);
+                setRutina(null);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
-        const { state } = location; // Use the location object from the top-level hook
-        const tipo = state?.tipo || "base";
-        const searchParams = new URLSearchParams(location.search);
-        const bloqueSeleccionado = searchParams.get("bloque");
+
         fetchRutina();
-    }, [id, location.search, location.state]);
+    }, [id, location.search, location.state, user]);
 
     useEffect(() => {
         if (elementoActivoId && elementoRefs.current[elementoActivoId]) {
@@ -438,7 +456,7 @@ const formatTime = (seconds) => {
                 </div>
                 <div className="flex items-center gap-2 text-cyan-400">
                     <FaStopwatch />
-                        <span className="font-mono text-lg">{formatTime(workoutTime)}</span>
+                    <span className="font-mono text-lg">{formatTime(workoutTime)}</span>
                 </div>
             </header>
 
@@ -451,11 +469,11 @@ const formatTime = (seconds) => {
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-6 bg-gray-800 rounded-xl shadow-lg mt-6">
                         <h2 className="text-2xl font-bold text-green-400">¡Entrenamiento completado!</h2>
                         <p className="text-gray-300 mt-2 mb-4">¡Gran trabajo! Has finalizado todos los ejercicios.</p>
-                        
+
                         <div className="grid grid-cols-2 gap-4 text-white my-4">
                             <div className="bg-gray-700/50 p-3 rounded-lg">
                                 <p className="text-sm text-gray-400">Tiempo Total</p>
-                        <p className="text-xl font-bold">{formatTime(workoutTime)}</p>
+                                <p className="text-xl font-bold">{formatTime(workoutTime)}</p>
                             </div>
                             <div className="bg-gray-700/50 p-3 rounded-lg">
                                 <p className="text-sm text-gray-400">Series Completadas</p>
