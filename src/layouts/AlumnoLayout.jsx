@@ -22,8 +22,8 @@ const AlumnoLayout = () => {
   const handleProfileUpdate = useCallback(() => setIsEditPerfilDrawerOpen(false), []);
 
   return (
-    <div className="fullscreen flex flex-col bg-gray-900 text-white relative p-6">
-      <main className="flex-1 relative overflow-y-auto scrollbar-hide">
+    <div className="fullscreen flex flex-col bg-gray-900/20 text-white relative p-6">
+      <main className="flex-1 relative overflow-y-auto scrollbar-hide pt-safe pb-safe">
         <Outlet />
       </main>
 
