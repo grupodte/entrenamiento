@@ -68,16 +68,6 @@ const AlumnoLayout = () => {
     setIsEditPerfilDrawerOpen(false);
   }, []);
 
-  // Estilos optimizados para PWA
-  const containerStyles = useMemo(() => ({
-    height: '100dvh', // Altura dinámica del viewport (mejor para PWA)
-    minHeight: '100dvh',
-    backgroundImage: `url('/assets/FOTO_FONDO.webp')`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-    backgroundAttachment: 'fixed'
-  }), []);
 
   const overlayStyles = useMemo(() => ({
     background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.6) 100%)',
@@ -86,16 +76,8 @@ const AlumnoLayout = () => {
   }), []);
 
   return (
-    <div
-      className="
-        text-white font-sans 
-        flex flex-col 
-        relative 
-        overflow-hidden
-        will-change-transform
-      "
-      style={containerStyles}
-    >
+    <div className="fullscreen flex">
+
       {/* Overlay de fondo */}
       <div
         className="absolute inset-0 pointer-events-none"
