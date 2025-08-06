@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 const AuthForm = ({
     isLogin,
@@ -10,7 +11,17 @@ const AuthForm = ({
     handleSubmit,
 }) => {
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <motion.form
+            onSubmit={handleSubmit}
+            className="space-y-4"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+                duration: 0.6,
+                delay: 1, // Espera 1 segundo antes de iniciar
+                ease: [0.25, 0.1, 0.25, 1],
+            }}
+        >
             <input
                 type="email"
                 value={email}
@@ -33,8 +44,8 @@ const AuthForm = ({
                 type="submit"
                 disabled={isLoading}
                 className={`w-full px-4 py-3 rounded-2xl font-bold text-lg transition-all duration-200 ${isLoading
-                        ? 'bg-cyan-600/20 text-white cursor-not-allowed'
-                        : 'bg-cyan-600/60 hover:bg-cyan-500 text-white hover:shadow-lg'
+                    ? 'bg-cyan-600/20 text-white cursor-not-allowed'
+                    : 'bg-cyan-600/60 hover:bg-cyan-500 text-white hover:shadow-lg'
                     }`}
             >
                 {isLoading ? (
@@ -67,7 +78,7 @@ const AuthForm = ({
                     'Registrarme'
                 )}
             </button>
-        </form>
+        </motion.form>
     );
 };
 
