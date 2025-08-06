@@ -10,15 +10,13 @@
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
   --sar: env(safe-area-inset-right, 0px);
-
+  
   /* Dynamic Viewport */
   --vh: 100vh;
   --dvh: 100dvh;
-  --svh: 100svh;
-  /* Small viewport height */
-  --lvh: 100lvh;
-  /* Large viewport height */
-
+  --svh: 100svh; /* Small viewport height */
+  --lvh: 100lvh; /* Large viewport height */
+  
   /* App-like Colors */
   --app-bg: #000000;
   --app-surface: #121212;
@@ -27,7 +25,7 @@
   --app-text: #ffffff;
   --app-text-secondary: rgba(255, 255, 255, 0.7);
   --app-text-tertiary: rgba(255, 255, 255, 0.5);
-
+  
   /* Haptic Feedback Duration */
   --haptic-duration: 0.1s;
   --transition-fast: 0.15s;
@@ -45,9 +43,7 @@
 }
 
 /* Allow text selection for specific elements */
-input,
-textarea,
-[contenteditable] {
+input, textarea, [contenteditable] {
   -webkit-user-select: auto;
   user-select: auto;
 }
@@ -98,60 +94,34 @@ body {
 }
 
 /* ===== SAFE AREAS (Precise Implementation) ===== */
-.pt-safe {
-  padding-top: var(--sat);
+.pt-safe { padding-top: var(--sat); }
+.pb-safe { padding-bottom: var(--sab); }
+.pl-safe { padding-left: var(--sal); }
+.pr-safe { padding-right: var(--sar); }
+.px-safe { 
+  padding-left: var(--sal); 
+  padding-right: var(--sar); 
 }
-
-.pb-safe {
-  padding-bottom: var(--sab);
+.py-safe { 
+  padding-top: var(--sat); 
+  padding-bottom: var(--sab); 
 }
-
-.pl-safe {
-  padding-left: var(--sal);
-}
-
-.pr-safe {
-  padding-right: var(--sar);
-}
-
-.px-safe {
-  padding-left: var(--sal);
-  padding-right: var(--sar);
-}
-
-.py-safe {
-  padding-top: var(--sat);
-  padding-bottom: var(--sab);
-}
-
-.p-safe {
-  padding: var(--sat) var(--sar) var(--sab) var(--sal);
+.p-safe { 
+  padding: var(--sat) var(--sar) var(--sab) var(--sal); 
 }
 
 /* Margin variants */
-.mt-safe {
-  margin-top: var(--sat);
-}
-
-.mb-safe {
-  margin-bottom: var(--sab);
-}
-
-.ml-safe {
-  margin-left: var(--sal);
-}
-
-.mr-safe {
-  margin-right: var(--sar);
-}
+.mt-safe { margin-top: var(--sat); }
+.mb-safe { margin-bottom: var(--sab); }
+.ml-safe { margin-left: var(--sal); }
+.mr-safe { margin-right: var(--sar); }
 
 /* Height with safe areas */
-.h-screen-safe {
-  height: calc(var(--dvh) - var(--sat) - var(--sab));
+.h-screen-safe { 
+  height: calc(var(--dvh) - var(--sat) - var(--sab)); 
 }
-
-.min-h-screen-safe {
-  min-height: calc(var(--dvh) - var(--sat) - var(--sab));
+.min-h-screen-safe { 
+  min-height: calc(var(--dvh) - var(--sat) - var(--sab)); 
 }
 
 /* ===== SCROLLING (Native App Style) ===== */
@@ -234,7 +204,7 @@ body {
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--app-border);
   border-radius: 16px;
-  box-shadow:
+  box-shadow: 
     0 4px 30px rgba(0, 0, 0, 0.1),
     0 1px 0 rgba(255, 255, 255, 0.1) inset;
   transition: all var(--transition-medium) ease;
@@ -244,7 +214,7 @@ body {
 @media (hover: hover) and (pointer: fine) {
   .native-card:hover {
     transform: translateY(-2px);
-    box-shadow:
+    box-shadow: 
       0 8px 40px rgba(0, 0, 0, 0.15),
       0 1px 0 rgba(255, 255, 255, 0.1) inset;
   }
@@ -261,8 +231,7 @@ body {
   @apply bg-white/5 text-white placeholder-white/50 rounded-xl px-4 py-3;
   @apply border border-white/10 transition-all duration-200;
   @apply focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/30 focus:outline-none;
-  font-size: max(16px, 1rem);
-  /* Prevent zoom on iOS */
+  font-size: max(16px, 1rem); /* Prevent zoom on iOS */
   -webkit-appearance: none;
   appearance: none;
   backdrop-filter: blur(10px);
@@ -338,7 +307,6 @@ body {
     transform: translateY(100%);
     opacity: 0;
   }
-
   to {
     transform: translateY(0);
     opacity: 1;
@@ -350,7 +318,6 @@ body {
     transform: translateY(0);
     opacity: 1;
   }
-
   to {
     transform: translateY(100%);
     opacity: 0;
@@ -362,7 +329,6 @@ body {
     opacity: 0;
     transform: scale(0.9);
   }
-
   to {
     opacity: 1;
     transform: scale(1);
@@ -383,43 +349,38 @@ body {
 
 /* ===== NATIVE LOADING STATES ===== */
 .native-skeleton {
-  background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0.1) 0%,
-      rgba(255, 255, 255, 0.2) 50%,
-      rgba(255, 255, 255, 0.1) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 /* ===== PWA STANDALONE OPTIMIZATIONS ===== */
 @media all and (display-mode: standalone) {
-
-  html,
-  body {
+  html, body {
     height: -webkit-fill-available !important;
     background: var(--app-bg) !important;
   }
-
+  
   /* Hide scrollbars completely in standalone mode */
   * {
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-
+  
   *::-webkit-scrollbar {
     display: none;
   }
-
+  
   /* Optimize for notch devices */
   .notch-aware {
     padding-top: max(var(--sat), 20px);
@@ -428,25 +389,23 @@ body {
 
 /* ===== DEVICE-SPECIFIC OPTIMIZATIONS ===== */
 @media screen and (max-width: 430px) {
-
   /* iPhone optimization */
   .native-button {
     min-height: 48px;
   }
-
+  
   .native-input {
     min-height: 48px;
   }
 }
 
 @media screen and (orientation: landscape) and (max-height: 500px) {
-
   /* Landscape optimization */
   .native-button {
     min-height: 40px;
     padding: 8px 20px;
   }
-
+  
   .native-nav-item {
     min-height: 50px;
   }
@@ -493,7 +452,7 @@ body {
   .native-card {
     border: 2px solid rgba(255, 255, 255, 0.3);
   }
-
+  
   .native-button {
     border: 2px solid currentColor;
   }
@@ -515,26 +474,9 @@ body {
 }
 
 /* Native app typography hierarchy */
-.text-display {
-  @apply text-4xl font-bold leading-tight tracking-tight;
-}
-
-.text-headline {
-  @apply text-2xl font-bold leading-tight;
-}
-
-.text-title {
-  @apply text-xl font-semibold leading-tight;
-}
-
-.text-body {
-  @apply text-base font-normal leading-relaxed;
-}
-
-.text-caption {
-  @apply text-sm font-medium leading-tight;
-}
-
-.text-overline {
-  @apply text-xs font-bold uppercase tracking-wider;
-}
+.text-display { @apply text-4xl font-bold leading-tight tracking-tight; }
+.text-headline { @apply text-2xl font-bold leading-tight; }
+.text-title { @apply text-xl font-semibold leading-tight; }
+.text-body { @apply text-base font-normal leading-relaxed; }
+.text-caption { @apply text-sm font-medium leading-tight; }
+.text-overline { @apply text-xs font-bold uppercase tracking-wider; }
