@@ -12,8 +12,11 @@
 }
 
 /* Prevent zoom on inputs for PWA */
-input, select, textarea {
-  font-size: 16px; /* Prevents automatic zoom on iOS */
+input,
+select,
+textarea {
+  font-size: 16px;
+  /* Prevents automatic zoom on iOS */
 }
 
 /* Smooth scroll for PWA */
@@ -256,7 +259,6 @@ body {
 .mb-safe {
   margin-bottom: env(safe-area-inset-bottom);
 }
-
 /* -------- CONTENEDORES DE SCROLL -------- */
 .ios-scroll {
   overflow-y: auto;
@@ -386,6 +388,9 @@ body {
 
 
 
+.header {
+  padding-top: env(safe-area-inset-top);
+}
 
 .footer {
   padding-bottom: env(safe-area-inset-bottom);
