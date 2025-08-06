@@ -2,37 +2,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* ===== PWA CORE VARIABLES ===== */
+/* PWA Additional Features */
 :root {
-  /* Safe Areas */
-  --sat: env(safe-area-inset-top, 0px);
-  --sab: env(safe-area-inset-bottom, 0px);
-  --sal: env(safe-area-inset-left, 0px);
-  --sar: env(safe-area-inset-right, 0px);
-
-  /* Dynamic Viewport */
-  --vh: 100vh;
-  --dvh: 100dvh;
-  --svh: 100svh;
-  /* Small viewport height */
-  --lvh: 100lvh;
-  /* Large viewport height */
-
-  /* App-like Colors */
-  --app-bg: #000000;
-  --app-surface: #121212;
-  --app-card: rgba(255, 255, 255, 0.08);
-  --app-border: rgba(255, 255, 255, 0.12);
-  --app-text: #ffffff;
-  --app-text-secondary: rgba(255, 255, 255, 0.7);
-  --app-text-tertiary: rgba(255, 255, 255, 0.5);
-
-  /* Haptic Feedback Duration */
-  --haptic-duration: 0.1s;
-  --transition-fast: 0.15s;
-  --transition-medium: 0.25s;
-  --transition-slow: 0.4s;
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+  --sar: env(safe-area-inset-right);
 }
 
 /* ===== BASE RESET FOR NATIVE APP FEEL ===== */
