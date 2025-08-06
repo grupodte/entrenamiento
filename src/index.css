@@ -3,39 +3,48 @@
 @tailwind components;
 @tailwind utilities;
 
-/* PWA Additional Features */
+/* ====== VARIABLES CSS ====== */
 :root {
   --sat: env(safe-area-inset-top);
   --sab: env(safe-area-inset-bottom);
   --sal: env(safe-area-inset-left);
   --sar: env(safe-area-inset-right);
+
+  /* Colores del tema */
+  --bg-primary: #121212;
+  --bg-secondary: #1f1f1f;
+  --bg-card: rgba(31, 41, 55, 0.4);
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --accent-primary: #06b6d4;
+  --accent-secondary: #10b981;
 }
 
-/* Prevent zoom on inputs for PWA */
-input,
-select,
-textarea {
-  font-size: 16px;
-  /* Prevents automatic zoom on iOS */
+/* ====== RESET Y BASE ====== */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overscroll-behavior: none;
 }
 
-/* Smooth scroll for PWA */
 html {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 }
 
-/* -------- RESET Y ALTURA DINÁMICA -------- */
-html,
-body,
-#root {
-  height: 100%;
-  /* Fallback */
+body {
+  @apply font-sans select-none text-white;
+  background-color: var(--bg-primary);
+  touch-action: manipulation;
   overscroll-behavior: none;
-  /* Evita el rebote en iOS/Android */
+  -webkit-overflow-scrolling: touch;
+  text-rendering: optimizeLegibility;
 }
 
-/* -------- TIPOGRAFÍA PERSONALIZADA -------- */
+/* ====== TIPOGRAFÍA PERSONALIZADA ====== */
 @font-face {
   font-family: 'ProductSans';
   src: url('./assets/fonts/ProductSansRegular.woff2') format('woff2'),
@@ -52,30 +61,223 @@ body,
   font-display: swap;
 }
 
-/* -------- ESTILOS BASE -------- */
-body {
-  @apply font-product select-none text-white bg-[#121212];
-  touch-action: manipulation;
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
-  text-rendering: optimizeLegibility;
+/* ====== LAYOUT PRINCIPAL ====== */
+.app-container {
+  @apply h-screen flex flex-col relative;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
-/* -------- COMPONENTES BASE -------- */
+.main-content {
+  @apply flex-1 overflow-y-auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.main-content::-webkit-scrollbar {
+  display: none;
+}
+
+.content-wrapper {
+  @apply px-4 pb-24;
+  min-height: 100%;
+}
+
+/* ====== DASHBOARD STYLES ====== */
+.dashboard {
+  @apply space-y-6 py-4;
+}
+
+.dashboard-header {
+  @apply space-y-1;
+}
+
+.greeting-text {
+  @apply text-gray-400 text-base;
+}
+
+.user-name {
+  @apply text-2xl font-bold text-white;
+}
+
+/* Stats Grid */
+.stats-grid {
+  @apply grid grid-cols-2 gap-4;
+}
+
+.stat-card {
+  @apply bg-gray-800/40 backdrop-blur-md rounded-xl p-4 flex flex-col items-center justify-center text-center;
+}
+
+.stat-title {
+  @apply font-bold text-white text-sm mb-2;
+}
+
+.progress-circle {
+  @apply relative;
+}
+
+.progress-text {
+  @apply absolute inset-0 flex flex-col items-center justify-center;
+}
+
+.progress-number {
+  @apply text-white font-bold text-lg;
+}
+
+.progress-total {
+  @apply text-gray-400 text-xs;
+}
+
+.tip-title {
+  @apply text-sm font-semibold text-cyan-300 mb-2 flex items-center gap-2;
+}
+
+.tip-text {
+  @apply text-gray-300 text-xs;
+}
+
+/* Today's Workout */
+.today-section {
+  @apply space-y-3;
+}
+
+.workout-card {
+  @apply bg-gray-800 rounded-xl p-4 shadow-md flex flex-col justify-between h-full;
+}
+
+.workout-card.completed {
+  @apply border border-green-500/50;
+}
+
+.workout-card.pending {
+  @apply border border-cyan-400/50;
+}
+
+.workout-info {
+  @apply space-y-1;
+}
+
+.workout-day {
+  @apply font-bold text-xs text-gray-400 uppercase tracking-wider;
+}
+
+.workout-name {
+  @apply text-xl font-bold text-white;
+}
+
+.completed-badge {
+  @apply mt-4 flex items-center gap-2 text-green-400 font-bold py-2 px-3 rounded-lg bg-gray-700 text-sm;
+}
+
+.start-button {
+  @apply mt-4 w-full flex items-center justify-center gap-2 bg-cyan-400 text-gray-900 font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-cyan-300 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-400/50;
+}
+
+.rest-day-card {
+  @apply bg-gray-800 rounded-xl p-4 shadow-md;
+}
+
+.rest-day-card p {
+  @apply text-gray-300 text-sm;
+}
+
+/* Upcoming Workouts */
+.upcoming-section {
+  @apply space-y-3;
+}
+
+.section-title {
+  @apply text-lg font-semibold text-white;
+}
+
+.upcoming-list {
+  @apply space-y-3;
+}
+
+.upcoming-card {
+  @apply bg-gray-800/20 backdrop-blur-md rounded-xl p-4 flex items-center justify-between hover:bg-gray-700 transition-colors duration-200 cursor-not-allowed opacity-50;
+}
+
+.upcoming-info {
+  @apply space-y-1;
+}
+
+.upcoming-day {
+  @apply text-xs text-gray-400 font-medium;
+}
+
+.upcoming-name {
+  @apply font-semibold text-base text-white;
+}
+
+.upcoming-arrow {
+  @apply text-gray-600;
+}
+
+.show-more-button {
+  @apply w-full mt-3 flex items-center justify-center gap-2 text-cyan-300 text-sm font-semibold hover:text-cyan-200 transition-colors;
+}
+
+/* Options Section */
+.options-section {
+  @apply space-y-3;
+}
+
+.options-grid {
+  @apply grid grid-cols-2 gap-4;
+}
+
+.option-card {
+  @apply bg-gray-800/20 backdrop-blur-md rounded-xl p-4 flex items-center gap-3 hover:bg-gray-700 transition-colors duration-200;
+}
+
+.option-card.disabled {
+  @apply cursor-not-allowed opacity-50;
+}
+
+.option-icon {
+  @apply p-2 rounded-lg text-xl;
+}
+
+.option-icon.green {
+  @apply bg-green-500/20 text-green-400;
+}
+
+.option-icon.red {
+  @apply bg-red-500/20 text-red-400;
+}
+
+.option-info {
+  @apply space-y-1;
+}
+
+.option-title {
+  @apply font-semibold text-base text-white;
+}
+
+.option-subtitle {
+  @apply text-xs text-gray-400;
+}
+
+/* ====== COMPONENTES BASE ====== */
 @layer base {
 
   input,
   textarea,
   select {
-    @apply bg-white/5 text-white placeholder-white/50 rounded-ios-md px-4 py-2;
-    @apply focus:ring-2 focus:ring-ios-primary focus:outline-none;
+    @apply bg-white/5 text-white placeholder-white/50 rounded-lg px-4 py-2;
+    @apply focus:ring-2 focus:ring-cyan-400 focus:outline-none;
     font-size: max(16px, 1rem);
     -webkit-appearance: none;
     appearance: none;
   }
 
   *:focus-visible {
-    @apply ring-2 ring-ios-primary ring-offset-2 ring-offset-gray-900;
+    @apply ring-2 ring-cyan-400 ring-offset-2 ring-offset-gray-900;
     outline: none;
   }
 
@@ -88,7 +290,7 @@ body {
   }
 }
 
-/* -------- SCROLLBARS PERSONALIZADOS -------- */
+/* ====== SCROLLBARS ====== */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -108,65 +310,42 @@ body {
   background: #9ca3af;
 }
 
-.scrollbar-hide {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+/* ====== RESPONSIVE ====== */
+@media (min-width: 640px) {
+  .content-wrapper {
+    @apply px-6;
+  }
+
+  .stats-grid {
+    @apply grid-cols-2;
+  }
+
+  .options-grid {
+    @apply grid-cols-2;
+  }
 }
 
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+@media (min-width: 768px) {
+  .content-wrapper {
+    @apply px-8;
+  }
+
+  .stats-grid {
+    @apply grid-cols-2 gap-6;
+  }
+
+  .options-grid {
+    @apply grid-cols-2 gap-6;
+  }
 }
 
-body::-webkit-scrollbar {
-  display: none;
-  /* Chrome, Safari */
+@media (min-width: 1024px) {
+  .content-wrapper {
+    @apply max-w-4xl mx-auto;
+  }
 }
 
-
-/* -------- SAFE AREAS -------- */
-.pt-safe {
-  padding-top: env(safe-area-inset-top);
-}
-
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.pl-safe {
-  padding-left: env(safe-area-inset-left);
-}
-
-.pr-safe {
-  padding-right: env(safe-area-inset-right);
-}
-
-.px-safe {
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-}
-
-.py-safe {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.p-safe {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-}
-
-.mb-safe {
-  margin-bottom: env(safe-area-inset-bottom);
-}
-
-/* === NUEVA CLASE: Ajuste de header (resta safe-area) === */
-.header-safe-offset {
-  margin-top: calc(env(safe-area-inset-top) * -0.5);
-}
-
-/* -------- CONTENEDORES DE SCROLL -------- */
+/* ====== UTILIDADES PWA ====== */
 .ios-scroll {
   overflow-y: auto;
   overscroll-behavior-y: contain;
@@ -175,23 +354,11 @@ body::-webkit-scrollbar {
   touch-action: pan-y;
 }
 
-.admin-scroll-container {
-  @apply ios-scroll;
-  scrollbar-gutter: stable;
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-
-
-.fullscreen {
-  height: 120dvh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      overflow: hidden;
-}
-
-@supports not (height: 150dvh) {
-  .fullscreen {
-    height: 120vh;
-  }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
