@@ -4,6 +4,7 @@ import {
   Loader2, User, Wifi
 } from 'lucide-react';
 import { useSpotify } from '../context/SpotifyContext';
+import SpotifyPlayerSDK from './SpotifyPlayerSDK'; // ✅ Importar el SDK
 
 const SpotifyWidget = ({ className = '' }) => {
   const {
@@ -20,6 +21,7 @@ const SpotifyWidget = ({ className = '' }) => {
     previous,
     fetchCurrentTrack,
     loginLoading,
+    isReady
   } = useSpotify();
 
   const [progress, setProgress] = useState(0);
@@ -59,10 +61,13 @@ const SpotifyWidget = ({ className = '' }) => {
 
   return (
     <div className={`rounded-3xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-white/10 p-6 backdrop-blur-xl ${className}`}>
+      {/* 👉 Incluir el SDK aquí */}
+      {isAuthenticated && <SpotifyPlayerSDK />}
+
       {!isAuthenticated ? (
         <div className="flex flex-col justify-center items-center py-8">
           <Music className="w-12 h-12 text-green-400 mb-4" />
-          <h3 className="text-lg font-semibold text-white mb-2">Conecta tu Spotify</h3>
+          <h3 className="text-lg font-semibold text-white mb-2">Conectá tu Spotify</h3>
           <p className="text-sm text-gray-300 text-center mb-4">Disfrutá tu música favorita mientras entrenás</p>
 
           {error && (
@@ -75,7 +80,7 @@ const SpotifyWidget = ({ className = '' }) => {
             type="button"
             onClick={handleLogin}
             disabled={loginLoading}
-            className="relative z-50 pointer-events-auto px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-semibold rounded-full transition-colors flex items-center gap-2 shadow-lg active:scale-95"
+            className="px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-semibold rounded-full transition-colors flex items-center gap-2 shadow-lg active:scale-95"
           >
             {loginLoading ? (
               <>
@@ -90,10 +95,10 @@ const SpotifyWidget = ({ className = '' }) => {
             )}
           </button>
         </div>
-      ) : loading ? (
+      ) : loading || !isReady ? (
         <div className="flex items-center justify-center py-8">
           <Loader2 className="w-8 h-8 text-green-400 animate-spin" />
-          <span className="ml-3 text-white">Cargando música...</span>
+          <span className="ml-3 text-white">Preparando reproductor...</span>
         </div>
       ) : currentTrack ? (
         <div>
