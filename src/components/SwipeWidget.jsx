@@ -97,16 +97,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
           >
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2 w-1 h-12 bg-white/20 rounded-full" />
 
-            <button
-              type="button"
-              role="button"
-              onClick={onClose}
-              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
-              style={{ pointerEvents: 'auto' }}
-            >
-              <X className="w-4 h-4 text-white" />
-            </button>
-
+           
             <div className="p-4 pt-16 pb-4">
               <div className="flex items-center gap-3 mb-4">
                 <Music className="w-6 h-6 text-green-400" />
