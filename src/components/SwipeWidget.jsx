@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Music } from 'lucide-react';
 import SpotifyWidget from './SpotifyWidget';
 
 const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Actualizar tiempo cada minuto
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
   const openProgress = Math.min(swipeProgress / 200, 1);
   const closeProgressNormalized = Math.min(closeProgress / 150, 1);
 
@@ -42,6 +50,25 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     closing: { opacity: (1 - closeProgressNormalized) * 0.6 }
   };
 
+  // Widget de tiempo simplificado
+  const TimeWidget = () => (
+    <div className="col-span-2 rounded-3xl bg-gradient-to-br from-blue-500/20 to-purple-600/20 border border-white/10 p-6 flex flex-col justify-center items-center h-32 backdrop-blur-xl">
+      <div className="text-4xl font-light text-white mb-1">
+        {currentTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+      </div>
+      <div className="text-sm text-gray-300">
+        {currentTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+      </div>
+    </div>
+  );
+
+  // Manejar click en overlay - solo cerrar si es directamente en el overlay
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
     <AnimatePresence>
       {(isOpen || swipeProgress > 0 || closeProgress > 0) && (
@@ -53,7 +80,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             initial="closed"
             animate={currentVariant}
             exit="closed"
-            onClick={onClose}
+            onClick={handleOverlayClick}
             style={{ backdropFilter: 'blur(8px)' }}
           />
 
@@ -68,7 +95,9 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
               background: 'rgba(0, 0, 0, 0.7)',
               backdropFilter: 'blur(40px) saturate(180%)',
               WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-              borderRight: '1px solid rgba(255, 255, 255, 0.1)'
+              borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+              // Permitir interacciones dentro del panel
+              pointerEvents: 'auto'
             }}
           >
             {/* Handle Bar */}
@@ -78,16 +107,34 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             <button
               onClick={onClose}
               className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
+              style={{ pointerEvents: 'auto' }}
             >
               <X className="w-4 h-4 text-white" />
             </button>
 
-            {/* Content */}
-            <div className="p-4 pt-16 h-full overflow-y-auto scrollbar-hide">
-              <div className="grid grid-cols-1 gap-3">
-                <SpotifyWidget />
+            {/* Header */}
+            <div className="p-4 pt-16 pb-4">
+              <div className="flex items-center gap-3 mb-4">
+                <Music className="w-6 h-6 text-green-400" />
+                <h2 className="text-xl font-bold text-white">Música</h2>
+              </div>
+            </div>
 
-                {/* Spacer for bottom padding */}
+            {/* Content - Asegurar que los eventos funcionen */}
+            <div
+              className="px-4 pb-4 h-full overflow-y-auto scrollbar-hide"
+              style={{ pointerEvents: 'auto' }}
+            >
+              <div className="grid grid-cols-2 gap-3">
+                {/* Widget de Tiempo */}
+                <TimeWidget />
+
+                {/* Widget de Spotify - Ocupa todo el ancho */}
+                <div className="col-span-2" style={{ pointerEvents: 'auto' }}>
+                  <SpotifyWidget />
+                </div>
+
+                {/* Spacer para padding inferior */}
                 <div className="col-span-2 h-20" />
               </div>
             </div>

@@ -34,6 +34,10 @@ export const SpotifyProvider = ({ children }) => {
 
   // Generar URL de autorización
   const getAuthUrl = useCallback(() => {
+    if (!SPOTIFY_CONFIG.CLIENT_ID) {
+      throw new Error('VITE_SPOTIFY_CLIENT_ID no está configurado en el archivo .env');
+    }
+
     const params = new URLSearchParams({
       client_id: SPOTIFY_CONFIG.CLIENT_ID,
       response_type: 'code',
@@ -42,14 +46,52 @@ export const SpotifyProvider = ({ children }) => {
       show_dialog: 'true'
     });
 
-    return `https://accounts.spotify.com/authorize?${params.toString()}`;
+    const url = `https://accounts.spotify.com/authorize?${params.toString()}`;
+
+    // 🔍 DEBUG: Verificar la URL generada
+    console.log('🎵 Spotify Auth URL:', url);
+    console.log('🔑 Client ID:', SPOTIFY_CONFIG.CLIENT_ID);
+    console.log('🔄 Redirect URI:', SPOTIFY_CONFIG.REDIRECT_URI);
+
+    return url;
   }, []);
+
+  // Iniciar sesión
+  const login = useCallback(() => {
+    console.log('🎵 Iniciando proceso de login...');
+
+    try {
+      // Limpiar errores previos
+      setError(null);
+
+      // Verificar configuración
+      if (!SPOTIFY_CONFIG.CLIENT_ID) {
+        const errorMsg = 'VITE_SPOTIFY_CLIENT_ID no está configurado en el archivo .env';
+        console.error('❌', errorMsg);
+        setError(errorMsg);
+        return;
+      }
+
+      // Generar URL y redirigir
+      const authUrl = getAuthUrl();
+      console.log('🔄 Redirigiendo a:', authUrl);
+
+      // Redirigir a Spotify
+      window.location.href = authUrl;
+
+    } catch (error) {
+      console.error('❌ Error en login:', error);
+      setError(error.message);
+    }
+  }, [getAuthUrl]);
 
   // Intercambiar código por tokens
   const exchangeCodeForTokens = useCallback(async (code) => {
     try {
       setLoading(true);
       setError(null);
+
+      console.log('🔄 Intercambiando código por tokens...');
 
       const response = await fetch('/api/spotify-callback', {
         method: 'POST',
@@ -69,6 +111,8 @@ export const SpotifyProvider = ({ children }) => {
 
       const data = await response.json();
 
+      console.log('✅ Tokens obtenidos exitosamente');
+
       setAccessToken(data.access_token);
       setRefreshToken(data.refresh_token);
       setIsAuthenticated(true);
@@ -80,7 +124,7 @@ export const SpotifyProvider = ({ children }) => {
 
       return data.access_token;
     } catch (error) {
-      console.error('Error intercambiando código:', error);
+      console.error('❌ Error intercambiando código:', error);
       setError(error.message);
       throw error;
     } finally {
@@ -93,6 +137,8 @@ export const SpotifyProvider = ({ children }) => {
     if (!refreshToken) return null;
 
     try {
+      console.log('🔄 Refrescando token de acceso...');
+
       const response = await fetch('/api/spotify-refresh', {
         method: 'POST',
         headers: {
@@ -110,6 +156,8 @@ export const SpotifyProvider = ({ children }) => {
 
       const data = await response.json();
 
+      console.log('✅ Token refrescado exitosamente');
+
       setAccessToken(data.access_token);
       localStorage.setItem('spotify_access_token', data.access_token);
       localStorage.setItem('spotify_token_expiry', Date.now() + (data.expires_in * 1000));
@@ -122,7 +170,7 @@ export const SpotifyProvider = ({ children }) => {
 
       return data.access_token;
     } catch (error) {
-      console.error('Error refrescando token:', error);
+      console.error('❌ Error refrescando token:', error);
       logout();
       return null;
     }
@@ -173,7 +221,7 @@ export const SpotifyProvider = ({ children }) => {
 
       return response.ok ? await response.json() : null;
     } catch (error) {
-      console.error('Error en petición a Spotify:', error);
+      console.error('❌ Error en petición a Spotify:', error);
       return null;
     }
   }, [accessToken, refreshAccessToken]);
@@ -183,6 +231,7 @@ export const SpotifyProvider = ({ children }) => {
     const userData = await spotifyRequest('/me');
     if (userData) {
       setUser(userData);
+      console.log('✅ Usuario obtenido:', userData.display_name);
     }
     return userData;
   }, [spotifyRequest]);
@@ -194,15 +243,18 @@ export const SpotifyProvider = ({ children }) => {
       setCurrentTrack(data.item);
       setIsPlaying(data.is_playing);
       setDevice(data.device);
+      console.log('🎵 Canción actual:', data.item.name);
     } else {
       // Si no hay reproducción actual, obtener la última canción
       const recentData = await spotifyRequest('/me/player/recently-played?limit=1');
       if (recentData && recentData.items && recentData.items.length > 0) {
         setCurrentTrack(recentData.items[0].track);
         setIsPlaying(false);
+        console.log('🎵 Última canción:', recentData.items[0].track.name);
       } else {
         setCurrentTrack(null);
         setIsPlaying(false);
+        console.log('🎵 No hay música disponible');
       }
     }
   }, [spotifyRequest]);
@@ -212,6 +264,7 @@ export const SpotifyProvider = ({ children }) => {
     const data = await spotifyRequest('/me/playlists?limit=20');
     if (data && data.items) {
       setPlaylists(data.items);
+      console.log('📋 Playlists obtenidas:', data.items.length);
     }
     return data?.items || [];
   }, [spotifyRequest]);
@@ -282,17 +335,10 @@ export const SpotifyProvider = ({ children }) => {
     return await spotifyRequest(`/search?q=${encodeURIComponent(query)}&type=${type}&limit=${limit}`);
   }, [spotifyRequest]);
 
-  // Iniciar sesión
-  const login = useCallback(() => {
-    if (!SPOTIFY_CONFIG.CLIENT_ID) {
-      setError('Spotify Client ID no configurado');
-      return;
-    }
-    window.location.href = getAuthUrl();
-  }, [getAuthUrl]);
-
   // Cerrar sesión
   const logout = useCallback(() => {
+    console.log('🚪 Cerrando sesión de Spotify');
+
     setIsAuthenticated(false);
     setAccessToken(null);
     setRefreshToken(null);
@@ -301,6 +347,7 @@ export const SpotifyProvider = ({ children }) => {
     setIsPlaying(false);
     setDevice(null);
     setPlaylists([]);
+    setError(null);
 
     localStorage.removeItem('spotify_access_token');
     localStorage.removeItem('spotify_refresh_token');
@@ -314,13 +361,17 @@ export const SpotifyProvider = ({ children }) => {
     const tokenExpiry = localStorage.getItem('spotify_token_expiry');
 
     if (savedAccessToken && savedRefreshToken) {
+      console.log('🔄 Restaurando sesión de Spotify...');
+
       setAccessToken(savedAccessToken);
       setRefreshToken(savedRefreshToken);
 
       // Verificar si el token ha expirado
       if (tokenExpiry && Date.now() < parseInt(tokenExpiry)) {
         setIsAuthenticated(true);
+        console.log('✅ Sesión restaurada exitosamente');
       } else {
+        console.log('⏰ Token expirado, refrescando...');
         // Token expirado, intentar refrescar
         setRefreshToken(savedRefreshToken);
         refreshAccessToken();
@@ -331,6 +382,7 @@ export const SpotifyProvider = ({ children }) => {
   // Obtener datos iniciales cuando se autentica
   useEffect(() => {
     if (isAuthenticated && accessToken) {
+      console.log('🎵 Usuario autenticado, obteniendo datos...');
       fetchUser();
       fetchCurrentTrack();
       fetchPlaylists();
@@ -347,6 +399,13 @@ export const SpotifyProvider = ({ children }) => {
 
     return () => clearInterval(interval);
   }, [isAuthenticated, fetchCurrentTrack]);
+
+  // Log de configuración al inicializar
+  useEffect(() => {
+    console.log('🎵 Spotify Context inicializado');
+    console.log('🔑 Client ID configurado:', !!SPOTIFY_CONFIG.CLIENT_ID);
+    console.log('🔄 Redirect URI:', SPOTIFY_CONFIG.REDIRECT_URI);
+  }, []);
 
   const value = {
     // Estado
