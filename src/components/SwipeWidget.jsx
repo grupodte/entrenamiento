@@ -51,7 +51,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
   };
 
   const TimeWidget = () => (
-    <div className="col-span-2 rounded-3xl bg-gradient-to-br from-blue-500/20 to-purple-600/20 border border-white/10 p-6 flex flex-col justify-center items-center h-32 backdrop-blur-xl">
+    <div className="rounded-3xl bg-gradient-to-br from-blue-500/20 to-purple-600/20  p-6 flex flex-col justify-center items-center h-25 backdrop-blur-sm">
       <div className="text-4xl font-light text-white mb-1">
         {currentTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
       </div>
@@ -88,11 +88,10 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             animate={currentVariant}
             exit="closed"
             style={{
-              background: 'rgba(0, 0, 0, 0.7)',
-              backdropFilter: 'blur(40px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-              borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-              pointerEvents: 'auto'
+        
+              boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.3)',
+              WebkitBackdropFilter: 'blur(20px) saturate(150%)',
+              backdropFilter: 'blur(20px) saturate(150%)'
             }}
           >
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2 w-1 h-12 bg-white/20 rounded-full" />
@@ -100,8 +99,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
            
             <div className="p-4 pt-16 pb-4">
               <div className="flex items-center gap-3 mb-4">
-                <Music className="w-6 h-6 text-green-400" />
-                <h2 className="text-xl font-bold text-white">Música</h2>
+       
               </div>
             </div>
 
@@ -111,6 +109,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             >
               <div className="grid grid-cols-2 gap-3">
                 <TimeWidget />
+                
 
                 <div className="col-span-2" style={{ pointerEvents: 'auto' }}>
                   <SpotifyWidget />

@@ -1,6 +1,7 @@
 // context/SpotifyContext.jsx
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { loadSpotifySDK } from '../utils/loadSpotifySDK';
 
 export const SpotifyContext = createContext();
 
@@ -17,7 +18,7 @@ const SpotifyProvider = ({ children }) => {
   const [expiresIn, setExpiresIn] = useState(null);
   const [user, setUser] = useState(null);
   const [deviceId, setDeviceId] = useState(null);
-  const [player, setPlayer] = useState(null);
+  const playerRef = useRef(null);
 
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -69,6 +70,21 @@ const SpotifyProvider = ({ children }) => {
     }
   };
 
+  const logout = useCallback(() => {
+    if (playerRef.current) {
+      playerRef.current.disconnect();
+      playerRef.current = null;
+    }
+    setAccessToken(null);
+    setRefreshToken(null);
+    setExpiresIn(null);
+    setUser(null);
+    setCurrentTrack(null);
+    setIsAuthenticated(false);
+    setDeviceId(null);
+    navigate('/dashboard');
+  }, [navigate]);
+
   // 🔄 Renovar token con refresh_token
   const refreshAccessToken = useCallback(async () => {
     if (!refreshToken) return;
@@ -89,7 +105,7 @@ const SpotifyProvider = ({ children }) => {
       setError(err.message);
       logout();
     }
-  }, [refreshToken]);
+  }, [refreshToken, logout]);
 
   // ⏲️ Refrescar token antes de expirar
   useEffect(() => {
@@ -171,12 +187,16 @@ const SpotifyProvider = ({ children }) => {
 
   // 🔌 Cargar SDK y conectar
   useEffect(() => {
-    if (!accessToken || window.Spotify || player) return;
+    if (!accessToken) {
+      if (playerRef.current) {
+        playerRef.current.disconnect();
+        playerRef.current = null;
+        setIsReady(false);
+      }
+      return;
+    }
 
-    const script = document.createElement('script');
-    script.src = 'https://sdk.scdn.co/spotify-player.js';
-    script.async = true;
-    document.body.appendChild(script);
+    if (playerRef.current) return;
 
     window.onSpotifyWebPlaybackSDKReady = () => {
       const newPlayer = new window.Spotify.Player({
@@ -185,7 +205,7 @@ const SpotifyProvider = ({ children }) => {
         volume: 0.5,
       });
 
-      setPlayer(newPlayer);
+      playerRef.current = newPlayer;
 
       newPlayer.addListener('ready', ({ device_id }) => {
         console.log('✅ Player Ready, deviceId:', device_id);
@@ -195,33 +215,36 @@ const SpotifyProvider = ({ children }) => {
 
       newPlayer.addListener('not_ready', ({ device_id }) => {
         console.warn('⚠️ Player not ready', device_id);
+        setIsReady(false);
       });
 
-      newPlayer.addListener('initialization_error', ({ message }) => {
-        console.error('Initialization error:', message);
+      newPlayer.addListener('player_state_changed', (state) => {
+        if (!state) return;
+        setCurrentTrack(state.track_window.current_track);
+        setIsPlaying(!state.paused);
       });
 
+      newPlayer.addListener('initialization_error', ({ message }) => console.error('Initialization error:', message));
       newPlayer.addListener('authentication_error', ({ message }) => {
         console.error('Auth error:', message);
         setError(message);
         logout();
       });
+      newPlayer.addListener('account_error', ({ message }) => console.error('Account error:', message));
 
       newPlayer.connect();
     };
-  }, [accessToken, player]);
 
-  const logout = () => {
-    setAccessToken(null);
-    setRefreshToken(null);
-    setExpiresIn(null);
-    setUser(null);
-    setCurrentTrack(null);
-    setIsAuthenticated(false);
-    setPlayer(null);
-    setDeviceId(null);
-    navigate('/dashboard');
-  };
+    loadSpotifySDK();
+
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.disconnect();
+        playerRef.current = null;
+      }
+      window.onSpotifyWebPlaybackSDKReady = null;
+    };
+  }, [accessToken, logout]);
 
   return (
     <SpotifyContext.Provider

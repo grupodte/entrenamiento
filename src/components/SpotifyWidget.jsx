@@ -4,7 +4,6 @@ import {
   Loader2, User, Wifi
 } from 'lucide-react';
 import { useSpotify } from '../context/SpotifyContext';
-import SpotifyPlayerSDK from './SpotifyPlayerSDK'; // ✅ Importar el SDK
 
 const SpotifyWidget = ({ className = '' }) => {
   const {
@@ -61,9 +60,6 @@ const SpotifyWidget = ({ className = '' }) => {
 
   return (
     <div className={`rounded-3xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-white/10 p-6 backdrop-blur-xl ${className}`}>
-      {/* 👉 Incluir el SDK aquí */}
-      {isAuthenticated && <SpotifyPlayerSDK />}
-
       {!isAuthenticated ? (
         <div className="flex flex-col justify-center items-center py-8">
           <Music className="w-12 h-12 text-green-400 mb-4" />
