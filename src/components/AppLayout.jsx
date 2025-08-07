@@ -4,7 +4,8 @@ import { Outlet } from 'react-router-dom';
 
 const AppLayout = () => {
     return (
-        <div className="fullscreen flex">
+        <div className="main-content scroll-smooth-hidden"
+>
        
                 <Outlet />
         </div>

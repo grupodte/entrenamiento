@@ -14,13 +14,20 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('Received request for /api/spotify-callback');
+    console.log('Request body:', req.body);
+
     const { code, redirect_uri } = req.body;
 
     if (!code || !redirect_uri) {
+      console.error('Missing required parameters: code and redirect_uri');
       return res.status(400).json({
         error: 'Missing required parameters: code and redirect_uri'
       });
     }
+
+    console.log(`Received code: ${code}`);
+    console.log(`Received redirect_uri: ${redirect_uri}`);
 
     const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
     const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
@@ -31,6 +38,8 @@ export default async function handler(req, res) {
         error: 'Configuración de Spotify incompleta en el servidor. Contacta al administrador.'
       });
     }
+
+    console.log('Spotify environment variables seem to be loaded.');
 
     const response = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',

@@ -10,14 +10,19 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('Received request for /api/spotify-auth');
+
     const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
     const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 
     if (!CLIENT_ID || !CLIENT_SECRET) {
-      return res.status(500).json({ 
-        error: 'Spotify credentials not configured' 
+      console.error('SERVER ERROR: SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET is not set in the environment variables.');
+      return res.status(500).json({
+        error: 'Spotify credentials not configured'
       });
     }
+
+    console.log('Spotify environment variables seem to be loaded for spotify-auth.');
 
     const response = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
@@ -31,14 +36,14 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Spotify API error:', response.status, errorText);
-      return res.status(response.status).json({ 
+      return res.status(response.status).json({
         error: 'Failed to get Spotify token',
-        details: errorText 
+        details: errorText
       });
     }
 
     const data = await response.json();
-    
+
     res.status(200).json({
       access_token: data.access_token,
       expires_in: data.expires_in,
@@ -47,9 +52,9 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Server error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Internal server error',
-      message: error.message 
+      message: error.message
     });
   }
 }

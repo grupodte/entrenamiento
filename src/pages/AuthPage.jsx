@@ -70,7 +70,7 @@ const AuthPage = () => {
     };
 
     return (
-        <div className="fullscreen fixed inset-0 flex items-center justify-center">
+        <div className="content-wrapper fixed inset-0 flex items-center justify-center">
             {/* Video de fondo */}
             <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover">
                 <source src="/backgrounds/loginbg.mp4" type="video/mp4" />
