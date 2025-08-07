@@ -7,7 +7,7 @@ export const SpotifyContext = createContext();
 export const useSpotify = () => useContext(SpotifyContext);
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-const REDIRECT_URI = `${window.location.origin}/spotify-callback`;
+const REDIRECT_URI = `${window.location.origin}/spotify/callback`;
 
 const SpotifyProvider = ({ children }) => {
   const navigate = useNavigate();
