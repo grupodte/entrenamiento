@@ -8,7 +8,7 @@ const RutinaHeader = ({
     onBackClick = () => { },
 }) => {
     return (
-        <header className="fixed top-0 left-0 w-full p-4 backdrop-blur-sm bg-gray-900/20 z-20 flex items-center justify-between gap-4">
+        <header className="pt-20 fixed top-0 left-0 w-full p-4 backdrop-blur-sm bg-gray-900/20 z-20 flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
                 <button
                     onClick={onBackClick}
