@@ -7,6 +7,10 @@ import { guardarSesionEntrenamiento } from '../utils/guardarSesionEntrenamiento'
 import useWindowSize from 'react-use/lib/useWindowSize';
 import toast from "react-hot-toast";
 
+import { gsap } from 'gsap';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
+gsap.registerPlugin(ScrollToPlugin);
+
 let orderedInteractiveElementIds = [];
 
 const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
@@ -113,51 +117,29 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
     }, [isResting, currentTimerOriginId, obtenerSiguienteElementoInfo]);
 
     // Función para marcar un elemento como completado
-    const toggleElementoCompletado = useCallback((elementoId, detalles) => {
-        unlockAudio();
-        setElementosCompletados(prev => {
-            const nState = { ...prev };
-            const isCurrentlyCompleted = !!prev[elementoId];
+    const toggleElementoCompletado = (elementoId) => {
+        setElementosCompletados((prev) => {
+            const yaCompletado = !!prev[elementoId];
+            const nuevos = { ...prev, [elementoId]: !yaCompletado };
 
-            if (isCurrentlyCompleted) {
-                // If already completed, unmark it
-                delete nState[elementoId];
-                setElementoActivoId(elementoId);
-            } else {
-                // If not completed, mark it and store details
-                nState[elementoId] = {
-                    completed: true,
-                    actualReps: detalles.actualReps,
-                    actualCarga: detalles.actualCarga,
-                    pausa: detalles.pausa, // Keep original pause for timer logic
-                    tipoElemento: detalles.tipoElemento,
-                    subbloqueId: detalles.subbloqueId,
-                    numSerieSupersetActual: detalles.numSerieSupersetActual,
-                };
-                playSound();
-                if (navigator.vibrate) navigator.vibrate(100);
+            // Si lo marcamos como completado (no si lo desmarcamos)
+            if (!yaCompletado) {
+                const indexActual = orderedInteractiveElementIds.indexOf(elementoId);
+                const siguienteId = orderedInteractiveElementIds[indexActual + 1];
 
-                let pausaDuracion = 0;
-                if (detalles.tipoElemento === 'simple' && detalles.pausa) {
-                    pausaDuracion = detalles.pausa;
-                } else if (detalles.tipoElemento === 'superset_ejercicio') {
-                    const todosCompletados = verificarSupersetCompletado(detalles.subbloqueId, detalles.numSerieSupersetActual, nState, elementoId);
-                    if (todosCompletados) {
-                        const sb = rutina?.bloques.flatMap(b => b.subbloques).find(s => s.id.toString() === detalles.subbloqueId.toString());
-                        pausaDuracion = sb?.subbloques_ejercicios[0]?.series?.[0]?.pausa ?? 30;
+                if (siguienteId) {
+                    setElementoActivoId(siguienteId);
+                    // Scroll opcional:
+                    const ref = elementoRefs.current[siguienteId];
+                    if (ref?.scrollIntoView) {
+                        ref.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 }
-
-                if (pausaDuracion > 0) {
-                    activarTemporizadorPausa(pausaDuracion, elementoId);
-                } else {
-                    const siguienteElemento = obtenerSiguienteElementoInfo(elementoId);
-                    setElementoActivoId(siguienteElemento ? siguienteElemento.id : null);
-                }
             }
-            return nState;
+
+            return nuevos;
         });
-    }, [rutina, activarTemporizadorPausa, obtenerSiguienteElementoInfo, verificarSupersetCompletado]);
+    };
 
     useEffect(() => {
         if (!audioRef.current) {
@@ -197,26 +179,44 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
 
     const buildOrderedIdsInternal = (currentRutina) => {
         const ids = [];
-        currentRutina?.bloques?.forEach(bloque => {
-            bloque.subbloques?.forEach(subbloque => {
-                if (subbloque.tipo === 'simple') {
-                    subbloque.subbloques_ejercicios?.forEach(sbe => {
-                        sbe.series?.forEach(serie => {
-                            ids.push(generarIdSerieSimple(subbloque.id, sbe.id, serie.nro_set));
-                        });
+
+        currentRutina?.bloques
+            ?.slice()
+            ?.sort((a, b) => a.orden - b.orden) // Ordenar bloques por "orden"
+            ?.forEach(bloque => {
+                bloque.subbloques
+                    ?.slice()
+                    ?.sort((a, b) => a.orden - b.orden) // Ordenar subbloques por "orden"
+                    ?.forEach(subbloque => {
+                        if (subbloque.tipo === 'simple') {
+                            subbloque.subbloques_ejercicios
+                                ?.slice()
+                                ?.forEach(sbe => {
+                                    sbe.series
+                                        ?.slice()
+                                        ?.sort((a, b) => a.nro_set - b.nro_set) // Ordenar series por nro_set
+                                        ?.forEach(serie => {
+                                            const id = generarIdSerieSimple(subbloque.id, sbe.id, serie.nro_set);
+                                            ids.push(id);
+                                        });
+                                });
+                        } else if (subbloque.tipo === 'superset') {
+                            const sets = subbloque.num_series_superset || 1;
+                            for (let i = 1; i <= sets; i++) {
+                                subbloque.subbloques_ejercicios
+                                    ?.slice()
+                                    ?.forEach(sbe => {
+                                        const id = generarIdEjercicioEnSerieDeSuperset(subbloque.id, sbe.id, i);
+                                        ids.push(id);
+                                    });
+                            }
+                        }
                     });
-                } else if (subbloque.tipo === 'superset') {
-                    Array.from({ length: subbloque.num_series_superset || 1 }).forEach((_, setIndex) => {
-                        const setNumeroSuperset = setIndex + 1;
-                        subbloque.subbloques_ejercicios?.forEach(sbe => {
-                            ids.push(generarIdEjercicioEnSerieDeSuperset(subbloque.id, sbe.id, setNumeroSuperset));
-                        });
-                    });
-                }
             });
-        });
+
         return ids;
     };
+
 
     useEffect(() => {
         const fetchRutina = async () => {
@@ -279,6 +279,10 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
                 };
                 setRutina(processedData);
                 orderedInteractiveElementIds = buildOrderedIdsInternal(processedData);
+
+
+
+
 
                 // Build a reverse lookup map for elementoId based on ejercicio_id and nro_set
                 const elementoIdLookup = {};
@@ -344,14 +348,75 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
             }
         };
 
+
+
         fetchRutina();
     }, [id, tipo, bloqueSeleccionado, user]);
 
     useEffect(() => {
+        if (!rutina || orderedInteractiveElementIds.length === 0) return;
+
+        // Paso 1: Buscar subbloque de calentamiento
+        const subbloqueCalentamiento = rutina.bloques
+            .flatMap(b => b.subbloques)
+            .find(sb =>
+                sb.tipo?.toLowerCase() === 'calentamiento' ||
+                sb.nombre?.toLowerCase().includes('calentamiento')
+            );
+
+        // Si existe calentamiento
+        if (subbloqueCalentamiento) {
+            const idsCalentamiento = [];
+
+            if (subbloqueCalentamiento.tipo === 'simple') {
+                subbloqueCalentamiento.subbloques_ejercicios?.forEach(sbe => {
+                    sbe.series?.forEach(serie => {
+                        idsCalentamiento.push(generarIdSerieSimple(subbloqueCalentamiento.id, sbe.id, serie.nro_set));
+                    });
+                });
+            } else if (subbloqueCalentamiento.tipo === 'superset') {
+                Array.from({ length: subbloqueCalentamiento.num_series_superset || 1 }).forEach((_, setIndex) => {
+                    const setNumero = setIndex + 1;
+                    subbloqueCalentamiento.subbloques_ejercicios?.forEach(sbe => {
+                        idsCalentamiento.push(generarIdEjercicioEnSerieDeSuperset(subbloqueCalentamiento.id, sbe.id, setNumero));
+                    });
+                });
+            }
+
+            // Buscar el primer ID de calentamiento que no esté completado
+            const primerIdNoCompletado = idsCalentamiento.find(id => !elementosCompletados[id]);
+
+            if (primerIdNoCompletado) {
+                setElementoActivoId(primerIdNoCompletado);
+                return;
+            }
+        }
+
+        // Paso 2: Buscar el primer ID global no completado (fuera del calentamiento)
+        const primerIdGeneral = orderedInteractiveElementIds.find(id => !elementosCompletados[id]);
+
+        if (primerIdGeneral) {
+            setElementoActivoId(primerIdGeneral);
+            return;
+        }
+
+        // Paso 3: Todo completado
+        setElementoActivoId(null);
+    }, [rutina, orderedInteractiveElementIds, elementosCompletados]);
+
+
+
+    useEffect(() => {
         if (elementoActivoId && elementoRefs.current[elementoActivoId]) {
-            setTimeout(() => {
-                elementoRefs.current[elementoActivoId].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
+            const target = elementoRefs.current[elementoActivoId];
+            gsap.to(window, {
+                duration: 0.8,
+                scrollTo: {
+                    y: target,
+                    offsetY: window.innerHeight / 2,
+                },
+                ease: "power2.out",
+            });
         }
     }, [elementoActivoId]);
 

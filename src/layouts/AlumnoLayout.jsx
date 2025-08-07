@@ -74,7 +74,7 @@ const AlumnoLayout = () => {
         animate="animate"
         exit="exit"
       >
-        <div className="content-wrapper px-6">
+        <div className="content-wrapper">
           <Outlet />
           {/* Navegación flotante */}
           <FloatingNavBar onOpenPerfil={handleOpenPerfil} />

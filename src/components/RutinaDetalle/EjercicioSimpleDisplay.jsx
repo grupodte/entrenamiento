@@ -6,7 +6,7 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
     const ejercicio = sbe.ejercicio;
 
     return (
-        <div className="bg-gray-800/50 p-2.5 rounded-md">
+        <div className="backdrop-blur-lg p-2.5 rounded-md">
             <h4 className="font-semibold text-white mb-2 text-sm">{ejercicio?.nombre || 'Ejercicio'}</h4>
             <div className="space-y-1.5">
                 {sbe.series?.map(serie => {

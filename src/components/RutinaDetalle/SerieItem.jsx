@@ -8,22 +8,22 @@ const SerieItem = React.forwardRef(({
     isCompletada,
     isActive,
     onItemClick,
-    reps, // Planned reps
-    carga, // Planned carga
-    pausa, // Planned pausa (for passing back)
-    tipoElemento, // For passing back
-    subbloqueId, // For passing back (superset context)
-    numSerieSupersetActual, // For passing back (superset context)
+    reps,
+    carga,
+    pausa,
+    tipoElemento,
+    subbloqueId,
+    numSerieSupersetActual,
     lastSessionData,
 }, ref) => {
     const lastCarga = lastSessionData[`${serieId}`]?.carga_realizada || '';
     const [actualReps, setActualReps] = useState(reps || '');
     const [actualCarga, setActualCarga] = useState(lastCarga || carga || '');
-    
+
     const variants = {
-        inactive: { scale: 1, backgroundColor: '#374151' }, // bg-gray-700
-        active: { scale: 1.03, backgroundColor: '#0891B2' }, // bg-cyan-600
-        completed: { scale: 1, backgroundColor: '#166534' }, // bg-green-700
+        inactive: { scale: 1 },
+        active: { scale: 1.02 },
+        completed: { scale: 1 },
     };
 
     const status = isCompletada ? 'completed' : isActive ? 'active' : 'inactive';
@@ -32,59 +32,66 @@ const SerieItem = React.forwardRef(({
         onItemClick(serieId, {
             tipoElemento,
             pausa,
-            subbloqueId, // Pass for superset context
-            numSerieSupersetActual, // Pass for superset context
-            actualReps: parseInt(actualReps, 10) || 0, // Ensure number
-            actualCarga: actualCarga, // Keep as string for now, can parse later if needed
+            subbloqueId,
+            numSerieSupersetActual,
+            actualReps: parseInt(actualReps, 10) || 0,
+            actualCarga,
         });
     };
 
     return (
-        <motion.div 
+        <motion.div
             ref={ref}
             layout
             variants={variants}
             animate={status}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            onClick={handleClick}
-            className="flex flex-col p-2.5 rounded-md cursor-pointer shadow-md w-full"
+            onClick={handleClick} glass
+            className={`
+                flex flex-col w-full cursor-pointer rounded-dashboard p-3 transition-all duration-300
+                shadow-dashboard backdrop-blur-md
+                ${isCompletada
+                    ? 'bg-green-500/5 border border-green-400/20'
+                    : isActive
+                        ? 'bg-cyan-400/10 border border-cyan-300/20'
+                        : 'backdrop-blur-lg border border-white/5'
+                }
+            `}
             role="button"
             tabIndex={0}
             aria-pressed={isCompletada}
         >
-            <div className="flex items-center justify-between mb-2"> {/* Added for text and checkmark */}
-                <span className="flex-1 text-sm font-normal text-white">{textoPrincipal}</span>
+            <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-white">{textoPrincipal}</span>
                 <AnimatePresence>
                     {isCompletada && (
                         <motion.div
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0, opacity: 0 }}
-                            className="ml-2 text-white"
+                            className="ml-2 text-green-400"
                         >
-                            <FaCheck />
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
 
-            {/* Input fields for actual reps and carga */}
-            <div className="flex gap-2 mt-2">
+            <div className="flex gap-2 mt-1">
                 <input
                     type="number"
                     value={actualReps}
                     onChange={(e) => setActualReps(e.target.value)}
-                    onClick={(e) => e.stopPropagation()} // Prevent click from triggering itemClick
+                    onClick={(e) => e.stopPropagation()}
                     placeholder="Reps"
-                    className="w-1/2 p-1.5 text-sm rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-cyan-400"
+                    className="w-1/2 text-sm px-3 py-2 rounded-lg bg-white/5 text-white placeholder-white/40 focus:ring-2 focus:ring-cyan-400/40 focus:outline-none"
                 />
                 <input
-                    type="text" // Use text for carga as it can be 'kg', 'lbs', etc.
+                    type="text"
                     value={actualCarga}
                     onChange={(e) => setActualCarga(e.target.value)}
-                    onClick={(e) => e.stopPropagation()} // Prevent click from triggering itemClick
+                    onClick={(e) => e.stopPropagation()}
                     placeholder="Carga"
-                    className="w-1/2 p-1.5 text-sm rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-cyan-400"
+                    className="w-1/2 text-sm px-3 py-2 rounded-lg bg-white/5 text-white placeholder-white/40 focus:ring-2 focus:ring-cyan-400/40 focus:outline-none"
                 />
             </div>
         </motion.div>
