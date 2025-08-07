@@ -75,7 +75,6 @@ const RutinaDetalle = () => {
             </div>
         );
     }
-
     return (
         <div className="pt-[50px] text-white font-sans ">
             <RutinaHeader
