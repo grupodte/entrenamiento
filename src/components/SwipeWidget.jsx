@@ -1,38 +1,50 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  TrendingUp,
-  Award,
-  Target,
-  X,
-} from 'lucide-react';
+import { X } from 'lucide-react';
+import SpotifyWidget from './SpotifyWidget';
 
-const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0 }) => {
-  const [stats] = useState({
-    workoutsThisWeek: 3,
-    totalWorkouts: 24,
-    currentStreak: 5,
-    nextWorkout: 'Mañana 9:00 AM',
-  });
-
+const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) => {
   const openProgress = Math.min(swipeProgress / 200, 1);
-  const currentVariant = swipeProgress > 0 ? 'dragging' : isOpen ? 'open' : 'closed';
+  const closeProgressNormalized = Math.min(closeProgress / 150, 1);
+
+  let currentVariant = 'closed';
+  if (closeProgress > 0) {
+    currentVariant = 'closing';
+  } else if (swipeProgress > 0) {
+    currentVariant = 'dragging';
+  } else if (isOpen) {
+    currentVariant = 'open';
+  }
 
   const widgetVariants = {
-    closed: { x: '-100%', transition: { type: 'spring', stiffness: 300, damping: 30 } },
-    open: { x: '0%', transition: { type: 'spring', stiffness: 300, damping: 30 } },
-    dragging: { x: `${-100 + openProgress * 100}%`, transition: { type: 'tween', duration: 0 } },
+    closed: {
+      x: '-100%',
+      transition: { type: 'spring', stiffness: 400, damping: 40 }
+    },
+    open: {
+      x: '0%',
+      transition: { type: 'spring', stiffness: 400, damping: 40 }
+    },
+    dragging: {
+      x: `${-100 + openProgress * 100}%`,
+      transition: { type: 'tween', duration: 0 }
+    },
+    closing: {
+      x: `${-closeProgressNormalized * 100}%`,
+      transition: { type: 'tween', duration: 0 }
+    }
   };
 
   const overlayVariants = {
     closed: { opacity: 0 },
     open: { opacity: 1 },
-    dragging: { opacity: openProgress },
+    dragging: { opacity: openProgress * 0.6 },
+    closing: { opacity: (1 - closeProgressNormalized) * 0.6 }
   };
 
   return (
     <AnimatePresence>
-      {(isOpen || swipeProgress > 0) && (
+      {(isOpen || swipeProgress > 0 || closeProgress > 0) && (
         <>
           {/* Overlay */}
           <motion.div
@@ -42,70 +54,50 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0 }) => {
             animate={currentVariant}
             exit="closed"
             onClick={onClose}
-            style={{ backdropFilter: 'blur(6px)' }}
+            style={{ backdropFilter: 'blur(8px)' }}
           />
 
           {/* Widget Panel */}
           <motion.div
-            className="fixed left-0 top-0 h-full w-80 z-50 shadow-xl border-r border-white/10"
+            className="fixed left-0 top-0 h-full w-80 z-50 shadow-2xl"
             variants={widgetVariants}
             initial="closed"
             animate={currentVariant}
             exit="closed"
             style={{
-              background: 'rgba(18, 18, 18, 0.6)',
-              backdropFilter: 'blur(30px) saturate(160%)',
-              WebkitBackdropFilter: 'blur(30px) saturate(160%)',
+              background: 'rgba(0, 0, 0, 0.7)',
+              backdropFilter: 'blur(40px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+              borderRight: '1px solid rgba(255, 255, 255, 0.1)'
             }}
           >
-     
-            {/* Widgets */}
-            <div className="grid grid-cols-2 gap-4 p-4">
-              {/* Widget: Esta Semana */}
-              <div className="rounded-2xl bg-white/5 border border-white/10 p-4 flex flex-col justify-between h-36">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-cyan-500/20 rounded-lg">
-                    <TrendingUp className="text-cyan-400 w-5 h-5" />
-                  </div>
-                  <p className="text-sm text-gray-300">Esta Semana</p>
-                </div>
-                <p className="text-white text-2xl font-bold">{stats.workoutsThisWeek}/7</p>
-                <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-2 bg-cyan-400 rounded-full"
-                    style={{ width: `${(stats.workoutsThisWeek / 7) * 100}%` }}
-                  />
-                </div>
-              </div>
+            {/* Handle Bar */}
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 w-1 h-12 bg-white/20 rounded-full" />
 
-              {/* Widget: Racha Actual */}
-              <div className="rounded-2xl bg-white/5 border border-white/10 p-4 flex flex-col justify-between h-36">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-green-500/20 rounded-lg">
-                    <Award className="text-green-400 w-5 h-5" />
-                  </div>
-                  <p className="text-sm text-gray-300">Racha</p>
-                </div>
-                <p className="text-white text-2xl font-bold">{stats.currentStreak} días</p>
-              </div>
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
+            >
+              <X className="w-4 h-4 text-white" />
+            </button>
 
-              {/* Widget: Total Entrenamientos */}
-              <div className="rounded-2xl bg-white/5 border border-white/10 p-4 flex flex-col justify-between h-36">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-purple-500/20 rounded-lg">
-                    <Target className="text-purple-400 w-5 h-5" />
-                  </div>
-                  <p className="text-sm text-gray-300">Total</p>
-                </div>
-                <p className="text-white text-2xl font-bold">{stats.totalWorkouts}</p>
-              </div>
+            {/* Content */}
+            <div className="p-4 pt-16 h-full overflow-y-auto scrollbar-hide">
+              <div className="grid grid-cols-1 gap-3">
+                <SpotifyWidget />
 
-              {/* Widget: Próximo Entrenamiento */}
-              <div className="rounded-2xl bg-white/5 border border-white/10 p-4 flex flex-col justify-between h-36">
-                <div className="text-sm text-gray-300">Próximo</div>
-                <p className="text-white text-lg font-semibold">{stats.nextWorkout}</p>
+                {/* Spacer for bottom padding */}
+                <div className="col-span-2 h-20" />
               </div>
             </div>
+
+            {/* Drag Indicator */}
+            {(swipeProgress > 0 || closeProgress > 0) && (
+              <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                <div className="w-1 h-16 bg-cyan-400/60 rounded-full animate-pulse" />
+              </div>
+            )}
           </motion.div>
         </>
       )}
