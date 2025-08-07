@@ -3,6 +3,8 @@ import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { AnimatePresence } from 'framer-motion';
 import { AnimatedFeedback, useFeedback } from './components/animations';
+import { SpotifyProvider } from './context/SpotifyContext';
+import SpotifyCallback from './pages/SpotifyCallback';
 
 // --- LAYOUT Y COMPONENTES GLOBALES ---
 import AppLayout from './components/AppLayout';
@@ -61,6 +63,7 @@ const AppContent = () => {
           <Route path="/register" element={<PageTransition><AuthPage /></PageTransition>} />
           <Route path="/tyc" element={<PageTransition><Tyc /></PageTransition>} />
           <Route path="/privacidad" element={<PageTransition><PoliticaPrivacidad /></PageTransition>} />
+          <Route path="/callback/spotify" element={<PageTransition><SpotifyCallback /></PageTransition>} />
 
           {/* Ruta raíz mejorada */}
           <Route
@@ -124,7 +127,11 @@ const App = () => {
     return <BrandedLoader />;
   }
 
-  return <AppContent />;
+  return (
+    <SpotifyProvider>
+      <AppContent />
+    </SpotifyProvider>
+  );
 };
 
 export default App;
