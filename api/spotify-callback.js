@@ -17,8 +17,8 @@ export default async function handler(req, res) {
     const { code, redirect_uri } = req.body;
 
     if (!code || !redirect_uri) {
-      return res.status(400).json({ 
-        error: 'Missing required parameters: code and redirect_uri' 
+      return res.status(400).json({
+        error: 'Missing required parameters: code and redirect_uri'
       });
     }
 
@@ -26,8 +26,9 @@ export default async function handler(req, res) {
     const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 
     if (!CLIENT_ID || !CLIENT_SECRET) {
-      return res.status(500).json({ 
-        error: 'Spotify credentials not configured' 
+      console.error('SERVER ERROR: SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET is not set in the environment variables.');
+      return res.status(500).json({
+        error: 'Configuración de Spotify incompleta en el servidor. Contacta al administrador.'
       });
     }
 
@@ -47,14 +48,14 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Spotify token exchange error:', response.status, errorText);
-      return res.status(response.status).json({ 
+      return res.status(response.status).json({
         error: 'Failed to exchange code for tokens',
-        details: errorText 
+        details: errorText
       });
     }
 
     const data = await response.json();
-    
+
     res.status(200).json({
       access_token: data.access_token,
       refresh_token: data.refresh_token,
@@ -65,9 +66,9 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Server error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Internal server error',
-      message: error.message 
+      message: error.message
     });
   }
 }

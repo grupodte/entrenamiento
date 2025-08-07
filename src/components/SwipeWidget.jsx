@@ -1,3 +1,4 @@
+// ✅ SwipeWidget.jsx actualizado para compatibilidad con el fix del gesture
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Music } from 'lucide-react';
@@ -6,7 +7,6 @@ import SpotifyWidget from './SpotifyWidget';
 const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Actualizar tiempo cada minuto
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
@@ -50,7 +50,6 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     closing: { opacity: (1 - closeProgressNormalized) * 0.6 }
   };
 
-  // Widget de tiempo simplificado
   const TimeWidget = () => (
     <div className="col-span-2 rounded-3xl bg-gradient-to-br from-blue-500/20 to-purple-600/20 border border-white/10 p-6 flex flex-col justify-center items-center h-32 backdrop-blur-xl">
       <div className="text-4xl font-light text-white mb-1">
@@ -62,7 +61,6 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     </div>
   );
 
-  // Manejar click en overlay - solo cerrar si es directamente en el overlay
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -73,7 +71,6 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     <AnimatePresence>
       {(isOpen || swipeProgress > 0 || closeProgress > 0) && (
         <>
-          {/* Overlay */}
           <motion.div
             className="fixed inset-0 bg-black/40 z-40"
             variants={overlayVariants}
@@ -84,7 +81,6 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             style={{ backdropFilter: 'blur(8px)' }}
           />
 
-          {/* Widget Panel */}
           <motion.div
             className="fixed left-0 top-0 h-full w-80 z-50 shadow-2xl"
             variants={widgetVariants}
@@ -96,15 +92,14 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
               backdropFilter: 'blur(40px) saturate(180%)',
               WebkitBackdropFilter: 'blur(40px) saturate(180%)',
               borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-              // Permitir interacciones dentro del panel
               pointerEvents: 'auto'
             }}
           >
-            {/* Handle Bar */}
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2 w-1 h-12 bg-white/20 rounded-full" />
 
-            {/* Close Button */}
             <button
+              type="button"
+              role="button"
               onClick={onClose}
               className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
               style={{ pointerEvents: 'auto' }}
@@ -112,7 +107,6 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
               <X className="w-4 h-4 text-white" />
             </button>
 
-            {/* Header */}
             <div className="p-4 pt-16 pb-4">
               <div className="flex items-center gap-3 mb-4">
                 <Music className="w-6 h-6 text-green-400" />
@@ -120,26 +114,21 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
               </div>
             </div>
 
-            {/* Content - Asegurar que los eventos funcionen */}
             <div
               className="px-4 pb-4 h-full overflow-y-auto scrollbar-hide"
               style={{ pointerEvents: 'auto' }}
             >
               <div className="grid grid-cols-2 gap-3">
-                {/* Widget de Tiempo */}
                 <TimeWidget />
 
-                {/* Widget de Spotify - Ocupa todo el ancho */}
                 <div className="col-span-2" style={{ pointerEvents: 'auto' }}>
                   <SpotifyWidget />
                 </div>
 
-                {/* Spacer para padding inferior */}
                 <div className="col-span-2 h-20" />
               </div>
             </div>
 
-            {/* Drag Indicator */}
             {(swipeProgress > 0 || closeProgress > 0) && (
               <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
                 <div className="w-1 h-16 bg-cyan-400/60 rounded-full animate-pulse" />
