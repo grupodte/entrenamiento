@@ -33,6 +33,8 @@ body,
   margin: 0;
   padding: 0;
   overscroll-behavior: none;
+  /* Prevenir el swipe back del navegador */
+  overscroll-behavior-x: none;
 }
 
 html {
@@ -45,6 +47,7 @@ body {
   background-color: var(--bg-primary);
   touch-action: manipulation;
   overscroll-behavior: none;
+  overscroll-behavior-x: none;
   -webkit-overflow-scrolling: touch;
   text-rendering: optimizeLegibility;
 }
@@ -69,12 +72,15 @@ body {
 /* ====== LAYOUT PRINCIPAL ====== */
 .app-container {
   @apply h-screen flex flex-col relative;
-  /* Removidas las safe areas del contenedor principal */
+  /* Prevenir gestos de navegación del navegador */
+  overscroll-behavior-x: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .main-content {
   @apply flex-1 overflow-y-auto scrollbar-hide;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: none;
 }
 
 .content-wrapper {
@@ -314,6 +320,12 @@ body {
 
 .scroll-smooth-hidden::-webkit-scrollbar {
   display: none;
+}
+
+/* ====== PREVENIR SWIPE BACK ====== */
+.prevent-swipe-back {
+  overscroll-behavior-x: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ====== RESPONSIVE ====== */

@@ -9,7 +9,7 @@ const SkeletonCard = ({ className = '' }) => (
 );
 
 const SmallSkeletonCard = () => (
-    <div className="bg-gray-800 rounded-xl p-4 shadow-md animate-pulse flex justify-between items-center">
+    <div className="bg-gray-800 rounded-xl shadow-md animate-pulse flex justify-between items-center">
         <div>
             <div className="h-3 bg-gray-700 rounded w-20 mb-2"></div>
             <div className="h-5 bg-gray-700 rounded w-40"></div>

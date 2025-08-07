@@ -11,7 +11,7 @@ import RutaProtegida from './components/RutaProtegida';
 import PageTransition from './components/PageTransition';
 import useSmoothScroll from './hooks/useSmoothScroll';
 import AlumnoLayout from './layouts/AlumnoLayout';
-import BrandedLoader from './components/BrandedLoader'; // Import BrandedLoader
+import BrandedLoader from './components/BrandedLoader';
 
 // --- PÁGINAS PÚBLICAS ---
 import AuthPage from './pages/AuthPage';
@@ -35,7 +35,6 @@ import AdminEjercicios from './pages/Admin/AdminEjercicios';
 import AsignarRutina from './pages/Admin/AsignarRutina';
 import EditarDia from './pages/Admin/EditarDia';
 
-
 const AppContent = () => {
   const location = useLocation();
   useSmoothScroll();
@@ -48,14 +47,10 @@ const AppContent = () => {
         <Route
           element={
             <RutaProtegida rolPermitido="alumno">
-
               <AlumnoLayout />
-
             </RutaProtegida>
           }
         >
-
-
           <Route path="/dashboard" element={<PageTransition><DashboardAlumno /></PageTransition>} />
           <Route path="/rutina/:id" element={<PageTransition><RutinaDetalle /></PageTransition>} />
         </Route>
@@ -66,7 +61,20 @@ const AppContent = () => {
           <Route path="/register" element={<PageTransition><AuthPage /></PageTransition>} />
           <Route path="/tyc" element={<PageTransition><Tyc /></PageTransition>} />
           <Route path="/privacidad" element={<PageTransition><PoliticaPrivacidad /></PageTransition>} />
-          <Route path="/" element={user ? (rol === 'admin' ? <Navigate to="/admin" replace /> : <Navigate to="/dashboard" replace />) : <Navigate to="/login" replace />} />
+
+          {/* Ruta raíz mejorada */}
+          <Route
+            path="/"
+            element={
+              user ? (
+                rol === 'admin' ?
+                  <Navigate to="/admin" replace /> :
+                  <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
         </Route>
 
         {/* --- RUTAS DE ADMIN CON AdminLayout --- */}
@@ -90,6 +98,20 @@ const AppContent = () => {
           <Route path="ejercicios/seleccionar" element={<PageTransition><SeleccionarEjercicios /></PageTransition>} />
           <Route path="asignar-rutina/:id" element={<PageTransition><AsignarRutina /></PageTransition>} />
         </Route>
+
+        {/* Ruta 404 - Catch all */}
+        <Route
+          path="*"
+          element={
+            user ? (
+              rol === 'admin' ?
+                <Navigate to="/admin" replace /> :
+                <Navigate to="/dashboard" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
       </Routes>
     </AnimatePresence>
   );
@@ -102,9 +124,7 @@ const App = () => {
     return <BrandedLoader />;
   }
 
-  return (
-    <AppContent />
-  );
+  return <AppContent />;
 };
 
 export default App;

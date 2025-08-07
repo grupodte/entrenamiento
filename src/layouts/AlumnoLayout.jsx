@@ -4,7 +4,9 @@ import { motion } from 'framer-motion';
 import FloatingNavBar from '../components/FloatingNavBar';
 import PerfilDrawer from '../pages/Alumno/PerfilDrawer';
 import EditarPerfilDrawer from '../pages/Alumno/EditarPerfil';
+import SwipeWidget from '../components/SwipeWidget';
 import { useViewportHeight } from '../hooks/useViewportHeight';
+import { useSwipeGesture } from '../hooks/useSwipeGesture';
 
 // Variantes de animación optimizadas
 const pageVariants = {
@@ -25,8 +27,21 @@ const AlumnoLayout = () => {
   const location = useLocation();
   const [isPerfilDrawerOpen, setIsPerfilDrawerOpen] = useState(false);
   const [isEditPerfilDrawerOpen, setIsEditPerfilDrawerOpen] = useState(false);
+  const [isSwipeWidgetOpen, setIsSwipeWidgetOpen] = useState(false);
 
   useViewportHeight();
+
+  // Configurar gestos de swipe
+  const { containerRef, swipeProgress, isEdgeSwipe } = useSwipeGesture({
+    onSwipeFromEdge: (distance) => {
+      if (distance > 100) {
+        setIsSwipeWidgetOpen(true);
+      }
+    },
+    preventBrowserBack: true,
+    edgeThreshold: 30,
+    threshold: 50
+  });
 
   // Handlers memorizados
   const handleOpenPerfil = useCallback(() => setIsPerfilDrawerOpen(true), []);
@@ -46,9 +61,11 @@ const AlumnoLayout = () => {
 
   const handleProfileUpdate = useCallback(() => setIsEditPerfilDrawerOpen(false), []);
 
+  const handleCloseSwipeWidget = useCallback(() => setIsSwipeWidgetOpen(false), []);
+
   return (
-    <div className="app-container">
-      {/* Contenido principal sin safe areas en el contenedor */}
+    <div className="app-container" ref={containerRef}>
+      {/* Contenido principal con scroll sin barra visible */}
       <motion.main
         key={location.pathname}
         className="main-content scroll-smooth-hidden"
@@ -57,14 +74,21 @@ const AlumnoLayout = () => {
         animate="animate"
         exit="exit"
       >
-        {/* El content-wrapper ahora maneja los márgenes personalizados */}
-        <div className="content-wrapper">
+        <div className="content-wrapper px-6">
           <Outlet />
+          {/* Navegación flotante */}
+          <FloatingNavBar onOpenPerfil={handleOpenPerfil} />
+
         </div>
       </motion.main>
 
-      {/* Navegación flotante */}
-      <FloatingNavBar onOpenPerfil={handleOpenPerfil} />
+
+      {/* Widget de swipe */}
+      <SwipeWidget
+        isOpen={isSwipeWidgetOpen}
+        onClose={handleCloseSwipeWidget}
+        swipeProgress={isEdgeSwipe ? swipeProgress : 0}
+      />
 
       {/* Drawers */}
       <PerfilDrawer
