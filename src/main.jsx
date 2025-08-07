@@ -22,7 +22,7 @@ const updateSW = registerSW({
   },
 });
 
-import { SpotifyProvider } from './context/SpotifyContext.jsx'
+import  SpotifyProvider from './context/SpotifyContext.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
