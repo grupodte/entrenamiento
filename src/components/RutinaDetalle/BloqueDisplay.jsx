@@ -73,7 +73,7 @@ const BloqueDisplay = (props) => {
     };
 
     return (
-        <div className=" rounded-2xl px-3 py-4 shadow-dashboard-lg backdrop-blur-md relative overflow-hidden">
+        <div className=" overflow-hidden">
             {/* Línea base tipo timeline */}
 
             <div className="relative z-10 ">

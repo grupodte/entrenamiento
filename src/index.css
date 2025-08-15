@@ -35,6 +35,7 @@ body,
   overscroll-behavior: none;
   /* Prevenir el swipe back del navegador */
   overscroll-behavior-x: none;
+  font-family: 'ProductSans', 'Inter', sans-serif;
 }
 
 html {
@@ -85,11 +86,8 @@ body {
 
 .content-wrapper {
   /* Aplicamos márgenes personalizados al contenido */
-  margin-top: var(--content-margin-top);
-  margin-bottom: calc(var(--content-margin-bottom) + 80px);
   /* 80px para la navbar flotante */
-  margin-left: var(--content-margin-horizontal);
-  margin-right: var(--content-margin-horizontal);
+
   min-height: calc(100vh - var(--content-margin-top) - var(--content-margin-bottom) - 80px);
 }
 

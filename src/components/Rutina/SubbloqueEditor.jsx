@@ -44,15 +44,15 @@ const selectStyles = {
 };
 
 const nombreOpciones = [
-    { value: 'calentamiento', label: 'Calentamiento' },
-    { value: 'principal', label: 'Principal' },
-    { value: 'cooldown', label: 'Cooldown' },
-    { value: 'estiramiento', label: 'Estiramiento' },
+    { value: 'Calentamiento', label: 'Calentamiento' },
+    { value: 'Principal', label: 'Principal' },
+    { value: 'Cooldown', label: 'Cooldown' },
+    { value: 'Estiramiento', label: 'Estiramiento' },
 ];
 
 const structureOptions = [
-    { value: 'simple', label: 'Simple (series por ejercicio)' },
-    { value: 'superset', label: 'Superset (series compartidas)' },
+    { value: 'Simple', label: 'Simple (series por ejercicio)' },
+    { value: 'Superset', label: 'Superset (series compartidas)' },
 ];
 
 const createDefaultSetsConfig = (numSets, reps = '', carga = '') =>
