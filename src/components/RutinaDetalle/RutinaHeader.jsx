@@ -24,8 +24,8 @@ const RutinaHeader = ({
                 className="
           h-full
           w-full
-          flex items-center justify-between gap-3
-          px-4
+          flex items-center justify-between gap-2 sm:gap-3
+          px-3 sm:px-4
         "
             >
                 {/* IZQUIERDA: Back enfatizado */}
@@ -34,7 +34,7 @@ const RutinaHeader = ({
                     aria-label="Volver"
                     className="
             group
-            h-12 w-12 min-w-12
+            h-10 w-10 sm:h-12 sm:w-12 min-w-[40px] sm:min-w-[48px]
             rounded-full
             bg-white/5 hover:bg-white/10 active:scale-95
             border border-white/10
@@ -45,7 +45,7 @@ const RutinaHeader = ({
                 >
                     <FaArrowLeft
                         className="
-              text-white text-[20px]
+              text-white text-[16px] sm:text-[20px]
               drop-shadow
               transition-transform duration-200
               group-active:-translate-x-0.5
@@ -55,28 +55,28 @@ const RutinaHeader = ({
 
                 {/* CENTRO: Título */}
                 <div className="flex-1 min-w-0 text-center px-1">
-                    <h1 className="text-[18px] sm:text-[20px] font-bold leading-tight truncate">
+                    <h1 className="text-[16px] sm:text-[18px] md:text-[20px] font-bold leading-tight truncate">
                         {rutinaNombre || "Entrenamiento"}
                     </h1>
-                    <p className="text-[12px] text-gray-400">Entrenamiento en curso</p>
+                    <p className="text-[11px] sm:text-[12px] text-gray-400">Entrenamiento en curso</p>
                 </div>
 
                 {/* DERECHA: Timer destacado */}
                 <div
                     className="
             shrink-0
-            flex items-center gap-2
-            px-3 py-2
-            rounded-xl
+            flex items-center gap-1.5 sm:gap-2
+            px-2 py-1.5 sm:px-3 sm:py-2
+            rounded-lg sm:rounded-xl
             bg-cyan-500/15
             border border-cyan-400/30
           "
                 >
-                    <FaStopwatch className="text-cyan-300 text-base" aria-hidden="true" />
+                    <FaStopwatch className="text-cyan-300 text-sm sm:text-base" aria-hidden="true" />
                     <span
                         className="
               font-mono font-extrabold
-              text-[22px] leading-none
+              text-[18px] sm:text-[22px] leading-none
               text-cyan-300
               tabular-nums
             "

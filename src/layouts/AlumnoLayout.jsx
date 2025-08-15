@@ -68,7 +68,7 @@ const AlumnoLayout = () => {
       {/* Contenido principal con scroll sin barra visible */}
       <motion.main
         key={location.pathname}
-        className="main-content scroll-smooth-hidden"
+        className="main-content scrollbar-hide"
         variants={pageVariants}
         initial="initial"
         animate="animate"

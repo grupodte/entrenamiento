@@ -36,13 +36,34 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
     const [rutina, setRutina] = useState(null);
     const [loading, setLoading] = useState(true);
     const [elementosCompletados, setElementosCompletados] = useState(() => {
-        try {
-            const savedProgress = localStorage.getItem(`workout-progress-${id}`);
-            return savedProgress ? JSON.parse(savedProgress) : {};
-        } catch (error) {
-            console.error("Error loading progress from localStorage", error);
-            return {};
+        // Check if there's a valid session
+        const savedSessionId = localStorage.getItem(`workout-session-${id}`);
+        const currentTime = Date.now();
+        const sessionTimeout = 12 * 60 * 60 * 1000; // 12 hours
+        
+        if (savedSessionId) {
+            const sessionTime = parseInt(savedSessionId);
+            // If session is older than 12 hours, clear it
+            if (currentTime - sessionTime > sessionTimeout) {
+                localStorage.removeItem(`workout-progress-${id}`);
+                localStorage.removeItem(`workout-session-${id}`);
+                return {};
+            }
+            // Otherwise, try to load saved progress
+            try {
+                const savedProgress = localStorage.getItem(`workout-progress-${id}`);
+                return savedProgress ? JSON.parse(savedProgress) : {};
+            } catch (error) {
+                console.error("Error loading progress from localStorage", error);
+                return {};
+            }
         }
+        return {};
+    });
+    const [sessionId] = useState(() => {
+        const id = Date.now().toString();
+        localStorage.setItem(`workout-session-${id}`, id);
+        return id;
     });
     const [lastSessionData, setLastSessionData] = useState({});
     const [showRestTimer, setShowRestTimer] = useState(false); // Old timer system
@@ -62,6 +83,20 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
     const audioRef = useRef(null);
     const audioUnlocked = useRef(false);
     const { width, height } = useWindowSize();
+
+    // Video Panel State
+    const [showVideoPanel, setShowVideoPanel] = useState(false);
+    const [videoUrlToShow, setVideoUrlToShow] = useState(null);
+
+    const openVideoPanel = useCallback((url) => {
+        setVideoUrlToShow(url);
+        setShowVideoPanel(true);
+    }, []);
+
+    const closeVideoPanel = useCallback(() => {
+        setShowVideoPanel(false);
+        setVideoUrlToShow(null);
+    }, []);
 
     // Función para obtener el nombre de un elemento por su ID
     const getElementNameById = useCallback((elementId) => {
@@ -492,7 +527,7 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
                             id, orden, nombre, tipo,
                             subbloques_ejercicios (
                                 id, 
-                                ejercicio:ejercicios (id, nombre),
+                                ejercicio:ejercicios (id, nombre, video_url),
                                 series:series_subejercicio (id, nro_set, reps, pausa)
                             )
                         )
@@ -686,8 +721,13 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
 
             if (result.success) {
                 toast.success("¡Sesión guardada exitosamente!");
+                // Clear all workout-related data from localStorage
                 localStorage.removeItem(`workout-progress-${id}`);
-                // navigate('/dashboard'); // Navigation will be handled by the parent component
+                localStorage.removeItem(`workout-timer-${id}`);
+                localStorage.removeItem(`workout-session-${id}`);
+                // Reset state
+                setElementosCompletados({});
+                setElementoActivoId(null);
             } else {
                 toast.error("Error al guardar la sesión.");
             }
@@ -722,6 +762,10 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
         formatRestTime,
         formatWorkoutTime,
         elementoRefs,
+        showVideoPanel,
+        videoUrlToShow,
+        openVideoPanel,
+        closeVideoPanel,
     };
 };
 

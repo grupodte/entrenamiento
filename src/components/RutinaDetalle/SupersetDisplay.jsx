@@ -27,31 +27,6 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                 return (
                     <motion.section
                         key={`ss-${subbloque.id}-s${setNumero}`}
-                        initial={{ opacity: 1, y: 8, height: 'auto', marginBottom: '1rem' }}
-                        animate={completado ? {
-                            opacity: 1,
-                            y: 0,
-                            height: 'auto',
-                            marginBottom: '1rem',
-                            transition: { duration: 0.25 }
-                        } : {
-                            opacity: 1,
-                            y: 0,
-                            height: 'auto',
-                            marginBottom: '1rem',
-                            transition: { duration: 0.25 }
-                        }}
-                        // Animación de desaparición después de un delay
-                        exit={completado ? {
-                            opacity: 0,
-                            height: 0,
-                            marginBottom: 0,
-                            transition: {
-                                opacity: { duration: 0.2, delay: 1 },
-                                height: { duration: 0.2, delay: 1.2 },
-                                marginBottom: { duration: 0.4, delay: 1.3 }
-                            }
-                        } : {}}
                         aria-labelledby={`title-ss-${subbloque.id}-s${setNumero}`}
                         className={[
                             "relative rounded-2xl overflow-hidden backdrop-blur-md",
@@ -61,38 +36,6 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                         ].join(' ')}
                     >
               
-
-                        {/* Encabezado de la serie */}
-                        <header className="my-2 flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                                {/* Número/Chip de Serie */}
-                                <div
-                                    className="h-10 w-20 shrink-0 rounded-xl grid place-items-center font-bold text-sm bg-gray-700/50 text-gray-300 border border-gray-600/30"
-                                    aria-hidden
-                                >
-                                   Serie {setNumero}
-                                </div>
-
-                                <div>
-                                   
-                                    <div className="flex items-center gap-2 ">
-                                        {completado && (
-                                            <span className="text-green-300 text-xs font-medium">Completada ✓</span>
-                                        )}
-                                        {parcial && (
-                                            <span className="text-cyan-300 text-xs font-medium">En progreso...</span>
-                                        )}
-                                      
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Porcentaje */}
-                            <div className="text-right">
-                                <span className="block text-sm font-bold text-gray-300">{progressPct}%</span>
-                            </div>
-                        </header>
-
 
                         {/* Lista de ejercicios de la serie */}
                         <div className="space-y-3 ">
@@ -119,6 +62,7 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                                         }}
                                         serieId={elementoId}
                                         textoPrincipal={`${sbe.ejercicio?.nombre || 'Ejercicio'}`}
+                                        nroSet={setNumero}
                                         isCompletada={isCompletada}
                                         isActive={isActive}
                                         onItemClick={props.toggleElementoCompletado}
@@ -128,7 +72,8 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                                         subbloqueId={subbloque.id}
                                         numSerieSupersetActual={setNumero}
                                         lastSessionData={lastSessionData}
-                                        shouldDisappear={true}
+                                        ejercicio={sbe.ejercicio} // Pasar el objeto ejercicio
+                                        openVideoPanel={props.openVideoPanel} // Pasar la función para abrir el video
                                         // Estética por serie (bordes/hover diferenciados)
                                         classNameExtra={[
                                             "transition-all duration-300",

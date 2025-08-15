@@ -9,7 +9,8 @@ const RutinaContent = ({
     toggleElementoCompletado,
     elementoRefs,
     lastSessionData,
-    progressPorSubBloque
+    progressPorSubBloque,
+    openVideoPanel
 }) => {
     // Objeto de props para pasar a los hijos
     const displayProps = {
@@ -18,7 +19,8 @@ const RutinaContent = ({
         toggleElementoCompletado,
         elementoRefs,
         lastSessionData,
-        progressPorSubBloque
+        progressPorSubBloque,
+        openVideoPanel
     };
 
     return (

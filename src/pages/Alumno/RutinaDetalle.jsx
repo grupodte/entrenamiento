@@ -8,6 +8,7 @@ import RutinaContent from "../../components/RutinaDetalle/RutinaContent";
 import RutinaTimersDisplay from "../../components/RutinaDetalle/RutinaTimersDisplay";
 import EntrenamientoCompletado from "../../components/RutinaDetalle/EntrenamientoCompletado"; // <-- 1. IMPORTAR
 import Drawer from "../../components/Drawer";
+import VideoPanel from "../../components/VideoPanel"; // Importar VideoPanel
 import { motion } from 'framer-motion'; // <-- 2. IMPORTAR MOTION
 
 /** Skeleton simple para el área de contenido */
@@ -52,6 +53,10 @@ const RutinaDetalle = () => {
         formatRestTime,
         formatWorkoutTime,
         elementoRefs,
+        showVideoPanel,
+        videoUrlToShow,
+        openVideoPanel,
+        closeVideoPanel,
     } = useRutinaLogic(id, tipo, bloqueSeleccionado, user);
 
     const {
@@ -91,7 +96,7 @@ return (
             onBackClick={handleBackButtonClick}
         />
 
-        <div className="flex-1 overflow-y-auto pt-20">
+        <div className="flex-1 overflow-y-auto scrollbar-hide pt-20">
             {isReady ? (
                 <>
                     {/* Barra de progreso pegada al header */}
@@ -119,6 +124,7 @@ return (
                             elementoRefs={elementoRefs}
                             lastSessionData={lastSessionData}
                             progressPorSubBloque={progressPorSubBloque}
+                            openVideoPanel={openVideoPanel}
                         />
                     </div>
 
@@ -172,6 +178,12 @@ return (
                     </div>
                 </div>
             </Drawer>
+
+            <VideoPanel
+                isOpen={showVideoPanel}
+                onClose={closeVideoPanel}
+                videoUrl={videoUrlToShow}
+            />
         </div>
     </div>
 );

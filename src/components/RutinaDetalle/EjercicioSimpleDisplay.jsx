@@ -20,10 +20,7 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
             {sbe.series?.map(serie => {
                 const serieId = generarIdSerieSimple(subbloqueId, sbe.id, serie.nro_set);
 
-                // Para ejercicios simples, mostramos el nombre del ejercicio en cada SerieItem
-                const textoPrincipal = sbe.series?.length === 1
-                    ? `${ejercicio?.nombre || 'Ejercicio'}`
-                    : `${ejercicio?.nombre || 'Ejercicio'} - Serie ${serie.nro_set}`;
+                const textoPrincipal = ejercicio?.nombre || 'Ejercicio';
 
                 return (
                     <SerieItem
@@ -31,6 +28,9 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                         ref={el => { if (el) props.elementoRefs.current[serieId] = el; }}
                         serieId={serieId}
                         textoPrincipal={textoPrincipal}
+                        nroSet={serie.nro_set}
+                        ejercicio={ejercicio} // Pasar el objeto ejercicio
+                        openVideoPanel={props.openVideoPanel} // Pasar la función para abrir el video
                         isCompletada={!!props.elementosCompletados[serieId]}
                         isActive={props.elementoActivoId === serieId}
                         onItemClick={props.toggleElementoCompletado}

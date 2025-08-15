@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaCheck } from 'react-icons/fa';
+import { FaCheck, FaPlayCircle } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SerieItem = React.forwardRef(({
@@ -16,20 +16,13 @@ const SerieItem = React.forwardRef(({
     numSerieSupersetActual,
     lastSessionData,
     classNameExtra = '',
+    nroSet,
+    ejercicio,
+    openVideoPanel,
 }, ref) => {
     const lastCarga = lastSessionData[`${serieId}`]?.carga_realizada || '';
     const [actualReps, setActualReps] = useState(reps || '');
     const [actualCarga, setActualCarga] = useState(lastCarga || carga || '');
-    const [isVisible, setIsVisible] = useState(true);
-
-    React.useEffect(() => {
-        if (isCompletada) {
-            const timer = setTimeout(() => {
-                setIsVisible(false);
-            }, 2000); // Se oculta después de 2 segundos
-            return () => clearTimeout(timer);
-        }
-    }, [isCompletada]);
 
     const variants = {
         inactive: { scale: 1 },
@@ -54,16 +47,13 @@ const SerieItem = React.forwardRef(({
     const nombreEjercicio = textoPrincipal.split(' — ')[0] || textoPrincipal.split(': ')[1] || textoPrincipal;
 
     return (
-        <AnimatePresence>
-            {isVisible && (
-                <motion.div
-                    ref={ref}
-                    layout
-                    variants={variants}
-                    animate={status}
-                    exit={{ opacity: 0, height: 0, transition: { duration: 0.5 } }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    onClick={handleClick}
+        <motion.div
+            ref={ref}
+            layout
+            variants={variants}
+            animate={status}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            onClick={handleClick}
                     className={`
                         relative w-full cursor-pointer rounded-xl p-4 transition-all duration-300
                         backdrop-blur-md border
@@ -84,6 +74,18 @@ const SerieItem = React.forwardRef(({
                         <h4 className="text-md font-medium text-white/90 flex-1 min-w-0">
                             {nombreEjercicio}
                         </h4>
+                        {ejercicio?.video_url && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Evitar que el click en el botón active el onItemClick del SerieItem
+                                    openVideoPanel(ejercicio.video_url);
+                                }}
+                                className="ml-2 p-1 rounded-full text-cyan-400 hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
+                                aria-label="Ver video del ejercicio"
+                            >
+                                <FaPlayCircle className="w-5 h-5" />
+                            </button>
+                        )}
 
                         <AnimatePresence>
                             {isCompletada && (
@@ -101,11 +103,27 @@ const SerieItem = React.forwardRef(({
 
                     {/* Faltaria aca agregar el link de video del ejercicio.*/}
 
-                    {/* Contenedor principal con Reps y Peso */}
-                    <div className="flex items-center gap-4">
+                    {/* Contenedor principal con 3 Columnas: Set, Reps, Peso */}
+                    <div className="grid grid-cols-3 items-center gap-3 sm:gap-4">
+                        {/* Sección Set */}
+                        <div className="flex-1 min-w-0">
+                            <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wide text-center">
+                                Set
+                            </label>
+                            <div className="relative">
+                                <div className={`
+                                    w-full text-2xl font-bold text-center py-2 rounded-lg 
+                                    bg-gray-900/50 text-white border border-gray-600/30
+                                    ${isCompletada ? 'opacity-70' : ''}
+                                `}>
+                                    {nroSet || '0'}
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Sección Reps */}
                         <div className="flex-1 min-w-0">
-                            <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wide">
+                            <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wide text-center">
                                 Reps
                             </label>
                             <div className="relative">
@@ -149,8 +167,6 @@ const SerieItem = React.forwardRef(({
                         <div className="absolute inset-0 bg-gray-600/10 rounded-xl pointer-events-none" />
                     )}
                 </motion.div>
-            )}
-        </AnimatePresence>
     );
 });
 

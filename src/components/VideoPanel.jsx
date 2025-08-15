@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getYouTubeVideoId } from '../utils/youtube';
 import { FaTimes } from 'react-icons/fa';
 
-const VideoPanel = ({ open, onClose, videoUrl }) => {
+const VideoPanel = ({ isOpen, onClose, videoUrl }) => {
     const videoId = getYouTubeVideoId(videoUrl);
     const embedUrl = videoId
         ? `https://www.youtube.com/embed/${videoId}?autoplay=1`
@@ -12,7 +12,7 @@ const VideoPanel = ({ open, onClose, videoUrl }) => {
 
     // Evita el scroll mientras está abierto
     useEffect(() => {
-        if (open) {
+        if (isOpen) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = '';
@@ -20,13 +20,13 @@ const VideoPanel = ({ open, onClose, videoUrl }) => {
         return () => {
             document.body.style.overflow = '';
         };
-    }, [open]);
+    }, [isOpen]);
 
     if (!videoUrl || !videoId) return null;
 
     return (
         <AnimatePresence>
-            {open && (
+            {isOpen && (
                 <motion.div
                     key={`panel-${videoId}`} // 👈 clave dinámica
                     initial={{ opacity: 0 }}
