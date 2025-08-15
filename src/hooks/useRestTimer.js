@@ -62,8 +62,6 @@ const useRestTimer = () => {
         endTime: endTime
       });
     }
-    
-    console.log(`Descanso iniciado: ${duration}s para ${nextExerciseName}`);
   }, [requestNotificationPermission]);
 
   // Función para finalizar el descanso

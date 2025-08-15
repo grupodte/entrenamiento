@@ -7,7 +7,8 @@ const RestTimerNew = ({
   timeLeft, 
   exerciseName, 
   onSkip,
-  formatTime 
+  formatTime,
+  originalDuration // Necesitamos la duración original para calcular el progreso correctamente
 }) => {
   const audioRef = useRef(null);
   const circumference = 2 * Math.PI * 45; // Radio de 45
@@ -38,7 +39,11 @@ const RestTimerNew = ({
   };
 
   // Calcular progreso para el círculo
-  const progress = timeLeft > 0 ? (timeLeft / 60) * circumference : 0; // Asumiendo máximo 60s
+  // Si no tenemos duración original, usar el timeLeft actual como duración
+  const duration = originalDuration || timeLeft || 60;
+  const progressPercentage = timeLeft > 0 ? (timeLeft / duration) : 0;
+  // Invertido para que el círculo se vacíe en sentido horario
+  const strokeDashoffset = progressPercentage * circumference;
 
   return (
     <>
@@ -50,14 +55,14 @@ const RestTimerNew = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex flex-col items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-black/20 backdrop-blur-md flex flex-col items-center justify-center p-4"
           >
             <motion.div 
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="w-full max-w-sm text-center text-white bg-gray-800/80 rounded-3xl p-8 shadow-2xl"
+              className="w-full max-w-sm text-center text-white bg-gray-800/20 rounded-3xl p-8 shadow-2xl"
             >
               <p className="font-bold text-lg text-cyan-300">¡A DESCANSAR!</p>
               <div className="relative my-8 w-48 h-48 mx-auto">
@@ -71,8 +76,8 @@ const RestTimerNew = ({
                     strokeLinecap="round"
                     strokeDasharray={circumference}
                     initial={{ strokeDashoffset: circumference }}
-                    animate={{ strokeDashoffset: progress }}
-                    transition={{ duration: 1, ease: 'linear' }}
+                    animate={{ strokeDashoffset }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -84,7 +89,7 @@ const RestTimerNew = ({
 
               <button 
                 onClick={handleSkip}
-                className="mt-8 w-full flex items-center justify-center gap-2 bg-gray-700/80 text-white font-semibold py-3 px-5 rounded-full hover:bg-gray-600 transition-colors"
+                className="mt-8 w-full flex items-center justify-center gap-2 bg-cyan-500/20 text-cyan-300 font-semibold py-3 px-5 rounded-full hover:bg-cyan-500/30 transition-colors"
               >
                 <FaForward />
                 <span>Omitir Descanso</span>

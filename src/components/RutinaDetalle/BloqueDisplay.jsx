@@ -1,12 +1,8 @@
 import React from 'react';
 import SubBloqueDisplay from './SubBloqueDisplay';
-import {
-    generarIdSerieSimple,
-    generarIdEjercicioEnSerieDeSuperset
-} from '../../utils/rutinaIds';
 
 const BloqueDisplay = (props) => {
-    const { bloque, elementosCompletados, lastSessionData } = props;
+    const { bloque, progressPorSubBloque, lastSessionData } = props;
 
     const sortSubBloques = (a, b) => {
         const prioridad = (nombre = '') => {
@@ -20,77 +16,25 @@ const BloqueDisplay = (props) => {
         return prioridad(a.nombre) - prioridad(b.nombre);
     };
 
-    const isSubBloqueCompleted = (subbloque) => {
-        let total = 0;
-        let completed = 0;
-
-        if (subbloque.tipo === 'simple') {
-            subbloque.subbloques_ejercicios?.forEach((sbe) => {
-                sbe.series?.forEach((serie) => {
-                    const id = generarIdSerieSimple(subbloque.id, sbe.id, serie.nro_set);
-                    total++;
-                    if (elementosCompletados[id]) completed++;
-                });
-            });
-        } else {
-            Array.from({ length: subbloque.num_series_superset || 1 }).forEach((_, i) => {
-                const n = i + 1;
-                subbloque.subbloques_ejercicios?.forEach((sbe) => {
-                    const id = generarIdEjercicioEnSerieDeSuperset(subbloque.id, sbe.id, n);
-                    total++;
-                    if (elementosCompletados[id]) completed++;
-                });
-            });
-        }
-
-        return total > 0 && total === completed;
-    };
-
-    const isSubBloqueInProgress = (subbloque) => {
-        let total = 0;
-        let completed = 0;
-
-        if (subbloque.tipo === 'simple') {
-            subbloque.subbloques_ejercicios?.forEach((sbe) => {
-                sbe.series?.forEach((serie) => {
-                    const id = generarIdSerieSimple(subbloque.id, sbe.id, serie.nro_set);
-                    total++;
-                    if (elementosCompletados[id]) completed++;
-                });
-            });
-        } else {
-            Array.from({ length: subbloque.num_series_superset || 1 }).forEach((_, i) => {
-                const n = i + 1;
-                subbloque.subbloques_ejercicios?.forEach((sbe) => {
-                    const id = generarIdEjercicioEnSerieDeSuperset(subbloque.id, sbe.id, n);
-                    total++;
-                    if (elementosCompletados[id]) completed++;
-                });
-            });
-        }
-
-        return completed > 0 && completed < total;
-    };
-
     return (
-        <div className=" overflow-hidden">
-            {/* Línea base tipo timeline */}
-
-            <div className="relative z-10 ">
+            <div className=" z-10 space-y-10 ">
                 {[...(bloque.subbloques ?? [])]
                     .sort(sortSubBloques)
-                    .map((subbloque) => (
-                        <SubBloqueDisplay
-                            key={subbloque.id}
-                            subbloque={subbloque}
-                            isCompleted={isSubBloqueCompleted(subbloque)}
-                            isInProgress={isSubBloqueInProgress(subbloque)}
-                            {...props}
-                            lastSessionData={lastSessionData}
-                        />
-                    ))}
+                    .map((subbloque, index) => {
+                        const progressInfo = progressPorSubBloque[subbloque.id] || { isCompleted: false, isInProgress: false };
+                        return (
+                            <SubBloqueDisplay
+                                key={subbloque.id}
+                                subbloque={subbloque}
+                                isCompleted={progressInfo.isCompleted}
+                                isInProgress={progressInfo.isInProgress}
+                                {...props}
+                                lastSessionData={lastSessionData}
+                                index={index}
+                            />
+                        );
+                    })}
             </div>
-        </div>
     );
 };
 

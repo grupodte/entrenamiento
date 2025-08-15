@@ -76,24 +76,34 @@ body {
   /* Prevenir gestos de navegación del navegador */
   overscroll-behavior-x: none;
   -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 .main-content {
   @apply flex-1 overflow-y-auto scrollbar-hide;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: none;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 .content-wrapper {
-  /* Aplicamos márgenes personalizados al contenido */
-  /* 80px para la navbar flotante */
-
   min-height: calc(100vh - var(--content-margin-top) - var(--content-margin-bottom) - 80px);
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 /* ====== DASHBOARD STYLES ====== */
 .dashboard {
   @apply space-y-6 py-4;
+
+  /* Aplicamos márgenes personalizados al contenido */
+    margin-top: var(--content-margin-top);
+    margin-bottom: calc(var(--content-margin-bottom) + 80px);
+    /* 80px para la navbar flotante */
+    margin-left: var(--content-margin-horizontal);
+    margin-right: var(--content-margin-horizontal);
 }
 
 .dashboard-header {

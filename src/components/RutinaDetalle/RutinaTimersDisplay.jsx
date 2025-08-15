@@ -8,22 +8,26 @@ const RutinaTimersDisplay = ({
     timerDuration,
     nextExerciseName,
     currentTimerOriginId,
-    handleRestTimerFinish,
     isResting,
     timeLeft,
     exerciseName,
     skipRest,
-    formatTime
+    formatTime,
+    originalDuration
 }) => {
+    // Solo mostrar un timer a la vez
+    // Si isResting es true, usar RestTimerNew
+    // Si no, pero showRestTimer es true, usar RestTimer
+    
     return (
         <>
             <AnimatePresence>
-                {showRestTimer && (
+                {!isResting && showRestTimer && (
                     <RestTimer
                         key={currentTimerOriginId}
                         duration={timerDuration}
                         exerciseName={nextExerciseName}
-                        onFinish={handleRestTimerFinish}
+                        onFinish={() => {}}
                     />
                 )}
             </AnimatePresence>
@@ -34,6 +38,7 @@ const RutinaTimersDisplay = ({
                 exerciseName={exerciseName}
                 onSkip={skipRest}
                 formatTime={formatTime}
+                originalDuration={originalDuration}
             />
         </>
     );

@@ -215,6 +215,7 @@ const Dashboard = () => {
             </div>
 
             {/* Today's workout */}
+            <h3 className="section-title">Rutina de hoy</h3>
             <section className="today-section">
                 {rutinaHoy ? (
                     <div className={`workout-card ${rutinaHoy.isCompleted ? 'completed' : 'pending'}`}>
@@ -257,7 +258,8 @@ const Dashboard = () => {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    className="upcoming-card"
+                                    className="upcoming-card cursor-pointer"
+                                    onClick={() => iniciarRutina(rutina)}
                                 >
                                     <div className="upcoming-info">
                                         <p className="upcoming-day">{diasSemana[rutina.dia]}</p>

@@ -26,6 +26,7 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
         isResting,
         timeLeft: restTimeLeft,
         exerciseName: restExerciseName,
+        originalDuration: restOriginalDuration,
         startRest,
         finishRest,
         skipRest,
@@ -34,10 +35,26 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
 
     const [rutina, setRutina] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [elementosCompletados, setElementosCompletados] = useState({});
+    const [elementosCompletados, setElementosCompletados] = useState(() => {
+        try {
+            const savedProgress = localStorage.getItem(`workout-progress-${id}`);
+            return savedProgress ? JSON.parse(savedProgress) : {};
+        } catch (error) {
+            console.error("Error loading progress from localStorage", error);
+            return {};
+        }
+    });
     const [lastSessionData, setLastSessionData] = useState({});
     const [showRestTimer, setShowRestTimer] = useState(false); // Old timer system
     const [timerDuration, setTimerDuration] = useState(0); // Old timer system
+
+    useEffect(() => {
+        try {
+            localStorage.setItem(`workout-progress-${id}`, JSON.stringify(elementosCompletados));
+        } catch (error) {
+            console.error("Error saving progress to localStorage", error);
+        }
+    }, [elementosCompletados, id]);
     const [nextExerciseName, setNextExerciseName] = useState("Siguiente ejercicio"); // Old timer system
     const [currentTimerOriginId, setCurrentTimerOriginId] = useState(null);
     const [elementoActivoId, setElementoActivoId] = useState(null);
@@ -49,9 +66,30 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
     // Función para obtener el nombre de un elemento por su ID
     const getElementNameById = useCallback((elementId) => {
         if (!rutina || !elementId) return "Ejercicio";
-        const parts = elementId.split('-');
-        const subId = parts[1];
-        const sbeId = parts[2];
+        
+        let subId, sbeId;
+        
+        // Manejar IDs con UUIDs
+        if (elementId.startsWith('superset-')) {
+            const match = elementId.match(/^superset-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-set\d+$/);
+            if (match) {
+                subId = match[1];
+                sbeId = match[2];
+            }
+        } else if (elementId.startsWith('simple-')) {
+            const match = elementId.match(/^simple-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-set\d+$/);
+            if (match) {
+                subId = match[1];
+                sbeId = match[2];
+            }
+        }
+        
+        // Si no coincide con los patrones de UUID, intentar parseo simple
+        if (!subId) {
+            const parts = elementId.split('-');
+            subId = parts[1];
+            sbeId = parts[2];
+        }
 
         for (const bloque of rutina.bloques) {
             for (const subbloque of bloque.subbloques) {
@@ -69,13 +107,61 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
 
     // Función para obtener la información del siguiente elemento
     const obtenerSiguienteElementoInfo = useCallback((currentElementId) => {
+        let tipo, subbloqueId, nroSet;
+        
+        // Manejar IDs con UUIDs
+        if (currentElementId.startsWith('superset-')) {
+            const match = currentElementId.match(/^superset-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-set(\d+)$/);
+            if (match) {
+                tipo = 'superset';
+                subbloqueId = match[1];
+                nroSet = match[3];
+            }
+        } else if (currentElementId.startsWith('simple-')) {
+            const match = currentElementId.match(/^simple-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-set(\d+)$/);
+            if (match) {
+                tipo = 'simple';
+                subbloqueId = match[1];
+                nroSet = match[3];
+            }
+        }
+        
+        // Si no coincide con los patrones de UUID, intentar parseo simple
+        if (!tipo) {
+            const parts = currentElementId.split('-');
+            tipo = parts[0];
+            subbloqueId = parts[1];
+            nroSet = parts[3]?.replace('set', '');
+        }
+        
+        if (tipo === 'superset') {
+            // Para superset, buscar el primer ejercicio del siguiente set o el siguiente subbloque
+            const subbloque = rutina?.bloques.flatMap(b => b.subbloques).find(s => s.id.toString() === subbloqueId);
+            if (subbloque) {
+                // Verificar si hay más sets en este superset
+                const numSets = subbloque.num_series_superset || 1;
+                const currentSetNum = parseInt(nroSet);
+                
+                if (currentSetNum < numSets) {
+                    // Siguiente set del mismo superset
+                    const nextSetNum = currentSetNum + 1;
+                    const primerEjercicio = subbloque.subbloques_ejercicios[0];
+                    if (primerEjercicio) {
+                        const nextId = generarIdEjercicioEnSerieDeSuperset(subbloqueId, primerEjercicio.id, nextSetNum);
+                        return { id: nextId, nombre: primerEjercicio.ejercicio.nombre };
+                    }
+                }
+            }
+        }
+        
+        // Comportamiento por defecto: siguiente elemento en la lista ordenada
         const currentIndex = orderedInteractiveElementIds.findIndex(id => id === currentElementId);
         if (currentIndex !== -1 && currentIndex < orderedInteractiveElementIds.length - 1) {
             const nextId = orderedInteractiveElementIds[currentIndex + 1];
             return { id: nextId, nombre: getElementNameById(nextId) };
         }
         return null;
-    }, [getElementNameById]);
+    }, [getElementNameById, rutina]);
 
     // Función para verificar si un superset está completado
     const verificarSupersetCompletado = useCallback((subbloqueId, numSerieSuperset, estadoActual, elementoActual) => {
@@ -88,23 +174,89 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
         });
     }, [rutina]);
 
+    const getSerieDataFromElementoId = useCallback((elementoId) => {
+        if (!rutina || !elementoId) return null;
+        
+        let tipo, subbloqueId, sbeId, nroSet;
+        
+        // Manejar IDs con UUIDs
+        if (elementoId.startsWith('superset-')) {
+            const match = elementoId.match(/^superset-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-set(\d+)$/);
+            if (match) {
+                tipo = 'superset';
+                subbloqueId = match[1];
+                sbeId = match[2];
+                nroSet = match[3];
+            }
+        } else if (elementoId.startsWith('simple-')) {
+            const match = elementoId.match(/^simple-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-set(\d+)$/);
+            if (match) {
+                tipo = 'simple';
+                subbloqueId = match[1];
+                sbeId = match[2];
+                nroSet = match[3];
+            }
+        }
+        
+        // Si no coincide con los patrones de UUID, intentar parseo simple
+        if (!tipo) {
+            const parts = elementoId.split('-');
+            if (parts.length < 4) return null;
+            tipo = parts[0];
+            subbloqueId = parts[1];
+            sbeId = parts[2];
+            nroSet = parts[3]?.replace('set', '');
+        }
+
+        const subbloque = rutina.bloques
+            .flatMap(b => b.subbloques)
+            .find(sb => sb.id.toString() === subbloqueId);
+
+        if (!subbloque) return null;
+
+        const sbe = subbloque.subbloques_ejercicios.find(s => s.id.toString() === sbeId);
+        if (!sbe) return null;
+
+        // For both simple and superset, we find the corresponding set number
+        const serie = sbe.series.find(s => s.nro_set.toString() === nroSet);
+        return serie || null;
+
+    }, [rutina]);
+
     // Función para activar el temporizador de pausa usando el nuevo hook
     const activarTemporizadorPausa = useCallback((duracion, originId) => {
+        console.log('🔔 activarTemporizadorPausa llamada:', { duracion, originId, isResting });
+        
         if (duracion > 0 && !isResting) {
             const siguienteDelQuePausa = obtenerSiguienteElementoInfo(originId);
             const nombreSiguiente = siguienteDelQuePausa ? siguienteDelQuePausa.nombre : "¡Rutina Completada!";
-
+            
+            console.log('🚀 Iniciando timer:', { duracion, nombreSiguiente });
+            
             // Usar el nuevo hook para iniciar el descanso
             startRest(duracion, nombreSiguiente);
+            
+            // Establecer valores para el timer antiguo
+            setTimerDuration(duracion);
+            setNextExerciseName(nombreSiguiente);
+            setShowRestTimer(true); // <-- MOSTRAR UI TIMER
 
             // Mantener compatibilidad con el sistema actual para la UI
             setCurrentTimerOriginId(originId);
+        } else {
+            console.log('⛔ Timer NO iniciado:', { 
+                razon: duracion <= 0 ? 'duracion es 0 o negativa' : 'ya hay un descanso en progreso' 
+            });
         }
     }, [obtenerSiguienteElementoInfo, isResting, startRest]);
 
     // Effect para manejar cuando el rest timer del hook termina
     useEffect(() => {
+        console.log('🕛 Effect timer:', { isResting, currentTimerOriginId, showRestTimer });
+        
         if (!isResting && currentTimerOriginId) {
+            console.log('⏰ Timer terminó, ocultando UI');
+            setShowRestTimer(false); // <-- OCULTAR UI TIMER
             // El descanso terminó, activar el siguiente elemento
             const siguienteElemento = obtenerSiguienteElementoInfo(currentTimerOriginId);
             if (siguienteElemento && siguienteElemento.id) {
@@ -122,17 +274,111 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
             const yaCompletado = !!prev[elementoId];
             const nuevos = { ...prev, [elementoId]: !yaCompletado };
 
-            // Si lo marcamos como completado (no si lo desmarcamos)
             if (!yaCompletado) {
-                const indexActual = orderedInteractiveElementIds.indexOf(elementoId);
-                const siguienteId = orderedInteractiveElementIds[indexActual + 1];
+                // Obtener información del elemento
+                let tipo, subbloqueId, sbeId, nroSet;
+                
+                // Manejar IDs con UUIDs
+                if (elementoId.startsWith('superset-')) {
+                    // Formato: superset-{uuid}-{uuid}-set{n}
+                    const match = elementoId.match(/^superset-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-set(\d+)$/);
+                    if (match) {
+                        tipo = 'superset';
+                        subbloqueId = match[1];
+                        sbeId = match[2];
+                        nroSet = match[3];
+                    }
+                } else if (elementoId.startsWith('simple-')) {
+                    // Formato: simple-{uuid}-{uuid}-set{n}
+                    const match = elementoId.match(/^simple-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-([^-]+-[^-]+-[^-]+-[^-]+-[^-]+)-set(\d+)$/);
+                    if (match) {
+                        tipo = 'simple';
+                        subbloqueId = match[1];
+                        sbeId = match[2];
+                        nroSet = match[3];
+                    }
+                }
+                
+                // Si no coincide con los patrones de UUID, intentar parseo simple
+                if (!tipo) {
+                    const parts = elementoId.split('-');
+                    tipo = parts[0];
+                    subbloqueId = parts[1];
+                    sbeId = parts[2];
+                    nroSet = parts[3]?.replace('set', '');
+                }
+                
+                console.log('🔍 DEBUG: Procesando elemento completado', {
+                    elementoId,
+                    tipo,
+                    subbloqueId,
+                    sbeId,
+                    nroSet
+                });
+                
+                let debeActivarTimer = false;
+                let pausaDuracion = 0;
+                
+                if (tipo === 'superset') {
+                    // Para superset, verificar si se completaron todos los ejercicios de esta ronda
+                    const supersetCompletado = verificarSupersetCompletado(subbloqueId, nroSet, nuevos, elementoId);
+                    console.log('🔷 Superset completado?', supersetCompletado);
+                    
+                    if (supersetCompletado) {
+                        // Buscar la pausa más alta entre todos los ejercicios del superset
+                        const subbloque = rutina?.bloques.flatMap(b => b.subbloques).find(s => s.id.toString() === subbloqueId);
+                        if (subbloque) {
+                            subbloque.subbloques_ejercicios.forEach(sbe => {
+                                const serie = sbe.series?.find(s => s.nro_set.toString() === nroSet);
+                                console.log('📊 Serie encontrada:', { 
+                                    ejercicio: sbe.ejercicio?.nombre, 
+                                    pausa: serie?.pausa,
+                                    serie
+                                });
+                                if (serie?.pausa > pausaDuracion) {
+                                    pausaDuracion = serie.pausa;
+                                }
+                            });
+                        }
+                        debeActivarTimer = pausaDuracion > 0;
+                    }
+                } else {
+                    // Para ejercicio simple, activar timer inmediatamente si tiene pausa
+                    const serieData = getSerieDataFromElementoId(elementoId);
+                    console.log('🔵 Serie data para ejercicio simple:', serieData);
+                    pausaDuracion = serieData?.pausa ?? 0;
+                    debeActivarTimer = pausaDuracion > 0;
+                }
 
-                if (siguienteId) {
-                    setElementoActivoId(siguienteId);
-                    // Scroll opcional:
-                    const ref = elementoRefs.current[siguienteId];
-                    if (ref?.scrollIntoView) {
-                        ref.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Verificar si es el último elemento
+                const indexActual = orderedInteractiveElementIds.indexOf(elementoId);
+                const esUltimoElemento = indexActual === orderedInteractiveElementIds.length - 1;
+                
+                console.log('✨ Resumen final:', {
+                    debeActivarTimer,
+                    pausaDuracion,
+                    esUltimoElemento,
+                    indexActual,
+                    totalElementos: orderedInteractiveElementIds.length
+                });
+                
+                // No activar timer si es el último ejercicio
+                if (debeActivarTimer && !esUltimoElemento) {
+                    console.log('✅ ACTIVANDO TIMER con duración:', pausaDuracion);
+                    activarTemporizadorPausa(pausaDuracion, elementoId);
+                } else if (esUltimoElemento) {
+                    console.log('🏁 Último ejercicio - no se activa timer');
+                    setElementoActivoId(null);
+                } else {
+                    console.log('❌ No hay pausa configurada');
+                    const siguienteId = orderedInteractiveElementIds[indexActual + 1];
+
+                    if (siguienteId) {
+                        setElementoActivoId(siguienteId);
+                        const ref = elementoRefs.current[siguienteId];
+                        if (ref?.scrollIntoView) {
+                            ref.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
                     }
                 }
             }
@@ -148,8 +394,11 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
         }
 
         startWorkout();
-        return () => finishWorkout();
-    }, []);
+        
+        return () => {
+            finishWorkout();
+        };
+    }, [activarTemporizadorPausa]);
 
     const formatWorkoutTime = (seconds) => {
         const minutes = Math.floor(seconds / 60);
@@ -277,6 +526,7 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
                         }) || []
                     })) || []
                 };
+                
                 setRutina(processedData);
                 orderedInteractiveElementIds = buildOrderedIdsInternal(processedData);
 
@@ -436,6 +686,7 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
 
             if (result.success) {
                 toast.success("¡Sesión guardada exitosamente!");
+                localStorage.removeItem(`workout-progress-${id}`);
                 // navigate('/dashboard'); // Navigation will be handled by the parent component
             } else {
                 toast.error("Error al guardar la sesión.");
@@ -456,6 +707,7 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
         isResting,
         restTimeLeft,
         restExerciseName,
+        restOriginalDuration,
         showRestTimer,
         timerDuration,
         nextExerciseName,

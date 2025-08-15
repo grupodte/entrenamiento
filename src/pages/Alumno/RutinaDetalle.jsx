@@ -2,34 +2,29 @@ import React, { useState, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext';
 import useRutinaLogic from "../../hooks/useRutinaLogic";
+import useRutinaProgress from "../../hooks/useRutinaProgress";
 import RutinaHeader from "../../components/RutinaDetalle/RutinaHeader";
 import RutinaContent from "../../components/RutinaDetalle/RutinaContent";
 import RutinaTimersDisplay from "../../components/RutinaDetalle/RutinaTimersDisplay";
+import EntrenamientoCompletado from "../../components/RutinaDetalle/EntrenamientoCompletado"; // <-- 1. IMPORTAR
 import Drawer from "../../components/Drawer";
+import { motion } from 'framer-motion'; // <-- 2. IMPORTAR MOTION
 
 /** Skeleton simple para el área de contenido */
 const LoadingSkeleton = () => (
-    <div className="pt-24 px-4">
-        <div className="max-w-[430px] mx-auto space-y-3">
-            {[...Array(3)].map((_, i) => (
-                <div
-                    key={i}
-                    className="h-[270px] w-[380px] max-w-full rounded-2xl bg-gray-800/40 border border-white/10 mx-auto
-                     animate-pulse"
-                />
-            ))}
-        </div>
+    <div className="flex flex-col justify-center items-center space-y-4 p-8">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+        <p className="text-gray-400">Cargando rutina...</p>
     </div>
 );
 
 const RutinaDetalle = () => {
+    // ... (hooks iniciales sin cambios)
     const { id } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
     const { user } = useAuth();
-
     const [showExitModal, setShowExitModal] = useState(false);
-
     const { state } = location;
     const tipo = state?.tipo || "base";
     const searchParams = new URLSearchParams(location.search);
@@ -45,14 +40,12 @@ const RutinaDetalle = () => {
         isResting,
         restTimeLeft,
         restExerciseName,
+        restOriginalDuration,
         showRestTimer,
         timerDuration,
         nextExerciseName,
         currentTimerOriginId,
-        totalSeriesCompletadas,
         todosCompletados,
-        width,
-        height,
         toggleElementoCompletado,
         handleFinalizarYGuardar,
         skipRest,
@@ -61,6 +54,12 @@ const RutinaDetalle = () => {
         elementoRefs,
     } = useRutinaLogic(id, tipo, bloqueSeleccionado, user);
 
+    const {
+        progressGlobal,
+        progressPorSubBloque,
+        seriesCompletadas,
+    } = useRutinaProgress(rutina, elementosCompletados);
+
     const isReady = !loading && !!rutina;
 
     const handleFinalizarAndNavigate = async () => {
@@ -68,13 +67,10 @@ const RutinaDetalle = () => {
         navigate('/dashboard');
     };
 
+    // Manejadores de modal de salida
     const handleBackButtonClick = useCallback(() => {
-        if (!todosCompletados) {
-            setShowExitModal(true);
-        } else {
-            navigate('/dashboard');
-        }
-    }, [todosCompletados, navigate]);
+        setShowExitModal(true);
+    }, []);
 
     const handleConfirmExit = () => {
         setShowExitModal(false);
@@ -85,78 +81,100 @@ const RutinaDetalle = () => {
         setShowExitModal(false);
     };
 
-    return (
-        <div className="m-0">
-            {/* Header siempre visible, incluso mientras carga */}
-            <RutinaHeader
-                rutinaNombre={rutina?.nombre ?? "Entrenamiento"}
-                workoutTime={isReady ? workoutTime : 0}
-                formatWorkoutTime={formatWorkoutTime}
-                onBackClick={handleBackButtonClick}
-            />
 
-            <div className="content-wrapper pt-24">
-                {/* Contenido: si está listo, mostramos; si no, Skeleton */}
-                {isReady ? (
-                    <>
+return (
+    <div className="flex flex-col h-screen text-white overflow-hidden">
+        <RutinaHeader
+            rutinaNombre={rutina?.nombre ?? "Entrenamiento"}
+            workoutTime={isReady ? workoutTime : 0}
+            formatWorkoutTime={formatWorkoutTime}
+            onBackClick={handleBackButtonClick}
+        />
+
+        <div className="flex-1 overflow-y-auto pt-20">
+            {isReady ? (
+                <>
+                    {/* Barra de progreso pegada al header */}
+                    {!todosCompletados && (
+                        <div className="fixed top-20 left-0 right-0 z-20">
+                            <div className="w-full bg-gray-700 h-1">
+                                <motion.div
+                                    className="bg-cyan-300 h-1"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progressGlobal}%` }}
+                                    transition={{ duration: 0.5 }}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Contenido principal */}
+                    <div>
                         <RutinaContent
+                            // 4. PROPS SIMPLIFICADAS
                             rutinaBloques={rutina.bloques}
                             elementosCompletados={elementosCompletados}
                             elementoActivoId={elementoActivoId}
                             toggleElementoCompletado={toggleElementoCompletado}
                             elementoRefs={elementoRefs}
                             lastSessionData={lastSessionData}
-                            todosCompletados={todosCompletados}
-                            workoutTime={workoutTime}
-                            totalSeriesCompletadas={totalSeriesCompletadas}
-                            handleFinalizarYGuardar={handleFinalizarAndNavigate}
-                            width={width}
-                            height={height}
-                            formatWorkoutTime={formatWorkoutTime}
+                            progressPorSubBloque={progressPorSubBloque}
                         />
-
-                        <RutinaTimersDisplay
-                            showRestTimer={showRestTimer}
-                            timerDuration={timerDuration}
-                            nextExerciseName={nextExerciseName}
-                            currentTimerOriginId={currentTimerOriginId}
-                            isResting={isResting}
-                            timeLeft={restTimeLeft}
-                            exerciseName={restExerciseName}
-                            skipRest={skipRest}
-                            formatTime={formatRestTime}
-                        />
-                    </>
-                ) : (
-                    <LoadingSkeleton />
-                )}
-
-                <Drawer isOpen={showExitModal} onClose={handleCancelExit}>
-                    <div className="p-4 text-center">
-                        <h2 className="text-xl font-bold text-white mb-4">¿Salir del Entrenamiento?</h2>
-                        <p className="text-gray-300 mb-6">
-                            Si sales ahora, el progreso de tu entrenamiento actual se perderá.
-                            ¿Estás seguro de que quieres salir?
-                        </p>
-                        <div className="flex justify-around gap-4">
-                            <button
-                                onClick={handleConfirmExit}
-                                className="flex-1 bg-red-600/20 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
-                            >
-                                Confirmar Salida
-                            </button>
-                            <button
-                                onClick={handleCancelExit}
-                                className="flex-1 bg-gray-700/50 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                        </div>
                     </div>
-                </Drawer>
-            </div>
+
+                    <RutinaTimersDisplay
+                        showRestTimer={showRestTimer}
+                        timerDuration={timerDuration}
+                        nextExerciseName={nextExerciseName}
+                        currentTimerOriginId={currentTimerOriginId}
+                        isResting={isResting}
+                        timeLeft={restTimeLeft}
+                        exerciseName={restExerciseName}
+                        skipRest={skipRest}
+                        formatTime={formatRestTime}
+                        originalDuration={restOriginalDuration}
+                    />
+
+                    {/* 5. MODAL DE COMPLETADO MOVIDO AQUÍ */}
+                    <EntrenamientoCompletado
+                        isOpen={todosCompletados}
+                        workoutTime={workoutTime}
+                        seriesCompletadas={seriesCompletadas}
+                        handleFinalizarYGuardar={handleFinalizarAndNavigate}
+                        formatWorkoutTime={formatWorkoutTime}
+                    />
+                </>
+            ) : (
+                <div className="pt-24"><LoadingSkeleton /></div>
+            )}
+
+            <Drawer isOpen={showExitModal} onClose={handleCancelExit}>
+                <div className="p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4">
+                        ¿Salir del entrenamiento?
+                    </h3>
+                    <p className="text-gray-400 mb-6">
+                        Si sales ahora, perderás el progreso de esta sesión.
+                    </p>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={handleConfirmExit}
+                            className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        >
+                            Salir
+                        </button>
+                        <button
+                            onClick={handleCancelExit}
+                            className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                        >
+                            Continuar
+                        </button>
+                    </div>
+                </div>
+            </Drawer>
         </div>
-    );
+    </div>
+);
 };
 
 export default RutinaDetalle;

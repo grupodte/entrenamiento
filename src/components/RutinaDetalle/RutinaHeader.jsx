@@ -10,21 +10,22 @@ const RutinaHeader = ({
     return (
         <header
             className="
-        fixed top-0 inset-x-0 z-30
+        fixed top-0 left-0 right-0 z-30
         h-20 /* 80px */
         bg-gradient-to-b from-black/60 to-transparent
         backdrop-blur-xl
         border-b border-white/10
         pt-safe
+        max-w-full
       "
             role="banner"
         >
             <div
                 className="
           h-full
-          max-w-dashboard mx-auto
-          px-4
+          w-full
           flex items-center justify-between gap-3
+          px-4
         "
             >
                 {/* IZQUIERDA: Back enfatizado */}
