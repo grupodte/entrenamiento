@@ -29,6 +29,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <Router>
       <AuthProvider>
         <SpotifyProvider>
+          <Toaster />
           <App />
         </SpotifyProvider>
       </AuthProvider>

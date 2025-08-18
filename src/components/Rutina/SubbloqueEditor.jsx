@@ -44,15 +44,15 @@ const selectStyles = {
 };
 
 const nombreOpciones = [
-    { value: 'Calentamiento', label: 'Calentamiento' },
-    { value: 'Principal', label: 'Principal' },
-    { value: 'Cooldown', label: 'Cooldown' },
-    { value: 'Estiramiento', label: 'Estiramiento' },
+    { value: 'calentamiento', label: 'Calentamiento' },
+    { value: 'principal', label: 'Principal' },
+    { value: 'cooldown', label: 'Cooldown' },
+    { value: 'estiramiento', label: 'Estiramiento' },
 ];
 
 const structureOptions = [
-    { value: 'Simple', label: 'Simple (series por ejercicio)' },
-    { value: 'Superset', label: 'Superset (series compartidas)' },
+    { value: 'simple', label: 'Simple (series por ejercicio)' },
+    { value: 'superset', label: 'Superset (series compartidas)' },
 ];
 
 const createDefaultSetsConfig = (numSets, reps = '', carga = '') =>
@@ -123,8 +123,8 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
             ejercicios: ejerciciosActualizados,
         });
     };
-    
-    
+
+
     const agregarEjercicio = (ejercicio) => {
         const nuevo = {
             id: uuidv4(),
@@ -160,96 +160,81 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
     return (
         <Disclosure defaultOpen>
             {({ open }) => (
-                <div className="rounded-xl border border-white/10 bg-white/5 p-2 md:p-1 space-y-1 shadow-xl">
-                    {/* Header compacto */}
-                    <div className="flex flex-wrap md:flex-nowrap items-center gap-1 md:gap-2">
-                        <div className="flex-1 min-w-[90px]">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-4 shadow-xl">
+                    {/* Header */}
+                    <div className="flex flex-wrap md:flex-nowrap items-center gap-4">
+                        <div className="flex-1 min-w-[150px]">
                             <Select
                                 options={nombreOpciones}
                                 value={nombreOpciones.find(opt => opt.value === currentSubbloque.nombre)}
                                 onChange={(e) => actualizarCampo('nombre', e.value)}
                                 styles={selectStyles}
-                                menuPlacement="auto"
-                                classNamePrefix="compact-select"
                             />
                         </div>
-                        <div className="flex-1 min-w-[90px]">
+                        <div className="flex-1 min-w-[180px]">
                             <Select
                                 options={structureOptions}
                                 value={structureOptions.find(opt => opt.value === currentSubbloque.tipo)}
                                 onChange={(e) => actualizarCampo('tipo', e.value)}
                                 styles={selectStyles}
-                                menuPlacement="auto"
-                                classNamePrefix="compact-select"
                             />
                         </div>
-                        {/* Inputs de series y descanso solo en el panel expandido, no aquí */}
-                        <div className="ml-auto flex items-center gap-0.5">
-                            <button onClick={onRemove} className="text-red-400 hover:text-red-600 p-0.5">
-                                <Trash2 size={14} />
+                        <div className="ml-auto flex items-center gap-2 pt-4 md:pt-0">
+                            <button onClick={onRemove} className="text-red-400 hover:text-red-600">
+                                <Trash2 size={18} />
                             </button>
-                            <Disclosure.Button className="text-white/60 hover:text-white p-0.5">
-                                <ChevronDown size={15} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+                            <Disclosure.Button className="text-white/60 hover:text-white">
+                                <ChevronDown size={20} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
                             </Disclosure.Button>
                         </div>
                     </div>
 
                     {/* Resumen */}
                     {!open && (
-                        <div className="bg-white/5 p-2 rounded-lg text-xs text-white/80 space-y-1">
+                        <div className="bg-white/5 p-3 rounded-lg text-xs text-white/80 space-y-2">
                             {currentSubbloque.ejercicios.length === 0 ? (
                                 <div className="italic text-white/50">Sin ejercicios aún.</div>
                             ) : (
                                 <>
+
+
                                     <div className="w-full overflow-x-auto">
                                         <table className="w-full text-left border-collapse">
                                             <thead>
                                                 <tr className="text-white/60 border-b border-white/10">
-                                                    <th className="py-0.5 px-1">Ejercicio</th>
-                                                    <th className="py-0.5 px-1 text-center">Reps</th>
-                                                    <th className="py-0.5 px-1 text-center">Series</th>
-                                                    <th className="py-0.5 px-1 text-center">Pausa</th>
+                                                    <th className="py-1 px-2">Ejercicio</th>
+                                                    <th className="py-1 px-2 text-center">Reps</th>
+                                                    <th className="py-1 px-2 text-center">Series</th>
+                                                    <th className="py-1 px-2 text-center">Pausa</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {currentSubbloque.ejercicios.map((ej, index) => {
-                                                    // --- Lógica mejorada para resumen ---
-                                                    let reps = '-';
-                                                    let nroSeries = '-';
-                                                    let pausa = '-';
-                                                    if (isShared) {
-                                                        // Superset: reps de sets_config, series de shared_config, pausa de shared_config
-                                                        const sets = ej.sets_config || [];
-                                                        reps = sets.map((s) => s.reps || '-').join(', ');
-                                                        nroSeries = currentSubbloque.shared_config?.num_sets || sets.length || '-';
-                                                        pausa = currentSubbloque.shared_config?.shared_rest || '-';
-                                                    } else {
-                                                        // Simple: reps de series, series de series.length, pausa de la primera serie
-                                                        const sets = ej.series || [];
-                                                        reps = sets.map((s) => s.reps || '-').join(', ');
-                                                        nroSeries = sets.length || '-';
-                                                        pausa = sets[0]?.pausa || '-';
-                                                    }
+                                                    const sets = ej.series || ej.sets_config || [];
+                                                    const reps = sets.map((s) => s.reps || '-').join(', ');
+                                                    const nroSeries = sets.length || '-';
+                                                    const pausa = sets[0]?.pausa || '-';
+
                                                     return (
                                                         <tr
                                                             key={ej.id}
                                                             className="border-b border-white/10 hover:bg-white/5 transition"
                                                         >
-                                                            <td className="py-0.5 px-1 truncate">{ej.nombre}</td>
-                                                            <td className="py-0.5 px-1 text-center">{reps}</td>
+                                                            <td className="py-1 px-2 truncate">{ej.nombre}</td>
+                                                            <td className="py-1 px-2 text-center">{reps}</td>
                                                             {index === 0 && (
                                                                 <>
                                                                     <td
-                                                                        className="py-0.5 px-1 text-center"
+                                                                        className="py-1 px-2 text-center"
                                                                         rowSpan={currentSubbloque.ejercicios.length}
                                                                     >
                                                                         {nroSeries}
                                                                     </td>
                                                                     <td
-                                                                        className="py-0.5 px-1 text-center"
+                                                                        className="py-1 px-2 text-center"
                                                                         rowSpan={currentSubbloque.ejercicios.length}
                                                                     >
-                                                                        {pausa !== '-' ? `${pausa}s` : '-'}
+                                                                        {pausa}s
                                                                     </td>
                                                                 </>
                                                             )}
@@ -264,7 +249,8 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
                         </div>
                     )}
 
-                    <Disclosure.Panel className="space-y-1 pt-1">
+
+                    <Disclosure.Panel className="space-y-4 pt-2">
                         {isShared && (
                             <SupersetSharedConfigEditor
                                 sharedConfig={currentSubbloque.shared_config}
@@ -277,7 +263,7 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
                             onSelect={agregarEjercicio}
                         />
 
-                        <table className="w-full text-xs text-white border border-white/10 rounded-lg overflow-hidden">
+                        <table className="w-full text-sm text-white border border-white/10 rounded-lg overflow-hidden">
                             <tbody>
                                 {currentSubbloque.ejercicios.map((ejercicio, i) => (
                                     <EjercicioChip

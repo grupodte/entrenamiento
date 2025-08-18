@@ -1,14 +1,11 @@
-// RutinaForm.jsx
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { useAuthUser } from '../../hooks/useAuthUser'; // Importar el hook aquí arriba
+import { useAuthUser } from '../../hooks/useAuthUser';
 import { supabase } from '../../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
 import BloqueEditor from '../../components/Rutina/BloqueEditor';
-import { guardarEstructuraRutina } from '../../utils/guardarEstructuraRutina'; // Importar la nueva función
-import { motion, AnimatePresence } from 'framer-motion';
-import { DndContext, closestCenter } from '@dnd-kit/core';
-import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { guardarEstructuraRutina } from '../../utils/guardarEstructuraRutina';
+import { Loader2 } from 'lucide-react';
 
 const createDefaultSetsConfig = (numSets, reps = '', carga = '') => {
     return Array(numSets).fill(null).map(() => ({ reps, carga })); // reps y carga deben ser strings aquí
@@ -16,8 +13,6 @@ const createDefaultSetsConfig = (numSets, reps = '', carga = '') => {
 
 // Nuevas props añadidas: esModoPersonalizar, alumnoIdParaPersonalizar, asignacionIdParaPersonalizar, idRutinaOriginal, tipoEntidadOriginal
 const RutinaForm = ({
-
-    
     modo = "crear",
     rutinaInicial = null,
     onGuardar,
@@ -32,8 +27,7 @@ const RutinaForm = ({
     const [descripcion, setDescripcion] = useState('');
     const [bloques, setBloques] = useState([]);
     const [ejerciciosDisponibles, setEjerciciosDisponibles] = useState([]);
-    const [bloqueAnimadoId, setBloqueAnimadoId] = useState(null);
-    const [bloqueEliminadoId, setBloqueEliminadoId] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Llamar a useAuthUser dentro del cuerpo del componente
     const { perfil: perfilEntrenador, isLoading: isLoadingAuthUserHook, error: errorAuthUserHook } = useAuthUser();
@@ -137,56 +131,15 @@ const RutinaForm = ({
         fetchEjercicios();
     }, []);
 
-    // Helper to deep copy a block (with new IDs for block, subblocks, exercises, and series)
-    const deepCopyBloque = (bloqueADuplicar) => {
-        return {
-            ...bloqueADuplicar,
-            id: uuidv4(),
-            subbloques: (bloqueADuplicar.subbloques || []).map(sb => ({
-                ...sb,
-                id: uuidv4(),
-                ejercicios: (sb.ejercicios || []).map(ej => ({
-                    ...ej,
-                    id: uuidv4(),
-                    series: ej.series?.map(s => ({ ...s })) || [],
-                    sets_config: ej.sets_config?.map(s => ({ ...s })) || [],
-                })),
-            })),
-        };
-    };
-
-    // Helper to recalculate weeks for all blocks
-    const recalcularSemanas = (bloquesArr) => {
-        const semanasPorBloque = 4;
-        return bloquesArr.map((b, i) => ({
-            ...b,
-            semana_inicio: i * semanasPorBloque + 1,
-            semana_fin: (i + 1) * semanasPorBloque,
-        }));
-    };
-
-    const onDragEnd = (event) => {
-        const { active, over } = event;
-        if (active?.id && over?.id && active.id !== over.id) {
-            const oldIndex = bloques.findIndex(b => b.id === active.id);
-            const newIndex = bloques.findIndex(b => b.id === over.id);
-            if (oldIndex !== -1 && newIndex !== -1) {
-                const nuevosBloques = arrayMove(bloques, oldIndex, newIndex);
-                setBloques(recalcularSemanas(nuevosBloques));
-            }
-        }
-    };
-
     const agregarBloque = () => {
+        const ultimaSemana = bloques[bloques.length - 1]?.semana_fin || 0;
         const nuevoBloque = {
             id: uuidv4(),
-            semana_inicio: 1, // recalculado luego
-            semana_fin: 4,
+            semana_inicio: ultimaSemana + 1,
+            semana_fin: ultimaSemana + 4,
             subbloques: [],
         };
-        const nuevosBloques = [...bloques, nuevoBloque];
-        setBloques(recalcularSemanas(nuevosBloques));
-        setBloqueAnimadoId(nuevoBloque.id);
+        setBloques(prev => [...prev, nuevoBloque]);
     };
 
     const actualizarBloque = (bloqueActualizado) => {
@@ -194,19 +147,35 @@ const RutinaForm = ({
     };
 
     const eliminarBloque = (bloqueId) => {
-        setBloqueEliminadoId(bloqueId);
-        setTimeout(() => {
-            const nuevosBloques = bloques.filter(b => b.id !== bloqueId);
-            setBloques(recalcularSemanas(nuevosBloques));
-            setBloqueEliminadoId(null);
-        }, 350); // debe coincidir con la duración de la animación exit
+        setBloques(prev => prev.filter(b => b.id !== bloqueId));
     };
 
     const duplicarBloque = (bloqueADuplicar) => {
-        const nuevoBloque = deepCopyBloque(bloqueADuplicar);
-        const nuevosBloques = [...bloques, nuevoBloque];
-        setBloques(recalcularSemanas(nuevosBloques));
-        setBloqueAnimadoId(nuevoBloque.id);
+        const nuevoBloque = JSON.parse(JSON.stringify(bloqueADuplicar)); // Deep copy
+
+        nuevoBloque.id = uuidv4(); // New ID for the block
+
+        // New IDs for subbloques and their children
+        nuevoBloque.subbloques = nuevoBloque.subbloques.map(subbloque => {
+            const nuevoSubbloque = { ...subbloque, id: uuidv4() };
+            nuevoSubbloque.ejercicios = nuevoSubbloque.ejercicios.map(ejercicio => {
+                const nuevoEjercicio = { ...ejercicio, id: uuidv4() };
+                if (nuevoEjercicio.series) {
+                    nuevoEjercicio.series = nuevoEjercicio.series.map(serie => ({
+                        ...serie,
+                        id: uuidv4()
+                    }));
+                }
+                return nuevoEjercicio;
+            });
+            return nuevoSubbloque;
+        });
+
+        const ultimaSemana = bloques[bloques.length - 1]?.semana_fin || 0;
+        nuevoBloque.semana_inicio = ultimaSemana + 1;
+        nuevoBloque.semana_fin = ultimaSemana + 4;
+
+        setBloques(prev => [...prev, nuevoBloque]);
     };
 
     // Helper function to insert bloques, subbloques, ejercicios, and series
@@ -217,71 +186,72 @@ const RutinaForm = ({
     // La llamada al hook debe estar dentro del cuerpo del componente.
 
     const validarRutina = () => {
+        const errores = [];
+
         if (!nombre.trim()) {
-            toast.error('El nombre de la rutina es obligatorio.');
-            return false;
+            errores.push('El nombre de la rutina es obligatorio.');
         }
         if (bloques.length === 0) {
-            toast.error('La rutina debe tener al menos un bloque.');
-            return false;
+            errores.push('La rutina debe tener al menos un bloque.');
         }
 
         for (const bloque of bloques) {
             if (bloque.subbloques.length === 0) {
-                toast.error(`El bloque de semana ${bloque.semana_inicio}-${bloque.semana_fin} debe tener al menos un sub-bloque.`);
-                return false;
+                errores.push(`El bloque de semana ${bloque.semana_inicio}-${bloque.semana_fin} debe tener al menos un sub-bloque.`);
             }
             for (const subbloque of bloque.subbloques) {
                 if (subbloque.ejercicios.length === 0) {
-                    toast.error(`El sub-bloque "${subbloque.nombre || 'Sin nombre'}" en el bloque de semana ${bloque.semana_inicio}-${bloque.semana_fin} debe tener al menos un ejercicio.`);
-                    return false;
+                    errores.push(`El sub-bloque "${subbloque.nombre || 'Sin nombre'}" en el bloque de semana ${bloque.semana_inicio}-${bloque.semana_fin} debe tener al menos un ejercicio.`);
                 }
                 for (const ejercicio of subbloque.ejercicios) {
+                    const nombreEjercicio = ejerciciosDisponibles.find(e => e.id === ejercicio.ejercicio_id)?.nombre || 'Desconocido';
                     const esSuperset = subbloque.tipo === 'superset';
                     const seriesOConfig = esSuperset ? ejercicio.sets_config : ejercicio.series;
+                    
                     if (!seriesOConfig || seriesOConfig.length === 0) {
-                        // En superset, si sets_config está vacío, createDefaultSetsConfig lo llenará en guardarEstructuraRutina,
-                        // pero num_sets en shared_config debe ser > 0.
                         if (esSuperset) {
                             if (!subbloque.shared_config || !parseInt(subbloque.shared_config.num_sets, 10) > 0) {
-                                toast.error(`El ejercicio "${ejercicio.ejercicio?.nombre || 'Desconocido'}" en un superset no tiene número de sets definido en la configuración compartida.`);
-                                return false;
+                                errores.push(`El ejercicio "${nombreEjercicio}" en un superset no tiene número de sets definido.`);
                             }
                         } else {
-                            toast.error(`El ejercicio "${ejercicio.ejercicio?.nombre || 'Desconocido'}" debe tener al menos una serie.`);
-                            return false;
+                            errores.push(`El ejercicio "${nombreEjercicio}" debe tener al menos una serie.`);
                         }
                     }
-                    // Validación de reps/carga podría ir aquí si es estrictamente necesario antes de guardar,
-                    // pero `guardarEstructuraRutina` ya los maneja como string vacío si no están.
-                    // Por ejemplo, para series simples:
+                    
                     if (!esSuperset && seriesOConfig) {
                         for (const [idx, serie] of seriesOConfig.entries()) {
-                            if (!serie.reps && !serie.carga_sugerida && !serie.carga) { // Si reps y carga están vacíos
-                                // toast.warn(`La serie ${idx + 1} del ejercicio "${ejercicio.ejercicio?.nombre || 'Desconocido'}" tiene repeticiones y carga vacías.`);
-                                // No lo hacemos un error bloqueante por ahora, pero se podría.
+                            if (!serie.reps) {
+                                errores.push(`La serie ${idx + 1} del ejercicio "${nombreEjercicio}" no tiene repeticiones.`);
                             }
                         }
                     }
-                    // Para supersets, similar validación en sets_config
+
                     if (esSuperset && seriesOConfig) {
                         for (const [idx, setConfig] of seriesOConfig.entries()) {
-                            if (!setConfig.reps && !setConfig.carga) {
-                                // toast.warn(`El set ${idx + 1} (config) del ejercicio "${ejercicio.ejercicio?.nombre || 'Desconocido'}" en superset tiene repeticiones y carga vacías.`);
+                            if (!setConfig.reps) {
+                                errores.push(`El set ${idx + 1} del ejercicio "${nombreEjercicio}" en el superset no tiene repeticiones.`);
                             }
                         }
                     }
                 }
             }
         }
-        return true;
+
+        return errores;
     };
 
     // handleSubmit unificado
     const handleSubmit = async () => {
-        if (!validarRutina()) {
+        const errores = validarRutina();
+        if (errores.length > 0) {
+            toast.error(errores.join('\n'));
             return;
         }
+
+        if (isSaving) {
+            return;
+        }
+        setIsSaving(true);
 
         if (esModoPersonalizar) {
             // Lógica para "Personalizar y Guardar"
@@ -344,6 +314,8 @@ const RutinaForm = ({
                 toast.dismiss();
                 console.error("Error al personalizar y guardar rutina:", error.message, error);
                 toast.error(`❌ Error: ${error.message}`);
+            } finally {
+                setIsSaving(false);
             }
 
         } else if (modo === 'editar') {
@@ -412,6 +384,8 @@ const RutinaForm = ({
                 toast.dismiss();
                 console.error("Error al actualizar rutina:", error.message, error);
                 toast.error(`❌ Error al actualizar: ${error.message}`);
+            } finally {
+                setIsSaving(false);
             }
 
         } else if (modo === 'crear') {
@@ -449,98 +423,43 @@ const RutinaForm = ({
                 toast.dismiss();
                 console.error("Error al guardar nueva rutina base:", error.message, error);
                 toast.error(`❌ Error al guardar: ${error.message}`);
+            } finally {
+                setIsSaving(false);
             }
         }
     };
 
     return (
-        <div className="  flex flex-col md:flex-row h-full gap-4">
-            <aside className="w-full max-w-[300px] mx-auto md:mx-0 md:w-[300px] p-3 md:p-4 border border-white/10 rounded-xl bg-white/5/80 backdrop-blur-md flex flex-col items-top justify-top">
-                <div className="flex flex-col gap-3 w-full">
-                    {/* Inputs con etiquetas */}
-                    <div className="space-y-0.5">
-                        <label className="text-[11px] text-white/70 font-medium">Nombre</label>
-                        <input
-                            value={nombre}
-                            onChange={e => setNombre(e.target.value)}
-                            placeholder="Ej. Rutina Hipertrofia A"
-                            className="rounded-md bg-white/10 backdrop-blur px-2 py-1.5 text-white placeholder-white/50 text-sm w-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                        />
-                    </div>
-                    <div className="space-y-0.5">
-                        <label className="text-[11px] text-white/70 font-medium">Tipo</label>
-                        <input
-                            value={tipo}
-                            onChange={e => setTipo(e.target.value)}
-                            placeholder="Ej. Fuerza, Cardio, etc."
-                            className="rounded-md bg-white/10 backdrop-blur px-2 py-1.5 text-white placeholder-white/50 text-sm w-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                        />
-                    </div>
-                    <div className="space-y-0.5">
-                        <label className="text-[11px] text-white/70 font-medium">Descripción</label>
-                        <textarea
-                            value={descripcion}
-                            onChange={e => setDescripcion(e.target.value)}
-                            placeholder="Describe brevemente la rutina"
-                            rows={2}
-                            className="rounded-md bg-white/10 backdrop-blur px-2 py-1.5 text-white placeholder-white/50 text-sm resize-none w-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                        />
-                    </div>
-                    {/* Botones de acción */}
-                    <div className="pt-1 flex flex-col gap-1.5">
-                        {bloques.length > 0 && (
-                            <button
-                                onClick={handleSubmit}
-                                className="bg-green-600 hover:bg-green-700 text-white font-semibold px-3 py-1.5 rounded-md text-sm transition"
-                            >
-                                {modo === 'crear' ? 'Guardar Rutina' : 'Actualizar Rutina'}
-                            </button>
-                        )}
-                        <button
-                            onClick={agregarBloque}
-                            className="bg-white/10 hover:bg-white/20 text-white font-medium px-3 py-1.5 rounded-md text-sm transition"
+        <div className="flex flex-col md:flex-row h-full gap-4">
+            <aside className="w-full md:w-[280px] p-4 space-y-4   border-b md:border-b-0 md:border-r border-white/10">
+                <div className="flex md:fixed flex-col gap-3">
+                    <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre" className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full" />
+                    <input value={tipo} onChange={e => setTipo(e.target.value)} placeholder="Tipo" className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full" />
+                    <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Descripción" rows={3} className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm resize-none w-full" />
+                    {bloques.length > 0 && 
+                        <button 
+                            onClick={handleSubmit} 
+                            disabled={isSaving}
+                            className="bg-green-600/30 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm flex items-center justify-center transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            + Agregar mes
+                            {isSaving && <Loader2 className="animate-spin mr-2" size={16} />}
+                            {isSaving ? 'Guardando...' : (modo === 'crear' ? 'Guardar Rutina' : 'Actualizar Rutina')}
                         </button>
-                    </div>
+                    }
+                    <button onClick={agregarBloque} className="bg-white/20 hover:bg-white/30 text-white font-semibold rounded-lg px-4 py-2 text-sm">Agregar mes</button>
                 </div>
             </aside>
-
-
-
-            
-            <section className="flex-1 space-y-4 ">
-                <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-                    <SortableContext items={bloques.map(b => b.id)} strategy={verticalListSortingStrategy}>
-                        <AnimatePresence initial={false}>
-                            {Array.isArray(bloques) && bloques.map((bloque, idx) => {
-                                const isAnimado = bloque.id === bloqueAnimadoId;
-                                const isEliminando = bloque.id === bloqueEliminadoId;
-                                return (
-                                    <motion.div
-                                        key={bloque.id}
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.9, x: 40 }}
-                                        transition={{ duration: 0.35 }}
-                                        onAnimationComplete={() => {
-                                            if (isAnimado) setBloqueAnimadoId(null);
-                                        }}
-                                        layout
-                                    >
-                                        <BloqueEditor
-                                            bloque={bloque}
-                                            onChange={actualizarBloque}
-                                            onRemove={() => eliminarBloque(bloque.id)}
-                                            onDuplicate={() => duplicarBloque(bloque)}
-                                            ejerciciosDisponibles={ejerciciosDisponibles}
-                                        />
-                                    </motion.div>
-                                );
-                            })}
-                        </AnimatePresence>
-                    </SortableContext>
-                </DndContext>
+            <section className="flex-1 pr-2 space-y-4 px-4 md:px-0">
+                {Array.isArray(bloques) && bloques.map(bloque => (
+                    <BloqueEditor
+                        key={bloque.id}
+                        bloque={bloque}
+                        onChange={actualizarBloque}
+                        onRemove={() => eliminarBloque(bloque.id)}
+                        onDuplicate={duplicarBloque}
+                        ejerciciosDisponibles={ejerciciosDisponibles}
+                    />
+                ))}
             </section>
 
         </div>

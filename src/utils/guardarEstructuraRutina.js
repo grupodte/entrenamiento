@@ -124,18 +124,18 @@ export async function guardarEstructuraRutina({ rutinaId, bloques, tipoRutina = 
                         continue;
                     }
 
+                    const reps = parseInt(set.reps, 10);
+                    const carga = parseInt(typeof set.carga !== 'undefined' ? set.carga : set.carga_sugerida, 10);
+                    const pausa = parseInt(esSuperset ? sharedRest : set.pausa, 10);
+
                     const { error: errorSerie } = await supabase
                         .from('series_subejercicio')
                         .insert([{
                             subbloque_ejercicio_id: subEjId,
                             nro_set: iSet + 1,
-                            reps: set.reps || '',
-                            // Usar set.carga si existe (viene de superset.sets_config), sino set.carga_sugerida (viene de ejercicio.series)
-                            carga_sugerida: typeof set.carga !== 'undefined' ? set.carga : (set.carga_sugerida || ''),
-                            // La pausa es compartida para superset, individual para simple.
-                            // Si es superset y sharedRest está vacío, la pausa será vacía.
-                            // Si es simple, set.pausa puede ser vacío o tener un valor.
-                            pausa: esSuperset ? sharedRest : (set.pausa || ''),
+                            reps: isNaN(reps) ? null : reps,
+                            carga_sugerida: isNaN(carga) ? null : carga,
+                            pausa: isNaN(pausa) ? null : pausa,
                         }]);
 
                     if (errorSerie) {
