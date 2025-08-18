@@ -5,7 +5,9 @@ export const useViewportHeight = () => {
     useEffect(() => {
         const setVH = () => {
             const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--dvh', `${vh}px`);
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+            // También definir la altura completa
+            document.documentElement.style.setProperty('--full-vh', `${window.innerHeight}px`);
         };
 
         setVH();

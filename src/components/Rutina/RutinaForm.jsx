@@ -1,17 +1,22 @@
+
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuthUser } from '../../hooks/useAuthUser';
 import { supabase } from '../../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
-import BloqueEditor from '../../components/Rutina/BloqueEditor';
+import BloqueEditor from './BloqueEditor';
 import { guardarEstructuraRutina } from '../../utils/guardarEstructuraRutina';
-import { Loader2 } from 'lucide-react';
+import { Loader2, PlusCircle, Save } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// 🎨 Estilos y gradientes consistentes
+const INPUT_CLASS = "w-full rounded-xl bg-white/10 px-4 py-3 text-white placeholder-white/50 focus:ring-2 focus:ring-pink-500 border border-transparent focus:border-pink-400 transition-all outline-none shadow-inner";
+const BRAND_GRADIENT = "from-orange-500 via-pink-500 to-red-600";
 
 const createDefaultSetsConfig = (numSets, reps = '', carga = '') => {
-    return Array(numSets).fill(null).map(() => ({ reps, carga })); // reps y carga deben ser strings aquí
+    return Array(numSets).fill(null).map(() => ({ reps, carga }));
 };
 
-// Nuevas props añadidas: esModoPersonalizar, alumnoIdParaPersonalizar, asignacionIdParaPersonalizar, idRutinaOriginal, tipoEntidadOriginal
 const RutinaForm = ({
     modo = "crear",
     rutinaInicial = null,
@@ -19,97 +24,60 @@ const RutinaForm = ({
     esModoPersonalizar = false,
     alumnoIdParaPersonalizar = null,
     asignacionIdParaPersonalizar = null,
-    idRutinaOriginal = null, // ID de la rutina_base si esModoPersonalizar es true
-    tipoEntidadOriginal = 'base' // 'base' o 'personalizada', si modo="editar" y !esModoPersonalizar
+    idRutinaOriginal = null,
+    tipoEntidadOriginal = 'base'
 }) => {
     const [nombre, setNombre] = useState('');
-    const [tipo, setTipo] = useState(''); // Tipo de la rutina (ej. "Fuerza", "Hipertrofia")
+    const [tipo, setTipo] = useState('');
     const [descripcion, setDescripcion] = useState('');
     const [bloques, setBloques] = useState([]);
     const [ejerciciosDisponibles, setEjerciciosDisponibles] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
-
-    // Llamar a useAuthUser dentro del cuerpo del componente
-    const { perfil: perfilEntrenador, isLoading: isLoadingAuthUserHook, error: errorAuthUserHook } = useAuthUser();
+    const { perfil: perfilEntrenador } = useAuthUser();
 
     useEffect(() => {
         if (modo === "editar" && rutinaInicial) {
             setNombre(rutinaInicial.nombre || '');
             setTipo(rutinaInicial.tipo || '');
             setDescripcion(rutinaInicial.descripcion || '');
-
-            // Transformación mejorada para preservar la estructura de datos del frontend
-            // y asegurar la consistencia con lo que esperan los componentes editores.
-            const bloquesTransformados = rutinaInicial.bloques?.map(bloqueOriginal => {
-                return {
-                    ...bloqueOriginal, // id, semana_inicio, semana_fin, orden, etc.
-                    id: bloqueOriginal.id || uuidv4(), // Asegurar ID para el estado local si no viene
-                    subbloques: bloqueOriginal.subbloques?.map(subBloqueOriginal => {
-                        const esSuperset = subBloqueOriginal.tipo === 'superset';
-
-                        // Reconstruir shared_config si es superset, basado en los datos de la primera serie del primer ejercicio,
-                        // o usar el shared_config que ya venga en subBloqueOriginal si existe y es más fiable.
-                        // La estructura actual de rutinaInicial.series ya está anidada.
-                        let numSetsInferido = 0;
-                        let sharedRestInferido = '';
-
-                        if (esSuperset && subBloqueOriginal.ejercicios && subBloqueOriginal.ejercicios.length > 0) {
-                            const primerEjercicioSeries = subBloqueOriginal.ejercicios[0].series;
-                            if (primerEjercicioSeries && primerEjercicioSeries.length > 0) {
-                                numSetsInferido = primerEjercicioSeries.length;
-                                sharedRestInferido = primerEjercicioSeries[0].pausa || ''; // En superset, la pausa de la primera serie es la compartida
-                            }
+            const bloquesTransformados = rutinaInicial.bloques?.map(bloqueOriginal => ({
+                ...bloqueOriginal,
+                id: bloqueOriginal.id || uuidv4(),
+                subbloques: bloqueOriginal.subbloques?.map(subBloqueOriginal => {
+                    const esSuperset = subBloqueOriginal.tipo === 'superset';
+                    let numSetsInferido = 0;
+                    let sharedRestInferido = '';
+                    if (esSuperset && subBloqueOriginal.ejercicios?.length > 0) {
+                        const primerEjercicioSeries = subBloqueOriginal.ejercicios[0].series;
+                        if (primerEjercicioSeries?.length > 0) {
+                            numSetsInferido = primerEjercicioSeries.length;
+                            sharedRestInferido = primerEjercicioSeries[0].pausa || '';
                         }
-
-                        const sharedConfigFinal = esSuperset
-                            ? (subBloqueOriginal.shared_config || { num_sets: numSetsInferido || 1, shared_rest: sharedRestInferido || '' })
-                            : undefined;
-
-                        return {
-                            ...subBloqueOriginal, // id, tipo, nombre, orden, etc.
-                            shared_config: sharedConfigFinal,
-                            ejercicios: subBloqueOriginal.ejercicios?.map(ejercicioOriginal => {
-                                // La `rutinaInicial` ya debería venir con `ejercicio.series` poblado desde el SELECT de Supabase.
-                                // `ejercicio.series` es un array de objetos: {reps, carga_sugerida, pausa, nro_set, etc.}
-                                if (esSuperset) {
-                                    // Para supersets, el frontend (SubbloqueEditor, SupersetSharedConfigEditor)
-                                    // maneja `shared_config` a nivel de subbloque.
-                                    // `EjercicioChip` o `EjercicioEditor` dentro de un superset podría necesitar `sets_config`
-                                    // que es una versión simplificada de `series` (solo reps y carga).
-                                    return {
-                                        ...ejercicioOriginal, // id, ejercicio_id, orden, etc.
-                                        // `ejercicio.ejercicio` (nombre del ejercicio) ya está en ejercicioOriginal.
-                                        // Mapear `ejercicioOriginal.series` a `sets_config` para el estado del formulario
-                                        sets_config: ejercicioOriginal.series?.map(s => ({
-                                            reps: s.reps || '',
-                                            carga: s.carga_sugerida || '',
-                                            // nro_set y pausa no son parte de sets_config, se gestionan por shared_config
-                                        })) || createDefaultSetsConfig(sharedConfigFinal?.num_sets || 0)
-                                    };
-                                } else { // Tipo 'simple'
-                                    // Para ejercicios simples, el frontend (EjercicioEditor) espera `ejercicio.series`
-                                    // con la estructura completa (reps, carga, pausa).
-                                    // Aseguramos que los campos que usa SeriesInput (reps, carga, pausa) estén presentes.
-                                    return {
-                                        ...ejercicioOriginal,
-                                        series: ejercicioOriginal.series?.map(s => ({
-                                            id: s.id || uuidv4(), // id de la serie si existe, o nuevo para el estado
-                                            reps: s.reps || '',
-                                            carga: s.carga_sugerida || '', // Asumimos que en 'simple', la carga es carga_sugerida
-                                            pausa: s.pausa || '',
-                                            // nro_set se puede mantener si es útil para la UI, aunque se recalcula al guardar.
-                                        })) || [{ id: uuidv4(), reps: '', carga: '', pausa: '' }] // Al menos una serie vacía
-                                    };
-                                }
-                            }) || [],
-                        };
-                    }) || [],
-                };
-            }) || [];
-
+                    }
+                    const sharedConfigFinal = esSuperset
+                        ? (subBloqueOriginal.shared_config || { num_sets: numSetsInferido || 1, shared_rest: sharedRestInferido || '' })
+                        : undefined;
+                    return {
+                        ...subBloqueOriginal,
+                        shared_config: sharedConfigFinal,
+                        ejercicios: subBloqueOriginal.ejercicios?.map(ejercicioOriginal => {
+                            if (esSuperset) {
+                                return {
+                                    ...ejercicioOriginal,
+                                    sets_config: ejercicioOriginal.series?.map(s => ({ reps: s.reps || '', carga: s.carga_sugerida || '' })) || createDefaultSetsConfig(sharedConfigFinal?.num_sets || 0)
+                                };
+                            } else {
+                                return {
+                                    ...ejercicioOriginal,
+                                    series: ejercicioOriginal.series?.map(s => ({ id: s.id || uuidv4(), reps: s.reps || '', carga: s.carga_sugerida || '', pausa: s.pausa || '' })) || [{ id: uuidv4(), reps: '', carga: '', pausa: '' }]
+                                };
+                            }
+                        }) || [],
+                    };
+                }) || [],
+            })) || [];
             setBloques(bloquesTransformados);
         } else {
-            // Modo crear o no hay rutinaInicial
             setNombre('');
             setTipo('');
             setDescripcion('');
@@ -117,28 +85,17 @@ const RutinaForm = ({
         }
     }, [modo, rutinaInicial]);
 
-
-    // Eliminados los useEffect relacionados con localStorage
-
     useEffect(() => {
         const fetchEjercicios = async () => {
-            const { data, error } = await supabase
-                .from('ejercicios')
-                .select('id, nombre, grupo_muscular');
-            if (!error) setEjerciciosDisponibles(data);
-            else toast.error('Error al cargar ejercicios.');
+            const { data, error } = await supabase.from('ejercicios').select('id, nombre, grupo_muscular');
+            if (!error) setEjerciciosDisponibles(data); else toast.error('Error al cargar ejercicios.');
         };
         fetchEjercicios();
     }, []);
 
     const agregarBloque = () => {
         const ultimaSemana = bloques[bloques.length - 1]?.semana_fin || 0;
-        const nuevoBloque = {
-            id: uuidv4(),
-            semana_inicio: ultimaSemana + 1,
-            semana_fin: ultimaSemana + 4,
-            subbloques: [],
-        };
+        const nuevoBloque = { id: uuidv4(), semana_inicio: ultimaSemana + 1, semana_fin: ultimaSemana + 4, subbloques: [] };
         setBloques(prev => [...prev, nuevoBloque]);
     };
 
@@ -151,235 +108,96 @@ const RutinaForm = ({
     };
 
     const duplicarBloque = (bloqueADuplicar) => {
-        const nuevoBloque = JSON.parse(JSON.stringify(bloqueADuplicar)); // Deep copy
-
-        nuevoBloque.id = uuidv4(); // New ID for the block
-
-        // New IDs for subbloques and their children
+        const nuevoBloque = JSON.parse(JSON.stringify(bloqueADuplicar));
+        nuevoBloque.id = uuidv4();
         nuevoBloque.subbloques = nuevoBloque.subbloques.map(subbloque => {
             const nuevoSubbloque = { ...subbloque, id: uuidv4() };
             nuevoSubbloque.ejercicios = nuevoSubbloque.ejercicios.map(ejercicio => {
                 const nuevoEjercicio = { ...ejercicio, id: uuidv4() };
                 if (nuevoEjercicio.series) {
-                    nuevoEjercicio.series = nuevoEjercicio.series.map(serie => ({
-                        ...serie,
-                        id: uuidv4()
-                    }));
+                    nuevoEjercicio.series = nuevoEjercicio.series.map(serie => ({ ...serie, id: uuidv4() }));
                 }
                 return nuevoEjercicio;
             });
             return nuevoSubbloque;
         });
-
         const ultimaSemana = bloques[bloques.length - 1]?.semana_fin || 0;
         nuevoBloque.semana_inicio = ultimaSemana + 1;
         nuevoBloque.semana_fin = ultimaSemana + 4;
-
         setBloques(prev => [...prev, nuevoBloque]);
     };
 
-    // Helper function to insert bloques, subbloques, ejercicios, and series
-    // _guardarComponentesAnidados ha sido movido a src/utils/guardarEstructuraRutina.js
-    // Ya no es necesario aquí.
-
-    // La importación de useAuthUser ya está en el top-level.
-    // La llamada al hook debe estar dentro del cuerpo del componente.
-
     const validarRutina = () => {
         const errores = [];
-
         if (!nombre.trim()) {
-            errores.push('El nombre de la rutina es obligatorio.');
+            errores.push('El nombre de la sesión es obligatorio.');
         }
         if (bloques.length === 0) {
-            errores.push('La rutina debe tener al menos un bloque.');
+            errores.push('La sesión debe tener al menos un bloque.');
         }
-
         for (const bloque of bloques) {
             if (bloque.subbloques.length === 0) {
                 errores.push(`El bloque de semana ${bloque.semana_inicio}-${bloque.semana_fin} debe tener al menos un sub-bloque.`);
             }
             for (const subbloque of bloque.subbloques) {
                 if (subbloque.ejercicios.length === 0) {
-                    errores.push(`El sub-bloque "${subbloque.nombre || 'Sin nombre'}" en el bloque de semana ${bloque.semana_inicio}-${bloque.semana_fin} debe tener al menos un ejercicio.`);
-                }
-                for (const ejercicio of subbloque.ejercicios) {
-                    const nombreEjercicio = ejerciciosDisponibles.find(e => e.id === ejercicio.ejercicio_id)?.nombre || 'Desconocido';
-                    const esSuperset = subbloque.tipo === 'superset';
-                    const seriesOConfig = esSuperset ? ejercicio.sets_config : ejercicio.series;
-                    
-                    if (!seriesOConfig || seriesOConfig.length === 0) {
-                        if (esSuperset) {
-                            if (!subbloque.shared_config || !parseInt(subbloque.shared_config.num_sets, 10) > 0) {
-                                errores.push(`El ejercicio "${nombreEjercicio}" en un superset no tiene número de sets definido.`);
-                            }
-                        } else {
-                            errores.push(`El ejercicio "${nombreEjercicio}" debe tener al menos una serie.`);
-                        }
-                    }
-                    
-                    if (!esSuperset && seriesOConfig) {
-                        for (const [idx, serie] of seriesOConfig.entries()) {
-                            if (!serie.reps) {
-                                errores.push(`La serie ${idx + 1} del ejercicio "${nombreEjercicio}" no tiene repeticiones.`);
-                            }
-                        }
-                    }
-
-                    if (esSuperset && seriesOConfig) {
-                        for (const [idx, setConfig] of seriesOConfig.entries()) {
-                            if (!setConfig.reps) {
-                                errores.push(`El set ${idx + 1} del ejercicio "${nombreEjercicio}" en el superset no tiene repeticiones.`);
-                            }
-                        }
-                    }
+                    errores.push(`El sub-bloque "${subbloque.nombre || 'Sin nombre'}" debe tener al menos un ejercicio.`);
                 }
             }
         }
-
         return errores;
     };
 
-    // handleSubmit unificado
     const handleSubmit = async () => {
         const errores = validarRutina();
         if (errores.length > 0) {
             toast.error(errores.join('\n'));
             return;
         }
-
-        if (isSaving) {
-            return;
-        }
+        if (isSaving) return;
         setIsSaving(true);
 
         if (esModoPersonalizar) {
-            // Lógica para "Personalizar y Guardar"
-            if (!alumnoIdParaPersonalizar || !asignacionIdParaPersonalizar || !idRutinaOriginal) {
-                toast.error("Faltan datos para personalizar la rutina (alumno, asignación o rutina original).");
-                return;
-            }
-            if (!perfilEntrenador?.id) {
-                toast.error("No se pudo identificar al entrenador para personalizar.");
-                return;
-            }
-
-            toast.loading('Personalizando y guardando rutina...');
+            toast.loading('Personalizando y guardando sesión...');
             try {
-                // 1. Crear la nueva rutina personalizada (cabecera)
-                const { data: nuevaRutinaPData, error: errorRutinaP } = await supabase
-                    .from('rutinas_personalizadas')
-                    .insert({
-                        nombre: nombre, // Nombre del formulario
-                        descripcion: descripcion, // Descripción del formulario
-                        tipo: tipo, // Tipo del formulario
-                        entrenador_id: perfilEntrenador.id,
-                        alumno_id: alumnoIdParaPersonalizar,
-                        rutina_base_id: idRutinaOriginal, // Referencia a la base
-                        es_activa: true,
-                        // fecha_inicio: podría tomarse de la asignación original o ser nueva
-                    })
-                    .select()
-                    .single();
-
+                const { data: nuevaRutinaPData, error: errorRutinaP } = await supabase.from('rutinas_personalizadas').insert({ nombre, descripcion, tipo, entrenador_id: perfilEntrenador.id, alumno_id: alumnoIdParaPersonalizar, rutina_base_id: idRutinaOriginal, es_activa: true }).select().single();
                 if (errorRutinaP) throw errorRutinaP;
                 const nuevaRutinaPersonalizadaId = nuevaRutinaPData.id;
-
-                // 2. Guardar la estructura (bloques modificados) para la nueva rutina personalizada
-                await guardarEstructuraRutina({
-                    rutinaId: nuevaRutinaPersonalizadaId,
-                    bloques: bloques, // Bloques del estado actual del formulario
-                    tipoRutina: 'personalizada'
-                });
-
-                // 3. Actualizar la asignación original para que apunte a la nueva rutina personalizada
-                const { error: errorAsignacion } = await supabase
-                    .from('asignaciones')
-                    .update({
-                        rutina_personalizada_id: nuevaRutinaPersonalizadaId,
-                        rutina_base_id: null // Anular la referencia a la rutina base
-                    })
-                    .eq('id', asignacionIdParaPersonalizar);
-
+                await guardarEstructuraRutina({ rutinaId: nuevaRutinaPersonalizadaId, bloques, tipoRutina: 'personalizada' });
+                const { error: errorAsignacion } = await supabase.from('asignaciones').update({ rutina_personalizada_id: nuevaRutinaPersonalizadaId, rutina_base_id: null }).eq('id', asignacionIdParaPersonalizar);
                 if (errorAsignacion) throw errorAsignacion;
-
                 toast.dismiss();
                 toast.success('✅ Rutina personalizada y guardada correctamente.');
-                if (onGuardar) {
-                    // Pasar el ID de la nueva rutina personalizada para la navegación
-                    onGuardar({ id: nuevaRutinaPersonalizadaId, esPersonalizada: true, alumnoId: alumnoIdParaPersonalizar });
-                }
-
+                if (onGuardar) onGuardar({ id: nuevaRutinaPersonalizadaId, esPersonalizada: true, alumnoId: alumnoIdParaPersonalizar });
             } catch (error) {
                 toast.dismiss();
-                console.error("Error al personalizar y guardar rutina:", error.message, error);
+                console.error("Error al personalizar y guardar la sesion:", error.message, error);
                 toast.error(`❌ Error: ${error.message}`);
             } finally {
                 setIsSaving(false);
             }
-
         } else if (modo === 'editar') {
-            // Lógica para actualizar una rutina existente (base o personalizada)
-            if (!rutinaInicial?.id) {
-                toast.error('Falta el ID de la rutina para actualizar.');
-                return;
-            }
             toast.loading('Actualizando rutina...');
             try {
                 const rutinaId = rutinaInicial.id;
                 const tablaActualizar = tipoEntidadOriginal === 'base' ? 'rutinas_base' : 'rutinas_personalizadas';
                 const campoJoinBloques = tipoEntidadOriginal === 'base' ? 'rutina_base_id' : 'rutina_personalizada_id';
-
-                // 1. Actualizar cabecera de la rutina (base o personalizada)
-                const updateData = { nombre, tipo, descripcion };
-                // Si es personalizada, podríamos querer actualizar también alumno_id o entrenador_id si fuera editable aquí
-                // if (tipoEntidadOriginal === 'personalizada') {
-                //     updateData.alumno_id = ...; 
-                // }
-                const { error: errorUpdateCabecera } = await supabase
-                    .from(tablaActualizar)
-                    .update(updateData)
-                    .eq('id', rutinaId);
-
+                const { error: errorUpdateCabecera } = await supabase.from(tablaActualizar).update({ nombre, tipo, descripcion }).eq('id', rutinaId);
                 if (errorUpdateCabecera) throw errorUpdateCabecera;
-
-                // 2. Eliminar bloques y estructura anidada antigua
-                // Esta parte es delicada y debe asegurar que solo se borren los componentes de ESTA rutina.
-                // La forma actual de borrar en cascada desde bloques es correcta si las FK están bien.
-                const { data: bloquesExistentes, error: errorBloquesExistentes } = await supabase
-                    .from('bloques')
-                    .select('id, subbloques (id, subbloques_ejercicios (id))') // No necesitamos series_subejercicio aquí
-                    .eq(campoJoinBloques, rutinaId);
-
+                const { data: bloquesExistentes, error: errorBloquesExistentes } = await supabase.from('bloques').select('id, subbloques (id, subbloques_ejercicios (id))').eq(campoJoinBloques, rutinaId);
                 if (errorBloquesExistentes) throw errorBloquesExistentes;
-
                 for (const bloqueExistente of bloquesExistentes) {
                     for (const subBloqueExistente of bloqueExistente.subbloques) {
-                        // Borrar series_subejercicio primero
                         await supabase.from('series_subejercicio').delete().in('subbloque_ejercicio_id', subBloqueExistente.subbloques_ejercicios.map(sbe => sbe.id));
-                        // Borrar subbloques_ejercicios
                         await supabase.from('subbloques_ejercicios').delete().eq('subbloque_id', subBloqueExistente.id);
                     }
-                    // Borrar subbloques
                     await supabase.from('subbloques').delete().eq('bloque_id', bloqueExistente.id);
                 }
-                // Borrar bloques
                 await supabase.from('bloques').delete().eq(campoJoinBloques, rutinaId);
-
-
-                // 3. Insertar nuevos componentes anidados
-                await guardarEstructuraRutina({
-                    rutinaId: rutinaId,
-                    bloques: bloques, // Bloques del estado actual del formulario
-                    tipoRutina: tipoEntidadOriginal // 'base' o 'personalizada'
-                });
-
+                await guardarEstructuraRutina({ rutinaId, bloques, tipoRutina: tipoEntidadOriginal });
                 toast.dismiss();
                 toast.success('✅ Rutina actualizada correctamente');
-                if (onGuardar) {
-                    onGuardar({ id: rutinaId, esPersonalizada: tipoEntidadOriginal === 'personalizada' });
-                }
-
+                if (onGuardar) onGuardar({ id: rutinaId, esPersonalizada: tipoEntidadOriginal === 'personalizada' });
             } catch (error) {
                 toast.dismiss();
                 console.error("Error al actualizar rutina:", error.message, error);
@@ -387,38 +205,17 @@ const RutinaForm = ({
             } finally {
                 setIsSaving(false);
             }
-
         } else if (modo === 'crear') {
-            // Lógica para crear una NUEVA rutina_base (no personalizada directamente desde aquí)
             toast.loading('Guardando nueva rutina base...');
             try {
-                const { data: rutinaBase, error: errorRutina } = await supabase
-                    .from('rutinas_base')
-                    .insert([{ nombre, tipo, descripcion }])
-                    .select()
-                    .single();
-
+                const { data: rutinaBase, error: errorRutina } = await supabase.from('rutinas_base').insert([{ nombre, tipo, descripcion }]).select().single();
                 if (errorRutina) throw errorRutina;
                 const rutinaBaseId = rutinaBase.id;
-
-                await guardarEstructuraRutina({
-                    rutinaId: rutinaBaseId,
-                    bloques: bloques,
-                    tipoRutina: 'base'
-                });
-
+                await guardarEstructuraRutina({ rutinaId: rutinaBaseId, bloques, tipoRutina: 'base' });
                 toast.dismiss();
-                toast.success(`✅ Nueva rutina base guardada.`);
-
-                // Reset form
-                setNombre('');
-                setTipo('');
-                setDescripcion('');
-                setBloques([]);
-
-                if (onGuardar) {
-                    onGuardar({ id: rutinaBaseId, esPersonalizada: false });
-                }
+                toast.success(`Nueva rutina base guardada.`);
+                setNombre(''); setTipo(''); setDescripcion(''); setBloques([]);
+                if (onGuardar) onGuardar({ id: rutinaBaseId, esPersonalizada: false });
             } catch (error) {
                 toast.dismiss();
                 console.error("Error al guardar nueva rutina base:", error.message, error);
@@ -430,38 +227,43 @@ const RutinaForm = ({
     };
 
     return (
-        <div className="flex flex-col md:flex-row h-full gap-4">
-            <aside className="w-full md:w-[280px] p-4 space-y-4   border-b md:border-b-0 md:border-r border-white/10">
-                <div className="flex md:fixed flex-col gap-3">
-                    <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre" className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full" />
-                    <input value={tipo} onChange={e => setTipo(e.target.value)} placeholder="Tipo" className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm w-full" />
-                    <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Descripción" rows={3} className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-white placeholder-white/50 text-sm resize-none w-full" />
-                    {bloques.length > 0 && 
-                        <button 
-                            onClick={handleSubmit} 
-                            disabled={isSaving}
-                            className="bg-green-600/30 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm flex items-center justify-center transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isSaving && <Loader2 className="animate-spin mr-2" size={16} />}
-                            {isSaving ? 'Guardando...' : (modo === 'crear' ? 'Guardar Rutina' : 'Actualizar Rutina')}
-                        </button>
-                    }
-                    <button onClick={agregarBloque} className="bg-white/20 hover:bg-white/30 text-white font-semibold rounded-lg px-4 py-2 text-sm">Agregar mes</button>
-                </div>
-            </aside>
-            <section className="flex-1 pr-2 space-y-4 px-4 md:px-0">
-                {Array.isArray(bloques) && bloques.map(bloque => (
-                    <BloqueEditor
-                        key={bloque.id}
-                        bloque={bloque}
-                        onChange={actualizarBloque}
-                        onRemove={() => eliminarBloque(bloque.id)}
-                        onDuplicate={duplicarBloque}
-                        ejerciciosDisponibles={ejerciciosDisponibles}
-                    />
-                ))}
-            </section>
-
+        <div className="bg-white/5 backdrop-blur-2xl rounded-2xl p-4 sm:p-6 shadow-lg border border-white/10">
+          
+            <div className="flex flex-col lg:flex-row h-full gap-8">
+                <aside className="w-full lg:w-80 lg:sticky top-6 self-start space-y-4 bg-white/5 p-5 rounded-2xl border border-white/10">
+                    <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-3 mb-4">Configuración General</h3>
+                    <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre de la sesión" className={INPUT_CLASS} />
+                    <input value={tipo} onChange={e => setTipo(e.target.value)} placeholder="Ej: Hipertrofia, Fuerza" className={INPUT_CLASS} />
+                    <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Descripción" rows={4} className={`${INPUT_CLASS} min-h-[100px]`} />
+                    <div className="space-y-3 pt-4">
+                        <motion.button whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }} onClick={agregarBloque} className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl px-4 py-3 transition-colors shadow-md">
+                            <PlusCircle size={18} />
+                            Agregar Mes
+                        </motion.button>
+                        {bloques.length > 0 && 
+                            <motion.button whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }} onClick={handleSubmit} disabled={isSaving} className={`w-full flex items-center justify-center gap-2 text-white font-bold rounded-xl px-4 py-3 transition-all bg-gradient-to-r ${BRAND_GRADIENT} shadow-[0_8px_20px_rgba(236,72,153,0.3)] disabled:opacity-50 disabled:cursor-not-allowed`}>
+                                {isSaving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                                {isSaving ? 'Guardando...' : (modo === 'crear' ? 'Guardar' : 'Actualizar ')}
+                            </motion.button>
+                        }
+                    </div>
+                </aside>
+                <section className="flex-1 space-y-6">
+                    <AnimatePresence>
+                        {bloques.map((bloque, index) => (
+                            <motion.div key={bloque.id} layout initial={{ opacity: 0, y: 20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -20, scale: 0.95 }} transition={{ type: 'spring', stiffness: 200, damping: 25, delay: index * 0.1 }}>
+                                <BloqueEditor bloque={bloque} onChange={actualizarBloque} onRemove={() => eliminarBloque(bloque.id)} onDuplicate={duplicarBloque} ejerciciosDisponibles={ejerciciosDisponibles} />
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                    {bloques.length === 0 && (
+                        <div className="text-center py-16 border-2 border-dashed border-white/20 rounded-2xl flex flex-col items-center justify-center">
+                            <p className="text-white/60 font-semibold text-lg">Aún no hay bloques</p>
+                            <p className="text-white/40 text-sm mt-1">Comienza haciendo clic en "Agregar Bloque".</p>
+                        </div>
+                    )}
+                </section>
+            </div>
         </div>
     );
 };

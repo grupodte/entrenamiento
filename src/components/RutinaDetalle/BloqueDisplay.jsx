@@ -17,7 +17,7 @@ const BloqueDisplay = (props) => {
     };
 
     return (
-            <div className=" z-10 space-y-10 ">
+            <div className="z-10 space-y-4">
                 {[...(bloque.subbloques ?? [])]
                     .sort(sortSubBloques)
                     .map((subbloque, index) => {

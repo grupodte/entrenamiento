@@ -1,57 +1,66 @@
-import { Link, useLocation } from 'react-router-dom';
-import { FaUsers, FaClipboardList, FaDumbbell } from 'react-icons/fa';
+import { Link, useLocation } from "react-router-dom";
+import { FaUsers, FaClipboardList, FaDumbbell } from "react-icons/fa";
+import { motion } from "framer-motion";
 
-const navItems = [
-  { path: '/admin/alumnos', title: 'Alumnos', icon: <FaUsers /> },
-  { path: '/admin/rutinas', title: 'Rutinas', icon: <FaClipboardList /> },
-  { path: '/admin/ejercicios', title: 'Ejercicios', icon: <FaDumbbell /> },
+const NAV = [
+  { path: "/admin/alumnos", title: "Alumnos", icon: <FaUsers /> },
+  { path: "/admin/rutinas", title: "Rutinas", icon: <FaClipboardList /> },
+  { path: "/admin/ejercicios", title: "Ejercicios", icon: <FaDumbbell /> },
 ];
 
-const AdminSidebarMobile = () => {
+export default function AdminSidebarMobile() {
   const location = useLocation();
 
   return (
     <nav
       className="
-        fixed bottom-0 left-0 right-0 z-50
-        bg-white/80 dark:bg-black/70 backdrop-blur-md
-        border-t border-white/20 dark:border-white/10
-        shadow-[0_-2px_10px_rgba(0,0,0,0.15)]
-        px-4
-        pt-1
-        flex justify-around items-center
-        h-[75px]
+        fixed bottom-3 left-1/2 -translate-x-1/2 z-50
+        h-[66px] w-[92%] max-w-xl
+        rounded-3xl px-3
+        bg-white/80 dark:bg-black/70 backdrop-blur-xl
+        border border-white/15 shadow-[0_10px_30px_rgba(0,0,0,0.35)]
         md:hidden
       "
       role="navigation"
       aria-label="Menú inferior de administración"
     >
-      {navItems.map(({ path, title, icon }) => {
-        const isActive = location.pathname.startsWith(path);
-        return (
-          <Link
-            key={path}
-            to={path}
-            aria-label={title}
-            className={`
-              flex flex-col items-center justify-center
-              gap-0.5
-              px-3 py-1.5
-              rounded-xl
-              transition-all duration-200 ease-in-out text-xs font-medium
-              ${isActive
-                ? 'bg-white/10 text-white shadow-md scale-[0.85] active:scale-[1]'
-                : 'text-gray-700 dark:text-gray-300 hover:text-ios-primary active:text-ios-primary active:bg-ios-primary/10 dark:active:bg-ios-primary/20 active:scale-95'
-              }
-            `}
-          >
-            <span className="text-[20px]">{icon}</span>
-            <span className="text-[11px] leading-none">{title}</span>
-          </Link>
-        );
-      })}
+      <ul className="flex h-full items-center justify-around">
+        {NAV.map(({ path, title, icon }) => {
+          const active =
+            (location.pathname.startsWith(path) && path !== "/admin") ||
+            location.pathname === path;
+          return (
+            <li key={path} className="relative flex-1">
+              <Link
+                to={path}
+                aria-label={title}
+                className="group grid place-items-center gap-1 py-2"
+              >
+                {/* Pill activo animado */}
+                {active && (
+                  <motion.span
+                    layoutId="mobile-active"
+                    className="
+                      absolute inset-y-1 left-1 right-1 rounded-2xl
+                      bg-gradient-to-r from-emerald-400 via-cyan-400 to-fuchsia-500
+                      opacity-90
+                      shadow-[0_0_18px_rgba(34,211,238,0.45)]
+                    "
+                    transition={{ type: "spring", stiffness: 350, damping: 24 }}
+                  />
+                )}
+
+                <span className={`relative z-10 text-[20px] ${active ? "text-white" : "text-gray-800 dark:text-gray-200 group-active:scale-95 transition-transform"}`}>
+                  {icon}
+                </span>
+                <span className={`relative z-10 text-[11px] font-medium ${active ? "text-white" : "text-gray-700 dark:text-gray-300"}`}>
+                  {title}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </nav>
   );
-};
-
-export default AdminSidebarMobile;
+}
