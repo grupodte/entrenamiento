@@ -36,6 +36,8 @@ import AdminAlumnos from './pages/Admin/AdminAlumnos';
 import AdminEjercicios from './pages/Admin/AdminEjercicios';
 import AsignarRutina from './pages/Admin/AsignarRutina';
 import EditarDia from './pages/Admin/EditarDia';
+import CrearRutinaReal from './pages/Admin/CrearRutinaReal';
+import AdminRutinasReales from './pages/Admin/AdminRutinasReales';
 
 const AppContent = () => {
   const location = useLocation();
@@ -94,8 +96,10 @@ const AppContent = () => {
           <Route path="alumno/:id" element={<PageTransition><AlumnoPerfil /></PageTransition>} />
           <Route path="rutinas" element={<PageTransition><AdminRutinas /></PageTransition>} />
           <Route path="rutinas/crear" element={<PageTransition><CrearRutina /></PageTransition>} />
+          <Route path="rutinas/rutina" element={<PageTransition><CrearRutinaReal /></PageTransition>} />
           <Route path="rutinas/editar/:id" element={<PageTransition><EditarRutina /></PageTransition>} />
           <Route path="rutinas/ver/:id" element={<PageTransition><VerRutina /></PageTransition>} />
+          <Route path="rutinas-reales" element={<PageTransition><AdminRutinasReales /></PageTransition>} />
           <Route path="rutinas/editar-dia/:id" element={<PageTransition><EditarDia /></PageTransition>} />
           <Route path="ejercicios" element={<PageTransition><AdminEjercicios /></PageTransition>} />
           <Route path="ejercicios/seleccionar" element={<PageTransition><SeleccionarEjercicios /></PageTransition>} />

@@ -19,11 +19,13 @@ const NAV = [
     { path: "/admin/alumnos", label: "Alumnos", icon: <FaUsers /> },
     {
         path: "/admin/rutinas",
-        label: "Sesiones",
+        label: "Rutinas",
         icon: <FaClipboardList />,
         children: [
             { path: "/admin/rutinas", label: "Listado" },
-            { path: "/admin/rutinas/crear", label: "Crear rutina" },
+            { path: "/admin/rutinas/crear", label: "Crear sesion" },
+            { path: "/admin/rutinas/rutina", label: "Crear rutina" },
+            { path: "/admin/rutinas-reales", label: "Listado Rutinas" },
         ],
     },
     { path: "/admin/ejercicios", label: "Ejercicios", icon: <FaDumbbell /> },

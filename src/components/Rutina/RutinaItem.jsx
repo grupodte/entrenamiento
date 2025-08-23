@@ -25,8 +25,8 @@ const RutinaItem = ({ rutina }) => {
     // al placeholder que podría quedar (aunque con opacity:0 no se verá)
     // o si en el futuro se cambia opacity:0 por otra estrategia (ej. moverlo fuera de pantalla)
     const draggingClass = isDragging
-        ? 'bg-blue-100 border-blue-400 shadow-lg'
-        : 'bg-gray-50 hover:bg-gray-100 border-gray-200';
+        ? 'bg-blue-100 border-blue-400 shadow-lg text-gray-800' // Mantener texto oscuro en fondo claro
+        : 'bg-white/5 hover:bg-white/10 border-white/10 text-white';
 
     return (
         <li
@@ -34,10 +34,8 @@ const RutinaItem = ({ rutina }) => {
             style={combinedStyle}   
             {...listeners}
             {...attributes}
-            className={`cursor-grab active:cursor-grabbing p-3 rounded-md border transition-colors ${draggingClass}
-                }`}
-        >
-            <span className="font-medium text-sm text-gray-800">{rutina.nombre}</span>
+            className={`cursor-grab active:cursor-grabbing p-3 rounded-md border transition-colors ${draggingClass}`}>
+            <span className="font-medium text-sm">{rutina.nombre}</span>
         </li>
     );
 };
