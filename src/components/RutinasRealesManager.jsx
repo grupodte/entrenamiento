@@ -122,15 +122,15 @@ const RutinasRealesManager = () => {
               <div className="mt-6 flex gap-3 border-t border-white/10 pt-4">
                 <motion.button
                   whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                  onClick={() => toast.error('Visualización no implementada')}
-                  className="flex items-center gap-2 text-sm text-gray-500 transition cursor-not-allowed"
+                  onClick={() => navigate(`/admin/rutinas-reales/ver/${rutina.id}`)}
+                  className="flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition"
                 >
                   <FaEye /> Ver
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                  onClick={() => toast.error('Edición no implementada')}
-                  className="flex items-center gap-2 text-sm text-gray-500 transition cursor-not-allowed"
+                  onClick={() => navigate(`/admin/rutinas-reales/editar/${rutina.id}`)}
+                  className="flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 transition"
                 >
                   <FaEdit /> Editar
                 </motion.button>

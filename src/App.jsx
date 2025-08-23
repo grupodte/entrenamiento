@@ -38,6 +38,8 @@ import AsignarRutina from './pages/Admin/AsignarRutina';
 import EditarDia from './pages/Admin/EditarDia';
 import CrearRutinaReal from './pages/Admin/CrearRutinaReal';
 import AdminRutinasReales from './pages/Admin/AdminRutinasReales';
+import VerRutinaReal from './pages/Admin/VerRutinaReal';
+import EditarRutinaReal from './pages/Admin/EditarRutinaReal';
 
 const AppContent = () => {
   const location = useLocation();
@@ -100,6 +102,8 @@ const AppContent = () => {
           <Route path="rutinas/editar/:id" element={<PageTransition><EditarRutina /></PageTransition>} />
           <Route path="rutinas/ver/:id" element={<PageTransition><VerRutina /></PageTransition>} />
           <Route path="rutinas-reales" element={<PageTransition><AdminRutinasReales /></PageTransition>} />
+          <Route path="rutinas-reales/ver/:id" element={<PageTransition><VerRutinaReal /></PageTransition>} />
+          <Route path="rutinas-reales/editar/:id" element={<PageTransition><EditarRutinaReal /></PageTransition>} />
           <Route path="rutinas/editar-dia/:id" element={<PageTransition><EditarDia /></PageTransition>} />
           <Route path="ejercicios" element={<PageTransition><AdminEjercicios /></PageTransition>} />
           <Route path="ejercicios/seleccionar" element={<PageTransition><SeleccionarEjercicios /></PageTransition>} />

@@ -6,9 +6,11 @@ const RutinasAlumno = ({
     alumno,
     asignacionesPorDia,
     rutinasBase,
+    rutinasDeVerdad,
     fetchData,
     diasSemana,
     handleDrop,
+    handleAssignRutinaDeVerdad,
     activeId,
     setActiveId,
     setIsDragging,
@@ -20,9 +22,11 @@ const RutinasAlumno = ({
                 alumno={alumno}
                 asignacionesPorDia={asignacionesPorDia}
                 rutinasBase={rutinasBase}
+                rutinasDeVerdad={rutinasDeVerdad}
                 fetchData={fetchData}
                 diasSemana={diasSemana}
                 handleDrop={handleDrop}
+                handleAssignRutinaDeVerdad={handleAssignRutinaDeVerdad}
                 activeId={activeId}
                 setActiveId={setActiveId}
                 setIsDragging={setIsDragging}

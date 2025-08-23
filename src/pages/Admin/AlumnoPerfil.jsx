@@ -25,6 +25,7 @@ const AlumnoPerfil = () => {
     const [alumno, setAlumno] = useState(alumnoInicial);
     const [asignacionesPorDia, setAsignacionesPorDia] = useState({});
     const [rutinasBase, setRutinasBase] = useState([]);
+    const [rutinasDeVerdad, setRutinasDeVerdad] = useState([]);
     const [loading, setLoading] = useState(true);
     
     // Estados para drag and drop
@@ -43,7 +44,7 @@ const AlumnoPerfil = () => {
     const fetchData = async (silent = false) => {
         if (!silent) setLoading(true);
         try {
-            const [perfilResult, rutinasResult, asignacionesResult] = await Promise.all([
+            const [perfilResult, rutinasResult, asignacionesResult, rutinasDeVerdadResult] = await Promise.all([
                 alumnoInicial ? { data: alumnoInicial } : supabase.from('perfiles').select('id, nombre, apellido, email, avatar_url').eq('id', id).single(),
                 supabase.from('rutinas_base').select('id, nombre').order('nombre'),
                 supabase.from('asignaciones')
@@ -52,7 +53,8 @@ const AlumnoPerfil = () => {
                         rutina_base:rutina_base_id (id, nombre),
                         rutina_personalizada:rutina_personalizada_id (id, nombre)
                     `)
-                    .eq('alumno_id', id)
+                    .eq('alumno_id', id),
+                supabase.from('rutinas_de_verdad').select('id, nombre')
             ]);
 
             if (perfilResult.error) throw perfilResult.error;
@@ -63,6 +65,9 @@ const AlumnoPerfil = () => {
 
             if (asignacionesResult.error) throw asignacionesResult.error;
             const asignaciones = asignacionesResult.data || [];
+
+            if (rutinasDeVerdadResult.error) throw rutinasDeVerdadResult.error;
+            setRutinasDeVerdad(rutinasDeVerdadResult.data || []);
 
             const map = {};
             for (const asig of asignaciones) {
@@ -162,6 +167,55 @@ const AlumnoPerfil = () => {
         }
     };
 
+    const handleAssignRutinaDeVerdad = async (rutinaDeVerdadId) => {
+        if (!rutinaDeVerdadId) return;
+
+        toast.loading("Asignando rutina completa...");
+
+        try {
+            // 1. Fetch all sessions for the selected routine
+            const { data: sesiones, error: sesionesError } = await supabase
+                .from('rutinas_de_verdad_sesiones')
+                .select('dia_semana, sesion_id')
+                .eq('rutina_id', rutinaDeVerdadId);
+
+            if (sesionesError) throw sesionesError;
+
+            // 2. Delete all existing assignments for this student for the entire week
+            const dias = [0, 1, 2, 3, 4, 5, 6]; // Lunes a Domingo
+            const { error: deleteError } = await supabase
+                .from('asignaciones')
+                .delete()
+                .eq('alumno_id', id)
+                .in('dia_semana', dias);
+
+            if (deleteError) throw deleteError;
+
+            // 3. Create new assignments
+            const newAssignments = sesiones.map(s => ({
+                alumno_id: id,
+                dia_semana: s.dia_semana === 'lunes' ? 0 : s.dia_semana === 'martes' ? 1 : s.dia_semana === 'miercoles' ? 2 : s.dia_semana === 'jueves' ? 3 : s.dia_semana === 'viernes' ? 4 : s.dia_semana === 'sabado' ? 5 : 6,
+                rutina_base_id: s.sesion_id,
+                fecha_inicio: new Date().toISOString().split('T')[0],
+            }));
+
+            const { error: insertError } = await supabase
+                .from('asignaciones')
+                .insert(newAssignments);
+
+            if (insertError) throw insertError;
+
+            toast.dismiss();
+            toast.success("Rutina completa asignada con éxito.");
+            fetchData(true); // Refresh data silently
+
+        } catch (error) {
+            toast.dismiss();
+            console.error("Error al asignar rutina de verdad:", error);
+            toast.error(`Error: ${error.message || 'No se pudo asignar la rutina completa.'}`);
+        }
+    };
+
     // Configuración de tabs
     const tabs = [
         { id: 'info', label: 'Información', icon: FaUser },
@@ -253,9 +307,11 @@ const AlumnoPerfil = () => {
                         alumno={alumno}
                         asignacionesPorDia={asignacionesPorDia}
                         rutinasBase={rutinasBase}
+                        rutinasDeVerdad={rutinasDeVerdad}
                         fetchData={fetchData}
                         diasSemana={diasSemana}
                         handleDrop={handleDrop}
+                        handleAssignRutinaDeVerdad={handleAssignRutinaDeVerdad}
                         activeId={activeId}
                         setActiveId={setActiveId}
                         setIsDragging={setIsDragging}
