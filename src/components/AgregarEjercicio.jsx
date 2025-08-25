@@ -110,30 +110,32 @@ const EjerciciosManager = () => {
 
   return (
     <div className="space-y-10">
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/10">
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="relative z-10 bg-white/5 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/10">
         <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2"><FaPlus /> Nuevo Ejercicio</h2>
         <form onSubmit={crearEjercicio} className="space-y-4">
           <input type="text" placeholder="Nombre del ejercicio" value={nuevo.nombre} onChange={e => setNuevo({ ...nuevo, nombre: e.target.value })} required className={INPUT_CLASS} />
           <textarea placeholder="Descripción (opcional)" value={nuevo.descripcion} onChange={e => setNuevo({ ...nuevo, descripcion: e.target.value })} className={`${INPUT_CLASS} h-24`} />
           <input type="url" placeholder="URL de video (opcional)" value={nuevo.video_url} onChange={e => setNuevo({ ...nuevo, video_url: e.target.value })} className={INPUT_CLASS} />
           
-          <Listbox value={nuevo.grupo_muscular} onChange={val => setNuevo({ ...nuevo, grupo_muscular: val })}>
-            <div className="relative">
-              <Listbox.Button className={`${INPUT_CLASS} text-left flex justify-between items-center`}>
-                <span className={nuevo.grupo_muscular ? 'text-white' : 'text-white/50'}>{nuevo.grupo_muscular || 'Seleccionar grupo muscular'}</span>
-                <FaChevronDown className="text-white/60" />
-              </Listbox.Button>
-              <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
-                <Listbox.Options className="absolute z-10 mt-1 w-full bg-black/80 backdrop-blur-lg border border-white/10 rounded-xl shadow-lg max-h-60 overflow-auto focus:outline-none">
-                  {gruposMusculares.map(grupo => (
-                    <Listbox.Option key={grupo} value={grupo} className={({ active }) => `cursor-pointer select-none relative py-2 pl-10 pr-4 ${active ? 'text-white bg-white/10' : 'text-gray-300'}`}>
-                      {grupo}
-                    </Listbox.Option>
-                  ))}
-                </Listbox.Options>
-              </Transition>
-            </div>
-          </Listbox>
+          <div className="relative z-[200]">
+            <Listbox value={nuevo.grupo_muscular} onChange={val => setNuevo({ ...nuevo, grupo_muscular: val })}>
+              <div className="relative">
+                <Listbox.Button className={`${INPUT_CLASS} text-left flex justify-between items-center`}>
+                  <span className={nuevo.grupo_muscular ? 'text-white' : 'text-white/50'}>{nuevo.grupo_muscular || 'Seleccionar grupo muscular'}</span>
+                  <FaChevronDown className="text-white/60" />
+                </Listbox.Button>
+                <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
+                  <Listbox.Options className="absolute z-[300] mt-1 w-full bg-black/80 backdrop-blur-lg border border-white/10 rounded-xl shadow-lg max-h-60 overflow-auto focus:outline-none">
+                    {gruposMusculares.map(grupo => (
+                      <Listbox.Option key={grupo} value={grupo} className={({ active }) => `cursor-pointer select-none relative py-2 pl-10 pr-4 ${active ? 'text-white bg-white/10' : 'text-gray-300'}`}>
+                        {grupo}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Transition>
+              </div>
+            </Listbox>
+          </div>
 
           <motion.button type="submit" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={`w-full font-semibold rounded-xl py-3 bg-gradient-to-r ${BRAND_GRADIENT} text-white shadow-[0_8px_20px_rgba(236,72,153,0.3)]`}>
             Guardar Ejercicio
@@ -253,29 +255,31 @@ const EjerciciosManager = () => {
                         className={INPUT_CLASS}
                       />
                       
-                      <Listbox value={editando.grupo_muscular} onChange={val => setEditando({ ...editando, grupo_muscular: val })}>
-                        <div className="relative">
-                          <Listbox.Button className={`${INPUT_CLASS} text-left flex justify-between items-center`}>
-                            <span className={editando.grupo_muscular ? 'text-white' : 'text-white/50'}>
-                              {editando.grupo_muscular || 'Seleccionar grupo muscular'}
-                            </span>
-                            <FaChevronDown className="text-white/60" />
-                          </Listbox.Button>
-                          <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
-                            <Listbox.Options className="absolute z-10 mt-1 w-full bg-black/80 backdrop-blur-lg border border-white/10 rounded-xl shadow-lg max-h-60 overflow-auto focus:outline-none">
-                              {gruposMusculares.map(grupo => (
-                                <Listbox.Option
-                                  key={grupo}
-                                  value={grupo}
-                                  className={({ active }) => `cursor-pointer select-none relative py-2 pl-10 pr-4 ${active ? 'text-white bg-white/10' : 'text-gray-300'}`}
-                                >
-                                  {grupo}
-                                </Listbox.Option>
-                              ))}
-                            </Listbox.Options>
-                          </Transition>
-                        </div>
-                      </Listbox>
+                      <div className="relative z-[200]">
+                        <Listbox value={editando.grupo_muscular} onChange={val => setEditando({ ...editando, grupo_muscular: val })}>
+                          <div className="relative">
+                            <Listbox.Button className={`${INPUT_CLASS} text-left flex justify-between items-center`}>
+                              <span className={editando.grupo_muscular ? 'text-white' : 'text-white/50'}>
+                                {editando.grupo_muscular || 'Seleccionar grupo muscular'}
+                              </span>
+                              <FaChevronDown className="text-white/60" />
+                            </Listbox.Button>
+                            <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
+                              <Listbox.Options className="absolute z-[300] mt-1 w-full bg-black/80 backdrop-blur-lg border border-white/10 rounded-xl shadow-lg max-h-60 overflow-auto focus:outline-none">
+                                {gruposMusculares.map(grupo => (
+                                  <Listbox.Option
+                                    key={grupo}
+                                    value={grupo}
+                                    className={({ active }) => `cursor-pointer select-none relative py-2 pl-10 pr-4 ${active ? 'text-white bg-white/10' : 'text-gray-300'}`}
+                                  >
+                                    {grupo}
+                                  </Listbox.Option>
+                                ))}
+                              </Listbox.Options>
+                            </Transition>
+                          </div>
+                        </Listbox>
+                      </div>
 
                       <div className="flex gap-3 pt-4">
                         <motion.button
