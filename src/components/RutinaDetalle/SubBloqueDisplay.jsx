@@ -5,8 +5,8 @@ import { FaDumbbell, FaSyncAlt, FaChevronDown, FaCheckCircle } from 'react-icons
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SubBloqueDisplay = (props) => {
-    const { subbloque, isCompleted, isInProgress, lastSessionData } = props;
-    
+    const { subbloque, isCompleted, isInProgress, hideTitle, lastSessionData } = props;
+
     // El componente estará colapsado si está completado.
     const [isCollapsed, setIsCollapsed] = useState(isCompleted);
 
@@ -23,11 +23,14 @@ const SubBloqueDisplay = (props) => {
     const Icon = isSuperset ? FaSyncAlt : FaDumbbell;
     const typeLabel = isSuperset ? 'SUPERSET' : 'EJERCICIO';
 
+    const borderColor = isSuperset ? 'border-violet-300/30' : 'border-cyan-300/30';
+    const borderTopColor = isSuperset ? 'border-violet-300/10' : 'border-cyan-300/10';
+
     return (
         <section
             role="group"
             aria-label={`${typeLabel} ${subbloque?.nombre ?? ''}`}
-            className="relative rounded-xl backdrop-blur-md border border-[1px] border-cyan-300/30 transition-all duration-300"
+            className={`relative rounded-xl backdrop-blur-md border border-[1px] ${borderColor} transition-all duration-300`}
         >
             {/* Encabezado Clickeable */}
             <button
@@ -40,9 +43,11 @@ const SubBloqueDisplay = (props) => {
                 </span>
 
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-gray-200">
-                        {subbloque?.nombre || typeLabel}
-                    </h3>
+                    {!hideTitle && (
+                        <h3 className="text-sm font-semibold text-gray-200">
+                            {subbloque?.nombre || typeLabel}
+                        </h3>
+                    )}
                     {isInProgress && !isCompleted && (
                         <span className="text-xs px-2 py-0.5 rounded bg-gray-600/50 text-gray-300">
                             En progreso
@@ -69,7 +74,7 @@ const SubBloqueDisplay = (props) => {
                         transition={{ duration: 0.3, ease: 'easeInOut' }}
                         className="overflow-hidden"
                     >
-                        <div className="p-3 sm:p-4 border-t border-cyan-300/10">
+                        <div className={`p-3 sm:p-4 border-t ${borderTopColor}`}>
                             {subbloque?.tipo === 'simple' &&
                                 subbloque?.subbloques_ejercicios?.map((sbe) => (
                                     <EjercicioSimpleDisplay
