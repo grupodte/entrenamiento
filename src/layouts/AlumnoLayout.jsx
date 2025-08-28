@@ -65,7 +65,7 @@ const AlumnoLayout = () => {
   const handleCloseSwipeWidget = useCallback(() => setIsSwipeWidgetOpen(false), []);
 
   return (
-    <div className="min-h-dvh flex flex-col overflow-clip" ref={containerRef}>
+    <div className="app-container" ref={containerRef}>
       {/* GradualBlur fijo a nivel página */}
       <GradualBlur 
         target="page" 
