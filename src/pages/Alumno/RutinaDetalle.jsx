@@ -84,7 +84,7 @@ const RutinaDetalle = () => {
 
 
     return (
-        <div className="flex flex-col h-screen text-white overflow-hidden relative">
+        <div className=" h-screen">
             <RutinaHeader
                 rutinaNombre={rutina?.nombre ?? "Entrenamiento"}
                 workoutTime={isReady ? workoutTime : 0}
