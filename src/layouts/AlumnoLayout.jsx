@@ -65,19 +65,23 @@ const AlumnoLayout = () => {
   const handleCloseSwipeWidget = useCallback(() => setIsSwipeWidgetOpen(false), []);
 
   return (
-    <div className="app-container" ref={containerRef}>
+    <div className="min-h-dvh flex flex-col overflow-clip" ref={containerRef}>
       {/* GradualBlur fijo a nivel página */}
-      <GradualBlur 
-        target="page" 
+      <GradualBlur
+        target="page"
         position="top"
         height="10rem"
         strength={2}
+        divCount={5}
         curve="bezier"
         opacity={1}
+        className="pointer-events-none"
+        zIndex={40}
         exponential={true}
+
       />
-      <GradualBlur 
-        target="page" 
+      <GradualBlur
+        target="page"
         position="bottom"
         height="2rem"
         strength={2}
@@ -85,10 +89,11 @@ const AlumnoLayout = () => {
         curve="bezier"
         opacity={1}
         exponential={true}
-        className="pointer-events-none" 
-        zIndex={30} 
+
+        className="pointer-events-none"
+        zIndex={40}
       />
-      
+
       {/* Contenido principal con scroll */}
       <motion.main
         key={location.pathname}
@@ -100,7 +105,7 @@ const AlumnoLayout = () => {
       >
         <div className="content-wrapper" style={{ paddingTop: '7rem' }}>
           <Outlet />
-          
+
           {/* Navegación flotante */}
           <FloatingNavBar onOpenPerfil={handleOpenPerfil} />
         </div>

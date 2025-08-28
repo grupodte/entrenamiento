@@ -10,7 +10,7 @@ const RutinaHeader = ({
     todosCompletados = false,
 }) => {
     return (
-        <div className="z-9999 relative">
+        <>
             {/* Botón de back flotante - Izquierda superior */}
             <button
                 onClick={onBackClick}
@@ -133,7 +133,7 @@ const RutinaHeader = ({
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 
