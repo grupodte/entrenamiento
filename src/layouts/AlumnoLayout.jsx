@@ -76,7 +76,6 @@ const AlumnoLayout = () => {
         curve="bezier"
         opacity={1}
         className="pointer-events-none" 
-        zIndex={30} 
         exponential={true}
       />
       <GradualBlur 
