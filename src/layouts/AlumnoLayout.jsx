@@ -5,6 +5,7 @@ import FloatingNavBar from '../components/FloatingNavBar';
 import PerfilDrawer from '../pages/Alumno/PerfilDrawer';
 import EditarPerfilDrawer from '../pages/Alumno/EditarPerfil';
 import SwipeWidget from '../components/SwipeWidget';
+import GradualBlur from '../components/GradualBlur';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 import { useSwipeGesture } from '../hooks/useSwipeGesture';
 
@@ -65,20 +66,47 @@ const AlumnoLayout = () => {
 
   return (
     <div className="app-container" ref={containerRef}>
-      {/* Contenido principal con scroll sin barra visible */}
+      {/* GradualBlur fijo a nivel página */}
+      <GradualBlur
+        target="page"
+        position="top"
+        height="2em"
+        strength={2}
+        divCount={5}
+        curve="bezier"
+        opacity={1}
+        className="pointer-events-none"
+        exponential={true}
+        zIndex={30}
+
+      />
+      <GradualBlur
+        target="page"
+        position="bottom"
+        height="2rem"
+        strength={2}
+        divCount={5}
+        curve="bezier"
+        opacity={1}
+        exponential={true}
+        className="pointer-events-none"
+        zIndex={30}
+      />
+
+      {/* Contenido principal con scroll */}
       <motion.main
         key={location.pathname}
-        className="main-content scrollbar-hide"
+        className="flex-1 overflow-y-auto scrollbar-hide"
         variants={pageVariants}
         initial="initial"
         animate="animate"
         exit="exit"
       >
-        <div className="content-wrapper">
+        <div className="content-wrapper" style={{ paddingTop: '7rem' }}>
           <Outlet />
+
           {/* Navegación flotante */}
           <FloatingNavBar onOpenPerfil={handleOpenPerfil} />
-
         </div>
       </motion.main>
 
