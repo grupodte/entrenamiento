@@ -42,15 +42,10 @@ const RutinaDetalle = () => {
         restTimeLeft,
         restExerciseName,
         restOriginalDuration,
-        showRestTimer,
-        timerDuration,
-        nextExerciseName,
-        currentTimerOriginId,
         todosCompletados,
         toggleElementoCompletado,
         handleFinalizarYGuardar,
         skipRest,
-        formatRestTime,
         formatWorkoutTime,
         elementoRefs,
         showVideoPanel,
@@ -87,106 +82,101 @@ const RutinaDetalle = () => {
     };
 
 
-return (
-    <div className="flex flex-col h-screen text-white overflow-hidden">
-        <RutinaHeader
-            rutinaNombre={rutina?.nombre ?? "Entrenamiento"}
-            workoutTime={isReady ? workoutTime : 0}
-            formatWorkoutTime={formatWorkoutTime}
-            onBackClick={handleBackButtonClick}
-        />
-
-        <div className="flex-1 overflow-y-auto scrollbar-hide pt-20">
-            {isReady ? (
-                <>
-                    {/* Barra de progreso pegada al header */}
-                    {!todosCompletados && (
-                        <div className="fixed top-20 left-0 right-0 z-20">
-                            <div className="w-full bg-gray-700 h-1">
-                                <motion.div
-                                    className="bg-cyan-300 h-1"
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${progressGlobal}%` }}
-                                    transition={{ duration: 0.5 }}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Contenido principal */}
-                    <div>
-                        <RutinaContent
-                            // 4. PROPS SIMPLIFICADAS
-                            rutinaBloques={rutina.bloques}
-                            elementosCompletados={elementosCompletados}
-                            elementoActivoId={elementoActivoId}
-                            toggleElementoCompletado={toggleElementoCompletado}
-                            elementoRefs={elementoRefs}
-                            lastSessionData={lastSessionData}
-                            progressPorSubBloque={progressPorSubBloque}
-                            openVideoPanel={openVideoPanel}
-                        />
-                    </div>
-
-                    <RutinaTimersDisplay
-                        showRestTimer={showRestTimer}
-                        timerDuration={timerDuration}
-                        nextExerciseName={nextExerciseName}
-                        currentTimerOriginId={currentTimerOriginId}
-                        isResting={isResting}
-                        timeLeft={restTimeLeft}
-                        exerciseName={restExerciseName}
-                        skipRest={skipRest}
-                        formatTime={formatRestTime}
-                        originalDuration={restOriginalDuration}
-                    />
-
-                    {/* 5. MODAL DE COMPLETADO MOVIDO AQUÍ */}
-                    <EntrenamientoCompletado
-                        isOpen={todosCompletados}
-                        workoutTime={workoutTime}
-                        seriesCompletadas={seriesCompletadas}
-                        handleFinalizarYGuardar={handleFinalizarAndNavigate}
-                        formatWorkoutTime={formatWorkoutTime}
-                    />
-                </>
-            ) : (
-                <div className="pt-24"><LoadingSkeleton /></div>
-            )}
-
-            <Drawer isOpen={showExitModal} onClose={handleCancelExit}>
-                <div className="p-6">
-                    <h3 className="text-lg font-semibold text-white mb-4">
-                        ¿Salir del entrenamiento?
-                    </h3>
-                    <p className="text-gray-400 mb-6">
-                        Si sales ahora, perderás el progreso de esta sesión.
-                    </p>
-                    <div className="flex gap-3">
-                        <button
-                            onClick={handleConfirmExit}
-                            className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                        >
-                            Salir
-                        </button>
-                        <button
-                            onClick={handleCancelExit}
-                            className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                        >
-                            Continuar
-                        </button>
-                    </div>
-                </div>
-            </Drawer>
-
-            <VideoPanel
-                isOpen={showVideoPanel}
-                onClose={closeVideoPanel}
-                videoUrl={videoUrlToShow}
+    return (
+        <div className="flex flex-col h-screen text-white overflow-hidden">
+            <RutinaHeader
+                rutinaNombre={rutina?.nombre ?? "Entrenamiento"}
+                workoutTime={isReady ? workoutTime : 0}
+                formatWorkoutTime={formatWorkoutTime}
+                onBackClick={handleBackButtonClick}
             />
+
+            <div className="flex-1 overflow-y-auto scrollbar-hide pt-20">
+                {isReady ? (
+                    <>
+                        {/* Barra de progreso pegada al header */}
+                        {!todosCompletados && (
+                            <div className="fixed top-20 left-0 right-0 z-20">
+                                <div className="w-full bg-gray-700 h-1">
+                                    <motion.div
+                                        className="bg-cyan-300 h-1"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${progressGlobal}%` }}
+                                        transition={{ duration: 0.5 }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Contenido principal */}
+                        <div>
+                            <RutinaContent
+                                // 4. PROPS SIMPLIFICADAS
+                                rutinaBloques={rutina.bloques}
+                                elementosCompletados={elementosCompletados}
+                                elementoActivoId={elementoActivoId}
+                                toggleElementoCompletado={toggleElementoCompletado}
+                                elementoRefs={elementoRefs}
+                                lastSessionData={lastSessionData}
+                                progressPorSubBloque={progressPorSubBloque}
+                                openVideoPanel={openVideoPanel}
+                            />
+                        </div>
+
+                        <RutinaTimersDisplay
+                            isResting={isResting}
+                            restTimeLeft={restTimeLeft}
+                            restOriginalDuration={restOriginalDuration}
+                            restExerciseName={restExerciseName}
+                            skipRest={skipRest}
+                        />
+
+                        {/* 5. MODAL DE COMPLETADO MOVIDO AQUÍ */}
+                        <EntrenamientoCompletado
+                            isOpen={todosCompletados}
+                            workoutTime={workoutTime}
+                            seriesCompletadas={seriesCompletadas}
+                            handleFinalizarYGuardar={handleFinalizarAndNavigate}
+                            formatWorkoutTime={formatWorkoutTime}
+                        />
+                    </>
+                ) : (
+                    <div className="pt-24"><LoadingSkeleton /></div>
+                )}
+
+                <Drawer isOpen={showExitModal} onClose={handleCancelExit}>
+                    <div className="p-6">
+                        <h3 className="text-lg font-semibold text-white mb-4">
+                            ¿Salir del entrenamiento?
+                        </h3>
+                        <p className="text-gray-400 mb-6">
+                            Si sales ahora, perderás el progreso de esta sesión.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleConfirmExit}
+                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                            >
+                                Salir
+                            </button>
+                            <button
+                                onClick={handleCancelExit}
+                                className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                            >
+                                Continuar
+                            </button>
+                        </div>
+                    </div>
+                </Drawer>
+
+                <VideoPanel
+                    isOpen={showVideoPanel}
+                    onClose={closeVideoPanel}
+                    videoUrl={videoUrlToShow}
+                />
+            </div>
         </div>
-    </div>
-);
+    );
 };
 
 export default RutinaDetalle;

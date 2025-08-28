@@ -7,12 +7,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 const SubBloqueDisplay = (props) => {
     const { subbloque, isCompleted, isInProgress, hideTitle, lastSessionData } = props;
 
-    // El componente estará colapsado si está completado.
-    const [isCollapsed, setIsCollapsed] = useState(isCompleted);
+    // 1. Iniciar siempre colapsado
+    const [isCollapsed, setIsCollapsed] = useState(true);
 
-    // Sincronizamos el estado de colapso si la prop isCompleted cambia desde el padre.
+    // 2. Sincronizar solo para colapsar cuando se completa, no para expandir
     useEffect(() => {
-        setIsCollapsed(isCompleted);
+        if (isCompleted) {
+            setIsCollapsed(true);
+        }
     }, [isCompleted]);
 
     const handleToggleCollapse = () => {
@@ -25,6 +27,12 @@ const SubBloqueDisplay = (props) => {
 
     const borderColor = isSuperset ? 'border-violet-300/30' : 'border-cyan-300/30';
     const borderTopColor = isSuperset ? 'border-violet-300/10' : 'border-cyan-300/10';
+
+    // 3. Calcular información del resumen
+    const numEjercicios = subbloque.subbloques_ejercicios?.length || 0;
+    const totalSeries = isSuperset
+        ? (subbloque.num_series_superset || 0)
+        : (subbloque.subbloques_ejercicios?.reduce((acc, sbe) => acc + (sbe.series?.length || 0), 0) || 0);
 
     return (
         <section
@@ -48,6 +56,12 @@ const SubBloqueDisplay = (props) => {
                             {subbloque?.nombre || typeLabel}
                         </h3>
                     )}
+                    {/* 4. Mostrar resumen si está colapsado */}
+                    {isCollapsed && !isInProgress && (
+                        <p className="text-xs text-gray-400/80 mt-1">
+                            {numEjercicios} {numEjercicios === 1 ? 'Ejercicio' : 'Ejercicios'} / {totalSeries} {totalSeries === 1 ? 'Serie' : 'Series'}
+                        </p>
+                    )}
                     {isInProgress && !isCompleted && (
                         <span className="text-xs px-2 py-0.5 rounded bg-gray-600/50 text-gray-300">
                             En progreso
@@ -55,7 +69,6 @@ const SubBloqueDisplay = (props) => {
                     )}
                 </div>
 
-                {/* Icono de Chevron para indicar expandir/colapsar */}
                 <motion.div
                     animate={{ rotate: isCollapsed ? 0 : 180 }}
                     transition={{ duration: 0.2 }}
@@ -64,7 +77,6 @@ const SubBloqueDisplay = (props) => {
                 </motion.div>
             </button>
 
-            {/* Contenido Colapsable con Animación */}
             <AnimatePresence>
                 {!isCollapsed && (
                     <motion.div
@@ -102,3 +114,5 @@ const SubBloqueDisplay = (props) => {
 };
 
 export default SubBloqueDisplay;
+
+
