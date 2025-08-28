@@ -16,7 +16,7 @@ const RutinaHeader = ({
                 onClick={onBackClick}
                 aria-label="Volver"
                 className="
-                    fixed top-4 left-4
+                    fixed top-10 left-4
                     group
                     h-10 w-10 sm:h-12 sm:w-12
                     rounded-full
@@ -46,7 +46,7 @@ const RutinaHeader = ({
             {/* Timer flotante - Derecha superior */}
             <div
                 className="
-                    fixed top-4 right-4
+                    fixed top-10 right-4
                     flex items-center gap-1.5 sm:gap-2
                     px-3 py-2 sm:px-4 sm:py-2.5
                     rounded-xl
