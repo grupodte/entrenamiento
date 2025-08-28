@@ -6,86 +6,130 @@ const RutinaHeader = ({
     workoutTime = 0,
     formatWorkoutTime = (t) => t,
     onBackClick = () => { },
+    progressGlobal = 0,
+    todosCompletados = false,
 }) => {
     return (
-        <header
-            className="
-        fixed top-0 left-0 right-0 z-30
-        h-[83px] /* 80px */
-        bg-gradient-to-b from-black/60 to-transparent
-        backdrop-blur-sm
-        border-b border-white/10
-        pt-safe
-        max-w-full
-      "
-            role="banner"
-        >
+        <>
+            {/* Botón de back flotante - Izquierda superior */}
+            <button
+                onClick={onBackClick}
+                aria-label="Volver"
+                className="
+                    fixed top-4 left-4 z-[140]
+                    group
+                    h-10 w-10 sm:h-12 sm:w-12
+                    rounded-full
+                    bg-black/20 hover:bg-black/40 active:scale-95
+                    backdrop-blur-xl
+                    border border-white/20
+                    shadow-lg
+                    grid place-items-center
+                    transition-all duration-200
+                "
+                style={{
+                    backdropFilter: 'blur(16px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(16px) saturate(180%)'
+                }}
+            >
+                <FaArrowLeft
+                    className="
+                        text-white text-[16px] sm:text-[20px]
+                        drop-shadow
+                        transition-transform duration-200
+                        group-active:-translate-x-0.5
+                    "
+                />
+            </button>
+
+            {/* Timer flotante - Derecha superior */}
             <div
                 className="
-          h-full
-          w-full
-          flex items-center justify-between gap-2 sm:gap-3
-          px-3 sm:px-4
-        "
+                    fixed top-4 right-4 z-[200]
+                    flex items-center gap-1.5 sm:gap-2
+                    px-3 py-2 sm:px-4 sm:py-2.5
+                    rounded-xl
+                    bg-cyan-500/20 hover:bg-cyan-500/30
+                    backdrop-blur-xl
+                    border border-cyan-400/30
+                    shadow-lg
+                    transition-all duration-200
+                "
+                style={{
+                    backdropFilter: 'blur(16px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(16px) saturate(180%)'
+                }}
             >
-                {/* IZQUIERDA: Back enfatizado */}
-                <button
-                    onClick={onBackClick}
-                    aria-label="Volver"
+                <FaStopwatch className="text-cyan-300 text-sm sm:text-base" aria-hidden="true" />
+                <span
                     className="
-            group
-            h-10 w-10 sm:h-12 sm:w-12 min-w-[40px] sm:min-w-[48px]
-            rounded-full
-            bg-white/5 hover:bg-white/10 active:scale-95
-            border border-white/10
-            shadow-[0_6px_20px_rgba(0,0,0,0.35)]
-            grid place-items-center
-            transition-all duration-200 ease-ios
-          "
+                        font-mono font-extrabold
+                        text-[18px] sm:text-[22px] leading-none
+                        text-cyan-300
+                        tabular-nums
+                    "
                 >
-                    <FaArrowLeft
-                        className="
-              text-white text-[16px] sm:text-[20px]
-              drop-shadow
-              transition-transform duration-200
-              group-active:-translate-x-0.5
-            "
-                    />
-                </button>
+                    {formatWorkoutTime(workoutTime)}
+                </span>
+            </div>
 
-                {/* CENTRO: Título */}
-                <div className="flex-1 min-w-0 text-center px-1">
-                    <h1 className="text-[16px] sm:text-[18px] md:text-[20px] font-bold leading-tight truncate">
-                        {rutinaNombre || "Entrenamiento"}
-                    </h1>
-                    <p className="text-[11px] sm:text-[12px] text-gray-400">Entrenamiento en curso</p>
-                </div>
+            {/* Título flotante - Centro superior */}
+            <div
+                className="
+                    fixed top-4 left-1/2 transform -translate-x-1/2 z-[200]
+                    px-4 py-2 sm:px-6 sm:py-3
+                    rounded-xl
+                    bg-black/20 hover:bg-black/30
+                    backdrop-blur-xl
+                    border border-white/20
+                    shadow-lg
+                    transition-all duration-200
+                    max-w-[60vw]
+                "
+                style={{
+                    backdropFilter: 'blur(16px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(16px) saturate(180%)'
+                }}
+            >
+                <h1 className="text-[14px] sm:text-[16px] font-bold leading-tight truncate text-white text-center">
+                    {rutinaNombre || "Entrenamiento"}
+                </h1>
+                <p className="text-[10px] sm:text-[11px] text-gray-300 text-center">Entrenamiento en curso</p>
+            </div>
 
-                {/* DERECHA: Timer destacado */}
+            {/* Barra de progreso flotante - Debajo del título */}
+            {!todosCompletados && (
                 <div
                     className="
-            shrink-0
-            flex items-center gap-1.5 sm:gap-2
-            px-2 py-1.5 sm:px-3 sm:py-2
-            rounded-lg sm:rounded-xl
-            bg-cyan-500/15
-            border border-cyan-400/30
-          "
+                        fixed top-20 left-1/2 transform -translate-x-1/2 z-[200]
+                        w-[80vw] max-w-xs
+                        px-4 py-2
+                        rounded-full
+                        bg-black/20
+                        backdrop-blur-xl
+                        border border-white/10
+                        shadow-lg
+                        transition-all duration-300
+                    "
+                    style={{
+                        backdropFilter: 'blur(16px) saturate(180%)',
+                        WebkitBackdropFilter: 'blur(16px) saturate(180%)'
+                    }}
                 >
-                    <FaStopwatch className="text-cyan-300 text-sm sm:text-base" aria-hidden="true" />
-                    <span
-                        className="
-              font-mono font-extrabold
-              text-[18px] sm:text-[22px] leading-none
-              text-cyan-300
-              tabular-nums
-            "
-                    >
-                        {formatWorkoutTime(workoutTime)}
-                    </span>
+                    <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] text-gray-300">Progreso</span>
+                        <span className="text-[10px] text-cyan-300 font-mono">{Math.round(progressGlobal)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-700/50 rounded-full h-1.5">
+                        <div 
+                            className="bg-gradient-to-r from-cyan-400 to-cyan-500 h-1.5 rounded-full transition-all duration-500 ease-out"
+                            style={{ width: `${Math.min(100, Math.max(0, progressGlobal))}%` }}
+                        >
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </header>
+            )}
+        </>
     );
 };
 

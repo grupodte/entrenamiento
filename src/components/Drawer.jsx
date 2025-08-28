@@ -50,7 +50,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                             duration: 0.2,
                             ease: "easeOut"
                         }}
-                        className="fixed inset-0 bg-black/50 z-[9998] will-change-[opacity]"
+                        className="fixed inset-0 bg-black/50 z-70 will-change-[opacity]"
                         onClick={handleOverlayClick}
                         style={{
                             WebkitBackdropFilter: 'blur(4px)',
@@ -102,7 +102,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                             bg-gray-900/98
                             text-white 
                             shadow-2xl 
-                            z-[9999] 
+                            z-70
                             rounded-t-3xl 
                             overflow-hidden
                             pb-safe

@@ -10,7 +10,6 @@ import EntrenamientoCompletado from "../../components/RutinaDetalle/Entrenamient
 import Drawer from "../../components/Drawer";
 import VideoPanel from "../../components/VideoPanel"; // Importar VideoPanel
 import { motion } from 'framer-motion'; // <-- 2. IMPORTAR MOTION
-import GradualBlur from '../../components/GradualBlur'; // Import GradualBlur
 
 /** Skeleton simple para el área de contenido */
 const LoadingSkeleton = () => (
@@ -84,7 +83,7 @@ const RutinaDetalle = () => {
 
 
     return (
-        <div className=" h-screen flex flex-col overflow-hidden relative">
+        <div className="min-h-dvh flex flex-col overflow-clip">
             <RutinaHeader
                 rutinaNombre={rutina?.nombre ?? "Entrenamiento"}
                 workoutTime={isReady ? workoutTime : 0}
@@ -94,9 +93,7 @@ const RutinaDetalle = () => {
                 todosCompletados={todosCompletados}
             />
 
-        
-
-            <div className="flex-1 overflow-y-auto scrollbar-hide pt-10">
+            <div className="flex-1">
                 {isReady ? (
                     <>
               
@@ -135,7 +132,7 @@ const RutinaDetalle = () => {
                         />
                     </>
                 ) : (
-                    <div className="pt-24"><LoadingSkeleton /></div>
+                    <LoadingSkeleton />
                 )}
 
                 <Drawer isOpen={showExitModal} onClose={handleCancelExit}>
@@ -169,16 +166,6 @@ const RutinaDetalle = () => {
                     videoUrl={videoUrlToShow}
                 />
             </div>
-            <GradualBlur
-                target="parent"
-                position="bottom"
-                height="6rem"
-                strength={2}
-                divCount={5}
-                curve="bezier"
-                exponential={true}
-                opacity={1}
-            />
         </div>
     );
 };

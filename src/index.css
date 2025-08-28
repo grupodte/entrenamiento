@@ -91,7 +91,7 @@ body {
 .content-wrapper {
   /* Aplicamos márgenes personalizados al contenido */
   margin-top: var(--content-margin-top);
-  margin-bottom: calc(var(--content-margin-bottom) + 80px);
+  margin-bottom: calc(var(--content-margin-bottom));
   /* 80px para la navbar flotante */
   margin-left: var(--content-margin-horizontal);
   margin-right: var(--content-margin-horizontal);
@@ -104,7 +104,7 @@ body {
 
   /* Aplicamos márgenes personalizados al contenido */
     margin-top: var(--content-margin-top);
-    margin-bottom: calc(var(--content-margin-bottom) + 80px);
+    margin-bottom: calc(var(--content-margin-bottom));
     /* 80px para la navbar flotante */
     margin-left: var(--content-margin-horizontal);
     margin-right: var(--content-margin-horizontal);

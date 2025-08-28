@@ -244,7 +244,7 @@ const FloatingNavBar = ({ onOpenPerfil, isPerfilOpen = false }) => {
   return (
     <nav
       ref={navRef}
-      className="fixed z-50 select-none"
+      className="fixed z-[150] select-none"
       style={{
         left: position.x,
         top: position.y,
