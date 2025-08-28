@@ -76,9 +76,8 @@ const AlumnoLayout = () => {
         curve="bezier"
         opacity={1}
         className="pointer-events-none" 
-        zIndex={40} 
+        zIndex={30} 
         exponential={true}
-
       />
       <GradualBlur 
         target="page" 
@@ -89,9 +88,8 @@ const AlumnoLayout = () => {
         curve="bezier"
         opacity={1}
         exponential={true}
-
         className="pointer-events-none" 
-        zIndex={40} 
+        zIndex={30} 
       />
       
       {/* Contenido principal con scroll */}

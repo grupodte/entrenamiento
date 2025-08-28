@@ -53,7 +53,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                         className="fixed inset-0 bg-black/50 will-change-[opacity]"
                         onClick={handleOverlayClick}
                         style={{
-                            zIndex: 'var(--z-always-top)',
+                            zIndex: 99999,
                             WebkitBackdropFilter: 'blur(4px)',
                             backdropFilter: 'blur(4px)'
                         }}
@@ -111,7 +111,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                             flex flex-col
                         "
                         style={{
-                            zIndex: 'var(--z-always-top)',
+                            zIndex: 99999,
                             boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.3)',
                             WebkitBackdropFilter: 'blur(20px) saturate(150%)',
                             backdropFilter: 'blur(20px) saturate(150%)'
