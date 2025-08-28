@@ -26,15 +26,9 @@ const RutinaHeader = ({
                     shadow-lg
                     grid place-items-center
                     transition-all duration-200
+                    z-99999
                 "
-                style={{
-                    zIndex: 999999,
-                    position: 'fixed',
-                    isolation: 'isolate',
-                    transform: 'translateZ(0)',
-                    backdropFilter: 'blur(16px) saturate(180%)',
-                    WebkitBackdropFilter: 'blur(16px) saturate(180%)'
-                }}
+               
             >
                 <FaArrowLeft
                     className="
@@ -84,7 +78,7 @@ const RutinaHeader = ({
             {/* Título flotante - Centro superior */}
             <div
                 className="
-                    fixed top-4 left-1/2 transform -translate-x-1/2
+                    top-4 left-1/2
                     px-4 py-2 sm:px-6 sm:py-3
                     rounded-xl
                     bg-black/20 hover:bg-black/30
@@ -113,7 +107,7 @@ const RutinaHeader = ({
             {!todosCompletados && (
                 <div
                     className="
-                        fixed top-20 left-1/2 transform -translate-x-1/2
+                        top-20 left-1/2
                         w-[80vw] max-w-xs
                         px-4 py-2
                         rounded-full
