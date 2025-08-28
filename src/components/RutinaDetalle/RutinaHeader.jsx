@@ -28,7 +28,7 @@ const RutinaHeader = ({
                     transition-all duration-200
                 "
                 style={{
-                    zIndex: 'var(--z-critical)',
+                    zIndex: 9999,
                     backdropFilter: 'blur(16px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(16px) saturate(180%)'
                 }}
@@ -57,7 +57,7 @@ const RutinaHeader = ({
                     transition-all duration-200
                 "
                 style={{
-                    zIndex: 'var(--z-critical)',
+                    zIndex: 9999,
                     backdropFilter: 'blur(16px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(16px) saturate(180%)'
                 }}
@@ -89,7 +89,7 @@ const RutinaHeader = ({
                     max-w-[60vw]
                 "
                 style={{
-                    zIndex: 'var(--z-critical)',
+                    zIndex: 9999,
                     backdropFilter: 'blur(16px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(16px) saturate(180%)'
                 }}
@@ -115,7 +115,7 @@ const RutinaHeader = ({
                         transition-all duration-300
                     "
                     style={{
-                        zIndex: 'var(--z-critical)',
+                        zIndex: 9999,
                         backdropFilter: 'blur(16px) saturate(180%)',
                         WebkitBackdropFilter: 'blur(16px) saturate(180%)'
                     }}
