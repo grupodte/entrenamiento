@@ -84,16 +84,19 @@ const RutinaDetalle = () => {
 
     return (
         <div className="min-h-dvh flex flex-col overflow-clip">
-            <RutinaHeader
-                rutinaNombre={rutina?.nombre ?? "Entrenamiento"}
-                workoutTime={isReady ? workoutTime : 0}
-                formatWorkoutTime={formatWorkoutTime}
-                onBackClick={handleBackButtonClick}
-                progressGlobal={progressGlobal}
-                todosCompletados={todosCompletados}
-            />
-
+         
             <div className="flex-1">
+
+                <RutinaHeader
+                    rutinaNombre={rutina?.nombre ?? "Entrenamiento"}
+                    workoutTime={isReady ? workoutTime : 0}
+                    formatWorkoutTime={formatWorkoutTime}
+                    onBackClick={handleBackButtonClick}
+                    progressGlobal={progressGlobal}
+                    todosCompletados={todosCompletados}
+                />
+
+
                 {isReady ? (
                     <>
               
