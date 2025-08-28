@@ -7,7 +7,7 @@ const DEFAULT_CONFIG = {
     height: '6rem',
     divCount: 5,
     exponential: false,
-    zIndex: 1000,
+    zIndex: 30, // Corresponde a --z-blur en nuestro sistema
     animated: false,
     duration: '0.3s',
     easing: 'ease-out',

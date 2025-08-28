@@ -50,9 +50,10 @@ const Drawer = ({ isOpen, onClose, children }) => {
                             duration: 0.2,
                             ease: "easeOut"
                         }}
-                        className="fixed inset-0 bg-black/50 z-70 will-change-[opacity]"
+                        className="fixed inset-0 bg-black/50 will-change-[opacity]"
                         onClick={handleOverlayClick}
                         style={{
+                            zIndex: 'var(--z-always-top)',
                             WebkitBackdropFilter: 'blur(4px)',
                             backdropFilter: 'blur(4px)'
                         }}
@@ -102,7 +103,6 @@ const Drawer = ({ isOpen, onClose, children }) => {
                             bg-gray-900/98
                             text-white 
                             shadow-2xl 
-                            z-70
                             rounded-t-3xl 
                             overflow-hidden
                             pb-safe
@@ -111,6 +111,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                             flex flex-col
                         "
                         style={{
+                            zIndex: 'var(--z-always-top)',
                             boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.3)',
                             WebkitBackdropFilter: 'blur(20px) saturate(150%)',
                             backdropFilter: 'blur(20px) saturate(150%)'

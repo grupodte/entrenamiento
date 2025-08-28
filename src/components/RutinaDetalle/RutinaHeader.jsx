@@ -16,7 +16,7 @@ const RutinaHeader = ({
                 onClick={onBackClick}
                 aria-label="Volver"
                 className="
-                    fixed top-4 left-4 z-[140]
+                    fixed top-4 left-4
                     group
                     h-10 w-10 sm:h-12 sm:w-12
                     rounded-full
@@ -28,6 +28,7 @@ const RutinaHeader = ({
                     transition-all duration-200
                 "
                 style={{
+                    zIndex: 'var(--z-critical)',
                     backdropFilter: 'blur(16px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(16px) saturate(180%)'
                 }}
@@ -45,7 +46,7 @@ const RutinaHeader = ({
             {/* Timer flotante - Derecha superior */}
             <div
                 className="
-                    fixed top-4 right-4 z-[200]
+                    fixed top-4 right-4
                     flex items-center gap-1.5 sm:gap-2
                     px-3 py-2 sm:px-4 sm:py-2.5
                     rounded-xl
@@ -56,6 +57,7 @@ const RutinaHeader = ({
                     transition-all duration-200
                 "
                 style={{
+                    zIndex: 'var(--z-critical)',
                     backdropFilter: 'blur(16px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(16px) saturate(180%)'
                 }}
@@ -76,7 +78,7 @@ const RutinaHeader = ({
             {/* Título flotante - Centro superior */}
             <div
                 className="
-                    fixed top-4 left-1/2 transform -translate-x-1/2 z-[200]
+                    fixed top-4 left-1/2 transform -translate-x-1/2
                     px-4 py-2 sm:px-6 sm:py-3
                     rounded-xl
                     bg-black/20 hover:bg-black/30
@@ -87,6 +89,7 @@ const RutinaHeader = ({
                     max-w-[60vw]
                 "
                 style={{
+                    zIndex: 'var(--z-critical)',
                     backdropFilter: 'blur(16px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(16px) saturate(180%)'
                 }}
@@ -101,7 +104,7 @@ const RutinaHeader = ({
             {!todosCompletados && (
                 <div
                     className="
-                        fixed top-20 left-1/2 transform -translate-x-1/2 z-[200]
+                        fixed top-20 left-1/2 transform -translate-x-1/2
                         w-[80vw] max-w-xs
                         px-4 py-2
                         rounded-full
@@ -112,6 +115,7 @@ const RutinaHeader = ({
                         transition-all duration-300
                     "
                     style={{
+                        zIndex: 'var(--z-critical)',
                         backdropFilter: 'blur(16px) saturate(180%)',
                         WebkitBackdropFilter: 'blur(16px) saturate(180%)'
                     }}

@@ -53,7 +53,8 @@ const EntrenamientoCompletado = ({
 
                     {/* Contenedor principal que cubre toda la pantalla y aplica el blur */}
                     <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+                        className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+                        style={{ zIndex: 'var(--z-modal)' }}
                         variants={backdropVariants}
                         initial="hidden"
                         animate="visible"
