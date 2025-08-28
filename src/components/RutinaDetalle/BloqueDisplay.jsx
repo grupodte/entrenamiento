@@ -1,9 +1,15 @@
 import React from 'react';
 import SubBloqueDisplay from './SubBloqueDisplay';
 
+import ShinyText from '../../components/ShinyText.jsx';
+
+
 const BloqueDisplay = (props) => {
     const { bloque, progressPorSubBloque, lastSessionData } = props;
 
+
+
+    /** Odena los bloques segun su tipo_bloque                         /*/
     const sortSubBloques = (a, b) => {
         const prioridad = (nombre = '') => {
             nombre = nombre.toLowerCase();
@@ -15,6 +21,9 @@ const BloqueDisplay = (props) => {
         };
         return prioridad(a.nombre) - prioridad(b.nombre);
     };
+
+
+    // Agrupa los subbloques por nombre (o individualmente si no tienen nombre)
 
     const groupedSubBloques = [...(bloque.subbloques ?? [])]
         .sort(sortSubBloques)
@@ -28,17 +37,26 @@ const BloqueDisplay = (props) => {
             return acc;
         }, {});
 
+
+
     return (
-        <div className="z-10 space-y-4">
+        <div className="">
             {Object.entries(groupedSubBloques).map(([nombre, subbloquesDelGrupo], groupIndex) => {
                 const isAGroupWithTitle = !nombre.startsWith('__individual__');
 
                 return (
-                    <div key={nombre} className="space-y-3">
+                    <div key={nombre} className="space-y-2">
                         {isAGroupWithTitle && (
-                            <h3 className="text-base font-semibold text-gray-300 px-2 pt-2">
-                                {nombre}
-                            </h3>
+<ShinyText
+                                text=
+                                    {nombre}
+                            
+    disabled={false}
+    speed={3}
+    className=' text-xl sm:text-2xl font-semibold sm:px-4 pt-1 pb-2'
+/>
+                           
+
                         )}
                         {subbloquesDelGrupo.map((subbloque, index) => {
                             const progressInfo = progressPorSubBloque[subbloque.id] || { isCompleted: false, isInProgress: false };
@@ -64,3 +82,6 @@ const BloqueDisplay = (props) => {
 };
 
 export default BloqueDisplay;
+
+
+

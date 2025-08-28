@@ -10,6 +10,7 @@ import EntrenamientoCompletado from "../../components/RutinaDetalle/Entrenamient
 import Drawer from "../../components/Drawer";
 import VideoPanel from "../../components/VideoPanel"; // Importar VideoPanel
 import { motion } from 'framer-motion'; // <-- 2. IMPORTAR MOTION
+import GradualBlur from '../../components/GradualBlur'; // Import GradualBlur
 
 /** Skeleton simple para el área de contenido */
 const LoadingSkeleton = () => (
@@ -40,8 +41,8 @@ const RutinaDetalle = () => {
         workoutTime,
         isResting,
         restTimeLeft,
-        restExerciseName,
         restOriginalDuration,
+        restExerciseName,
         todosCompletados,
         toggleElementoCompletado,
         handleFinalizarYGuardar,
@@ -83,30 +84,22 @@ const RutinaDetalle = () => {
 
 
     return (
-        <div className="flex flex-col h-screen text-white overflow-hidden">
+        <div className="flex flex-col h-screen text-white overflow-hidden relative">
             <RutinaHeader
                 rutinaNombre={rutina?.nombre ?? "Entrenamiento"}
                 workoutTime={isReady ? workoutTime : 0}
                 formatWorkoutTime={formatWorkoutTime}
                 onBackClick={handleBackButtonClick}
+                progressGlobal={progressGlobal}
+                todosCompletados={todosCompletados}
             />
 
-            <div className="flex-1 overflow-y-auto scrollbar-hide pt-20">
+        
+
+            <div className="flex-1 overflow-y-auto scrollbar-hide pt-10">
                 {isReady ? (
                     <>
-                        {/* Barra de progreso pegada al header */}
-                        {!todosCompletados && (
-                            <div className="fixed top-20 left-0 right-0 z-20">
-                                <div className="w-full bg-gray-700 h-1">
-                                    <motion.div
-                                        className="bg-cyan-300 h-1"
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${progressGlobal}%` }}
-                                        transition={{ duration: 0.5 }}
-                                    />
-                                </div>
-                            </div>
-                        )}
+              
 
                         {/* Contenido principal */}
                         <div>
@@ -176,6 +169,16 @@ const RutinaDetalle = () => {
                     videoUrl={videoUrlToShow}
                 />
             </div>
+            <GradualBlur
+                target="parent"
+                position="bottom"
+                height="6rem"
+                strength={2}
+                divCount={5}
+                curve="bezier"
+                exponential={true}
+                opacity={1}
+            />
         </div>
     );
 };

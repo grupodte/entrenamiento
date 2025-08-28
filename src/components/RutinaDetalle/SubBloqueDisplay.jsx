@@ -3,6 +3,8 @@ import EjercicioSimpleDisplay from './EjercicioSimpleDisplay';
 import SupersetDisplay from './SupersetDisplay';
 import { FaDumbbell, FaSyncAlt, FaChevronDown, FaCheckCircle } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import ShinyText from '../../components/ShinyText.jsx';
+
 
 const SubBloqueDisplay = (props) => {
     const { subbloque, isCompleted, isInProgress, hideTitle, lastSessionData } = props;
@@ -43,7 +45,7 @@ const SubBloqueDisplay = (props) => {
             {/* Encabezado Clickeable */}
             <button
                 onClick={handleToggleCollapse}
-                className="w-full flex items-center gap-3 px-3 sm:px-4 py-3 text-left"
+                className="w-full flex items-center gap-2 px-2 sm:px-4 py-3 text-left"
                 aria-expanded={!isCollapsed}
             >
                 <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-700/50">
@@ -63,9 +65,12 @@ const SubBloqueDisplay = (props) => {
                         </p>
                     )}
                     {isInProgress && !isCompleted && (
-                        <span className="text-xs px-2 py-0.5 rounded bg-gray-600/50 text-gray-300">
-                            En progreso
-                        </span>
+
+                                <ShinyText
+                                text=    "En progreso"     
+                                speed={3}                                               
+                                disabled={false}> 
+                                </ShinyText>
                     )}
                 </div>
 

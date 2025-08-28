@@ -7,15 +7,7 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
 
     return (
         <div className="space-y-3">
-            {/* Header opcional del ejercicio si hay múltiples series */}
-            {sbe.series?.length > 1 && (
-                <div className="px-1">
-                    <h4 className="font-semibold text-white/90 text-sm tracking-wide">
-                        {ejercicio?.nombre || 'Ejercicio'}
-                    </h4>
-                </div>
-            )}
-
+          
             {/* Series */}
             {sbe.series?.map(serie => {
                 const serieId = generarIdSerieSimple(subbloqueId, sbe.id, serie.nro_set);

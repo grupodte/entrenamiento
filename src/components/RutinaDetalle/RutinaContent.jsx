@@ -24,7 +24,7 @@ const RutinaContent = ({
     };
 
     return (
-        <main className="py-10 space-y-4 pb-20 px-4">
+        <main className="py-10 space-y-4 pb-20  ">
             {rutinaBloques?.map(bloque => (
                 <BloqueDisplay key={bloque.id} bloque={bloque} {...displayProps} />
             ))}

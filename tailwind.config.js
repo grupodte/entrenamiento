@@ -92,6 +92,7 @@ module.exports = {
                 'fade-in': 'fadeIn 0.3s ease-in-out',
                 'slide-up': 'slideUp 0.3s ease-out',
                 'scale-in': 'scaleIn 0.2s ease-out',
+                'shine': 'shine 5s linear infinite',
             },
             keyframes: {
                 fadeIn: {
@@ -105,6 +106,10 @@ module.exports = {
                 scaleIn: {
                     '0%': { transform: 'scale(0.95)', opacity: '0' },
                     '100%': { transform: 'scale(1)', opacity: '1' },
+                },
+                shine: {
+                    '0%': { 'background-position': '100%' },
+                    '100%': { 'background-position': '-100%' },
                 },
             },
             transitionTimingFunction: {
