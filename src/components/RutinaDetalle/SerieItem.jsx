@@ -19,6 +19,7 @@ const SerieItem = React.forwardRef(({
     nroSet,
     ejercicio,
     openVideoPanel,
+    nota,
 }, ref) => {
     const lastCarga = lastSessionData[`${serieId}`]?.carga_realizada || '';
     const [actualReps, setActualReps] = useState(reps || '');
@@ -71,11 +72,20 @@ const SerieItem = React.forwardRef(({
             tabIndex={0}
             aria-pressed={isCompletada}
         >
+            <h4 className="text-md font-medium text-white/90 flex-1 min-w-0">
+                {nombreEjercicio}
+            </h4>
             {/* Header con nombre del ejercicio y estado */}
             <div className="flex items-center justify-between mb-1">
-                <h4 className="text-md font-medium text-white/90 flex-1 min-w-0">
-                    {nombreEjercicio}
-                </h4>
+                <div> 
+
+                    {nota && (
+                      <p className="text-[12px] text-white/80">{nota}</p>
+                       
+                    )}
+              
+             
+                </div>
                 {ejercicio?.video_url && (
                     <button
                         onClick={(e) => {
@@ -89,6 +99,8 @@ const SerieItem = React.forwardRef(({
                     </button>
                 )}
 
+                
+
                 <AnimatePresence>
                     {isCompletada && (
                         <motion.div
@@ -101,6 +113,8 @@ const SerieItem = React.forwardRef(({
                         </motion.div>
                     )}
                 </AnimatePresence>
+
+                
             </div>
 
             {/* Faltaria aca agregar el link de video del ejercicio.*/}
@@ -152,6 +166,9 @@ const SerieItem = React.forwardRef(({
                     </div>
                 </div>
             </div>
+
+            {/* Nota de la serie */}
+         
 
             {/* Overlay para indicar completado */}
             {isCompletada && (

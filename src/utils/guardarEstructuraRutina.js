@@ -127,6 +127,7 @@ export async function guardarEstructuraRutina({ rutinaId, bloques, tipoRutina = 
                     const reps = parseInt(set.reps, 10);
                     const carga = parseInt(typeof set.carga !== 'undefined' ? set.carga : set.carga_sugerida, 10);
                     const pausa = parseInt(esSuperset ? sharedRest : set.pausa, 10);
+                    const nota = set.nota || '';
 
                     const { error: errorSerie } = await supabase
                         .from('series_subejercicio')
@@ -136,6 +137,7 @@ export async function guardarEstructuraRutina({ rutinaId, bloques, tipoRutina = 
                             reps: isNaN(reps) ? null : reps,
                             carga_sugerida: isNaN(carga) ? null : carga,
                             pausa: isNaN(pausa) ? null : pausa,
+                            nota: nota,
                         }]);
 
                     if (errorSerie) {

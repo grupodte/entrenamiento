@@ -72,6 +72,7 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                                 const reps = detalleSerie?.reps || '';
                                 const carga = detalleSerie?.carga_sugerida || detalleSerie?.carga || '';
                                 const pausa = subbloque.pausa_compartida || detalleSerie?.pausa || 0;
+                                const nota = detalleSerie?.nota || '';
                                 const isCompletada = !!props.elementosCompletados[elementoId];
 
                                 return (
@@ -88,6 +89,7 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                                         reps={reps}
                                         carga={carga}
                                         pausa={pausa}
+                                        nota={nota}
                                         tipoElemento="superset_ejercicio"
                                         subbloqueId={subbloque.id}
                                         numSerieSupersetActual={setNumero}

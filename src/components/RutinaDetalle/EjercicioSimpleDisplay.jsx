@@ -29,6 +29,7 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                         reps={serie.reps}
                         carga={serie.carga_sugerida || serie.carga}
                         pausa={serie.pausa}
+                        nota={serie.nota}
                         tipoElemento={'simple'}
                         lastSessionData={lastSessionData}
                     />

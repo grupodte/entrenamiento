@@ -108,6 +108,7 @@ const EjercicioChip = ({
                                     const nuevasSeries = Array.from({ length: nuevaCantidad }).map((_, i) => ({
                                         reps: ejercicio.series?.[i]?.reps || '',
                                         pausa: ejercicio.series?.[i]?.pausa || '',
+                                        nota: ejercicio.series?.[i]?.nota || '',
                                     }));
                                     onChange({ ...ejercicio, series: nuevasSeries });
                                 }
@@ -123,25 +124,38 @@ const EjercicioChip = ({
             {/* Series individuales */}
             {!isSharedStructure &&
                 (ejercicio.series || []).map((serie, i) => (
-                    <tr key={`serie-${i}`} className="border-t border-white/10 bg-white/5">
-                        <td className="p-2 text-xs text-white/60">Serie {i + 1}</td>
-                        <td className="p-2 grid grid-cols-2 gap-2">
-                            <input
-                                type="number"
-                                placeholder="Reps"
-                                value={serie.reps}
-                                onChange={(e) => updateSerieCampo(i, 'reps', e.target.value)}
-                                className="w-full bg-white/10 text-white text-xs rounded px-2 py-1"
-                            />
-                            <input
-                                type="text"
-                                placeholder="Pausa"
-                                value={serie.pausa}
-                                onChange={(e) => updateSerieCampo(i, 'pausa', e.target.value)}
-                                className="w-full bg-white/10 text-white text-xs rounded px-2 py-1"
-                            />
-                        </td>
-                    </tr>
+                    <Fragment key={`serie-frag-${i}`}>
+                        <tr className="border-t border-white/10 bg-white/5">
+                            <td className="p-2 text-xs text-white/60 align-top pt-3">Serie {i + 1}</td>
+                            <td className="p-2 space-y-2">
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input
+                                        type="number"
+                                        placeholder="Reps"
+                                        value={serie.reps || ''}
+                                        onChange={(e) => updateSerieCampo(i, 'reps', e.target.value)}
+                                        className="w-full bg-white/10 text-white text-xs rounded px-2 py-1 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Pausa"
+                                        value={serie.pausa || ''}
+                                        onChange={(e) => updateSerieCampo(i, 'pausa', e.target.value)}
+                                        className="w-full bg-white/10 text-white text-xs rounded px-2 py-1 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                    />
+                                </div>
+                                <div className="mt-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Añadir nota..."
+                                        value={serie.nota || ''}
+                                        onChange={(e) => updateSerieCampo(i, 'nota', e.target.value)}
+                                        className="w-full bg-white/10 text-white/70 text-xs rounded px-2 py-1 focus:ring-1 focus:ring-cyan-500 focus:outline-none"
+                                    />
+                                </div>
+                            </td>
+                        </tr>
+                    </Fragment>
                 ))}
         </Fragment>
     );
