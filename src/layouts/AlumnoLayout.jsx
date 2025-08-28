@@ -65,32 +65,21 @@ const AlumnoLayout = () => {
   const handleCloseSwipeWidget = useCallback(() => setIsSwipeWidgetOpen(false), []);
 
   return (
-    <div className="app-container" ref={containerRef}>
-      {/* GradualBlur fijo a nivel página */}
-      <GradualBlur
-        target="page"
-        position="top"
-        height="10rem"
-        strength={2}
-        divCount={5}
-        curve="bezier"
-        opacity={1}
-        className="pointer-events-none"
-        exponential={true}
-        zIndex={30}
-
+    <div className="min-h-dvh flex flex-col overflow-clip" ref={containerRef}>
+      {/* Blur simplificado compatible con PWA */}
+      <div 
+        className="fixed top-0 left-0 right-0 h-32 pointer-events-none"
+        style={{
+          zIndex: 5,
+          background: 'linear-gradient(to bottom, rgba(18, 18, 18, 0.9) 0%, rgba(18, 18, 18, 0.7) 30%, rgba(18, 18, 18, 0.3) 70%, transparent 100%)'
+        }}
       />
-      <GradualBlur
-        target="page"
-        position="bottom"
-        height="2rem"
-        strength={2}
-        divCount={5}
-        curve="bezier"
-        opacity={1}
-        exponential={true}
-        className="pointer-events-none"
-        zIndex={30}
+      <div 
+        className="fixed bottom-0 left-0 right-0 h-8 pointer-events-none"
+        style={{
+          zIndex: 5,
+          background: 'linear-gradient(to top, rgba(18, 18, 18, 0.8) 0%, rgba(18, 18, 18, 0.4) 50%, transparent 100%)'
+        }}
       />
 
       {/* Contenido principal con scroll */}
