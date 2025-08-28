@@ -28,7 +28,10 @@ const RutinaHeader = ({
                     transition-all duration-200
                 "
                 style={{
-                    zIndex: 9999,
+                    zIndex: 999999,
+                    position: 'fixed',
+                    isolation: 'isolate',
+                    transform: 'translateZ(0)',
                     backdropFilter: 'blur(16px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(16px) saturate(180%)'
                 }}
@@ -57,7 +60,10 @@ const RutinaHeader = ({
                     transition-all duration-200
                 "
                 style={{
-                    zIndex: 9999,
+                    zIndex: 999999,
+                    position: 'fixed',
+                    isolation: 'isolate',
+                    transform: 'translateZ(0)',
                     backdropFilter: 'blur(16px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(16px) saturate(180%)'
                 }}
@@ -89,7 +95,10 @@ const RutinaHeader = ({
                     max-w-[60vw]
                 "
                 style={{
-                    zIndex: 9999,
+                    zIndex: 999999,
+                    position: 'fixed',
+                    isolation: 'isolate',
+                    transform: 'translate(-50%, 0) translateZ(0)',
                     backdropFilter: 'blur(16px) saturate(180%)',
                     WebkitBackdropFilter: 'blur(16px) saturate(180%)'
                 }}
@@ -115,7 +124,10 @@ const RutinaHeader = ({
                         transition-all duration-300
                     "
                     style={{
-                        zIndex: 9999,
+                        zIndex: 999999,
+                        position: 'fixed',
+                        isolation: 'isolate',
+                        transform: 'translate(-50%, 0) translateZ(0)',
                         backdropFilter: 'blur(16px) saturate(180%)',
                         WebkitBackdropFilter: 'blur(16px) saturate(180%)'
                     }}
