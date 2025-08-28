@@ -11,9 +11,9 @@ const RutinaHeader = ({
         <header
             className="
         fixed top-0 left-0 right-0 z-30
-        h-20 /* 80px */
+        h-[83px] /* 80px */
         bg-gradient-to-b from-black/60 to-transparent
-        backdrop-blur-xl
+        backdrop-blur-sm
         border-b border-white/10
         pt-safe
         max-w-full
