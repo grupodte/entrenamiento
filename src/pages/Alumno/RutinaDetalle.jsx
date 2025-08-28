@@ -84,7 +84,7 @@ const RutinaDetalle = () => {
 
 
     return (
-        <div className=" dashboard">
+        <div className=" ">
             <RutinaHeader
                 rutinaNombre={rutina?.nombre ?? "Entrenamiento"}
                 workoutTime={isReady ? workoutTime : 0}
