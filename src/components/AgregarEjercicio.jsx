@@ -1,5 +1,4 @@
-import { useState, useEffect, Fragment } from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useEffect, useMemo, Fragment } from 'react';
 import { Listbox, Transition, Dialog } from '@headlessui/react';
 import { supabase } from '../lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,20 +14,111 @@ const gruposMusculares = [
   'Pecho', 'Espalda', 'Piernas', 'Hombros', 'Bíceps', 'Tríceps', 'Core',
 ];
 
+const groupColors = {
+  Pecho: { bg: 'bg-rose-500/30', text: 'text-rose-300', border: 'border-rose-500/50', hover: 'hover:bg-rose-500/50' },
+  Espalda: { bg: 'bg-cyan-500/30', text: 'text-cyan-300', border: 'border-cyan-500/50', hover: 'hover:bg-cyan-500/50' },
+  Piernas: { bg: 'bg-amber-500/30', text: 'text-amber-300', border: 'border-amber-500/50', hover: 'hover:bg-amber-500/50' },
+  Hombros: { bg: 'bg-indigo-500/30', text: 'text-indigo-300', border: 'border-indigo-500/50', hover: 'hover:bg-indigo-500/50' },
+  Bíceps: { bg: 'bg-pink-500/30', text: 'text-pink-300', border: 'border-pink-500/50', hover: 'hover:bg-pink-500/50' },
+  Tríceps: { bg: 'bg-teal-500/30', text: 'text-teal-300', border: 'border-teal-500/50', hover: 'hover:bg-teal-500/50' },
+  Core: { bg: 'bg-lime-500/30', text: 'text-lime-300', border: 'border-lime-500/50', hover: 'hover:bg-lime-500/50' },
+  Default: { bg: 'bg-gray-500/30', text: 'text-gray-300', border: 'border-gray-500/50', hover: 'hover:bg-gray-500/50' },
+};
+
+const normalizeText = (text) => {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+};
+
 const EjerciciosManager = () => {
   const [ejercicios, setEjercicios] = useState([]);
   const [nuevo, setNuevo] = useState({ nombre: '', descripcion: '', video_url: '', grupo_muscular: '' });
   const [editando, setEditando] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGroups, setSelectedGroups] = useState([]);
   const { showVideo, isOpen: isVideoOpen, videoUrl, hideVideo } = useVideo();
 
   useEffect(() => {
     const cargarEjercicios = async () => {
-      const { data, error } = await supabase.from('ejercicios').select('*').order('id', { ascending: false });
+      const { data, error } = await supabase.from('ejercicios').select('*').order('nombre', { ascending: true });
       if (!error) setEjercicios(data);
     };
     cargarEjercicios();
   }, []);
+
+  const toggleGroupFilter = (group) => {
+    setSelectedGroups(prev =>
+      prev.includes(group) ? prev.filter(g => g !== group) : [...prev, group]
+    );
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedGroups([]);
+  };
+
+  const filteredAndSortedEjercicios = useMemo(() => {
+    const normalizedSearch = normalizeText(searchTerm);
+    const searchKeywords = normalizedSearch.split(' ').filter(k => k);
+
+    return ejercicios
+      .filter(ejercicio => {
+        // Filtro por grupo muscular
+        const groupMatch = selectedGroups.length === 0 || selectedGroups.includes(ejercicio.grupo_muscular);
+        if (!groupMatch) return false;
+
+        // Filtro por término de búsqueda
+        if (searchKeywords.length === 0) return true;
+
+        const normalizedName = normalizeText(ejercicio.nombre);
+        const normalizedDesc = normalizeText(ejercicio.descripcion);
+
+        return searchKeywords.every(keyword =>
+          normalizedName.includes(keyword) || normalizedDesc.includes(keyword)
+        );
+      })
+      .sort((a, b) => {
+        // Ordenar por relevancia
+        const aNameMatch = normalizeText(a.nombre).includes(normalizedSearch);
+        const bNameMatch = normalizeText(b.nombre).includes(normalizedSearch);
+
+        if (aNameMatch && !bNameMatch) return -1;
+        if (!aNameMatch && bNameMatch) return 1;
+
+        return 0; // Mantener orden original si la relevancia es la misma
+      });
+  }, [ejercicios, searchTerm, selectedGroups]);
+
+  const groupedEjercicios = useMemo(() => {
+    const groups = filteredAndSortedEjercicios.reduce((acc, ejercicio) => {
+      const groupName = ejercicio.grupo_muscular || 'Otros';
+      if (!acc[groupName]) {
+        acc[groupName] = [];
+      }
+      acc[groupName].push(ejercicio);
+      return acc;
+    }, {});
+
+    const orderedGroupNames = Object.keys(groups).sort((a, b) => {
+      if (a === 'Otros') return 1;
+      if (b === 'Otros') return -1;
+      if (gruposMusculares.indexOf(a) < gruposMusculares.indexOf(b)) return -1;
+      if (gruposMusculares.indexOf(a) > gruposMusculares.indexOf(b)) return 1;
+      return 0;
+    });
+
+    const orderedGroups = {};
+    orderedGroupNames.forEach(name => {
+      orderedGroups[name] = groups[name];
+    });
+
+    return orderedGroups;
+  }, [filteredAndSortedEjercicios]);
 
   const crearEjercicio = async (e) => {
     e.preventDefault();
@@ -95,7 +185,7 @@ const EjerciciosManager = () => {
       .eq('id', editando.id);
 
     if (!error) {
-      setEjercicios(prev => prev.map(ej => 
+      setEjercicios(prev => prev.map(ej =>
         ej.id === editando.id ? { ...ej, ...editando } : ej
       ));
       toast.success('Ejercicio actualizado');
@@ -116,7 +206,7 @@ const EjerciciosManager = () => {
           <input type="text" placeholder="Nombre del ejercicio" value={nuevo.nombre} onChange={e => setNuevo({ ...nuevo, nombre: e.target.value })} required className={INPUT_CLASS} />
           <textarea placeholder="Descripción (opcional)" value={nuevo.descripcion} onChange={e => setNuevo({ ...nuevo, descripcion: e.target.value })} className={`${INPUT_CLASS} h-24`} />
           <input type="url" placeholder="URL de video (opcional)" value={nuevo.video_url} onChange={e => setNuevo({ ...nuevo, video_url: e.target.value })} className={INPUT_CLASS} />
-          
+
           <div className="relative z-[200]">
             <Listbox value={nuevo.grupo_muscular} onChange={val => setNuevo({ ...nuevo, grupo_muscular: val })}>
               <div className="relative">
@@ -143,49 +233,115 @@ const EjerciciosManager = () => {
         </form>
       </motion.div>
 
-      <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* Search and Filter Section */}
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/10 space-y-4">
+        <input
+          type="text"
+          placeholder="Buscar ejercicio por nombre o descripción..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className={INPUT_CLASS}
+        />
+        <div className="flex flex-wrap gap-3 items-center">
+          <span className="text-white/80 font-medium text-sm">Filtrar por:</span>
+          {gruposMusculares.map(group => (
+            <motion.button
+              key={group}
+              onClick={() => toggleGroupFilter(group)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 border ${selectedGroups.includes(group)
+                  ? `${(groupColors[group] || groupColors.Default).bg} ${(groupColors[group] || groupColors.Default).text} ${(groupColors[group] || groupColors.Default).border}`
+                  : `bg-white/10 border-transparent text-white/70 ${groupColors[group]?.hover || groupColors.Default.hover}`
+                }`}
+            >
+              {group}
+            </motion.button>
+          ))}
+          {(searchTerm || selectedGroups.length > 0) && (
+            <motion.button
+              onClick={clearFilters}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="flex items-center gap-2 text-sm text-pink-400 hover:text-pink-300 transition"
+            >
+              <FaTimes /> Limpiar filtros
+            </motion.button>
+          )}
+        </div>
+      </motion.div>
+
+      <div className="space-y-8">
         <AnimatePresence>
-          {ejercicios.map(ej => (
-            <motion.div key={ej.id} variants={itemVariants} layout className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl blur opacity-0 group-hover:opacity-60 transition duration-500"></div>
-              <div className="relative bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl p-5 rounded-2xl border border-white/10 shadow-lg flex flex-col justify-between h-full transition-transform duration-300 group-hover:scale-[1.03]">
-                <div>
-                  <h3 className="text-xl font-semibold text-white mb-2">{ej.nombre}</h3>
-                  {ej.grupo_muscular && <span className="inline-block bg-cyan-400/20 text-cyan-300 px-2.5 py-1 rounded-full text-xs mb-3 font-medium">{ej.grupo_muscular}</span>}
-                  <p className="text-sm text-white/80 mb-4 line-clamp-3">{ej.descripcion || 'Sin descripción'}</p>
-                </div>
-                <div className="flex items-center justify-between mt-4 border-t border-white/10 pt-4">
-                  {ej.video_url ? (
-                    <button onClick={() => showVideo(ej.video_url)} className="flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition">
-                      <FaVideo /> Ver video
-                    </button>
-                  ) : <span className="text-white/40 text-xs">Sin video</span>}
-                  <div className="flex items-center gap-2">
-                    <motion.button 
-                      whileHover={{ scale: 1.2, color: '#10b981' }} 
-                      whileTap={{ scale: 0.9 }} 
-                      onClick={() => iniciarEdicion(ej)} 
-                      className="text-gray-400 hover:text-emerald-500 transition-colors"
-                      title="Editar ejercicio"
-                    >
-                      <FaEdit />
-                    </motion.button>
-                    <motion.button 
-                      whileHover={{ scale: 1.2, color: '#ef4444' }} 
-                      whileTap={{ scale: 0.9 }} 
-                      onClick={() => borrarEjercicio(ej.id)} 
-                      className="text-gray-400 hover:text-red-500 transition-colors"
-                      title="Eliminar ejercicio"
-                    >
-                      <FaTrashAlt />
-                    </motion.button>
-                  </div>
-                </div>
+          {Object.entries(groupedEjercicios).map(([groupName, exercises]) => (
+            <motion.section
+              key={groupName}
+              layout
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="flex items-center gap-4 mb-5">
+                <span className={`px-4 py-1.5 rounded-full text-lg font-bold ${groupColors[groupName]?.bg || groupColors.Default.bg} ${groupColors[groupName]?.text || groupColors.Default.text}`}>
+                  {groupName}
+                </span>
+                <span className="text-white/50 font-medium">
+                  {exercises.length} {exercises.length === 1 ? 'ejercicio' : 'ejercicios'}
+                </span>
+                <div className="flex-grow h-px bg-white/10"></div>
               </div>
-            </motion.div>
+
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+              >
+                {exercises.map(ej => (
+                  <motion.div key={ej.id} variants={itemVariants} layout className="relative group">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl blur opacity-0 group-hover:opacity-75 transition duration-500 pointer-events-none"></div>
+                    <div className="relative bg-black/40 backdrop-blur-lg p-5 rounded-2xl border border-white/10 shadow-lg flex flex-col justify-between h-full transition-transform duration-300 group-hover:scale-[1.03] group-hover:shadow-pink-500/20">
+                      <div>
+                        <h3 className="text-xl font-bold text-white mb-2">{ej.nombre}</h3>
+                        <p className="text-sm text-white/70 mb-4 line-clamp-3 h-[60px]">{ej.descripcion || 'Sin descripción'}</p>
+                      </div>
+                      <div className="flex items-center justify-between mt-4 border-t border-white/10 pt-4">
+                        {ej.video_url ? (
+                          <button onClick={() => showVideo(ej.video_url)} className="flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                            <FaVideo /> Ver video
+                          </button>
+                        ) : <span className="text-white/40 text-xs italic">Sin video</span>}
+                        <div className="flex items-center gap-2">
+                          <motion.button
+                            whileHover={{ scale: 1.2, color: '#34d399' }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => iniciarEdicion(ej)}
+                            className="text-gray-400 transition-colors"
+                            title="Editar ejercicio"
+                          >
+                            <FaEdit />
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.2, color: '#f87171' }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => borrarEjercicio(ej.id)}
+                            className="text-gray-400 transition-colors"
+                            title="Eliminar ejercicio"
+                          >
+                            <FaTrashAlt />
+                          </motion.button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </motion.section>
           ))}
         </AnimatePresence>
-      </motion.div>
+      </div>
 
       <VideoPanel isOpen={isVideoOpen} onClose={hideVideo} videoUrl={videoUrl} />
 
@@ -239,14 +395,14 @@ const EjerciciosManager = () => {
                         required
                         className={INPUT_CLASS}
                       />
-                      
+
                       <textarea
                         placeholder="Descripción (opcional)"
                         value={editando.descripcion}
                         onChange={e => setEditando({ ...editando, descripcion: e.target.value })}
                         className={`${INPUT_CLASS} h-24`}
                       />
-                      
+
                       <input
                         type="url"
                         placeholder="URL de video (opcional)"
@@ -254,7 +410,7 @@ const EjerciciosManager = () => {
                         onChange={e => setEditando({ ...editando, video_url: e.target.value })}
                         className={INPUT_CLASS}
                       />
-                      
+
                       <div className="relative z-[200]">
                         <Listbox value={editando.grupo_muscular} onChange={val => setEditando({ ...editando, grupo_muscular: val })}>
                           <div className="relative">

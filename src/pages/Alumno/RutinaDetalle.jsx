@@ -138,6 +138,7 @@ const RutinaDetalle = () => {
                             seriesCompletadas={seriesCompletadas}
                             handleFinalizarYGuardar={handleFinalizarAndNavigate}
                             formatWorkoutTime={formatWorkoutTime}
+                            
                         />
                     </>
                 ) : (
