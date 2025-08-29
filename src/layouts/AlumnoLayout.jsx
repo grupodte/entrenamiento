@@ -87,7 +87,7 @@ const AlumnoLayoutContent = () => {
   });
 
   return (
-    <div className=" flex flex-col overflow-clip" ref={containerRef}>
+    <div className="min-h-screen flex flex-col overflow-clip" ref={containerRef}>
       {/* GradualBlur fijo a nivel página */}
       <GradualBlur
         target="page"

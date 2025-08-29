@@ -172,7 +172,7 @@ body {
   /* 80px para la navbar flotante */
   margin-left: var(--content-margin-horizontal);
   margin-right: var(--content-margin-horizontal);
-  min-height: calc(100vh - var(--content-margin-top) - var(--content-margin-bottom) - 80px);
+  min-height: calc(100vh - 9rem); /* 3rem padding-top + 6rem padding-bottom */
 }
 
 /* ====== DASHBOARD STYLES ====== */
