@@ -81,7 +81,8 @@ const AppContent = () => {
         <Route path="rutinas/ver/:id" element={<VerRutina />} />
         <Route path="rutinas-reales" element={<AdminRutinasReales />} />
         <Route path="rutinas-reales/ver/:id" element={<VerRutinaReal />} />
-        <Route path="rutinas-reales/editar/:id" element={<EditarRutinaReal />} />
+        <Route path="rutinas-reales/editar/:id" 
+        element={<EditarRutinaReal />} />
         <Route path="rutinas/editar-dia/:id" element={<EditarDia />} />
         <Route path="ejercicios" element={<AdminEjercicios />} />
         <Route path="ejercicios/seleccionar" element={<SeleccionarEjercicios />} />
