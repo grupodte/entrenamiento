@@ -10,6 +10,7 @@ import { ProgressDockProvider, useProgressDock } from '../context/ProgressDockCo
 import { BackNavigationProvider, useBackNavigation } from '../context/BackNavigationContext';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 import { useSwipeGesture } from '../hooks/useSwipeGesture';
+import { useSwipeBackContext } from '../hooks/useSwipeBackContext';
 
 // Variantes de animación optimizadas
 const pageVariants = {
@@ -39,19 +40,7 @@ const AlumnoLayoutContent = () => {
 
   useViewportHeight();
 
-  // Configurar gestos de swipe
-  const { containerRef, swipeProgress, isEdgeSwipe } = useSwipeGesture({
-    onSwipeFromEdge: (distance) => {
-      if (distance > 100) {
-        setIsSwipeWidgetOpen(true);
-      }
-    },
-    preventBrowserBack: true,
-    edgeThreshold: 30,
-    threshold: 50
-  });
-
-  // Handlers memorizados
+  // Handlers memorizados - definir ANTES de los hooks que los usan
   const handleOpenPerfil = useCallback(() => setIsPerfilDrawerOpen(true), []);
   const handleClosePerfil = useCallback(() => setIsPerfilDrawerOpen(false), []);
 
@@ -70,6 +59,32 @@ const AlumnoLayoutContent = () => {
   const handleProfileUpdate = useCallback(() => setIsEditPerfilDrawerOpen(false), []);
 
   const handleCloseSwipeWidget = useCallback(() => setIsSwipeWidgetOpen(false), []);
+
+  // Configurar gestos de swipe
+  const { containerRef, swipeProgress, isEdgeSwipe } = useSwipeGesture({
+    onSwipeFromEdge: (distance) => {
+      if (distance > 100) {
+        setIsSwipeWidgetOpen(true);
+      }
+    },
+    preventBrowserBack: true,
+    edgeThreshold: 30,
+    threshold: 50,
+    isWidgetOpen: isSwipeWidgetOpen
+  });
+
+  // Configurar contexto de swipe back
+  const { currentContext } = useSwipeBackContext({
+    isDrawerOpen: isPerfilDrawerOpen || isEditPerfilDrawerOpen,
+    isWidgetOpen: isSwipeWidgetOpen,
+    onDrawerClose: () => {
+      if (isEditPerfilDrawerOpen) handleCloseEditPerfil();
+      else if (isPerfilDrawerOpen) handleClosePerfil();
+    },
+    onWidgetClose: handleCloseSwipeWidget,
+    preventGlobalSwipeBack: true,
+    swipeThreshold: 80
+  });
 
   return (
     <div className=" flex flex-col overflow-clip" ref={containerRef}>
@@ -108,7 +123,7 @@ const AlumnoLayoutContent = () => {
         animate="animate"
         exit="exit"
       >
-        <div className="content-wrapper h-screen" style={{ paddingTop: '3rem', paddingBottom: '6rem' }}>
+        <div className="content-wrapper" style={{ paddingTop: '3rem', paddingBottom: '6rem' }}>
           <Outlet />
 
           {/* Navegación flotante */}

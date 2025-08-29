@@ -12,6 +12,22 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     return () => clearInterval(timer);
   }, []);
 
+  // Aplicar clases CSS contextuales
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('widget-active');
+      document.documentElement.classList.add('widget-active');
+    } else {
+      document.body.classList.remove('widget-active');
+      document.documentElement.classList.remove('widget-active');
+    }
+
+    return () => {
+      document.body.classList.remove('widget-active');
+      document.documentElement.classList.remove('widget-active');
+    };
+  }, [isOpen]);
+
   const openProgress = Math.min(swipeProgress / 200, 1);
   const closeProgressNormalized = Math.min(closeProgress / 150, 1);
 

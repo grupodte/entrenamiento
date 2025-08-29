@@ -1,22 +1,33 @@
 // src/components/Drawer.jsx
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactDOM from 'react-dom';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 
 const Drawer = ({ isOpen, onClose, children }) => {
+    const [swipeProgress, setSwipeProgress] = useState(0);
+    const startPosRef = useRef({ x: 0, y: 0 });
+    const isSwipingRef = useRef(false);
+    const drawerRef = useRef(null);
+
     // Optimización: Prevenir scroll del body cuando está abierto
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
             document.body.style.touchAction = 'none';
+            document.body.classList.add('drawer-active');
+            document.documentElement.classList.add('drawer-active');
         } else {
             document.body.style.overflow = '';
             document.body.style.touchAction = '';
+            document.body.classList.remove('drawer-active');
+            document.documentElement.classList.remove('drawer-active');
         }
 
         return () => {
             document.body.style.overflow = '';
             document.body.style.touchAction = '';
+            document.body.classList.remove('drawer-active');
+            document.documentElement.classList.remove('drawer-active');
         };
     }, [isOpen]);
 
@@ -36,6 +47,71 @@ const Drawer = ({ isOpen, onClose, children }) => {
         e.stopPropagation();
         onClose();
     }, [onClose]);
+
+    // Manejo de swipe horizontal para cerrar drawer
+    const handleTouchStart = useCallback((e) => {
+        if (!isOpen) return;
+        
+        const touch = e.touches[0];
+        startPosRef.current = { x: touch.clientX, y: touch.clientY };
+        isSwipingRef.current = false;
+        setSwipeProgress(0);
+    }, [isOpen]);
+
+    const handleTouchMove = useCallback((e) => {
+        if (!isOpen) return;
+        
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - startPosRef.current.x;
+        const deltaY = touch.clientY - startPosRef.current.y;
+        const absDeltaX = Math.abs(deltaX);
+        const absDeltaY = Math.abs(deltaY);
+
+        // Solo activar swipe horizontal si el movimiento es más horizontal que vertical
+        if (absDeltaX > absDeltaY && absDeltaX > 10) {
+            isSwipingRef.current = true;
+            
+            // Solo permitir swipe hacia la derecha (cerrar) desde el borde izquierdo
+            if (deltaX > 0 && startPosRef.current.x < 50) {
+                const progress = Math.min(deltaX / 200, 1); // Max 200px para cerrar completamente
+                setSwipeProgress(progress);
+                e.preventDefault(); // Prevenir swipe back del browser
+            }
+        }
+    }, [isOpen]);
+
+    const handleTouchEnd = useCallback((e) => {
+        if (!isOpen || !isSwipingRef.current) return;
+        
+        const touch = e.changedTouches[0];
+        const deltaX = touch.clientX - startPosRef.current.x;
+        const threshold = 100; // 100px para cerrar
+
+        // Si swipe hacia la derecha supera threshold, cerrar drawer
+        if (deltaX > threshold && startPosRef.current.x < 50) {
+            onClose();
+        }
+        
+        // Reset
+        setSwipeProgress(0);
+        isSwipingRef.current = false;
+    }, [isOpen, onClose]);
+
+    // Agregar listeners de touch events
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const options = { passive: false };
+        document.addEventListener('touchstart', handleTouchStart, options);
+        document.addEventListener('touchmove', handleTouchMove, options);
+        document.addEventListener('touchend', handleTouchEnd, options);
+
+        return () => {
+            document.removeEventListener('touchstart', handleTouchStart);
+            document.removeEventListener('touchmove', handleTouchMove);
+            document.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, [isOpen, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
     const drawerContent = (
         <AnimatePresence mode="wait">
@@ -59,8 +135,9 @@ const Drawer = ({ isOpen, onClose, children }) => {
                         }}
                     />
 
-                    {/* Drawer optimizado */}
+                    {/* Drawer optimizado con swipe horizontal */}
                     <motion.div
+                        ref={drawerRef}
                         drag="y"
                         onDragEnd={handleDragEnd}
                         dragConstraints={{ top: 0, bottom: 0 }}
@@ -75,7 +152,8 @@ const Drawer = ({ isOpen, onClose, children }) => {
                         }}
                         animate={{
                             y: 0,
-                            opacity: 1
+                            opacity: 1,
+                            x: swipeProgress > 0 ? `${swipeProgress * -30}%` : 0 // Ligero desplazamiento visual
                         }}
                         exit={{
                             y: "100%",
@@ -92,6 +170,11 @@ const Drawer = ({ isOpen, onClose, children }) => {
                                 damping: 25,
                             },
                             opacity: {
+                                type: 'spring',
+                                stiffness: 400,
+                                damping: 25,
+                            },
+                            x: swipeProgress > 0 ? { type: 'tween', duration: 0 } : {
                                 type: 'spring',
                                 stiffness: 400,
                                 damping: 25,
@@ -114,17 +197,25 @@ const Drawer = ({ isOpen, onClose, children }) => {
                             zIndex: 99999,
                             boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.3)',
                             WebkitBackdropFilter: 'blur(20px) saturate(150%)',
-                            backdropFilter: 'blur(20px) saturate(150%)'
+                            backdropFilter: 'blur(20px) saturate(150%)',
+                            opacity: swipeProgress > 0 ? 1 - (swipeProgress * 0.3) : 1 // Fade out durante swipe
                         }}
                     >
-                        {/* Handle mejorado */}
-                        <div className="w-full flex justify-center py-4 cursor-grab active:cursor-grabbing">
+                        {/* Handle mejorado con indicador de swipe */}
+                        <div className="w-full flex justify-center py-4 cursor-grab active:cursor-grabbing relative">
                             <motion.div
                                 className="w-10 h-1.5 bg-gray-400 rounded-full"
                                 whileHover={{ scale: 1.1, backgroundColor: '#9CA3AF' }}
                                 whileTap={{ scale: 0.95 }}
                                 transition={{ duration: 0.15 }}
                             />
+                            {/* Indicador visual de swipe horizontal */}
+                            {swipeProgress > 0 && (
+                                <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
+                                    <div className="w-8 h-0.5 bg-cyan-400/60 rounded-full" 
+                                         style={{ width: `${8 + swipeProgress * 20}px` }} />
+                                </div>
+                            )}
                         </div>
 
                         {/* Contenido con scroll optimizado */}
@@ -135,6 +226,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                                 overscroll-contain
                                 scrollbar-hide
                                 will-change-scroll
+                                drawer-content
                             "
                             style={{
                                 WebkitOverflowScrolling: 'touch',

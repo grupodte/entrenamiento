@@ -78,10 +78,7 @@ const RestTimerDock = ({
                                 {formatTime(timeLeft)}
                             </motion.span>
                             
-                            {/* Label minimalista */}
-                            <span className="text-xs text-cyan-400/70 font-medium">
-                                descanso
-                            </span>
+                          
                         </div>
 
                         {/* Botón saltar super compacto */}
@@ -96,20 +93,7 @@ const RestTimerDock = ({
                         </motion.button>
                     </div>
 
-                    {/* Barra de progreso minimalista */}
-                    <div className="px-3 pb-2">
-                        <div className="w-full h-0.5 bg-cyan-500/20 rounded-full overflow-hidden">
-                            <motion.div
-                                className="h-full bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full"
-                                initial={{ width: '0%' }}
-                                animate={{ width: `${progressPercentage}%` }}
-                                transition={{ duration: 0.3, ease: 'easeOut' }}
-                                style={{ 
-                                    boxShadow: progressPercentage > 80 ? '0 0 6px rgba(6, 182, 212, 0.5)' : 'none'
-                                }}
-                            />
-                        </div>
-                    </div>
+                   
                     
                     {/* Siguiente ejercicio (solo si hay nombre) */}
                     {exerciseName && (

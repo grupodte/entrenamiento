@@ -3,6 +3,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ✅ Prevención contextual de swipe back - Simplificado */
+/* Base: comportamiento normal de swipe */
+html {
+  overscroll-behavior-x: auto;
+}
+
+body {
+  overscroll-behavior-x: auto;
+}
+
+/* Para drawers y modales activos - Prevenir swipe back solo cuando es necesario */
+.drawer-active,
+.widget-active {
+  overscroll-behavior-x: none !important;
+  -webkit-overscroll-behavior-x: none !important;
+}
+
+/* Contenido de drawers - permitir scroll vertical, bloquear horizontal */
+.drawer-content {
+  touch-action: pan-y;
+  overscroll-behavior-x: none;
+}
+
 /* ====== UTILIDADES PERSONALIZADAS DE TAILWIND ====== */
 @layer utilities {
   /* Utilidad para ocultar scrollbars pero mantener funcionalidad */
