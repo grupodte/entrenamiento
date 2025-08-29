@@ -6,6 +6,8 @@ import PerfilDrawer from '../pages/Alumno/PerfilDrawer';
 import EditarPerfilDrawer from '../pages/Alumno/EditarPerfil';
 import SwipeWidget from '../components/SwipeWidget';
 import GradualBlur from '../components/GradualBlur';
+import { ProgressDockProvider, useProgressDock } from '../context/ProgressDockContext';
+import { BackNavigationProvider, useBackNavigation } from '../context/BackNavigationContext';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 import { useSwipeGesture } from '../hooks/useSwipeGesture';
 
@@ -24,11 +26,16 @@ const pageVariants = {
   }
 };
 
-const AlumnoLayout = () => {
+// Componente interno que usa el contexto
+const AlumnoLayoutContent = () => {
   const location = useLocation();
   const [isPerfilDrawerOpen, setIsPerfilDrawerOpen] = useState(false);
   const [isEditPerfilDrawerOpen, setIsEditPerfilDrawerOpen] = useState(false);
   const [isSwipeWidgetOpen, setIsSwipeWidgetOpen] = useState(false);
+  
+  // Usar el contexto de ProgressDock y BackNavigation
+  const { showProgressDock, toggleProgressDock, progressGlobal } = useProgressDock();
+  const { onBackClick } = useBackNavigation();
 
   useViewportHeight();
 
@@ -65,21 +72,31 @@ const AlumnoLayout = () => {
   const handleCloseSwipeWidget = useCallback(() => setIsSwipeWidgetOpen(false), []);
 
   return (
-    <div className="min-h-dvh flex flex-col overflow-clip" ref={containerRef}>
-      {/* Blur simplificado compatible con PWA */}
-      <div 
-        className="fixed top-0 left-0 right-0 h-32 pointer-events-none"
-        style={{
-          zIndex: 5,
-          background: 'linear-gradient(to bottom, rgba(18, 18, 18, 0.9) 0%, rgba(18, 18, 18, 0.7) 30%, rgba(18, 18, 18, 0.3) 70%, transparent 100%)'
-        }}
+    <div className=" flex flex-col overflow-clip" ref={containerRef}>
+      {/* GradualBlur fijo a nivel página */}
+      <GradualBlur
+        target="page"
+        position="top"
+        height="6rem"
+        strength={2}
+        divCount={5}
+        curve="bezier"
+        opacity={1}
+        exponential={true}
+        className="pointer-events-none"
+        zIndex={30}
       />
-      <div 
-        className="fixed bottom-0 left-0 right-0 h-8 pointer-events-none"
-        style={{
-          zIndex: 5,
-          background: 'linear-gradient(to top, rgba(18, 18, 18, 0.8) 0%, rgba(18, 18, 18, 0.4) 50%, transparent 100%)'
-        }}
+      <GradualBlur
+        target="page"
+        position="bottom"
+        height="3rem"
+        strength={1}
+        divCount={5}
+        curve="bezier"
+        opacity={1}
+        exponential={true}
+        className="pointer-events-none"
+        zIndex={30}
       />
 
       {/* Contenido principal con scroll */}
@@ -91,11 +108,18 @@ const AlumnoLayout = () => {
         animate="animate"
         exit="exit"
       >
-        <div className="content-wrapper" style={{ paddingTop: '7rem' }}>
+        <div className="content-wrapper" style={{ paddingTop: '3rem' }}>
           <Outlet />
 
           {/* Navegación flotante */}
-          <FloatingNavBar onOpenPerfil={handleOpenPerfil} />
+          <FloatingNavBar 
+            onOpenPerfil={handleOpenPerfil}
+            isPerfilOpen={isPerfilDrawerOpen}
+            showProgressDock={showProgressDock}
+            onToggleProgressDock={toggleProgressDock}
+            progressGlobal={progressGlobal}
+            onBackClick={onBackClick}
+          />
         </div>
       </motion.main>
 
@@ -120,6 +144,17 @@ const AlumnoLayout = () => {
         onProfileUpdate={handleProfileUpdate}
       />
     </div>
+  );
+};
+
+// Componente principal con Provider
+const AlumnoLayout = () => {
+  return (
+    <ProgressDockProvider>
+      <BackNavigationProvider>
+        <AlumnoLayoutContent />
+      </BackNavigationProvider>
+    </ProgressDockProvider>
   );
 };
 

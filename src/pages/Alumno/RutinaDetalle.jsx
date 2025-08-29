@@ -1,23 +1,19 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext';
+import { useProgressDock } from '../../context/ProgressDockContext';
+import { useBackNavigation } from '../../context/BackNavigationContext';
 import useRutinaLogic from "../../hooks/useRutinaLogic";
 import useRutinaProgress from "../../hooks/useRutinaProgress";
 import RutinaHeader from "../../components/RutinaDetalle/RutinaHeader";
 import RutinaContent from "../../components/RutinaDetalle/RutinaContent";
 import RutinaTimersDisplay from "../../components/RutinaDetalle/RutinaTimersDisplay";
 import EntrenamientoCompletado from "../../components/RutinaDetalle/EntrenamientoCompletado"; // <-- 1. IMPORTAR
+import ProgressDock from "../../components/RutinaDetalle/ProgressDock";
 import Drawer from "../../components/Drawer";
 import VideoPanel from "../../components/VideoPanel"; // Importar VideoPanel
+import BrandedLoader from "../../components/BrandedLoader"; // Importar BrandedLoader
 import { motion } from 'framer-motion'; // <-- 2. IMPORTAR MOTION
-
-/** Skeleton simple para el área de contenido */
-const LoadingSkeleton = () => (
-    <div className="flex flex-col justify-center items-center space-y-4 p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
-        <p className="text-gray-400">Cargando rutina...</p>
-    </div>
-);
 
 const RutinaDetalle = () => {
     // ... (hooks iniciales sin cambios)
@@ -27,6 +23,10 @@ const RutinaDetalle = () => {
     const { user } = useAuth();
     const [showExitModal, setShowExitModal] = useState(false);
     const { state } = location;
+    
+    // Usar contexto de ProgressDock y BackNavigation
+    const { showProgressDock, updateProgressGlobal } = useProgressDock();
+    const { registerBackHandler } = useBackNavigation();
     const tipo = state?.tipo || "base";
     const searchParams = new URLSearchParams(location.search);
     const bloqueSeleccionado = searchParams.get("bloque");
@@ -62,15 +62,26 @@ const RutinaDetalle = () => {
 
     const isReady = !loading && !!rutina;
 
+    // Manejadores de modal de salida
+    const handleBackButtonClick = useCallback(() => {
+        setShowExitModal(true);
+    }, []);
+
     const handleFinalizarAndNavigate = async () => {
         await handleFinalizarYGuardar();
         navigate('/dashboard');
     };
 
-    // Manejadores de modal de salida
-    const handleBackButtonClick = useCallback(() => {
-        setShowExitModal(true);
-    }, []);
+    // Actualizar progreso global en el contexto
+    useEffect(() => {
+        updateProgressGlobal(progressGlobal);
+    }, [progressGlobal, updateProgressGlobal]);
+
+    // Registrar el handler de back navigation
+    useEffect(() => {
+        registerBackHandler(handleBackButtonClick);
+        return () => registerBackHandler(null); // Cleanup
+    }, [registerBackHandler, handleBackButtonClick]);
 
     const handleConfirmExit = () => {
         setShowExitModal(false);
@@ -83,31 +94,12 @@ const RutinaDetalle = () => {
 
 
     return (
-        <div className="min-h-dvh flex flex-col overflow-clip">
-         
-
-            <RutinaHeader
-                rutinaNombre={rutina?.nombre ?? "Entrenamiento"}
-                workoutTime={isReady ? workoutTime : 0}
-                formatWorkoutTime={formatWorkoutTime}
-                onBackClick={handleBackButtonClick}
-                progressGlobal={progressGlobal}
-                todosCompletados={todosCompletados}
-                className="mt-[100px]" // Asegura que esté por encima de otros elementos
-            />
-
-
-            <div className="flex-1">
-
-             
-
-
+        <div className="flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto">
                 {isReady ? (
                     <>
-              
-
                         {/* Contenido principal */}
-                        <div>
+                        <div className="">
                             <RutinaContent
                                 // 4. PROPS SIMPLIFICADAS
                                 rutinaBloques={rutina.bloques}
@@ -140,7 +132,7 @@ const RutinaDetalle = () => {
                         />
                     </>
                 ) : (
-                    <LoadingSkeleton />
+                    <BrandedLoader />
                 )}
 
                 <Drawer isOpen={showExitModal} onClose={handleCancelExit}>
@@ -172,6 +164,26 @@ const RutinaDetalle = () => {
                     isOpen={showVideoPanel}
                     onClose={closeVideoPanel}
                     videoUrl={videoUrlToShow}
+                />
+
+                {/* Dock de progreso flotante */}
+                <ProgressDock
+                    isVisible={showProgressDock && isReady}
+                    rutina={rutina}
+                    elementosCompletados={elementosCompletados}
+                    progressGlobal={progressGlobal}
+                    seriesCompletadas={seriesCompletadas}
+                    totalSeries={seriesCompletadas + (rutina ? Object.keys(elementosCompletados).length : 0)}
+                    workoutTime={workoutTime}
+                    formatWorkoutTime={formatWorkoutTime}
+                    progressPorSubBloque={progressPorSubBloque}
+                    onElementClick={(elementId) => {
+                        // Scroll hacia el elemento específico si existe
+                        const element = elementoRefs.current[elementId];
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }}
                 />
             </div>
         </div>

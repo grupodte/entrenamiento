@@ -1,6 +1,7 @@
 // src/components/RutinaDetalle/SupersetDisplay.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
+import { FaExchangeAlt, FaCheckCircle } from 'react-icons/fa';
 import SerieItem from './SerieItem';
 import { generarIdEjercicioEnSerieDeSuperset } from '../../utils/rutinaIds';
 
@@ -22,15 +23,29 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
             });
         }
 
+        // Capturar datos de peso de cada ejercicio del superset antes de completar
+        const exerciseData = {};
+        childIds.forEach(childId => {
+            const inputElement = props.elementoRefs.current[childId]?.querySelector('input[type="text"]');
+            if (inputElement) {
+                const actualCarga = inputElement.value || '0';
+                exerciseData[childId] = {
+                    actualCarga,
+                    actualReps: 0 // En supersets, las reps son fijas por configuración
+                };
+            }
+        });
+
         props.toggleElementoCompletado({
             tipoElemento: 'superset_set',
             childIds: childIds,
-            pausa: pausaSet
+            pausa: pausaSet,
+            exerciseData: exerciseData // Pasar los datos de cada ejercicio
         });
     };
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-1.5 mt-1">
             {Array.from({ length: totalSeries }).map((_, setIndex) => {
                 const setNumero = setIndex + 1;
 
@@ -43,23 +58,79 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                     generarIdEjercicioEnSerieDeSuperset(subbloque.id, sbe.id, setNumero) === props.elementoActivoId
                 );
 
+                // Estilos optimizados para móvil con resaltado del conjunto completo
+                const getSetStyles = () => {
+                    if (completado) {
+                        return 'bg-violet-900/20 border-green-500/40 ring-1 ring-green-400/20';
+                    }
+                    if (isActive) {
+                        return 'bg-violet-900/50 border-violet-400/70 ring-2 ring-violet-400/60 shadow-lg shadow-violet-500/25';
+                    }
+                    return 'bg-violet-900/15 border-violet-700/30 active:bg-violet-900/25';
+                };
+
                 return (
                     <motion.section
                         key={`ss-${subbloque.id}-s${setNumero}`}
                         aria-labelledby={`title-ss-${subbloque.id}-s${setNumero}`}
                         onClick={() => handleToggleSupersetSet(setNumero)}
-                        className={[
-                            "relative rounded-2xl overflow-hidden backdrop-blur-md cursor-pointer transition-all duration-300",
-                            "border",
-                            completado
-                                ? 'bg-violet-900/50 border-violet-700/50'
-                                : isActive
-                                    ? 'bg-violet-900/40 border-violet-600/60 ring-2 ring-violet-500/50'
-                                    : 'bg-violet-900/30 border-violet-800/40 hover:bg-violet-900/40',
-                            "p-3 sm:p-4"
-                        ].join(' ')}
+                        className={`relative rounded-lg backdrop-blur-md cursor-pointer transition-all duration-200 border p-3 min-h-[44px] touch-manipulation ${getSetStyles()}`}
+                        whileTap={{ scale: 0.98 }}
                     >
-                        <div className="space-y-3 pointer-events-none">
+                        {/* Header del superset con número de set */}
+                        <div className={`flex items-center justify-between mb-2 pb-2 border-b transition-all duration-300 ${
+                            completado ? 'border-green-600/30' : 'border-violet-600/20'
+                        }`}>
+                            <div className="flex items-center gap-2">
+                                <div className={`flex items-center justify-center w-7 h-7 rounded-full transition-all duration-300 ${
+                                    completado 
+                                        ? 'bg-green-600/30 border border-green-500/50 shadow-sm shadow-green-500/20'
+                                        : 'bg-violet-600/20 border border-violet-500/40'
+                                }`}>
+                                    {completado ? (
+                                        <FaCheckCircle className="text-sm text-green-400" />
+                                    ) : (
+                                        <FaExchangeAlt className="text-xs text-violet-400" />
+                                    )}
+                                </div>
+                                <span className={`text-sm font-medium transition-all duration-300 ${
+                                    completado ? 'text-green-200' : 'text-violet-200'
+                                }`}>
+                                    Set {setNumero}
+                                    {totalSeries > 1 && (
+                                        <span className={`text-xs ml-1 ${
+                                            completado ? 'text-green-300/70' : 'text-violet-300/60'
+                                        }`}>
+                                            de {totalSeries}
+                                        </span>
+                                    )}
+                                </span>
+                            </div>
+                            <div className={`text-xs transition-all duration-300 flex flex-col items-end ${
+                                completado ? 'text-green-300/80' : 'text-violet-300/80'
+                            }`}>
+                                <span>{subbloque.subbloques_ejercicios.length} ejercicios</span>
+                                {(() => {
+                                    // Calcular pausa del set
+                                    let pausaSet = subbloque.pausa_compartida || 0;
+                                    if (!pausaSet) {
+                                        subbloque.subbloques_ejercicios.forEach(sbe => {
+                                            const detalleSerie = sbe.series?.find(s => s.nro_set === setNumero) || sbe.series?.[0];
+                                            if (detalleSerie?.pausa > pausaSet) {
+                                                pausaSet = detalleSerie.pausa;
+                                            }
+                                        });
+                                    }
+                                    return pausaSet > 0 ? (
+                                        <span className="text-[10px] opacity-80">
+                                            Pausa: {pausaSet}s
+                                        </span>
+                                    ) : null;
+                                })()}
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
                             {subbloque.subbloques_ejercicios.map((sbe) => {
                                 const elementoId = generarIdEjercicioEnSerieDeSuperset(
                                     subbloque.id,

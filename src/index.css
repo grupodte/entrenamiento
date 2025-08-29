@@ -3,6 +3,56 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ====== UTILIDADES PERSONALIZADAS DE TAILWIND ====== */
+@layer utilities {
+  /* Utilidad para ocultar scrollbars pero mantener funcionalidad */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+  
+  /* Combinación de overflow con scroll oculto */
+  .overflow-y-scroll-hidden {
+    overflow-y: scroll;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .overflow-y-scroll-hidden::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .overflow-x-scroll-hidden {
+    overflow-x: scroll;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .overflow-x-scroll-hidden::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .overflow-auto-hidden {
+    overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .overflow-auto-hidden::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* ====== VARIABLES CSS ====== */
 :root {
   --sat: env(safe-area-inset-top);
@@ -90,7 +140,7 @@ body {
 
 .content-wrapper {
   /* Aplicamos márgenes personalizados al contenido */
-  margin-top: var(--content-margin-top);
+  margin-top: var(--content-margin-top) ;
   margin-bottom: calc(var(--content-margin-bottom));
   /* 80px para la navbar flotante */
   margin-left: var(--content-margin-horizontal);
@@ -309,7 +359,27 @@ body {
   }
 }
 
-/* ====== SCROLLBARS OCULTOS ====== */
+/* ====== SCROLLBARS OCULTOS GLOBALES ====== */
+/* Ocultar barras de scroll en toda la aplicación */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Safari y Chrome */
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+
+/* Mantener funcionalidad de scroll suave y táctil */
+*, *::before, *::after {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Clase específica para elementos que necesiten scroll oculto */
 .scrollbar-hide {
   scrollbar-width: none;
   /* Firefox */
@@ -395,6 +465,54 @@ body {
     position: relative;
     -webkit-overflow-scrolling: touch;
   }
+}
+
+/* ====== ELEMENTOS ESPECÍFICOS CON SCROLL ====== */
+/* Asegurar que elementos comunes mantengan scroll funcional sin barra */
+div[class*="overflow-"],
+.overflow-auto,
+.overflow-x-auto,
+.overflow-y-auto,
+.overflow-scroll,
+.overflow-x-scroll,
+.overflow-y-scroll {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+div[class*="overflow-"]::-webkit-scrollbar,
+.overflow-auto::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar,
+.overflow-scroll::-webkit-scrollbar,
+.overflow-x-scroll::-webkit-scrollbar,
+.overflow-y-scroll::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Elementos específicos de la aplicación */
+.main-content,
+.content-wrapper,
+.dashboard,
+ul, ol, 
+.list-container,
+.scroll-container {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.main-content::-webkit-scrollbar,
+.content-wrapper::-webkit-scrollbar,
+.dashboard::-webkit-scrollbar,
+ul::-webkit-scrollbar, 
+ol::-webkit-scrollbar,
+.list-container::-webkit-scrollbar,
+.scroll-container::-webkit-scrollbar {
+  display: none !important;
 }
 
 /* ====== CLASES UTILITARIAS PARA MÁRGENES PERSONALIZADOS ====== */

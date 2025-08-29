@@ -47,16 +47,12 @@ const BloqueDisplay = (props) => {
                 return (
                     <div key={nombre} className="space-y-2">
                         {isAGroupWithTitle && (
-<ShinyText
-                                text=
-                                    {nombre}
-                            
-    disabled={false}
-    speed={3}
-    className=' text-xl sm:text-2xl font-semibold sm:px-4 pt-1 pb-2'
-/>
-                           
-
+                            <ShinyText
+                                text={nombre}
+                                disabled={false}
+                                speed={3}
+                                className='text-lg font-medium px-1 pt-2 pb-1 mb-1'
+                            />
                         )}
                         {subbloquesDelGrupo.map((subbloque, index) => {
                             const progressInfo = progressPorSubBloque[subbloque.id] || { isCompleted: false, isInProgress: false };

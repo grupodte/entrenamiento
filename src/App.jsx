@@ -1,16 +1,11 @@
 import React from 'react';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import { AnimatePresence } from 'framer-motion';
-import { AnimatedFeedback, useFeedback } from './components/animations';
-import SpotifyProvider from './context/SpotifyContext'; // ✅
 import SpotifyCallback from './pages/SpotifyCallback';
 
 // --- LAYOUT Y COMPONENTES GLOBALES ---
-import AppLayout from './components/AppLayout';
 import AdminLayout from './layouts/AdminLayout';
 import RutaProtegida from './components/RutaProtegida';
-import PageTransition from './components/PageTransition';
 import useSmoothScroll from './hooks/useSmoothScroll';
 import AlumnoLayout from './layouts/AlumnoLayout';
 import BrandedLoader from './components/BrandedLoader';
@@ -41,75 +36,79 @@ import AdminRutinasReales from './pages/Admin/AdminRutinasReales';
 import VerRutinaReal from './pages/Admin/VerRutinaReal';
 import EditarRutinaReal from './pages/Admin/EditarRutinaReal';
 
+// Componente simplificado para páginas públicas
+const PublicLayout = () => (
+  <div className="min-h-dvh">
+    <Outlet />
+  </div>
+);
+
 const AppContent = () => {
-  const location = useLocation();
   useSmoothScroll();
   const { user, rol, loading } = useAuth();
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        {/* --- RUTAS DE ALUMNO CON AlumnoLayout --- */}
+    <Routes>
+      {/* --- RUTAS DE ALUMNO CON AlumnoLayout --- */}
+      <Route
+        element={
+          <RutaProtegida rolPermitido="alumno">
+            <AlumnoLayout />
+          </RutaProtegida>
+        }
+      >
+        <Route path="/dashboard" element={<DashboardAlumno />} />
+        <Route path="/rutina/:id" element={<RutinaDetalle />} />
+      </Route>
+
+      {/* --- RUTAS DE ADMIN CON AdminLayout --- */}
+      <Route
+        path="/admin"
+        element={
+          <RutaProtegida rolPermitido="admin">
+            <AdminLayout />
+          </RutaProtegida>
+        }
+      >
+        <Route index element={<AdminPanel />} />
+        <Route path="alumnos" element={<AdminAlumnos />} />
+        <Route path="alumno/:id" element={<AlumnoPerfil />} />
+        <Route path="rutinas" element={<AdminRutinas />} />
+        <Route path="rutinas/crear" element={<CrearRutina />} />
+        <Route path="rutinas/rutina" element={<CrearRutinaReal />} />
+        <Route path="rutinas/editar/:id" element={<EditarRutina />} />
+        <Route path="rutinas/ver/:id" element={<VerRutina />} />
+        <Route path="rutinas-reales" element={<AdminRutinasReales />} />
+        <Route path="rutinas-reales/ver/:id" element={<VerRutinaReal />} />
+        <Route path="rutinas-reales/editar/:id" element={<EditarRutinaReal />} />
+        <Route path="rutinas/editar-dia/:id" element={<EditarDia />} />
+        <Route path="ejercicios" element={<AdminEjercicios />} />
+        <Route path="ejercicios/seleccionar" element={<SeleccionarEjercicios />} />
+        <Route path="asignar-rutina/:id" element={<AsignarRutina />} />
+      </Route>
+
+      {/* --- RUTAS PÚBLICAS --- */}
+      <Route element={<PublicLayout />}>
+        <Route path="/login" element={<AuthPage />} />
+        <Route path="/register" element={<AuthPage />} />
+        <Route path="/tyc" element={<Tyc />} />
+        <Route path="/privacidad" element={<PoliticaPrivacidad />} />
+        <Route path="/callback/spotify" element={<SpotifyCallback />} />
+        
+        {/* Ruta raíz */}
         <Route
+          path="/"
           element={
-            <RutaProtegida rolPermitido="alumno">
-              <AlumnoLayout />
-            </RutaProtegida>
+            user ? (
+              rol === 'admin' ?
+                <Navigate to="/admin" replace /> :
+                <Navigate to="/dashboard" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
           }
-        >
-          <Route path="/dashboard" element={<PageTransition><DashboardAlumno /></PageTransition>} />
-          <Route path="/rutina/:id" element={<PageTransition><RutinaDetalle /></PageTransition>} />
-        </Route>
-
-        {/* --- RUTAS PÚBLICAS --- */}
-        <Route element={<AppLayout />}>
-          <Route path="/login" element={<PageTransition><AuthPage /></PageTransition>} />
-          <Route path="/register" element={<PageTransition><AuthPage /></PageTransition>} />
-          <Route path="/tyc" element={<PageTransition><Tyc /></PageTransition>} />
-          <Route path="/privacidad" element={<PageTransition><PoliticaPrivacidad /></PageTransition>} />
-          <Route path="/callback/spotify" element={<PageTransition><SpotifyCallback /></PageTransition>} />
-
-          {/* Ruta raíz mejorada */}
-          <Route
-            path="/"
-            element={
-              user ? (
-                rol === 'admin' ?
-                  <Navigate to="/admin" replace /> :
-                  <Navigate to="/dashboard" replace />
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-        </Route>
-
-        {/* --- RUTAS DE ADMIN CON AdminLayout --- */}
-        <Route
-          path="/admin"
-          element={
-            <RutaProtegida rolPermitido="admin">
-              <AdminLayout />
-            </RutaProtegida>
-          }
-        >
-          <Route index element={<PageTransition><AdminPanel /></PageTransition>} />
-          <Route path="alumnos" element={<PageTransition><AdminAlumnos /></PageTransition>} />
-          <Route path="alumno/:id" element={<PageTransition><AlumnoPerfil /></PageTransition>} />
-          <Route path="rutinas" element={<PageTransition><AdminRutinas /></PageTransition>} />
-          <Route path="rutinas/crear" element={<PageTransition><CrearRutina /></PageTransition>} />
-          <Route path="rutinas/rutina" element={<PageTransition><CrearRutinaReal /></PageTransition>} />
-          <Route path="rutinas/editar/:id" element={<PageTransition><EditarRutina /></PageTransition>} />
-          <Route path="rutinas/ver/:id" element={<PageTransition><VerRutina /></PageTransition>} />
-          <Route path="rutinas-reales" element={<PageTransition><AdminRutinasReales /></PageTransition>} />
-          <Route path="rutinas-reales/ver/:id" element={<PageTransition><VerRutinaReal /></PageTransition>} />
-          <Route path="rutinas-reales/editar/:id" element={<PageTransition><EditarRutinaReal /></PageTransition>} />
-          <Route path="rutinas/editar-dia/:id" element={<PageTransition><EditarDia /></PageTransition>} />
-          <Route path="ejercicios" element={<PageTransition><AdminEjercicios /></PageTransition>} />
-          <Route path="ejercicios/seleccionar" element={<PageTransition><SeleccionarEjercicios /></PageTransition>} />
-          <Route path="asignar-rutina/:id" element={<PageTransition><AsignarRutina /></PageTransition>} />
-        </Route>
-
+        />
+        
         {/* Ruta 404 - Catch all */}
         <Route
           path="*"
@@ -123,8 +122,8 @@ const AppContent = () => {
             )
           }
         />
-      </Routes>
-    </AnimatePresence>
+      </Route>
+    </Routes>
   );
 };
 
@@ -135,11 +134,7 @@ const App = () => {
     return <BrandedLoader />;
   }
 
-  return (
-    <SpotifyProvider>
-      <AppContent />
-    </SpotifyProvider>
-  );
+  return <AppContent />;
 };
 
 export default App;

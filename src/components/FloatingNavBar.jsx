@@ -1,7 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Home, User } from 'lucide-react';
+import { Home, User, Target, ArrowLeft } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const FloatingNavBar = ({ onOpenPerfil, isPerfilOpen = false }) => {
+const FloatingNavBar = ({ 
+  onOpenPerfil, 
+  isPerfilOpen = false,
+  // Props para ProgressDock (solo en RutinaDetalle)
+  showProgressDock = false,
+  onToggleProgressDock = null,
+  progressGlobal = 0,
+  // Props para botón dinámico Home/Back
+  onBackClick = null
+}) => {
+  const location = useLocation();
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [activeButton, setActiveButton] = useState('home');
   const [isStandalone, setIsStandalone] = useState(false);
@@ -12,6 +24,10 @@ const FloatingNavBar = ({ onOpenPerfil, isPerfilOpen = false }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 });
+  
+  // Detectar si estamos en RutinaDetalle
+  const isInRutinaDetalle = location.pathname.includes('/rutina/');
+  const shouldShowProgressButton = isInRutinaDetalle && onToggleProgressDock;
 
   // Sincronizar activeButton con el estado del drawer
   useEffect(() => {
@@ -233,9 +249,16 @@ const FloatingNavBar = ({ onOpenPerfil, isPerfilOpen = false }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, [position, getBounds]);
 
-  const navButtonClass = (isActive) => {
+  const navButtonClass = (isActive, isProgressButton = false) => {
     const baseClass =
-      'relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 group backdrop-blur-xl border shadow-lg hover:scale-110 active:scale-95';
+      'relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 group backdrop-blur-xl border shadow-lg hover:scale-110 active:scale-95';
+    
+    if (isProgressButton && isActive) {
+      return `${baseClass} bg-emerald-500/30 border-emerald-400/60 text-emerald-300 shadow-emerald-400/40 ring-2 ring-emerald-400/30`;
+    } else if (isProgressButton) {
+      return `${baseClass} bg-emerald-500/10 border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/20 hover:border-emerald-400/60 hover:shadow-emerald-400/30 shadow-emerald-500/20`;
+    }
+    
     return isActive
       ? `${baseClass} bg-cyan-500/20 border-cyan-400/50 text-cyan-300 shadow-cyan-400/25`
       : `${baseClass} bg-white/10 border-white/20 text-gray-300 hover:text-white hover:bg-white/15 hover:border-white/30 shadow-black/20`;
@@ -268,34 +291,170 @@ const FloatingNavBar = ({ onOpenPerfil, isPerfilOpen = false }) => {
       }}
     >
       <div
-        className={`flex items-center space-x-2 px-3 py-2 rounded-full bg-black/30 backdrop-blur-2xl border border-white/10 ${isStandalone ? 'shadow-lg' : 'shadow-2xl'
+        className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-full bg-black/30 backdrop-blur-2xl border border-white/10 ${isStandalone ? 'shadow-lg' : 'shadow-2xl'
           }`}
         style={{
           backdropFilter: 'blur(20px) saturate(180%)',
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
         }}
       >
-        {/* Botón Inicio */}
-        <button
-          onClick={() => setActiveButton('home')}
+        {/* Botón Inicio/Atrás Dinámico */}
+        <motion.button
+          onClick={() => {
+            if (isInRutinaDetalle && onBackClick) {
+              onBackClick();
+            } else {
+              setActiveButton('home');
+            }
+          }}
           className={navButtonClass(activeButton === 'home')}
           onPointerDown={(e) => e.stopPropagation()}
           style={{ WebkitTapHighlightColor: 'transparent' }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
         >
           <div className="relative">
-            <Home className="w-5 h-5" />
+            {/* Icono dinámico con animación */}
+            <AnimatePresence mode="wait">
+              {isInRutinaDetalle ? (
+                <motion.div
+                  key="back-arrow"
+                  initial={{ opacity: 0, rotate: -180, scale: 0.5 }}
+                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                  exit={{ opacity: 0, rotate: 180, scale: 0.5 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="home-icon"
+                  initial={{ opacity: 0, rotate: 180, scale: 0.5 }}
+                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                  exit={{ opacity: 0, rotate: -180, scale: 0.5 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <Home className="w-4 h-4" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            {/* Dot indicator */}
             {activeButton === 'home' && (
               <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-cyan-400 rounded-full" />
             )}
+            
+            {/* Tooltip dinámico */}
             <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
-              Inicio
+              {isInRutinaDetalle ? 'Salir' : 'Inicio'}
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-black/80"></div>
             </div>
           </div>
-        </button>
+        </motion.button>
 
         {/* Separador visual */}
-        <div className="w-px h-6 bg-white/20"></div>
+        <div className="w-px h-5 bg-white/20"></div>
+
+        {/* Botón ProgressDock - Solo en RutinaDetalle */}
+        {shouldShowProgressButton && (
+          <>
+            <motion.button
+              onClick={() => {
+                onToggleProgressDock();
+                setActiveButton('progress');
+              }}
+              className={navButtonClass(showProgressDock, true)}
+              onPointerDown={(e) => e.stopPropagation()}
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.9 }}
+              animate={{
+                boxShadow: showProgressDock 
+                  ? ['0 0 0 0 rgba(16, 185, 129, 0.4)', '0 0 0 8px rgba(16, 185, 129, 0)', '0 0 0 0 rgba(16, 185, 129, 0.4)']
+                  : ['0 0 0 0 rgba(16, 185, 129, 0.2)', '0 0 0 4px rgba(16, 185, 129, 0)', '0 0 0 0 rgba(16, 185, 129, 0.2)']
+              }}
+              transition={{
+                boxShadow: {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }
+              }}
+            >
+              <div className="relative">
+                <motion.div
+                  animate={{ 
+                    rotate: showProgressDock ? 0 : [0, 10, -10, 0],
+                    scale: showProgressDock ? 1 : [1, 1.1, 1]
+                  }}
+                  transition={{
+                    rotate: {
+                      duration: 1.5,
+                      repeat: showProgressDock ? 0 : Infinity,
+                      ease: "easeInOut"
+                    },
+                    scale: {
+                      duration: 2,
+                      repeat: showProgressDock ? 0 : Infinity,
+                      ease: "easeInOut"
+                    }
+                  }}
+                >
+                  <Target className="w-4 h-4" />
+                </motion.div>
+                
+                {/* Dot indicator cuando está activo */}
+                {showProgressDock && (
+                  <motion.div 
+                    className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-emerald-400 rounded-full"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                  />
+                )}
+                
+                {/* Pulso sutil cuando no está activo para llamar atención */}
+                {!showProgressDock && (
+                  <motion.div
+                    className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-400 rounded-full"
+                    animate={{
+                      scale: [0, 1.2, 0],
+                      opacity: [0.8, 0.4, 0.8]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                )}
+                
+                {/* Mini indicador de progreso mejorado */}
+                {progressGlobal > 0 && (
+                  <motion.div 
+                    className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 flex items-center justify-center border border-white/30"
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    whileHover={{ scale: 1.1 }}
+                  >
+                    <span className="text-[7px] font-bold text-white drop-shadow">
+                      {Math.round(progressGlobal)}
+                    </span>
+                  </motion.div>
+                )}
+                
+                {/* Tooltip mejorado */}
+                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-emerald-600/90 text-white text-[10px] rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap backdrop-blur-sm border border-emerald-400/30">
+                  <span className="font-medium">Progreso</span>
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-emerald-600/90"></div>
+                </div>
+              </div>
+            </motion.button>
+            
+            {/* Separador visual adicional */}
+            <div className="w-px h-5 bg-white/20"></div>
+          </>
+        )}
 
         {/* Botón Perfil */}
         <button
@@ -310,7 +469,7 @@ const FloatingNavBar = ({ onOpenPerfil, isPerfilOpen = false }) => {
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <div className="relative">
-            <User className="w-5 h-5" />
+            <User className="w-4 h-4" />
             {activeButton === 'profile' && isPerfilOpen && (
               <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-cyan-400 rounded-full" />
             )}
@@ -324,7 +483,7 @@ const FloatingNavBar = ({ onOpenPerfil, isPerfilOpen = false }) => {
 
       {/* Sombra dinámica */}
       <div
-        className="absolute top-2 left-1/2 transform -translate-x-1/2 w-28 h-8 bg-black/10 blur-xl rounded-full -z-10"
+        className="absolute top-1.5 left-1/2 transform -translate-x-1/2 w-24 h-6 bg-black/10 blur-xl rounded-full -z-10"
         style={{
           opacity: isDragging ? 0.6 : 0.3,
           transform: `translateX(-50%) scale(${isDragging ? 1.1 : 1})`,
@@ -334,7 +493,7 @@ const FloatingNavBar = ({ onOpenPerfil, isPerfilOpen = false }) => {
 
       {/* Indicador para dispositivos táctiles */}
       {isTouchDevice && deviceOrientation === 'portrait' && (
-        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1 opacity-50">
+        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1 opacity-50">
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
