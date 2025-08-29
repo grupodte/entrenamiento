@@ -11,7 +11,7 @@ export const useProgressDock = () => {
 };
 
 export const ProgressDockProvider = ({ children }) => {
-  const [showProgressDock, setShowProgressDock] = useState(false);
+  const [showProgressDock, setShowProgressDock] = useState(true);
   const [progressGlobal, setProgressGlobal] = useState(0);
 
   const toggleProgressDock = () => {
