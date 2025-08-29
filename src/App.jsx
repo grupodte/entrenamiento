@@ -39,7 +39,7 @@ import EditarRutinaReal from './pages/Admin/EditarRutinaReal';
 
 // Componente simplificado para páginas públicas
 const PublicLayout = () => (
-  <div className="min-h-dvh">
+  <div className="h-screen overflow-hidden">
     <Outlet />
   </div>
 );
