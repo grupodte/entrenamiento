@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaForward } from 'react-icons/fa';
+import { Clock, SkipForward, ChevronUp, Pause } from 'lucide-react';
 
 // Helper to format time, can be kept inside or moved to a utils file.
 const formatTime = (seconds) => {
@@ -9,80 +10,130 @@ const formatTime = (seconds) => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
-const UnifiedRestTimer = ({
+const RestTimerDock = ({
     isVisible,
     timeLeft,
     duration,
     exerciseName,
     onSkip,
 }) => {
-    const circumference = 2 * Math.PI * 45; // Circle with radius 45
+    // Calculate progress percentage
+    const progressPercentage = duration > 0 ? ((duration - timeLeft) / duration) * 100 : 0;
+    
+    if (!isVisible) return null;
 
-    // Calculate progress for the circular indicator.
-    // This ensures the circle starts full and animates smoothly to empty.
-    const progressPercentage = duration > 0 ? timeLeft / duration : 0;
-    const strokeDashoffset = progressPercentage * circumference;
-
-    return (
-        <AnimatePresence>
-            {isVisible && (
+    // Renderizar usando Portal para asegurar centrado perfecto
+    return createPortal(
+        <div className="fixed top-20 inset-x-0 z-50 pointer-events-none">
+            <motion.div 
+                className="mx-auto w-60 max-w-[calc(100vw-4rem)] pointer-events-auto"
+                initial={{ opacity: 0, scale: 0.9, y: -30 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: -30 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            >
                 <motion.div
-                    key="unified-rest-timer"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 bg-black/60 backdrop-blur-lg flex flex-col items-center justify-center p-4"
+                    className="bg-gray-950/90 backdrop-blur-xl border border-cyan-500/20 rounded-xl shadow-lg overflow-hidden"
+                    style={{
+                        backdropFilter: 'blur(16px) saturate(150%)',
+                        WebkitBackdropFilter: 'blur(16px) saturate(150%)',
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.2 }}
                 >
-                    <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.8, opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        className="w-full max-w-sm text-center text-white bg-gray-800/50 rounded-3xl p-8 shadow-2xl"
-                    >
-                        <p className="font-bold text-lg text-cyan-300 tracking-wider">¡A DESCANSAR!</p>
-
-                        <div className="relative my-8 w-48 h-48 mx-auto">
-                            <svg className="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                {/* Background circle */}
-                                <circle cx="50" cy="50" r="45" stroke="#4A5568" strokeWidth="10" fill="none" />
-
-                                {/* Progress circle */}
-                                <motion.circle
-                                    cx="50" cy="50" r="45"
-                                    stroke="#4FD1C5" // Cyan color
-                                    strokeWidth="10"
-                                    fill="none"
-                                    strokeLinecap="round"
-                                    strokeDasharray={circumference}
-                                    // Animate the strokeDashoffset to show progress
-                                    initial={{ strokeDashoffset: circumference }}
-                                    animate={{ strokeDashoffset }}
-                                    transition={{ duration: 1, ease: 'linear' }} // A linear transition for the countdown
-                                />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-5xl font-mono font-bold">{formatTime(timeLeft)}</span>
+                    {/* Header ultra compacto */}
+                    <div className="flex items-center justify-between p-3">
+                        <div className="flex items-center gap-2.5">
+                            {/* Progreso circular mini */}
+                            <div className="relative">
+                                <svg className="w-6 h-6 transform -rotate-90" viewBox="0 0 24 24">
+                                    <circle
+                                        cx="12" cy="12" r="10"
+                                        stroke="rgba(6, 182, 212, 0.2)"
+                                        strokeWidth="1.5" fill="none"
+                                    />
+                                    <motion.circle
+                                        cx="12" cy="12" r="10"
+                                        stroke="#06b6d4"
+                                        strokeWidth="1.5" fill="none"
+                                        strokeLinecap="round"
+                                        strokeDasharray={62.83}
+                                        initial={{ strokeDashoffset: 62.83 }}
+                                        animate={{ strokeDashoffset: 62.83 - (62.83 * progressPercentage / 100) }}
+                                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                                        style={{ filter: 'drop-shadow(0 0 3px rgba(6, 182, 212, 0.3))' }}
+                                    />
+                                </svg>
+                                <Pause className="absolute inset-0 w-3 h-3 m-auto text-cyan-400" />
                             </div>
+                            
+                            {/* Timer principal */}
+                            <motion.span 
+                                key={timeLeft}
+                                initial={{ scale: 1.05, opacity: 0.9 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ duration: 0.2 }}
+                                className="text-xl font-mono font-bold text-cyan-300 tracking-wide"
+                            >
+                                {formatTime(timeLeft)}
+                            </motion.span>
+                            
+                            {/* Label minimalista */}
+                            <span className="text-xs text-cyan-400/70 font-medium">
+                                descanso
+                            </span>
                         </div>
 
-                        <p className="text-sm text-gray-300">Siguiente:</p>
-                        <p className="font-semibold text-xl mt-1">{exerciseName || 'Siguiente ejercicio'}</p>
-
+                        {/* Botón saltar super compacto */}
                         <motion.button
                             onClick={onSkip}
-                            whileHover={{ scale: 1.05 }}
+                            whileHover={{ scale: 1.1, backgroundColor: 'rgba(249, 115, 22, 0.25)' }}
                             whileTap={{ scale: 0.95 }}
-                            className="mt-8 w-full flex items-center justify-center gap-3 bg-cyan-500/20 text-cyan-300 font-semibold py-3 px-5 rounded-full hover:bg-cyan-500/30 transition-colors"
+                            className="p-1.5 bg-orange-500/15 text-orange-400 rounded-lg border border-orange-500/25 hover:border-orange-400/40 transition-all duration-200"
+                            title="Saltar descanso"
                         >
-                            <FaForward />
-                            <span>Omitir Descanso</span>
+                            <SkipForward className="w-3.5 h-3.5" />
                         </motion.button>
-                    </motion.div>
+                    </div>
+
+                    {/* Barra de progreso minimalista */}
+                    <div className="px-3 pb-2">
+                        <div className="w-full h-0.5 bg-cyan-500/20 rounded-full overflow-hidden">
+                            <motion.div
+                                className="h-full bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full"
+                                initial={{ width: '0%' }}
+                                animate={{ width: `${progressPercentage}%` }}
+                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                                style={{ 
+                                    boxShadow: progressPercentage > 80 ? '0 0 6px rgba(6, 182, 212, 0.5)' : 'none'
+                                }}
+                            />
+                        </div>
+                    </div>
+                    
+                    {/* Siguiente ejercicio (solo si hay nombre) */}
+                    {exerciseName && (
+                        <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="px-3 pb-2 border-t border-cyan-500/10"
+                        >
+                            <p className="text-[10px] text-gray-400 mt-1.5 truncate">
+                                <span className="text-cyan-400/60">→</span> {exerciseName}
+                            </p>
+                        </motion.div>
+                    )}
+                    
+                    {/* Efecto de glow sutil */}
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent pointer-events-none" />
                 </motion.div>
-            )}
-        </AnimatePresence>
+            </motion.div>
+        </div>,
+        document.body
     );
 };
+
+// Alias para mantener compatibilidad
+const UnifiedRestTimer = RestTimerDock;
 
 export default UnifiedRestTimer;

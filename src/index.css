@@ -86,6 +86,10 @@ body,
   /* Prevenir el swipe back del navegador */
   overscroll-behavior-x: none;
   font-family: 'ProductSans', 'Inter', sans-serif;
+  /* Deshabilitar swipe navigation completamente */
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
 }
 
 html {
@@ -408,6 +412,39 @@ body {
 .prevent-swipe-back {
   overscroll-behavior-x: none;
   -webkit-overflow-scrolling: touch;
+}
+
+/* ====== DESHABILITAR SWIPE NAVIGATION COMPLETAMENTE ====== */
+/* Prevenir swipe back en todos los navegadores móviles */
+*, *::before, *::after {
+  overscroll-behavior-x: none !important;
+  -webkit-overscroll-behavior-x: none !important;
+}
+
+/* Específico para webkit (Safari, Chrome móvil) */
+@supports (-webkit-touch-callout: none) {
+  body, html {
+    overscroll-behavior-x: none !important;
+    -webkit-overscroll-behavior-x: none !important;
+    /* Prevenir pull-to-refresh también */
+    overscroll-behavior-y: none !important;
+    -webkit-overscroll-behavior-y: none !important;
+  }
+}
+
+/* Para aplicaciones PWA específicamente */
+@media (display-mode: standalone) {
+  body, html {
+    overscroll-behavior: none !important;
+    -webkit-overscroll-behavior: none !important;
+  }
+}
+
+/* Prevenir swipe desde los bordes en Firefox móvil */
+@-moz-document url-prefix() {
+  body {
+    overscroll-behavior-x: none !important;
+  }
 }
 
 /* ====== RESPONSIVE ====== */

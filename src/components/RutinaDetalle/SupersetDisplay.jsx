@@ -121,11 +121,15 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                                             }
                                         });
                                     }
-                                    return pausaSet > 0 ? (
-                                        <span className="text-[10px] opacity-80">
-                                            Pausa: {pausaSet}s
+                                    return (
+                                        <span className={`text-[10px] font-medium ${
+                                            completado 
+                                                ? 'text-green-100 opacity-90' 
+                                                : 'text-violet-100 opacity-95'
+                                        }`}>
+                                            {pausaSet > 0 ? `Pausa: ${pausaSet}s` : 'Sin pausa'}
                                         </span>
-                                    ) : null;
+                                    );
                                 })()}
                             </div>
                         </div>

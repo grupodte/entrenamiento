@@ -192,8 +192,10 @@ const SerieItem = React.forwardRef(({
                         <label className="block text-[10px] font-medium text-gray-400 mb-1 uppercase">
                             Pausa
                         </label>
-                        <div className="text-lg font-bold text-white bg-gray-900/50 py-1.5 rounded border border-gray-600/30">
-                            {pausa ? `${pausa}s` : '-'}
+                        <div className={`text-sm font-bold py-1.5 rounded border border-gray-600/30 ${
+                            isCompletada ? 'bg-green-600/30 border-green-500/50 text-green-100' : 'bg-gray-900/50 text-white'
+                        }`}>
+                            {pausa && pausa > 0 ? `${pausa}s` : 'Sin pausa'}
                         </div>
                     </div>
                 )}

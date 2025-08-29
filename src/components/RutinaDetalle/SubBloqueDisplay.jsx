@@ -103,7 +103,7 @@ const SubBloqueDisplay = (props) => {
                                 {subbloque?.nombre || typeLabel}
                             </h3>
                             <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded border ${getBadgeStyles()} flex-shrink-0`}>
-                                {isSuperset ? 'Sin pausas' : 'Individual'}
+                                {isSuperset ? 'Sin pausa entre sets' : 'Individual'}
                             </span>
                         </div>
                     )}

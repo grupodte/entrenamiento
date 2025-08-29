@@ -7,6 +7,7 @@ import SpotifyCallback from './pages/SpotifyCallback';
 import AdminLayout from './layouts/AdminLayout';
 import RutaProtegida from './components/RutaProtegida';
 import useSmoothScroll from './hooks/useSmoothScroll';
+import usePreventSwipeBack from './hooks/usePreventSwipeBack';
 import AlumnoLayout from './layouts/AlumnoLayout';
 import BrandedLoader from './components/BrandedLoader';
 
@@ -129,6 +130,9 @@ const AppContent = () => {
 
 const App = () => {
   const { loading } = useAuth();
+  
+  // Prevenir swipe back navigation en móviles
+  usePreventSwipeBack();
 
   if (loading) {
     return <BrandedLoader />;

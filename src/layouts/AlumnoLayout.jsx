@@ -108,7 +108,7 @@ const AlumnoLayoutContent = () => {
         animate="animate"
         exit="exit"
       >
-        <div className="content-wrapper" style={{ paddingTop: '3rem' }}>
+        <div className="content-wrapper h-screen" style={{ paddingTop: '3rem', paddingBottom: '6rem' }}>
           <Outlet />
 
           {/* Navegación flotante */}

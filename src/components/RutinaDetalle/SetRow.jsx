@@ -159,11 +159,21 @@ const SetRow = ({
 
       {/* Botón de completar / indicador */}
       <div className="flex items-center gap-2 shrink-0">
-        {/* Timer de descanso si está disponible */}
-        {set.pausa && set.pausa > 0 && !isCompleted && (
-          <div className="flex items-center gap-1 text-xs text-gray-400">
-            <Clock className="w-3 h-3" />
-            <span>{set.pausa}s</span>
+        {/* Timer de descanso */}
+        {!isCompleted && (
+          <div className="flex items-center gap-1 text-xs font-medium">
+            <Clock className={`w-3 h-3 ${
+              variant === 'superset' 
+                ? 'text-violet-300' 
+                : 'text-cyan-300'
+            }`} />
+            <span className={`${
+              variant === 'superset' 
+                ? 'text-violet-200' 
+                : 'text-cyan-200'
+            }`}>
+              {set.pausa && set.pausa > 0 ? `${set.pausa}s` : 'Sin pausa'}
+            </span>
           </div>
         )}
 
