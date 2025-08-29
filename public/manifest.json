@@ -1,66 +1,22 @@
 {
-    "name": "FitApp - Panel de Entrenador",
+    "name": "FitApp",
     "short_name": "FitApp",
-    "description": "La herramienta definitiva para gestionar alumnos, rutinas y ejercicios en FitApp.",
     "start_url": "/",
-    "scope": "/",
     "display": "standalone",
-    "orientation": "any",
-    "theme_color": "#121212",
     "background_color": "#121212",
-    "categories": ["productivity", "fitness", "health"],
+    "theme_color": "#121212",
     "icons": [
         {
-            "src": "/icons/logo.svg",
-            "type": "image/svg+xml",
-            "sizes": "any",
-            "purpose": "any"
-        },
-        {
-            "src": "/icons/icon-192.png",
-            "type": "image/png",
+            "src": "/icons/icon-192-maskable.png",
             "sizes": "192x192",
-            "purpose": "any"
-        },
-        {
-            "src": "/icons/icon-512.png",
             "type": "image/png",
-            "sizes": "512x512",
-            "purpose": "any"
-        },
-        {
-            "src": "/icons/icon-maskable-192.png",
-            "type": "image/png",
-            "sizes": "192x192",
             "purpose": "maskable"
         },
         {
-            "src": "/icons/icon-maskable-512.png",
-            "type": "image/png",
+            "src": "/icons/icon-512-maskable.png",
             "sizes": "512x512",
+            "type": "image/png",
             "purpose": "maskable"
-        },
-        {
-            "src": "/icons/icon-maskable-512.png",
-            "type": "image/png",
-            "sizes": "512x512",
-            "purpose": "any maskable"
-        }
-    ],
-    "screenshots": [],
-    "shortcuts": [
-        {
-            "name": "Dashboard",
-            "short_name": "Dashboard",
-            "description": "Ir al dashboard principal",
-            "url": "/dashboard",
-            "icons": [
-                {
-                    "src": "/icons/logo.svg",
-                    "type": "image/svg+xml",
-                    "sizes": "any"
-                }
-            ]
         }
     ]
 }
