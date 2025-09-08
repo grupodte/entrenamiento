@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabaseClient'; // Ajusta la ruta según tu estructura
 import { guardarEstructuraRutina } from './guardarEstructuraRutina'; // Importamos la función refactorizada
+import { EXECUTION_TYPES, normalizarSerie } from '../constants/executionTypes';
 
 /**
  * Clona una rutina base existente a una nueva rutina personalizada para un alumno específico.
@@ -75,7 +76,10 @@ export async function clonarRutinaBaseHaciaPersonalizada(
                 nro_set,
                 reps,
                 pausa,
-                carga_sugerida
+                carga_sugerida,
+                tipo_ejecucion,
+                duracion_segundos,
+                nota
               )
             )
           )
@@ -145,11 +149,17 @@ export async function clonarRutinaBaseHaciaPersonalizada(
                             // Para superset, `guardarEstructuraRutina` espera `sets_config`
                             // Cada elemento de `sets_config` debe tener `reps` y `carga`.
                             // `series_subejercicio` ya tiene `reps` y `carga_sugerida` (que mapeamos a `carga`).
-                            sets_config: ej.series.map(serie => ({
-                                reps: serie.reps,
-                                carga: serie.carga_sugerida,
-                                // nro_set y pausa no son parte de sets_config, se manejan diferente en superset
-                            })),
+                            sets_config: ej.series.map(serie => {
+                                const normalized = normalizarSerie(serie);
+                                return {
+                                    reps: normalized.reps,
+                                    carga: normalized.carga_sugerida,
+                                    tipo_ejecucion: normalized.tipo_ejecucion,
+                                    duracion_segundos: normalized.duracion_segundos,
+                                    nota: normalized.nota,
+                                    // nro_set y pausa no son parte de sets_config, se manejan diferente en superset
+                                };
+                            }),
                         };
                     } else { // Tipo 'simple'
                         return {
@@ -157,11 +167,7 @@ export async function clonarRutinaBaseHaciaPersonalizada(
                             orden: ej.orden,
                             // Para simple, `guardarEstructuraRutina` espera `series`
                             // Cada serie debe tener `reps`, `carga_sugerida` (mapeado a `carga` en guardarEstructuraRutina) y `pausa`.
-                            series: ej.series.map(serie => ({
-                                reps: serie.reps,
-                                carga_sugerida: serie.carga_sugerida,
-                                pausa: serie.pausa,
-                            })),
+                            series: ej.series.map(serie => normalizarSerie(serie)),
                         };
                     }
                 }),

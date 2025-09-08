@@ -86,6 +86,8 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                                 pausa={serie.pausa}
                                 nota={serie.nota}
                                 tipoElemento={'simple'}
+                                tipoEjecucion={serie.tipo_ejecucion}
+                                duracionSegundos={serie.duracion_segundos}
                                 lastSessionData={lastSessionData}
                                 esEjercicioSimple={true}
                                 // Ocultar nombre del ejercicio ya que está en el header

@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'; // Añad
 import { supabase } from '../../lib/supabaseClient';
 import RutinaForm from '../../components/Rutina/RutinaForm';
 import AdminLayout from '../../layouts/AdminLayout';
+import { normalizarSerie } from '../../constants/executionTypes';
 
 import { FaArrowLeft } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
@@ -102,11 +103,18 @@ const EditarRutina = () => {
                     if (errorSubEj) throw errorSubEj;
                     subEjercicios = subEjerciciosData || [];
 
-                    const { data: seriesRawData, error: errorSeries } = await supabase
-                        .from('series_subejercicio')
-                        .select('*')
-                        .in('subbloque_ejercicio_id', subEjercicios.map(se => se.id))
-                        .order('nro_set', { ascending: true });
+                const { data: seriesRawData, error: errorSeries } = await supabase
+                    .from('series_subejercicio')
+                    .select('id, subbloque_ejercicio_id, nro_set, reps, carga_sugerida, pausa, nota, tipo_ejecucion, duracion_segundos')
+                    .in('subbloque_ejercicio_id', subEjercicios.map(se => se.id))
+                    .order('nro_set', { ascending: true });
+                    
+                // DEBUG: Log de datos crudos de la BD
+                console.log('[EditarRutina DEBUG] Datos crudos de series desde BD:', seriesRawData);
+                if (seriesRawData && seriesRawData.length > 0) {
+                    console.log('[EditarRutina DEBUG] Primera serie cruda:', seriesRawData[0]);
+                    console.log('[EditarRutina DEBUG] Columnas disponibles:', Object.keys(seriesRawData[0]));
+                }
                     if (errorSeries) throw errorSeries;
                     seriesRaw = seriesRawData || [];
                 }
@@ -114,15 +122,20 @@ const EditarRutina = () => {
                 const subEjerciciosAgrupados = subEjercicios.map(ej => ({
                     ...ej,
                     nombre: ej.ejercicio?.nombre || 'Ejercicio no encontrado',
-                    series: seriesRaw
-                        .filter(s => s.subbloque_ejercicio_id === ej.id)
-                        .map(s => ({
-                            id: s.id,
-                            reps: s.reps || '',
-                            carga_sugerida: s.carga_sugerida || '',
-                            pausa: s.pausa || '',
-                            nro_set: s.nro_set
-                        }))
+                    series: (() => {
+                        const seriesFiltradas = seriesRaw.filter(s => s.subbloque_ejercicio_id === ej.id);
+                        const seriesNormalizadas = seriesFiltradas.map(s => {
+                            const normalizada = normalizarSerie(s);
+                            console.log(`[EditarRutina DEBUG] Normalizando serie para ejercicio "${ej.nombre}":`, {
+                                original: s,
+                                normalizada: normalizada,
+                                tipoOriginal: s.tipo_ejecucion,
+                                tipoNormalizado: normalizada.tipo_ejecucion
+                            });
+                            return normalizada;
+                        });
+                        return seriesNormalizadas;
+                    })()
                 }));
 
                 const subbloquesAgrupados = subbloques.map(sb => {
@@ -149,10 +162,26 @@ const EditarRutina = () => {
                     subbloques: subbloquesAgrupados.filter(sb => sb.bloque_id === b.id)
                 }));
 
-                setRutinaParaEditar({
+                const rutinaFinal = {
                     ...rutinaData,
                     bloques: bloquesFinal
+                };
+                
+                // DEBUG: Log de la rutina final que se pasa a RutinaForm
+                console.log('[EditarRutina DEBUG] Rutina FINAL que se pasa a RutinaForm:');
+                rutinaFinal.bloques.forEach(bloque => {
+                    bloque.subbloques.forEach(subbloque => {
+                        subbloque.ejercicios.forEach(ejercicio => {
+                            console.log(`[EditarRutina DEBUG] Ejercicio "${ejercicio.nombre}" - Series:`, {
+                                ejercicio: ejercicio,
+                                series: ejercicio.series,
+                                tiposDeEjecucion: ejercicio.series?.map(s => s.tipo_ejecucion)
+                            });
+                        });
+                    });
                 });
+                
+                setRutinaParaEditar(rutinaFinal);
 
             } catch (err) {
                 console.error("Error al cargar rutina para edición:", err.message, err);

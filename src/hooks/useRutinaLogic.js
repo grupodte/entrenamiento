@@ -348,7 +348,7 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
                             subbloques_ejercicios (
                                 id, 
                                 ejercicio:ejercicios (id, nombre, video_url),
-                                series:series_subejercicio (id, nro_set, reps, pausa, nota)
+                                series:series_subejercicio (id, nro_set, reps, pausa, nota, tipo_ejecucion, duracion_segundos)
                             )
                         )
                     `)
@@ -409,14 +409,14 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
                 let lastSessionRes;
                 if (tipo === "personalizada") {
                     lastSessionRes = await supabase.from('sesiones_entrenamiento')
-                        .select('id, sesiones_series(ejercicio_id, nro_set, reps_realizadas, carga_realizada)')
+                        .select('id, sesiones_series(ejercicio_id, nro_set, reps_realizadas, carga_realizada, tipo_ejecucion, duracion_realizada_segundos)')
                         .eq('rutina_personalizada_id', id)
                         .eq('alumno_id', user.id)
                         .order('created_at', { ascending: false })
                         .limit(1);
                 } else {
                     lastSessionRes = await supabase.from('sesiones_entrenamiento')
-                        .select('id, sesiones_series(ejercicio_id, nro_set, reps_realizadas, carga_realizada)')
+                        .select('id, sesiones_series(ejercicio_id, nro_set, reps_realizadas, carga_realizada, tipo_ejecucion, duracion_realizada_segundos)')
                         .eq('rutina_base_id', id)
                         .eq('alumno_id', user.id)
                         .order('created_at', { ascending: false })
@@ -432,6 +432,8 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
                             mappedLastSessionData[elementoId] = {
                                 reps_realizadas: serie.reps_realizadas,
                                 carga_realizada: serie.carga_realizada,
+                                tipo_ejecucion: serie.tipo_ejecucion,
+                                duracion_realizada_segundos: serie.duracion_realizada_segundos,
                             };
                         }
                     });

@@ -2,6 +2,8 @@ import React from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import SpotifyCallback from './pages/SpotifyCallback';
+// Debug utils
+import { diagnosticarTiposEjecucion } from './utils/diagnosticoTiposEjecucion';
 
 // --- LAYOUT Y COMPONENTES GLOBALES ---
 import AdminLayout from './layouts/AdminLayout';
@@ -131,6 +133,13 @@ const AppContent = () => {
 
 const App = () => {
   const { loading } = useAuth();
+  
+  // Hacer disponible la función de diagnóstico globalmente
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.diagnosticarTiposEjecucion = diagnosticarTiposEjecucion;
+    }
+  }, []);
   
   // Prevenir swipe back navigation en móviles
   usePreventSwipeBack();

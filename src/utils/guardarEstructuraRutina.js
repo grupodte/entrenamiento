@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient'; // Asegúrate de que la ruta a tu cliente Supabase sea correcta
+import { EXECUTION_TYPES, validateSerieByType } from '../constants/executionTypes';
 
 // Función auxiliar para crear configuración de series por defecto para supersets
 // Deberás definir esta función o importarla si ya existe en otro lugar.
@@ -9,6 +10,8 @@ const createDefaultSetsConfig = (numSets) => {
         reps: '', // Puedes poner valores por defecto si lo deseas
         carga: '',
         pausa: '', // La pausa compartida se aplicará después
+        tipo_ejecucion: EXECUTION_TYPES.STANDARD, // Tipo por defecto
+        duracion_segundos: null
     }));
 };
 
@@ -118,27 +121,55 @@ export async function guardarEstructuraRutina({ rutinaId, bloques, tipoRutina = 
 
                 for (let iSet = 0; iSet < seriesParaGuardar.length; iSet++) {
                     const set = seriesParaGuardar[iSet];
-                    // Validación básica de la serie/set
-                    if (typeof set.reps === 'undefined' && typeof set.carga_sugerida === 'undefined' && typeof set.carga === 'undefined') {
-                        console.warn(`Saltando set inválido en ejercicio ${subEjId}, índice ${iSet}:`, set);
+                    
+                    // Obtener tipo de ejecución (por defecto 'standard')
+                    const tipoEjecucion = set.tipo_ejecucion || EXECUTION_TYPES.STANDARD;
+                    
+                    console.log(`[DEBUG] Serie ${iSet + 1} para ejercicio ${ejercicio.ejercicio_id}:`);
+                    console.log(`[DEBUG] - Set data:`, set);
+                    console.log(`[DEBUG] - Tipo ejecución detectado:`, tipoEjecucion);
+                    console.log(`[DEBUG] - EXECUTION_TYPES.STANDARD:`, EXECUTION_TYPES.STANDARD);
+                    
+                    // Validar serie según su tipo
+                    const validation = validateSerieByType(set, tipoEjecucion);
+                    if (!validation.isValid) {
+                        console.warn(`Saltando set inválido en ejercicio ${subEjId}, índice ${iSet}:`, validation.errors, set);
                         continue;
                     }
 
                     const reps = parseInt(set.reps, 10);
                     const carga = parseInt(typeof set.carga !== 'undefined' ? set.carga : set.carga_sugerida, 10);
                     const pausa = parseInt(esSuperset ? sharedRest : set.pausa, 10);
+                    const duracionSegundos = parseInt(set.duracion_segundos, 10);
                     const nota = set.nota || '';
+
+                    // Preparar objeto para inserción
+                    const serieData = {
+                        subbloque_ejercicio_id: subEjId,
+                        nro_set: iSet + 1,
+                        tipo_ejecucion: tipoEjecucion,
+                        nota: nota,
+                    };
+
+                    // Agregar campos según tipo de ejecución
+                    if (tipoEjecucion === EXECUTION_TYPES.STANDARD) {
+                        serieData.reps = isNaN(reps) ? null : reps;
+                        serieData.carga_sugerida = isNaN(carga) ? null : carga;
+                        serieData.pausa = isNaN(pausa) ? null : pausa;
+                    } else if (tipoEjecucion === EXECUTION_TYPES.TIEMPO) {
+                        serieData.duracion_segundos = isNaN(duracionSegundos) ? null : duracionSegundos;
+                        serieData.carga_sugerida = isNaN(carga) ? null : carga;
+                        serieData.pausa = isNaN(pausa) ? null : pausa;
+                    } else if (tipoEjecucion === EXECUTION_TYPES.FALLO) {
+                        serieData.carga_sugerida = isNaN(carga) ? null : carga;
+                        serieData.pausa = isNaN(pausa) ? null : pausa;
+                    }
+                    
+                    console.log(`[DEBUG] - Objeto serieData para insertar:`, serieData);
 
                     const { error: errorSerie } = await supabase
                         .from('series_subejercicio')
-                        .insert([{
-                            subbloque_ejercicio_id: subEjId,
-                            nro_set: iSet + 1,
-                            reps: isNaN(reps) ? null : reps,
-                            carga_sugerida: isNaN(carga) ? null : carga,
-                            pausa: isNaN(pausa) ? null : pausa,
-                            nota: nota,
-                        }]);
+                        .insert([serieData]);
 
                     if (errorSerie) {
                         console.error('Error al insertar serie_subejercicio:', errorSerie);

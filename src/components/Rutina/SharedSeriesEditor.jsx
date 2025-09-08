@@ -10,7 +10,13 @@ const SharedSeriesEditor = ({ sharedSeries, onSharedSeriesChange }) => {
     };
 
     const agregarSerieCompartida = () => {
-        onSharedSeriesChange([...sharedSeries, { reps: '', pausa: '', carga: '' }]);
+        onSharedSeriesChange([...sharedSeries, { 
+            reps: '', 
+            pausa: '', 
+            carga_sugerida: '',
+            tipo_ejecucion: 'standard',
+            duracion_segundos: ''
+        }]);
     };
 
     const eliminarSerieCompartida = (index) => {

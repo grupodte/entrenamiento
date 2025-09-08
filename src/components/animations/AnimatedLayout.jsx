@@ -1,26 +1,21 @@
 import { motion } from 'framer-motion';
 
-// Variantes de animación para el layout principal
+// Variantes simplificadas para evitar conflictos con AdminLayout
 const layoutVariants = {
   initial: {
     opacity: 0,
-    y: 20,
   },
   animate: {
     opacity: 1,
-    y: 0,
   },
   exit: {
     opacity: 0,
-    y: -20,
   },
 };
 
-// Transición suave al estilo iOS
+// Transición rápida para no interferir con otras animaciones
 const layoutTransition = {
-  type: 'tween',
-  ease: [0.25, 0.46, 0.45, 0.94], // cubic-bezier similar a iOS
-  duration: 0.4,
+  duration: 0.1,
 };
 
 /**

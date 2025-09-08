@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import ComboboxEjercicios from './ComboboxEjercicios';
 import EjercicioChip from './EjercicioChip';
 import SupersetSharedConfigEditor from './SupersetSharedConfigEditor';
+import { normalizarSerie, EXECUTION_TYPES } from '../../constants/executionTypes';
 
 const selectStyles = {
     control: (base) => ({
@@ -64,11 +65,40 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
         nombre: subbloque.nombre || 'principal',
         tipo: subbloque.tipo || 'simple',
         ejercicios: (subbloque.ejercicios || []).map(ej => {
-            const sets_config = ej.sets_config || (ej.series?.map(s => ({
+            // FORZAR preservación del tipo de ejecución - NO sobrescribir NUNCA
+            const seriesOriginales = ej.series || [];
+            
+            // DEBUG: Log DETALLADO del ejercicio y sus series
+            // LOG MUY DETALLADO de cada serie
+            seriesOriginales.forEach((serie, idx) => {
+                console.log(`[SubbloqueEditor DEBUG] Serie ${idx + 1} DETALLE COMPLETO:`, {
+                    serieCompleta: serie,
+                    tipo_ejecucion: serie.tipo_ejecucion,
+                    todasLasPropiedades: Object.keys(serie),
+                    valoresPrincipales: {
+                        id: serie.id,
+                        reps: serie.reps,
+                        tipo: serie.tipo_ejecucion,
+                        duracion: serie.duracion_segundos
+                    }
+                });
+            });
+            
+            const sets_config = ej.sets_config || (seriesOriginales?.map(s => ({
                 reps: s.reps || '',
                 carga: s.carga_sugerida || '',
+                // NUNCA sobrescribir el tipo_ejecucion si ya existe
+                tipo_ejecucion: s.tipo_ejecucion, // SIN fallback
+                duracion_segundos: s.duracion_segundos
             })) || []);
-            return { ...ej, sets_config };
+            
+            // Devolver el ejercicio EXACTAMENTE como vino, sin modificaciones
+            return { 
+                ...ej,
+                // PRESERVAR las series exactamente como vinieron
+                series: seriesOriginales,
+                sets_config 
+            };
         }),
         shared_config: subbloque.shared_config || { num_sets: 1, shared_rest: '' },
     };
@@ -83,7 +113,13 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
                 updated.shared_config = { num_sets: '', shared_rest: '' };
                 updated.ejercicios = updated.ejercicios.map(ej => ({
                     ...ej,
-                    series: [{ reps: '', pausa: '', carga: '' }],
+                    series: [{ 
+                        reps: '', 
+                        pausa: '', 
+                        carga_sugerida: '',
+                        tipo_ejecucion: EXECUTION_TYPES.STANDARD,
+                        duracion_segundos: ''
+                    }],
                     sets_config: undefined,
                 }));
             } else {
@@ -135,7 +171,13 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
         if (isShared) {
             nuevo.sets_config = createDefaultSetsConfig(currentSubbloque.shared_config?.num_sets || 1);
         } else {
-            nuevo.series = [{ reps: '', pausa: '', carga: '' }];
+            nuevo.series = [{ 
+                reps: '', 
+                pausa: '', 
+                carga_sugerida: '',
+                tipo_ejecucion: EXECUTION_TYPES.STANDARD,
+                duracion_segundos: ''
+            }];
         }
 
         onChange({
@@ -263,8 +305,8 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
                             onSelect={agregarEjercicio}
                         />
 
-                        <table className="w-full text-sm text-white border border-white/10 rounded-lg overflow-hidden">
-                            <tbody>
+                        <table className="w-full text-sm text-white border border-white/10 rounded-lg" style={{ overflow: 'visible' }}>
+                            <tbody style={{ overflow: 'visible' }}>
                                 {currentSubbloque.ejercicios.map((ejercicio, i) => (
                                     <EjercicioChip
                                         key={ejercicio.id || i}

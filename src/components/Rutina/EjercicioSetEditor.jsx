@@ -9,7 +9,13 @@ const EjercicioSetEditor = ({ series, onSeriesChange }) => {
     };
 
     const agregarSerie = () => {
-        onSeriesChange([...series, { reps: '', pausa: '', carga: '' }]);
+        onSeriesChange([...series, { 
+            reps: '', 
+            pausa: '', 
+            carga_sugerida: '', 
+            tipo_ejecucion: 'standard',
+            duracion_segundos: ''
+        }]);
     };
 
     return (

@@ -137,7 +137,13 @@ const EditarDia = () => {
                 // y le añadimos el nuevo set a una copia de su array de series
                 return {
                     ...ejercicio,
-                    series: [...ejercicio.series, { reps: '', pausa: '', carga: '' }]
+                    series: [...ejercicio.series, { 
+                        reps: '', 
+                        pausa: '', 
+                        carga: '',
+                        tipo_ejecucion: 'standard',
+                        duracion_segundos: ''
+                    }]
                 };
             });
         });
@@ -148,7 +154,13 @@ const EditarDia = () => {
         setEjercicios(prev => [...prev, {
             ejercicio_id: ejercicio.id,
             nombre: ejercicio.nombre,
-            series: [{ reps: '', pausa: '', carga: '' }]
+            series: [{ 
+                reps: '', 
+                pausa: '', 
+                carga: '',
+                tipo_ejecucion: 'standard',
+                duracion_segundos: ''
+            }]
         }]);
         setMostrarSelector(false);
     };

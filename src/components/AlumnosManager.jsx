@@ -2,7 +2,6 @@ import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { FaUser, FaSearch } from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const INPUT_CLASS = "w-full rounded-xl bg-white/10 pl-12 pr-4 py-3 text-white placeholder-white/50 focus:ring-2 focus:ring-pink-500 border border-transparent focus:border-pink-400 transition-all outline-none shadow-inner";
 
@@ -48,8 +47,6 @@ const AlumnosManager = () => {
         );
     }
 
-    const containerVariants = { visible: { transition: { staggerChildren: 0.05 } } };
-    const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 20 } };
 
     return (
         <div className="space-y-8">
@@ -65,24 +62,17 @@ const AlumnosManager = () => {
                 />
             </div>
 
-            <motion.ul variants={containerVariants} initial="hidden" animate="visible" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                <AnimatePresence>
-                    {alumnosFiltrados.map(alumno => (
-                        <AlumnoCard key={alumno.id} alumno={alumno} onClick={() => navigate(`/admin/alumno/${alumno.id}`)} />
-                    ))}
-                </AnimatePresence>
-            </motion.ul>
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {alumnosFiltrados.map(alumno => (
+                    <AlumnoCard key={alumno.id} alumno={alumno} onClick={() => navigate(`/admin/alumno/${alumno.id}`)} />
+                ))}
+            </ul>
         </div>
     );
 };
 
 const AlumnoCard = ({ alumno, onClick }) => (
-    <motion.li
-        layout
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.8 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+    <li
         onClick={onClick}
         className="relative group cursor-pointer"
     >
@@ -99,7 +89,7 @@ const AlumnoCard = ({ alumno, onClick }) => (
                 <p className="font-bold text-lg text-white">{alumno.nombre} {alumno.apellido}</p>
             </div>
         </div>
-    </motion.li>
+    </li>
 );
 
 const AlumnosSkeleton = () => (

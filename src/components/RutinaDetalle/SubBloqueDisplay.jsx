@@ -7,7 +7,7 @@ import ShinyText from '../../components/ShinyText.jsx';
 
 
 const SubBloqueDisplay = (props) => {
-    const { subbloque, isCompleted, isInProgress, hideTitle, lastSessionData } = props;
+    const { subbloque, isCompleted, isInProgress, hideTitle, lastSessionData, blockTheme, blockNumber } = props;
 
     // 1. Iniciar siempre colapsado
     const [isCollapsed, setIsCollapsed] = useState(true);
@@ -100,18 +100,24 @@ const SubBloqueDisplay = (props) => {
                     {!hideTitle && (
                         <div className="flex items-center gap-1.5 flex-wrap">
                             <h3 className="text-sm font-medium text-white truncate">
-                                {subbloque?.nombre || typeLabel}
+                                {blockNumber && blockTheme ? (
+                                    <span className={blockTheme.titleColor}>
+                                        Bloque {blockNumber}
+                                    </span>
+                                ) : (
+                                    subbloque?.nombre || typeLabel
+                                )}
                             </h3>
                             <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded border ${getBadgeStyles()} flex-shrink-0`}>
-                                {isSuperset ? 'Sin pausa entre sets' : 'Individual'}
+                                {numEjercicios}ej • {totalSeries}sets
                             </span>
                         </div>
                     )}
                     
-                    {/* Info compacta */}
-                    {isCollapsed && !isInProgress && (
-                        <p className="text-xs text-gray-400 mt-0.5">
-                            {numEjercicios}ej • {totalSeries}sets
+                    {/* Info compacta - mostrar número de bloque */}
+                    {isCollapsed && !isInProgress && blockNumber && (
+                        <p className={`text-xs mt-0.5 ${blockTheme ? blockTheme.titleColor : 'text-gray-400'} opacity-80`}>
+                            Bloque {blockNumber}
                         </p>
                     )}
                     

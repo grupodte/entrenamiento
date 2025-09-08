@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
+import { EXECUTION_TYPES } from '../constants/executionTypes';
 
 export async function guardarSesionEntrenamiento({ rutinaId, tiempoTranscurrido, elementosCompletados, rutinaDetalle, alumnoId }) {
     try {
@@ -85,13 +86,28 @@ export async function guardarSesionEntrenamiento({ rutinaId, tiempoTranscurrido,
                     console.log('Processing elementoId:', elementoId);
                     console.log('Ejercicio encontrado:', ejercicioEncontrado);
                     console.log('Completed details:', completedDetails);
-                    seriesParaInsertar.push({
+                    
+                    // Preparar datos base
+                    const serieData = {
                         sesion_id: sesionId,
                         ejercicio_id: ejercicioEncontrado.id,
                         nro_set: nroSet,
-                        reps_realizadas: completedDetails.actualReps,
                         carga_realizada: completedDetails.actualCarga,
-                    });
+                        tipo_ejecucion: completedDetails.tipoEjecucion || EXECUTION_TYPES.STANDARD,
+                    };
+                    
+                    // Agregar datos específicos según tipo de ejecución
+                    const tipoEjecucion = completedDetails.tipoEjecucion || EXECUTION_TYPES.STANDARD;
+                    
+                    if (tipoEjecucion === EXECUTION_TYPES.STANDARD) {
+                        serieData.reps_realizadas = completedDetails.actualReps || 0;
+                    } else if (tipoEjecucion === EXECUTION_TYPES.TIEMPO) {
+                        serieData.duracion_realizada_segundos = completedDetails.actualDuracion || 0;
+                    } else if (tipoEjecucion === EXECUTION_TYPES.FALLO) {
+                        serieData.reps_realizadas = completedDetails.actualReps || 0; // Reps alcanzadas al fallo
+                    }
+                    
+                    seriesParaInsertar.push(serieData);
                 }
             }
         }

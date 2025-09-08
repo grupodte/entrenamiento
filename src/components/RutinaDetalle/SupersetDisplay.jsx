@@ -23,16 +23,38 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
             });
         }
 
-        // Capturar datos de peso de cada ejercicio del superset antes de completar
+        // Capturar datos de cada ejercicio del superset antes de completar
         const exerciseData = {};
-        childIds.forEach(childId => {
-            const inputElement = props.elementoRefs.current[childId]?.querySelector('input[type="text"]');
-            if (inputElement) {
-                const actualCarga = inputElement.value || '0';
+        childIds.forEach((childId, index) => {
+            const sbe = subbloque.subbloques_ejercicios[index];
+            const detalleSerie = sbe.series?.find(s => s.nro_set === setNumero) || sbe.series?.[0];
+            const tipoEjecucion = detalleSerie?.tipo_ejecucion || 'standard';
+            
+            const elementRef = props.elementoRefs.current[childId];
+            if (elementRef) {
+                // Obtener el input de peso (siempre presente)
+                const inputCarga = elementRef.querySelector('input[type="text"]');
+                const actualCarga = inputCarga?.value || '0';
+                
+                // Datos básicos
                 exerciseData[childId] = {
                     actualCarga,
-                    actualReps: 0 // En supersets, las reps son fijas por configuración
+                    tipoEjecucion,
                 };
+                
+                // Agregar datos específicos según tipo de ejecución
+                if (tipoEjecucion === 'standard') {
+                    const inputReps = elementRef.querySelector('input[type="number"]');
+                    exerciseData[childId].actualReps = parseInt(inputReps?.value || detalleSerie?.reps || '0', 10);
+                } else if (tipoEjecucion === 'tiempo') {
+                    const inputTiempo = elementRef.querySelector('input[type="number"]');
+                    // Convertir de minutos a segundos
+                    const minutos = parseInt(inputTiempo?.value || (detalleSerie?.duracion_segundos ? Math.round(detalleSerie.duracion_segundos / 60) : 0), 10);
+                    exerciseData[childId].actualDuracion = minutos * 60;
+                } else if (tipoEjecucion === 'fallo') {
+                    const inputReps = elementRef.querySelector('input[type="number"]');
+                    exerciseData[childId].actualReps = parseInt(inputReps?.value || '0', 10);
+                }
             }
         });
 
@@ -166,6 +188,8 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                                         pausa={pausa}
                                         nota={nota}
                                         tipoElemento="superset_ejercicio"
+                                        tipoEjecucion={detalleSerie?.tipo_ejecucion}
+                                        duracionSegundos={detalleSerie?.duracion_segundos}
                                         subbloqueId={subbloque.id}
                                         numSerieSupersetActual={setNumero}
                                         lastSessionData={lastSessionData}

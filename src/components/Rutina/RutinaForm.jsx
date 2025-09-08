@@ -64,12 +64,32 @@ const RutinaForm = ({
                             if (esSuperset) {
                                 return {
                                     ...ejercicioOriginal,
-                                    sets_config: ejercicioOriginal.series?.map(s => ({ reps: s.reps || '', carga: s.carga_sugerida || '' })) || createDefaultSetsConfig(sharedConfigFinal?.num_sets || 0)
+                                    sets_config: ejercicioOriginal.series?.map(s => ({ 
+                                        reps: s.reps || '', 
+                                        carga: s.carga_sugerida || '',
+                                        tipo_ejecucion: s.tipo_ejecucion || 'standard',
+                                        duracion_segundos: s.duracion_segundos || ''
+                                    })) || createDefaultSetsConfig(sharedConfigFinal?.num_sets || 0)
                                 };
                             } else {
                                 return {
                                     ...ejercicioOriginal,
-                                    series: ejercicioOriginal.series?.map(s => ({ id: s.id || uuidv4(), reps: s.reps || '', carga: s.carga_sugerida || '', pausa: s.pausa || '' })) || [{ id: uuidv4(), reps: '', carga: '', pausa: '' }]
+                                    series: ejercicioOriginal.series?.map(s => ({ 
+                                        id: s.id || uuidv4(), 
+                                        reps: s.reps || '', 
+                                        carga_sugerida: s.carga_sugerida || '', 
+                                        pausa: s.pausa || '',
+                                        // PRESERVAR tipo_ejecucion y duracion_segundos
+                                        tipo_ejecucion: s.tipo_ejecucion || 'standard',
+                                        duracion_segundos: s.duracion_segundos || ''
+                                    })) || [{ 
+                                        id: uuidv4(), 
+                                        reps: '', 
+                                        carga_sugerida: '', 
+                                        pausa: '',
+                                        tipo_ejecucion: 'standard',
+                                        duracion_segundos: ''
+                                    }]
                                 };
                             }
                         }) || [],

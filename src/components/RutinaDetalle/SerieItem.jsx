@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaCheck, FaPlayCircle } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import { EXECUTION_TYPES, getExecutionTypeConfig } from '../../constants/executionTypes';
 
 const SerieItem = React.forwardRef(({
     serieId,
@@ -22,9 +23,17 @@ const SerieItem = React.forwardRef(({
     nota,
     esEjercicioSimple = false,
     hideExerciseName = false,
+    tipoEjecucion = EXECUTION_TYPES.STANDARD,
+    duracionSegundos,
 }, ref) => {
-    const lastCarga = lastSessionData[`${serieId}`]?.carga_realizada || '';
-    const [actualReps, setActualReps] = useState(reps || '');
+    const lastSessionData_item = lastSessionData[`${serieId}`] || {};
+    const lastCarga = lastSessionData_item?.carga_realizada || '';
+    const lastReps = lastSessionData_item?.reps_realizadas || '';
+    const lastDuracion = lastSessionData_item?.duracion_realizada_segundos || '';
+    const lastTipoEjecucion = lastSessionData_item?.tipo_ejecucion || tipoEjecucion;
+    const config = getExecutionTypeConfig(tipoEjecucion);
+    
+    // Solo mantener estado para el peso que sigue siendo editable
     const [actualCarga, setActualCarga] = useState(lastCarga || carga || '');
 
     const variants = {
@@ -42,14 +51,26 @@ const SerieItem = React.forwardRef(({
         }
         
         if (onItemClick) {
-            onItemClick(serieId, {
+            const clickData = {
                 tipoElemento,
                 pausa,
                 subbloqueId,
                 numSerieSupersetActual,
-                actualReps: parseInt(actualReps, 10) || 0,
                 actualCarga,
-            });
+                tipoEjecucion,
+            };
+            
+            // Agregar datos específicos según el tipo de ejecución
+            if (tipoEjecucion === EXECUTION_TYPES.STANDARD) {
+                clickData.actualReps = parseInt(reps, 10) || 0;
+            } else if (tipoEjecucion === EXECUTION_TYPES.TIEMPO) {
+                // Usar duración en segundos directamente
+                clickData.actualDuracion = duracionSegundos || 0;
+            } else if (tipoEjecucion === EXECUTION_TYPES.FALLO) {
+                clickData.actualReps = parseInt(reps, 10) || 0; // Usar reps originales
+            }
+            
+            onItemClick(serieId, clickData);
         }
     };
 
@@ -156,14 +177,40 @@ const SerieItem = React.forwardRef(({
                     </div>
                 )}
 
-                {/* Reps */}
+                {/* Campo principal según tipo de ejecución */}
                 <div>
-                    <label className="block text-[10px] font-medium text-gray-400 mb-1 uppercase">
-                        Reps
-                    </label>
-                    <div className="text-lg font-bold text-white bg-gray-900/50 py-1.5 rounded border border-gray-600/30">
-                        {actualReps || '0'}
-                    </div>
+                    {tipoEjecucion === EXECUTION_TYPES.STANDARD && (
+                        <>
+                            <label className="block text-[10px] font-medium text-gray-400 mb-1 uppercase">
+                                Reps
+                            </label>
+                            <div className="w-full text-lg font-bold text-center py-1.5 rounded bg-gray-900/50 text-white border border-gray-600/30">
+                                {reps || '0'}
+                            </div>
+                        </>
+                    )}
+                    
+                    {tipoEjecucion === EXECUTION_TYPES.TIEMPO && (
+                        <>
+                            <label className="block text-[10px] font-medium text-gray-400 mb-1 uppercase">
+                                Minutos
+                            </label>
+                            <div className="w-full text-lg font-bold text-center py-1.5 rounded bg-blue-900/50 text-white border border-blue-600/30">
+                                {duracionSegundos ? Math.round(duracionSegundos / 60) || '0' : '0'}
+                            </div>
+                        </>
+                    )}
+                    
+                    {tipoEjecucion === EXECUTION_TYPES.FALLO && (
+                        <>
+                            <label className="block text-[10px] font-medium text-gray-400 mb-1 uppercase">
+                                Ejecución
+                            </label>
+                            <div className="text-sm font-bold text-orange-300 bg-orange-900/50 py-1.5 rounded border border-orange-600/30 flex items-center justify-center">
+                                Al Fallo
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Peso */}

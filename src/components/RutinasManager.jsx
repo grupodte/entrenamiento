@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { motion } from 'framer-motion';
-import { FaPlus, FaTrashAlt, FaEye, FaEdit } from 'react-icons/fa';
+import { FaTrashAlt, FaEye, FaEdit } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
 // 🎨 Reutilizamos el gradiente de marca
@@ -12,9 +11,19 @@ const RutinasManager = () => {
   const [rutinas, setRutinas] = useState([]);
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(true);
+
   const fetchRutinas = async () => {
-    const { data } = await supabase.from('rutinas_base').select('*').order('id', { ascending: false });
-    if (data) setRutinas(data);
+    try {
+      setLoading(true);
+      const { data } = await supabase.from('rutinas_base').select('*').order('id', { ascending: false });
+      if (data) setRutinas(data);
+    } catch (error) {
+      console.error('Error fetching rutinas:', error);
+      toast.error('Error al cargar rutinas');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -64,81 +73,60 @@ const RutinasManager = () => {
     }
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.08,
-      },
-    },
-  };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20, scale: 0.98 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: { type: 'spring', stiffness: 300, damping: 25 },
-    },
-  };
+  // Mostrar loading mientras se cargan los datos
+  if (loading) {
+    return (
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-8 text-white pb-[calc(4rem+env(safe-area-inset-bottom))]">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="h-40 bg-white/5 rounded-2xl animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-8 text-white pb-[calc(4rem+env(safe-area-inset-bottom))]">
-    
-
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-      >
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {rutinas.map((rutina) => (
-          <motion.div
-            key={rutina.id}
-            variants={itemVariants}
-            className="relative group"
-          >
+          <div key={rutina.id} className="relative group">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl blur opacity-0 group-hover:opacity-50 transition duration-500"></div>
             <div className="relative bg-white/5 backdrop-blur-lg p-5 rounded-2xl border border-white/10 h-full flex flex-col justify-between transition-transform duration-300 group-hover:scale-[1.03]">
               <div>
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="text-xl font-bold text-white pr-4">{rutina.nombre}</h3>
-                  <motion.button
-                    whileHover={{ scale: 1.2, color: '#ef4444' }}
-                    whileTap={{ scale: 0.9 }}
+                  <button
                     onClick={() => eliminarRutina(rutina.id)}
                     title="Eliminar rutina"
-                    className="text-gray-400 transition-colors"
+                    className="text-gray-400 hover:text-red-400 transition-colors"
                   >
                     <FaTrashAlt size={16} />
-                  </motion.button>
+                  </button>
                 </div>
                 <p className="text-sm text-white/70 mb-1 line-clamp-2">{rutina.descripcion || 'Sin descripción'}</p>
                 <p className="text-xs text-white/50 font-mono">{rutina.tipo || 'General'}</p>
               </div>
 
               <div className="mt-6 flex gap-3 border-t border-white/10 pt-4">
-                <motion.button
-                  whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                <button
                   onClick={() => navigate(`/admin/rutinas/ver/${rutina.id}`)}
                   className="flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition"
                 >
                   <FaEye /> Ver
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                </button>
+                <button
                   onClick={() => navigate(`/admin/rutinas/editar/${rutina.id}`)}
                   className="flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 transition"
                 >
                   <FaEdit /> Editar
-                </motion.button>
+                </button>
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 };

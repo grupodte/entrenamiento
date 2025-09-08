@@ -1,6 +1,5 @@
 import React from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Outlet } from 'react-router-dom';
 import AdminSidebarDesktop from '../components/AdminSidebarDesktop';
 import AdminSidebarMobile from '../components/AdminSidebarMobile';
 import { DragStateProvider } from '../context/DragStateContext';
@@ -8,16 +7,8 @@ import { VideoProvider, useVideo } from '../context/VideoContext';
 import VideoPanel from '../components/VideoPanel';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 
-// ✨ Animación de página mejorada
-const pageVariants = {
-    initial: { opacity: 0, y: 20, scale: 0.98 },
-    animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } },
-    exit: { opacity: 0, y: -20, scale: 0.98, transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } }
-};
-
 const AdminLayoutInternal = () => {
     const { isOpen, videoUrl, hideVideo } = useVideo();
-    const location = useLocation();
     useViewportHeight(); // Hook para altura dinámica en móviles
 
     return (
@@ -39,18 +30,9 @@ const AdminLayoutInternal = () => {
             <AdminSidebarDesktop />
             <div className="flex-1 flex flex-col min-h-0">
                 <div className="flex-1 overflow-y-auto scrollbar-hide">
-                    <AnimatePresence mode="wait" initial={false}>
-                        <motion.main
-                            key={location.pathname}
-                            className="min-h-full px-4 sm:px-6 lg:px-8 py-8 pl-safe pr-safe"
-                            variants={pageVariants}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                        >
-                            <Outlet />
-                        </motion.main>
-                    </AnimatePresence>
+                    <main className="min-h-full px-4 sm:px-6 lg:px-8 py-8 pl-safe pr-safe">
+                        <Outlet />
+                    </main>
                 </div>
             </div>
             <AdminSidebarMobile />

@@ -7,9 +7,51 @@ import ShinyText from '../../components/ShinyText.jsx';
 const BloqueDisplay = (props) => {
     const { bloque, progressPorSubBloque, lastSessionData } = props;
 
+    // Definir esquemas de colores para cada tipo de bloque
+    const getBlockTheme = (nombre = '') => {
+        const nombreLower = nombre.toLowerCase();
+        if (nombreLower.includes('calentamiento')) {
+            return {
+                bg: 'bg-gradient-to-br from-orange-900/15 to-orange-800/10',
+                border: 'border-orange-600/30',
+                titleColor: 'text-orange-300',
+                accentColor: 'orange'
+            };
+        }
+        if (nombreLower.includes('principal')) {
+            return {
+                bg: 'bg-gradient-to-br from-blue-900/15 to-blue-800/10',
+                border: 'border-blue-600/30',
+                titleColor: 'text-blue-300',
+                accentColor: 'blue'
+            };
+        }
+        if (nombreLower.includes('cooldown')) {
+            return {
+                bg: 'bg-gradient-to-br from-green-900/15 to-green-800/10',
+                border: 'border-green-600/30',
+                titleColor: 'text-green-300',
+                accentColor: 'green'
+            };
+        }
+        if (nombreLower.includes('estiramiento')) {
+            return {
+                bg: 'bg-gradient-to-br from-purple-900/15 to-purple-800/10',
+                border: 'border-purple-600/30',
+                titleColor: 'text-purple-300',
+                accentColor: 'purple'
+            };
+        }
+        // Default theme
+        return {
+            bg: 'bg-gradient-to-br from-gray-900/15 to-gray-800/10',
+            border: 'border-gray-600/30',
+            titleColor: 'text-gray-300',
+            accentColor: 'gray'
+        };
+    };
 
-
-    /** Odena los bloques segun su tipo_bloque                         /*/
+    /** Ordena los bloques segun su tipo_bloque */
     const sortSubBloques = (a, b) => {
         const prioridad = (nombre = '') => {
             nombre = nombre.toLowerCase();
@@ -40,36 +82,53 @@ const BloqueDisplay = (props) => {
 
 
     return (
-        <div className="">
-            {Object.entries(groupedSubBloques).map(([nombre, subbloquesDelGrupo], groupIndex) => {
+        <div className="space-y-4">
+            {Object.entries(groupedSubBloques).map(([nombre, subbloquesDelGrupo]) => {
                 const isAGroupWithTitle = !nombre.startsWith('__individual__');
+                const theme = getBlockTheme(nombre);
 
                 return (
-                    <div key={nombre} className="space-y-2">
+                    <div 
+                        key={nombre} 
+                        className={`rounded-xl backdrop-blur-sm border transition-all duration-300 p-3 space-y-3 ${
+                            isAGroupWithTitle ? `${theme.bg} ${theme.border}` : 'bg-gray-900/10 border-gray-700/20'
+                        }`}
+                    >
                         {isAGroupWithTitle && (
-                            <ShinyText
-                                text={nombre}
-                                disabled={false}
-                                speed={3}
-                                className='text-lg font-medium px-1 pt-2 pb-1 mb-1'
-                            />
-                        )}
-                        {subbloquesDelGrupo.map((subbloque, index) => {
-                            const progressInfo = progressPorSubBloque[subbloque.id] || { isCompleted: false, isInProgress: false };
-                            return (
-                                <SubBloqueDisplay
-                                    key={subbloque.id}
-                                    subbloque={subbloque}
-                                    isCompleted={progressInfo.isCompleted}
-                                    isInProgress={progressInfo.isInProgress}
-                                    {...props}
-                                    lastSessionData={lastSessionData}
-                                    index={index}
-                                    // Ocultar el título si ya mostramos un título de grupo
-                                    hideTitle={isAGroupWithTitle}
+                            <div className="flex items-center gap-2 pb-2 border-b border-white/10">
+                                <div className={`w-1 h-6 rounded-full bg-gradient-to-b from-${theme.accentColor}-400 to-${theme.accentColor}-600`} />
+                                <ShinyText
+                                    text={nombre.toUpperCase()}
+                                    disabled={false}
+                                    speed={3}
+                                    className={`text-lg font-semibold ${theme.titleColor}`}
                                 />
-                            );
-                        })}
+                            </div>
+                        )}
+                        <div className="space-y-2">
+                            {subbloquesDelGrupo.map((subbloque, index) => {
+                                const progressInfo = progressPorSubBloque[subbloque.id] || { isCompleted: false, isInProgress: false };
+                                
+                                // Calcular el número de bloque para este ejercicio dentro del tipo
+                                const ejercicioNumero = index + 1;
+                                
+                                return (
+                                    <SubBloqueDisplay
+                                        key={subbloque.id}
+                                        subbloque={subbloque}
+                                        isCompleted={progressInfo.isCompleted}
+                                        isInProgress={progressInfo.isInProgress}
+                                        {...props}
+                                        lastSessionData={lastSessionData}
+                                        index={index}
+                                        // Ocultar el título si ya mostramos un título de grupo
+                                        hideTitle={isAGroupWithTitle}
+                                        blockTheme={theme}
+                                        blockNumber={ejercicioNumero}
+                                    />
+                                );
+                            })}
+                        </div>
                     </div>
                 );
             })}
