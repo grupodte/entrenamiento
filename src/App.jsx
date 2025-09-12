@@ -14,6 +14,8 @@ import AlumnoLayout from './layouts/AlumnoLayout';
 import BrandedLoader from './components/BrandedLoader';
 
 // --- PÁGINAS PÚBLICAS ---
+import LandingPage from './pages/LandingPage';
+import CatalogoCursos from './pages/CatalogoCursos';
 import AuthPage from './pages/AuthPage';
 import Tyc from './pages/tyc';
 import PoliticaPrivacidad from './pages/PoliticaPrivacidad';
@@ -93,6 +95,7 @@ const AppContent = () => {
 
       {/* --- RUTAS PÚBLICAS --- */}
       <Route element={<PublicLayout />}>
+        <Route path="/cursos" element={<CatalogoCursos />} />
         <Route path="/login" element={<AuthPage />} />
         <Route path="/register" element={<AuthPage />} />
         <Route path="/tyc" element={<Tyc />} />
@@ -108,7 +111,7 @@ const AppContent = () => {
                 <Navigate to="/admin" replace /> :
                 <Navigate to="/dashboard" replace />
             ) : (
-              <Navigate to="/login" replace />
+              <LandingPage />
             )
           }
         />

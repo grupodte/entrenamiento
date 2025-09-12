@@ -284,30 +284,7 @@ const Dashboard = () => {
                 </section>
             )}
 
-            {/* More options */}
-            <section className="options-section">
-                <h3 className="section-title">Más opciones</h3>
-                <div className="options-grid">
-                    <div className="option-card disabled">
-                        <div className="option-icon green">
-                            <FaUtensils />
-                        </div>
-                        <div className="option-info">
-                            <h4 className="option-title">Mi Dieta</h4>
-                            <p className="option-subtitle">Próximamente</p>
-                        </div>
-                    </div>
-                    <div className="option-card disabled">
-                        <div className="option-icon red">
-                            <FaEnvelope />
-                        </div>
-                        <div className="option-info">
-                            <h4 className="option-title">Mensajes</h4>
-                            <p className="option-subtitle">Próximamente</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+     
 
             {/* Modal */}
             {selectedRutina && (
