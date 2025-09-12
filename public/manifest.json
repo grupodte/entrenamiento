@@ -1,14 +1,16 @@
 {
-    "name": "FitApp - Panel de Entrenador",
+    "name": "FitApp - Entrenamiento Personalizado",
     "short_name": "FitApp",
-    "description": "La herramienta definitiva para gestionar alumnos, rutinas y ejercicios en FitApp.",
+    "description": "Entrena inteligente con rutinas personalizadas, seguimiento de progreso y ejercicios en video HD. Tu entrenador personal en el bolsillo.",
     "start_url": "/",
     "scope": "/",
     "display": "standalone",
-    "orientation": "any",
-    "theme_color": "#121212",
+    "orientation": "portrait-primary",
+    "theme_color": "#6366f1",
     "background_color": "#121212",
-    "categories": ["productivity", "fitness", "health"],
+    "categories": ["health", "fitness", "lifestyle", "sports"],
+    "lang": "es-ES",
+    "dir": "ltr",
     "icons": [
         {
             "src": "/icons/logo.svg",
@@ -47,20 +49,95 @@
             "purpose": "any maskable"
         }
     ],
-    "screenshots": [],
+    "screenshots": [
+        {
+            "src": "/screenshots/dashboard-mobile.webp",
+            "sizes": "390x844",
+            "type": "image/webp",
+            "form_factor": "narrow",
+            "label": "Dashboard principal con rutinas personalizadas"
+        },
+        {
+            "src": "/screenshots/rutina-mobile.webp",
+            "sizes": "390x844",
+            "type": "image/webp",
+            "form_factor": "narrow",
+            "label": "Rutina de ejercicios con cronómetro integrado"
+        },
+        {
+            "src": "/screenshots/dashboard-wide.webp",
+            "sizes": "1920x1080",
+            "type": "image/webp",
+            "form_factor": "wide",
+            "label": "Vista de escritorio del dashboard"
+        },
+        {
+            "src": "/screenshots/admin-wide.webp",
+            "sizes": "1920x1080",
+            "type": "image/webp",
+            "form_factor": "wide",
+            "label": "Panel de administración para entrenadores"
+        }
+    ],
     "shortcuts": [
         {
-            "name": "Dashboard",
+            "name": "Mi Dashboard",
             "short_name": "Dashboard",
-            "description": "Ir al dashboard principal",
+            "description": "Acceso rápido a tu dashboard personal",
             "url": "/dashboard",
             "icons": [
                 {
-                    "src": "/icons/logo.svg",
-                    "type": "image/svg+xml",
-                    "sizes": "any"
+                    "src": "/icons/icon-192.png",
+                    "type": "image/png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Nueva Rutina",
+            "short_name": "Rutina",
+            "description": "Comenzar una rutina de entrenamiento",
+            "url": "/dashboard",
+            "icons": [
+                {
+                    "src": "/icons/icon-192.png",
+                    "type": "image/png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Mis Cursos",
+            "short_name": "Cursos",
+            "description": "Ver mis cursos y contenido educativo",
+            "url": "/mis-cursos",
+            "icons": [
+                {
+                    "src": "/icons/icon-192.png",
+                    "type": "image/png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Panel Admin",
+            "short_name": "Admin",
+            "description": "Panel de administración para entrenadores",
+            "url": "/admin",
+            "icons": [
+                {
+                    "src": "/icons/icon-192.png",
+                    "type": "image/png",
+                    "sizes": "192x192"
                 }
             ]
         }
-    ]
+    ],
+    "prefer_related_applications": false,
+    "edge_side_panel": {
+        "preferred_width": 400
+    },
+    "launch_handler": {
+        "client_mode": "navigate-existing"
+    }
 }

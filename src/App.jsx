@@ -20,6 +20,7 @@ import VisualizarCurso from './pages/VisualizarCurso';
 import AuthPage from './pages/AuthPage';
 import Tyc from './pages/tyc';
 import PoliticaPrivacidad from './pages/PoliticaPrivacidad';
+import InstalarApp from './pages/InstalarApp';
 
 // --- PÁGINAS DE ALUMNO ---
 import DashboardAlumno from './pages/Alumno/Dashboard';
@@ -109,6 +110,7 @@ const AppContent = () => {
         <Route path="/cursos" element={<CatalogoCursos />} />
         <Route path="/login" element={<AuthPage />} />
         <Route path="/register" element={<AuthPage />} />
+        <Route path="/instalar" element={<InstalarApp />} />
         <Route path="/tyc" element={<Tyc />} />
         <Route path="/privacidad" element={<PoliticaPrivacidad />} />
         <Route path="/callback/spotify" element={<SpotifyCallback />} />

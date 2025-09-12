@@ -194,6 +194,7 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                             flex flex-col
                         `}
                         style={{
+                            paddingTop: 'env(safe-area-inset-top)',
                             zIndex: 99999,
                             boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.3)',
                             WebkitBackdropFilter: 'blur(20px) saturate(150%)',

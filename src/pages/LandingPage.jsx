@@ -11,6 +11,9 @@ import {
   CheckCircle,
   PlayCircle
 } from 'lucide-react';
+import InstallButton from '../components/InstallButton';
+import { SimpleInstallWidget, ExpandedInstallWidget } from '../components/PWAInstallWidget';
+import { Link } from 'react-router-dom';
 
 const LandingPage = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -178,6 +181,7 @@ const LandingPage = () => {
           </motion.div>
         </div>
       </section>
+
 
       {/* Features Section */}
       <section className="py-20 px-4 bg-black/30">
@@ -352,7 +356,7 @@ const LandingPage = () => {
               Primeros 7 días gratis, cancela cuando quieras.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
               <button
                 onClick={() => navigate('/register')}
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-8 rounded-full flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/25"
@@ -366,6 +370,22 @@ const LandingPage = () => {
               >
                 ¿Ya tienes cuenta? Inicia sesión
               </button>
+            </div>
+            
+            {/* PWA Installation Section */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+              <InstallButton 
+                variant="outline"
+                size="md"
+                className="border-purple-400 text-purple-400 hover:bg-purple-400/10"
+              />
+              <span className="text-gray-400">o</span>
+              <Link 
+                to="/instalar"
+                className="text-purple-400 hover:text-purple-300 underline underline-offset-4 transition-colors"
+              >
+                Ver más sobre la instalación
+              </Link>
             </div>
 
             {/* Trust Indicators */}
@@ -386,6 +406,14 @@ const LandingPage = () => {
           </motion.div>
         </div>
       </section>
+      
+      {/* Simple Install Widget */}
+      <SimpleInstallWidget />
+      
+      {/* Widget expandido para testing */}
+      <div className="fixed bottom-20 right-6 z-50">
+        <ExpandedInstallWidget />
+      </div>
     </div>
   );
 };
