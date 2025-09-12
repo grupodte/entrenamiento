@@ -7,6 +7,7 @@ import {
     FaChevronLeft,
     FaChevronDown,
     FaSignOutAlt,
+    FaBook,
 } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { useSidebar } from "../hooks/useSidebar";
@@ -29,6 +30,7 @@ const NAV = [
         ],
     },
     { path: "/admin/ejercicios", label: "Ejercicios", icon: <FaDumbbell /> },
+    { path: "/admin/cursos", label: "Cursos", icon: <FaBook /> },
 ];
 
 export default function AdminSidebarDesktop() {

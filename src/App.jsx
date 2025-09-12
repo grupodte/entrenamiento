@@ -16,6 +16,7 @@ import BrandedLoader from './components/BrandedLoader';
 // --- PÁGINAS PÚBLICAS ---
 import LandingPage from './pages/LandingPage';
 import CatalogoCursos from './pages/CatalogoCursos';
+import VisualizarCurso from './pages/VisualizarCurso';
 import AuthPage from './pages/AuthPage';
 import Tyc from './pages/tyc';
 import PoliticaPrivacidad from './pages/PoliticaPrivacidad';
@@ -23,6 +24,7 @@ import PoliticaPrivacidad from './pages/PoliticaPrivacidad';
 // --- PÁGINAS DE ALUMNO ---
 import DashboardAlumno from './pages/Alumno/Dashboard';
 import RutinaDetalle from './pages/Alumno/RutinaDetalle';
+import MisCursos from './pages/Alumno/MisCursos';
 
 // --- PÁGINAS DE ADMIN ---
 import AdminPanel from './pages/Admin/AdminPanel';
@@ -40,6 +42,7 @@ import CrearRutinaReal from './pages/Admin/CrearRutinaReal';
 import AdminRutinasReales from './pages/Admin/AdminRutinasReales';
 import VerRutinaReal from './pages/Admin/VerRutinaReal';
 import EditarRutinaReal from './pages/Admin/EditarRutinaReal';
+import CursosManager from './pages/Admin/CursosManager';
 
 // Componente simplificado para páginas públicas
 const PublicLayout = () => (
@@ -64,6 +67,8 @@ const AppContent = () => {
       >
         <Route path="/dashboard" element={<DashboardAlumno />} />
         <Route path="/rutina/:id" element={<RutinaDetalle />} />
+        <Route path="/mis-cursos" element={<MisCursos />} />
+        <Route path="/curso/:cursoId" element={<VisualizarCurso />} />
       </Route>
 
       {/* --- RUTAS DE ADMIN CON AdminLayout --- */}
@@ -91,6 +96,7 @@ const AppContent = () => {
         <Route path="ejercicios" element={<AdminEjercicios />} />
         <Route path="ejercicios/seleccionar" element={<SeleccionarEjercicios />} />
         <Route path="asignar-rutina/:id" element={<AsignarRutina />} />
+        <Route path="cursos" element={<CursosManager />} />
       </Route>
 
       {/* --- RUTAS PÚBLICAS --- */}

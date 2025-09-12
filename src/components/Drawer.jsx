@@ -182,7 +182,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                         }}
                         className="
                             fixed bottom-0 left-0 right-0 
-                            max-h-[85vh] 
+                            h-[95vh] 
                             bg-gray-900/98
                             text-white 
                             shadow-2xl 
