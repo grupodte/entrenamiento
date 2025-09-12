@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 import { 
   Play, 
   Star, 
@@ -13,153 +15,68 @@ import {
   ArrowLeft,
   PlayCircle,
   Lock,
-  CheckCircle
+  CheckCircle,
+  BookOpen
 } from 'lucide-react';
 
 const CatalogoCursos = () => {
+  const { user, rol } = useAuth();
   const [cursos, setCursos] = useState([]);
+  const [cursosConAcceso, setCursosConAcceso] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filtroSeleccionado, setFiltroSeleccionado] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [cursoSeleccionado, setCursoSeleccionado] = useState(null);
   const navigate = useNavigate();
 
-  // Mock data - En producción esto vendría de Supabase
-  const cursosData = [
-    {
-      id: 1,
-      titulo: "Transformación Total 12 Semanas",
-      instructor: "Michele Ris",
-      precio: 97,
-      precioOriginal: 197,
-      descripcion: "Programa completo para perder grasa y ganar músculo magro",
-      duracion: "12 semanas",
-      nivel: "Intermedio",
-      estudiantes: 2847,
-      rating: 4.9,
-      totalRatings: 423,
-      categoria: "transformacion",
-      imagen: "/cursos/transformacion-total.jpg",
-      video_preview: "/previews/transformacion-preview.mp4",
-      caracteristicas: [
-        "12 semanas de entrenamiento progresivo",
-        "Plan nutricional personalizable",
-        "Videos HD de cada ejercicio",
-        "Acceso a comunidad privada",
-        "Soporte directo con Michele"
-      ],
-      modulos: [
-        { titulo: "Fundamentos", lecciones: 8, duracion: "2h 30min" },
-        { titulo: "Fuerza Base", lecciones: 12, duracion: "4h 15min" },
-        { titulo: "Hipertrofia", lecciones: 15, duracion: "5h 45min" },
-        { titulo: "Definición", lecciones: 10, duracion: "3h 20min" }
-      ],
-      popular: true,
-      nuevo: false
-    },
-    {
-      id: 2,
-      titulo: "HIIT Extremo - Quema Grasa",
-      instructor: "Michele Ris",
-      precio: 47,
-      precioOriginal: 97,
-      descripcion: "Entrenamientos HIIT intensos para máxima quema de calorías",
-      duracion: "6 semanas",
-      nivel: "Avanzado",
-      estudiantes: 1654,
-      rating: 4.8,
-      totalRatings: 289,
-      categoria: "cardio",
-      imagen: "/cursos/hiit-extremo.jpg",
-      video_preview: "/previews/hiit-preview.mp4",
-      caracteristicas: [
-        "30 entrenamientos HIIT únicos",
-        "15-25 minutos por sesión",
-        "Sin equipamiento necesario",
-        "Plan de comidas incluido",
-        "Tracker de progreso"
-      ],
-      modulos: [
-        { titulo: "HIIT Básico", lecciones: 10, duracion: "3h 00min" },
-        { titulo: "HIIT Intermedio", lecciones: 12, duracion: "4h 00min" },
-        { titulo: "HIIT Avanzado", lecciones: 8, duracion: "3h 30min" }
-      ],
-      popular: false,
-      nuevo: true
-    },
-    {
-      id: 3,
-      titulo: "Fuerza Funcional en Casa",
-      instructor: "Michele Ris",
-      precio: 67,
-      precioOriginal: 127,
-      descripcion: "Desarrolla fuerza real con ejercicios funcionales sin gimnasio",
-      duracion: "8 semanas",
-      nivel: "Principiante",
-      estudiantes: 934,
-      rating: 4.7,
-      totalRatings: 156,
-      categoria: "fuerza",
-      imagen: "/cursos/fuerza-funcional.jpg",
-      video_preview: "/previews/fuerza-preview.mp4",
-      caracteristicas: [
-        "100% entrenamientos en casa",
-        "Equipamiento mínimo requerido",
-        "Progresiones para todos los niveles",
-        "Videos técnica perfecta",
-        "Calendario de entrenamiento"
-      ],
-      modulos: [
-        { titulo: "Movilidad y Base", lecciones: 6, duracion: "2h 15min" },
-        { titulo: "Fuerza Básica", lecciones: 10, duracion: "3h 45min" },
-        { titulo: "Combinaciones", lecciones: 8, duracion: "3h 00min" }
-      ],
-      popular: false,
-      nuevo: false
-    },
-    {
-      id: 4,
-      titulo: "Yoga Flow & Flexibilidad",
-      instructor: "Michele Ris",
-      precio: 37,
-      precioOriginal: 77,
-      descripcion: "Mejora tu flexibilidad y encuentra equilibrio interior",
-      duracion: "4 semanas",
-      nivel: "Todos",
-      estudiantes: 567,
-      rating: 4.9,
-      totalRatings: 89,
-      categoria: "bienestar",
-      imagen: "/cursos/yoga-flow.jpg",
-      video_preview: "/previews/yoga-preview.mp4",
-      caracteristicas: [
-        "Rutinas de 20-45 minutos",
-        "Para todos los niveles",
-        "Meditaciones guiadas",
-        "Secuencias de relajación",
-        "Audio de alta calidad"
-      ],
-      modulos: [
-        { titulo: "Fundamentos Yoga", lecciones: 8, duracion: "2h 30min" },
-        { titulo: "Flow Dinámico", lecciones: 6, duracion: "2h 15min" },
-        { titulo: "Relajación Profunda", lecciones: 4, duracion: "1h 30min" }
-      ],
-      popular: false,
-      nuevo: false
-    }
-  ];
+  // Función para cargar cursos desde Supabase
+  const fetchCursos = async () => {
+    try {
+      setLoading(true);
+      
+      // Cargar cursos publicados
+      const { data: cursosData, error: cursosError } = await supabase
+        .from('vista_cursos_completa')
+        .select('*')
+        .eq('estado', 'publicado')
+        .order('orden_visualizacion', { ascending: true });
 
+      if (cursosError) throw cursosError;
+      setCursos(cursosData || []);
+
+      // Si el usuario está logueado, cargar sus cursos con acceso
+      if (user) {
+        const { data: accesosData, error: accesosError } = await supabase
+          .from('acceso_cursos')
+          .select('curso_id')
+          .eq('usuario_id', user.id)
+          .eq('activo', true);
+
+        if (accesosError) throw accesosError;
+        setCursosConAcceso((accesosData || []).map(a => a.curso_id));
+      }
+    } catch (error) {
+      console.error('Error al cargar cursos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Generar categorías dinámicamente
   const categorias = [
-    { id: 'todos', nombre: 'Todos los Cursos', count: cursosData.length },
-    { id: 'transformacion', nombre: 'Transformación', count: cursosData.filter(c => c.categoria === 'transformacion').length },
-    { id: 'cardio', nombre: 'Cardio & HIIT', count: cursosData.filter(c => c.categoria === 'cardio').length },
-    { id: 'fuerza', nombre: 'Fuerza', count: cursosData.filter(c => c.categoria === 'fuerza').length },
-    { id: 'bienestar', nombre: 'Bienestar', count: cursosData.filter(c => c.categoria === 'bienestar').length }
-  ];
+    { id: 'todos', nombre: 'Todos los Cursos', count: cursos.length },
+    { id: 'transformacion', nombre: 'Transformación', count: cursos.filter(c => c.categoria === 'transformacion').length },
+    { id: 'cardio', nombre: 'Cardio & HIIT', count: cursos.filter(c => c.categoria === 'cardio').length },
+    { id: 'fuerza', nombre: 'Fuerza', count: cursos.filter(c => c.categoria === 'fuerza').length },
+    { id: 'bienestar', nombre: 'Bienestar', count: cursos.filter(c => c.categoria === 'bienestar').length },
+    { id: 'nutricion', nombre: 'Nutrición', count: cursos.filter(c => c.categoria === 'nutricion').length },
+    { id: 'movilidad', nombre: 'Movilidad', count: cursos.filter(c => c.categoria === 'movilidad').length }
+  ].filter(cat => cat.count > 0 || cat.id === 'todos');
 
   useEffect(() => {
-    setCursos(cursosData);
-  }, []);
+    fetchCursos();
+  }, [user]);
 
   const cursosFiltrados = cursos.filter(curso => {
     const matchBusqueda = curso.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -168,36 +85,58 @@ const CatalogoCursos = () => {
     return matchBusqueda && matchCategoria;
   });
 
-  const CursoCard = ({ curso }) => (
-    <motion.div
-      layout
-      className="bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden hover:bg-gray-700/50 transition-all duration-300 group cursor-pointer"
-      whileHover={{ scale: 1.02 }}
-      onClick={() => setCursoSeleccionado(curso)}
-    >
-      {/* Imagen y badges */}
-      <div className="relative aspect-video overflow-hidden">
-        <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-          <PlayCircle className="w-16 h-16 text-white group-hover:scale-110 transition-transform" />
-        </div>
-        
-        {/* Badges */}
-        <div className="absolute top-4 left-4 flex flex-col gap-2">
-          {curso.popular && (
-            <span className="bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded-full">
-              MÁS POPULAR
-            </span>
+  const CursoCard = ({ curso }) => {
+    const tieneAcceso = cursosConAcceso.includes(curso.id);
+    
+    return (
+      <motion.div
+        layout
+        className="bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden hover:bg-gray-700/50 transition-all duration-300 group cursor-pointer"
+        whileHover={{ scale: 1.02 }}
+        onClick={() => setCursoSeleccionado(curso)}
+      >
+        {/* Imagen y badges */}
+        <div className="relative aspect-video overflow-hidden">
+          {curso.imagen_portada ? (
+            <img 
+              src={curso.imagen_portada} 
+              alt={curso.titulo}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+              <BookOpen className="w-16 h-16 text-white/50" />
+            </div>
           )}
-          {curso.nuevo && (
-            <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-              NUEVO
-            </span>
-          )}
-        </div>
+          
+          {/* Overlay con botón de play */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-all">
+            <PlayCircle className="w-16 h-16 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+          
+          {/* Badges */}
+          <div className="absolute top-4 left-4 flex flex-col gap-2">
+            {tieneAcceso && (
+              <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                ACCESO
+              </span>
+            )}
+            {curso.popular && (
+              <span className="bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded-full">
+                MÁS POPULAR
+              </span>
+            )}
+            {curso.nuevo && (
+              <span className="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                NUEVO
+              </span>
+            )}
+          </div>
 
-        {/* Preview button */}
-        <button className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-all">
-          <motion.div
+          {/* Preview button */}
+          <button className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-all">
+            <motion.div
             className="bg-white/10 backdrop-blur-sm rounded-full p-3 opacity-0 group-hover:opacity-100"
             whileHover={{ scale: 1.1 }}
           >
@@ -232,36 +171,57 @@ const CatalogoCursos = () => {
         <div className="flex items-center gap-4 mb-4 text-sm text-gray-400">
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 text-yellow-400 fill-current" />
-            <span className="text-white font-medium">{curso.rating}</span>
-            <span>({curso.totalRatings})</span>
+            <span className="text-white font-medium">{curso.rating_promedio || 0}</span>
+            <span>({curso.total_ratings || 0})</span>
           </div>
           <div className="flex items-center gap-1">
             <Users className="w-4 h-4" />
-            <span>{curso.estudiantes.toLocaleString()}</span>
+            <span>{(curso.total_estudiantes || 0).toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
-            <span>{curso.duracion}</span>
+            <span>{curso.duracion_estimada || 'Variable'}</span>
           </div>
         </div>
 
-        {/* Nivel */}
+        {/* Nivel y categoría */}
         <div className="flex items-center justify-between">
-          <span className={`text-xs font-medium px-3 py-1 rounded-full ${
-            curso.nivel === 'Principiante' ? 'bg-green-500/20 text-green-400' :
-            curso.nivel === 'Intermedio' ? 'bg-yellow-500/20 text-yellow-400' :
-            'bg-red-500/20 text-red-400'
-          }`}>
-            {curso.nivel}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-medium px-3 py-1 rounded-full ${
+              curso.nivel === 'principiante' ? 'bg-green-500/20 text-green-400' :
+              curso.nivel === 'intermedio' ? 'bg-yellow-500/20 text-yellow-400' :
+              curso.nivel === 'avanzado' ? 'bg-red-500/20 text-red-400' :
+              'bg-blue-500/20 text-blue-400'
+            }`}>
+              {curso.nivel}
+            </span>
+            <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded-full">
+              {curso.categoria}
+            </span>
+          </div>
           
-          <button className="text-purple-400 hover:text-purple-300 text-sm font-medium">
-            Ver detalles →
-          </button>
+          {tieneAcceso ? (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/curso/${curso.id}`);
+              }}
+              className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <Play className="w-4 h-4" />
+              Ver Curso
+            </button>
+          ) : (
+            <button className="text-purple-400 hover:text-purple-300 text-sm font-medium flex items-center gap-1">
+              Ver detalles 
+              <ArrowLeft className="w-4 h-4 rotate-180" />
+            </button>
+          )}
         </div>
       </div>
     </motion.div>
-  );
+    );
+  };
 
   const CursoModal = ({ curso, onClose }) => (
     <motion.div
@@ -396,6 +356,32 @@ const CatalogoCursos = () => {
     </motion.div>
   );
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <div className="h-8 bg-gray-700/50 rounded w-64 mb-4 animate-pulse" />
+            <div className="h-4 bg-gray-700/30 rounded w-96 animate-pulse" />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-gray-800/30 rounded-xl overflow-hidden">
+                <div className="aspect-video bg-gray-700/50 animate-pulse" />
+                <div className="p-6 space-y-4">
+                  <div className="h-4 bg-gray-700/50 rounded animate-pulse" />
+                  <div className="h-3 bg-gray-700/30 rounded animate-pulse w-3/4" />
+                  <div className="h-3 bg-gray-700/30 rounded animate-pulse w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white">
       {/* Header */}
@@ -410,10 +396,28 @@ const CatalogoCursos = () => {
                 <ArrowLeft className="w-5 h-5" />
                 <span>Volver</span>
               </button>
-              <h1 className="text-2xl md:text-3xl font-bold">Catálogo de Cursos</h1>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">Catálogo de Cursos</h1>
+                {user && rol === 'alumno' && (
+                  <p className="text-sm text-gray-400 mt-1">
+                    Explora todos los cursos disponibles
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="text-sm text-gray-400">
-              {cursosFiltrados.length} curso{cursosFiltrados.length !== 1 ? 's' : ''}
+            <div className="flex items-center gap-4">
+              {user && rol === 'alumno' && (
+                <button
+                  onClick={() => navigate('/mis-cursos')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Mis Cursos
+                </button>
+              )}
+              <div className="text-sm text-gray-400">
+                {cursosFiltrados.length} curso{cursosFiltrados.length !== 1 ? 's' : ''}
+              </div>
             </div>
           </div>
 

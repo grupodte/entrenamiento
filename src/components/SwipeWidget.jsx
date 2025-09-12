@@ -71,18 +71,18 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
   };
 
   const TimeWidget = () => (
-    <div className="rounded-3xl bg-gradient-to-br from-blue-500/20 to-purple-600/20  p-6 flex flex-col justify-center items-center h-25 backdrop-blur-sm">
-      <div className="text-4xl font-light text-white mb-1">
+    <div className="rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-600/20 p-6 flex flex-col justify-center items-center backdrop-blur-sm border border-blue-500/20">
+      <div className="text-3xl font-light text-white mb-1">
         {currentTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
       </div>
-      <div className="text-sm text-gray-300">
+      <div className="text-sm text-gray-300 text-center">
         {currentTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
       </div>
     </div>
   );
 
   const CursosWidget = () => {
-    const handleCursosClick = () => {
+    const handleMisCursosClick = () => {
       onClose();
       if (rol === 'admin') {
         navigate('/admin/cursos');
@@ -91,27 +91,74 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
       }
     };
 
+    const handleCatalogoClick = () => {
+      onClose();
+      navigate('/cursos');
+    };
+
     if (!user || (rol !== 'admin' && rol !== 'alumno')) {
-      return null;
+      return (
+        <motion.button
+          onClick={handleCatalogoClick}
+          className="rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-600/20 p-6 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <div className="flex items-center justify-center w-14 h-14 rounded-full bg-purple-500/30 mb-3 group-hover:bg-purple-400/40 transition-colors">
+            <BookOpen className="w-7 h-7 text-purple-300 group-hover:text-purple-200" />
+          </div>
+          <div className="text-base font-semibold text-white mb-1">
+            Ver Catálogo
+          </div>
+          <div className="text-sm text-gray-400 text-center">
+            Descubre nuestros cursos
+          </div>
+        </motion.button>
+      );
     }
 
     return (
-      <motion.button
-        onClick={handleCursosClick}
-        className="rounded-3xl bg-gradient-to-br from-purple-500/20 to-pink-600/20 p-6 flex flex-col justify-center items-center h-25 backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full"
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-      >
-        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-500/30 mb-2 group-hover:bg-purple-400/40 transition-colors">
-          <BookOpen className="w-6 h-6 text-purple-300 group-hover:text-purple-200" />
-        </div>
-        <div className="text-sm font-medium text-white mb-1">
-          {rol === 'admin' ? 'Gestionar Cursos' : 'Mis Cursos'}
-        </div>
-        <div className="text-xs text-gray-400">
-          {rol === 'admin' ? 'Panel Admin' : 'Ver disponibles'}
-        </div>
-      </motion.button>
+      <div className="space-y-3">
+        {/* Botón principal según el rol */}
+        <motion.button
+          onClick={handleMisCursosClick}
+          className="rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-600/20 p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-500/30 mb-2 group-hover:bg-purple-400/40 transition-colors">
+            <BookOpen className="w-6 h-6 text-purple-300 group-hover:text-purple-200" />
+          </div>
+          <div className="text-sm font-semibold text-white mb-1">
+            {rol === 'admin' ? 'Gestionar Cursos' : 'Mis Cursos'}
+          </div>
+          <div className="text-xs text-gray-400 text-center">
+            {rol === 'admin' ? 'Panel admin' : 'Tus cursos asignados'}
+          </div>
+        </motion.button>
+
+        {/* Botón para catálogo (solo para alumnos) */}
+        {rol === 'alumno' && (
+          <motion.button
+            onClick={handleCatalogoClick}
+            className="rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-600/20 p-4 flex items-center gap-3 backdrop-blur-sm border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 group w-full"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/30 group-hover:bg-blue-400/40 transition-colors">
+              <Play className="w-5 h-5 text-blue-300 group-hover:text-blue-200" />
+            </div>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-semibold text-white">
+                Explorar Catálogo
+              </div>
+              <div className="text-xs text-gray-400">
+                Descubre todos los cursos
+              </div>
+            </div>
+          </motion.button>
+        )}
+      </div>
     );
   };
 
@@ -148,28 +195,44 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
               backdropFilter: 'blur(20px) saturate(150%)'
             }}
           >
+            {/* Indicador de arrastre */}
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2 w-1 h-12 bg-white/20 rounded-full" />
 
-           
-            <div className="p-4 pt-16 pb-4">
-              <div className="flex items-center gap-3 mb-4">
-       
-              </div>
-            </div>
-
-            <div
-              className="px-4 pb-4 h-full overflow-y-auto scrollbar-hide"
-              style={{ pointerEvents: 'auto' }}
-            >
-              <div className="grid grid-cols-2 gap-3">
-                <TimeWidget />
-                <CursosWidget />
-
-                <div className="col-span-2" style={{ pointerEvents: 'auto' }}>
-                  <SpotifyWidget />
+            <div className="h-full flex flex-col bg-gradient-to-br from-gray-900/95 via-purple-900/30 to-gray-900/95">
+              {/* Header */}
+              <div className="p-4 pt-16">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-xl font-bold text-white">Panel Rápido</h2>
+                  <button
+                    onClick={onClose}
+                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
+                  >
+                    <X className="w-5 h-5 text-white" />
+                  </button>
                 </div>
+                <p className="text-gray-400 text-sm">Accede rápidamente a tus herramientas</p>
+              </div>
 
-                <div className="col-span-2 h-20" />
+              {/* Content */}
+              <div
+                className="flex-1 px-4 pb-8 overflow-y-auto scrollbar-hide"
+                style={{ pointerEvents: 'auto' }}
+              >
+                <div className="space-y-4">
+                  {/* Tiempo */}
+                  <TimeWidget />
+                  
+                  {/* Cursos */}
+                  <CursosWidget />
+
+                  {/* Spotify */}
+                  <div style={{ pointerEvents: 'auto' }}>
+                    <SpotifyWidget />
+                  </div>
+
+                  {/* Espaciado final */}
+                  <div className="h-4" />
+                </div>
               </div>
             </div>
 
