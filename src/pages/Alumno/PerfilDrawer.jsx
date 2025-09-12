@@ -29,28 +29,22 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
     };
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose}>
+        <Drawer isOpen={isOpen} onClose={onClose} height="h-[95vh]">
 
             <div className="rounded-t-2xl shadow-lg p-4 min-h-[150px]">
-                {(loading || loadingCharts) ? (
-                    <PerfilDrawerSkeleton />
-                ) : (
-                    <>
-                        <ProfileInfo
-                            user={user}
-                            perfil={perfil}
-                            onEdit={onEdit}
-                            onLogout={handleLogout}
-                        />
-                        <WorkoutStats
-                            weightData={weightDailyData}
-                            repsData={repsData}
-                            timeData={timeData}
-                            trainingDays={trainingDays}
-                            loadingCharts={loadingCharts}
-                        />
-                    </>
-                )}
+                <ProfileInfo
+                    user={user}
+                    perfil={perfil}
+                    onEdit={onEdit}
+                    onLogout={handleLogout}
+                />
+                <WorkoutStats
+                    weightData={weightDailyData}
+                    repsData={repsData}
+                    timeData={timeData}
+                    trainingDays={trainingDays}   // <--- ahora lo pasamos
+                    loadingCharts={loadingCharts}
+                />
             </div>
 
         </Drawer>

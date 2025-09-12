@@ -166,7 +166,7 @@ const Dashboard = () => {
     }
 
     return (
-        <div className="dashboard px-6">
+        <div className="dashboard ">
             {/* Header */}
             <header className="dashboard-header">
                 <p className="greeting-text">{getSaludo()}</p>

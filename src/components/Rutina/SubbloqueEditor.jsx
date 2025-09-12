@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import ComboboxEjercicios from './ComboboxEjercicios';
 import EjercicioChip from './EjercicioChip';
 import SupersetSharedConfigEditor from './SupersetSharedConfigEditor';
-import { normalizarSerie, EXECUTION_TYPES } from '../../constants/executionTypes';
+import { normalizarSerie, EXECUTION_TYPES, TIME_UNITS } from '../../constants/executionTypes';
 
 const selectStyles = {
     control: (base) => ({
@@ -56,8 +56,14 @@ const structureOptions = [
     { value: 'superset', label: 'Superset (series compartidas)' },
 ];
 
-const createDefaultSetsConfig = (numSets, reps = '', carga = '') =>
-    Array(numSets).fill(null).map(() => ({ reps, carga }));
+const createDefaultSetsConfig = (numSets, reps = '', carga = '', tipoEjecucion = EXECUTION_TYPES.STANDARD) =>
+    Array(numSets).fill(null).map(() => ({ 
+        reps, 
+        carga, 
+        tipo_ejecucion: tipoEjecucion,
+        duracion_segundos: null,
+        unidad_tiempo: TIME_UNITS.MINUTES
+    }));
 
 const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles }) => {
     const currentSubbloque = {
@@ -68,28 +74,15 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
             // FORZAR preservación del tipo de ejecución - NO sobrescribir NUNCA
             const seriesOriginales = ej.series || [];
             
-            // DEBUG: Log DETALLADO del ejercicio y sus series
-            // LOG MUY DETALLADO de cada serie
-            seriesOriginales.forEach((serie, idx) => {
-                console.log(`[SubbloqueEditor DEBUG] Serie ${idx + 1} DETALLE COMPLETO:`, {
-                    serieCompleta: serie,
-                    tipo_ejecucion: serie.tipo_ejecucion,
-                    todasLasPropiedades: Object.keys(serie),
-                    valoresPrincipales: {
-                        id: serie.id,
-                        reps: serie.reps,
-                        tipo: serie.tipo_ejecucion,
-                        duracion: serie.duracion_segundos
-                    }
-                });
-            });
+            // Preservar series originales con sus tipos de ejecución
             
             const sets_config = ej.sets_config || (seriesOriginales?.map(s => ({
                 reps: s.reps || '',
                 carga: s.carga_sugerida || '',
-                // NUNCA sobrescribir el tipo_ejecucion si ya existe
-                tipo_ejecucion: s.tipo_ejecucion, // SIN fallback
-                duracion_segundos: s.duracion_segundos
+                // Preservar el tipo_ejecucion, con fallback a STANDARD solo si no existe
+                tipo_ejecucion: s.tipo_ejecucion || EXECUTION_TYPES.STANDARD,
+                duracion_segundos: s.duracion_segundos || null,
+                unidad_tiempo: s.unidad_tiempo || TIME_UNITS.MINUTES
             })) || []);
             
             // Devolver el ejercicio EXACTAMENTE como vino, sin modificaciones
@@ -118,7 +111,8 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
                         pausa: '', 
                         carga_sugerida: '',
                         tipo_ejecucion: EXECUTION_TYPES.STANDARD,
-                        duracion_segundos: ''
+                        duracion_segundos: '',
+                        unidad_tiempo: TIME_UNITS.MINUTES
                     }],
                     sets_config: undefined,
                 }));
@@ -145,6 +139,9 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
             const nuevosSets = Array(numSets).fill(null).map((_, i) => ({
                 reps: setsExistentes[i]?.reps || '',
                 carga: setsExistentes[i]?.carga || '',
+                tipo_ejecucion: setsExistentes[i]?.tipo_ejecucion || EXECUTION_TYPES.STANDARD,
+                duracion_segundos: setsExistentes[i]?.duracion_segundos || null,
+                unidad_tiempo: setsExistentes[i]?.unidad_tiempo || TIME_UNITS.MINUTES,
             }));
 
             return {
@@ -176,7 +173,8 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
                 pausa: '', 
                 carga_sugerida: '',
                 tipo_ejecucion: EXECUTION_TYPES.STANDARD,
-                duracion_segundos: ''
+                duracion_segundos: '',
+                unidad_tiempo: TIME_UNITS.MINUTES
             }];
         }
 

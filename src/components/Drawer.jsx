@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ReactDOM from 'react-dom';
 import { useEffect, useCallback, useState, useRef } from 'react';
 
-const Drawer = ({ isOpen, onClose, children }) => {
+const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
     const [swipeProgress, setSwipeProgress] = useState(0);
     const startPosRef = useRef({ x: 0, y: 0 });
     const isSwipingRef = useRef(false);
@@ -180,9 +180,9 @@ const Drawer = ({ isOpen, onClose, children }) => {
                                 damping: 25,
                             }
                         }}
-                        className="
+                        className={`
                             fixed bottom-0 left-0 right-0 
-                            h-[95vh] 
+                            ${height} 
                             bg-gray-900/98
                             text-white 
                             shadow-2xl 
@@ -192,7 +192,7 @@ const Drawer = ({ isOpen, onClose, children }) => {
                             will-change-transform
                             transform-gpu
                             flex flex-col
-                        "
+                        `}
                         style={{
                             zIndex: 99999,
                             boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.3)',

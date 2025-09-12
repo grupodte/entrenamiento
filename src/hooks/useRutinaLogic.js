@@ -348,7 +348,7 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
                             subbloques_ejercicios (
                                 id, 
                                 ejercicio:ejercicios (id, nombre, video_url),
-                                series:series_subejercicio (id, nro_set, reps, pausa, nota, tipo_ejecucion, duracion_segundos)
+                                series:series_subejercicio (id, nro_set, reps, pausa, nota, tipo_ejecucion, duracion_segundos, unidad_tiempo)
                             )
                         )
                     `)

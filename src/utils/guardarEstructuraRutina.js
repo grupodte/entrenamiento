@@ -11,7 +11,8 @@ const createDefaultSetsConfig = (numSets) => {
         carga: '',
         pausa: '', // La pausa compartida se aplicará después
         tipo_ejecucion: EXECUTION_TYPES.STANDARD, // Tipo por defecto
-        duracion_segundos: null
+        duracion_segundos: null,
+        unidad_tiempo: 'minutes' // Unidad por defecto
     }));
 };
 
@@ -149,6 +150,7 @@ export async function guardarEstructuraRutina({ rutinaId, bloques, tipoRutina = 
                         nro_set: iSet + 1,
                         tipo_ejecucion: tipoEjecucion,
                         nota: nota,
+                        unidad_tiempo: set.unidad_tiempo || null,
                     };
 
                     // Agregar campos según tipo de ejecución

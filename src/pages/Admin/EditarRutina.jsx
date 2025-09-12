@@ -105,16 +105,10 @@ const EditarRutina = () => {
 
                 const { data: seriesRawData, error: errorSeries } = await supabase
                     .from('series_subejercicio')
-                    .select('id, subbloque_ejercicio_id, nro_set, reps, carga_sugerida, pausa, nota, tipo_ejecucion, duracion_segundos')
+                    .select('id, subbloque_ejercicio_id, nro_set, reps, carga_sugerida, pausa, nota, tipo_ejecucion, duracion_segundos, unidad_tiempo')
                     .in('subbloque_ejercicio_id', subEjercicios.map(se => se.id))
                     .order('nro_set', { ascending: true });
                     
-                // DEBUG: Log de datos crudos de la BD
-                console.log('[EditarRutina DEBUG] Datos crudos de series desde BD:', seriesRawData);
-                if (seriesRawData && seriesRawData.length > 0) {
-                    console.log('[EditarRutina DEBUG] Primera serie cruda:', seriesRawData[0]);
-                    console.log('[EditarRutina DEBUG] Columnas disponibles:', Object.keys(seriesRawData[0]));
-                }
                     if (errorSeries) throw errorSeries;
                     seriesRaw = seriesRawData || [];
                 }
@@ -124,16 +118,7 @@ const EditarRutina = () => {
                     nombre: ej.ejercicio?.nombre || 'Ejercicio no encontrado',
                     series: (() => {
                         const seriesFiltradas = seriesRaw.filter(s => s.subbloque_ejercicio_id === ej.id);
-                        const seriesNormalizadas = seriesFiltradas.map(s => {
-                            const normalizada = normalizarSerie(s);
-                            console.log(`[EditarRutina DEBUG] Normalizando serie para ejercicio "${ej.nombre}":`, {
-                                original: s,
-                                normalizada: normalizada,
-                                tipoOriginal: s.tipo_ejecucion,
-                                tipoNormalizado: normalizada.tipo_ejecucion
-                            });
-                            return normalizada;
-                        });
+                        const seriesNormalizadas = seriesFiltradas.map(s => normalizarSerie(s));
                         return seriesNormalizadas;
                     })()
                 }));
@@ -166,20 +151,6 @@ const EditarRutina = () => {
                     ...rutinaData,
                     bloques: bloquesFinal
                 };
-                
-                // DEBUG: Log de la rutina final que se pasa a RutinaForm
-                console.log('[EditarRutina DEBUG] Rutina FINAL que se pasa a RutinaForm:');
-                rutinaFinal.bloques.forEach(bloque => {
-                    bloque.subbloques.forEach(subbloque => {
-                        subbloque.ejercicios.forEach(ejercicio => {
-                            console.log(`[EditarRutina DEBUG] Ejercicio "${ejercicio.nombre}" - Series:`, {
-                                ejercicio: ejercicio,
-                                series: ejercicio.series,
-                                tiposDeEjecucion: ejercicio.series?.map(s => s.tipo_ejecucion)
-                            });
-                        });
-                    });
-                });
                 
                 setRutinaParaEditar(rutinaFinal);
 

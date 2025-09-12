@@ -135,7 +135,7 @@ const RutinaDetalle = () => {
                     <BrandedLoader />
                 )}
 
-                <Drawer isOpen={showExitModal} onClose={handleCancelExit}>
+                <Drawer isOpen={showExitModal} onClose={handleCancelExit} height="h-[95vh]">
                     <div className="p-6">
                         <h3 className="text-lg font-semibold text-white mb-4">
                             ¿Salir del entrenamiento?

@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import { FaCheck, FaPlayCircle } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
-import { EXECUTION_TYPES, getExecutionTypeConfig } from '../../constants/executionTypes';
+import { 
+    EXECUTION_TYPES, 
+    getExecutionTypeConfig, 
+    TIME_UNITS,
+    getTimeUnitConfig,
+    convertFromSeconds,
+    detectBestTimeUnit 
+} from '../../constants/executionTypes';
 
 const SerieItem = React.forwardRef(({
     serieId,
@@ -25,6 +32,7 @@ const SerieItem = React.forwardRef(({
     hideExerciseName = false,
     tipoEjecucion = EXECUTION_TYPES.STANDARD,
     duracionSegundos,
+    unidadTiempo = TIME_UNITS.MINUTES,
 }, ref) => {
     const lastSessionData_item = lastSessionData[`${serieId}`] || {};
     const lastCarga = lastSessionData_item?.carga_realizada || '';
@@ -191,14 +199,23 @@ const SerieItem = React.forwardRef(({
                     )}
                     
                     {tipoEjecucion === EXECUTION_TYPES.TIEMPO && (
-                        <>
-                            <label className="block text-[10px] font-medium text-gray-400 mb-1 uppercase">
-                                Minutos
-                            </label>
-                            <div className="w-full text-lg font-bold text-center py-1.5 rounded bg-blue-900/50 text-white border border-blue-600/30">
-                                {duracionSegundos ? Math.round(duracionSegundos / 60) || '0' : '0'}
-                            </div>
-                        </>
+                        (() => {
+                            // Detectar la mejor unidad o usar la especificada
+                            const unidadFinal = unidadTiempo || detectBestTimeUnit(duracionSegundos);
+                            const config = getTimeUnitConfig(unidadFinal);
+                            const valorTiempo = duracionSegundos ? convertFromSeconds(duracionSegundos, unidadFinal) || '0' : '0';
+                            
+                            return (
+                                <>
+                                    <label className="block text-[10px] font-medium text-gray-400 mb-1 uppercase">
+                                        <span>{config.label}</span>
+                                    </label>
+                                    <div className="w-full text-lg font-bold text-center py-1.5 rounded bg-blue-900/50 text-white border border-blue-600/30 flex items-center justify-center gap-1">
+                                        <span>{valorTiempo}</span>
+                                    </div>
+                                </>
+                            );
+                        })()
                     )}
                     
                     {tipoEjecucion === EXECUTION_TYPES.FALLO && (

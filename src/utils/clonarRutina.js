@@ -79,6 +79,7 @@ export async function clonarRutinaBaseHaciaPersonalizada(
                 carga_sugerida,
                 tipo_ejecucion,
                 duracion_segundos,
+                unidad_tiempo,
                 nota
               )
             )
@@ -156,6 +157,7 @@ export async function clonarRutinaBaseHaciaPersonalizada(
                                     carga: normalized.carga_sugerida,
                                     tipo_ejecucion: normalized.tipo_ejecucion,
                                     duracion_segundos: normalized.duracion_segundos,
+                                    unidad_tiempo: normalized.unidad_tiempo,
                                     nota: normalized.nota,
                                     // nro_set y pausa no son parte de sets_config, se manejan diferente en superset
                                 };

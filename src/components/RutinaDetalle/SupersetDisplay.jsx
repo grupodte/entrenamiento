@@ -190,6 +190,7 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                                         tipoElemento="superset_ejercicio"
                                         tipoEjecucion={detalleSerie?.tipo_ejecucion}
                                         duracionSegundos={detalleSerie?.duracion_segundos}
+                                        unidadTiempo={detalleSerie?.unidad_tiempo}
                                         subbloqueId={subbloque.id}
                                         numSerieSupersetActual={setNumero}
                                         lastSessionData={lastSessionData}

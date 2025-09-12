@@ -68,7 +68,8 @@ const RutinaForm = ({
                                         reps: s.reps || '', 
                                         carga: s.carga_sugerida || '',
                                         tipo_ejecucion: s.tipo_ejecucion || 'standard',
-                                        duracion_segundos: s.duracion_segundos || ''
+                                        duracion_segundos: s.duracion_segundos || '',
+                                        unidad_tiempo: s.unidad_tiempo || 'minutes'
                                     })) || createDefaultSetsConfig(sharedConfigFinal?.num_sets || 0)
                                 };
                             } else {
@@ -79,16 +80,18 @@ const RutinaForm = ({
                                         reps: s.reps || '', 
                                         carga_sugerida: s.carga_sugerida || '', 
                                         pausa: s.pausa || '',
-                                        // PRESERVAR tipo_ejecucion y duracion_segundos
+                                        // PRESERVAR tipo_ejecucion, duracion_segundos y unidad_tiempo
                                         tipo_ejecucion: s.tipo_ejecucion || 'standard',
-                                        duracion_segundos: s.duracion_segundos || ''
+                                        duracion_segundos: s.duracion_segundos || '',
+                                        unidad_tiempo: s.unidad_tiempo || 'minutes'
                                     })) || [{ 
                                         id: uuidv4(), 
                                         reps: '', 
                                         carga_sugerida: '', 
                                         pausa: '',
                                         tipo_ejecucion: 'standard',
-                                        duracion_segundos: ''
+                                        duracion_segundos: '',
+                                        unidad_tiempo: 'minutes'
                                     }]
                                 };
                             }

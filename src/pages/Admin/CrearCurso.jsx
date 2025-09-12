@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
+import ModulosEditor from '../../components/ModulosEditor';
 import { 
   ArrowLeft,
   Save,
@@ -162,6 +163,54 @@ const CrearCurso = () => {
       }
 
       if (result.error) throw result.error;
+
+      const cursoId = result.data.id;
+
+      // Guardar módulos y lecciones
+      if (modulos.length > 0) {
+        // Eliminar módulos existentes si estamos editando
+        if (isEditing) {
+          await supabase.from('modulos_curso').delete().eq('curso_id', cursoId);
+        }
+
+        // Insertar módulos
+        for (const modulo of modulos) {
+          const { data: moduloData, error: moduloError } = await supabase
+            .from('modulos_curso')
+            .insert({
+              curso_id: cursoId,
+              titulo: modulo.titulo,
+              descripcion: modulo.descripcion,
+              orden: modulo.orden,
+              duracion_estimada: modulo.duracion_estimada
+            })
+            .select()
+            .single();
+
+          if (moduloError) throw moduloError;
+
+          // Insertar lecciones del módulo
+          if (modulo.lecciones && modulo.lecciones.length > 0) {
+            const leccionesData = modulo.lecciones.map(leccion => ({
+              modulo_id: moduloData.id,
+              curso_id: cursoId,
+              titulo: leccion.titulo,
+              descripcion: leccion.descripcion,
+              contenido: leccion.contenido,
+              video_url: leccion.video_url,
+              duracion_segundos: leccion.duracion_segundos,
+              orden: leccion.orden,
+              es_preview: leccion.es_preview
+            }));
+
+            const { error: leccionesError } = await supabase
+              .from('lecciones')
+              .insert(leccionesData);
+
+            if (leccionesError) throw leccionesError;
+          }
+        }
+      }
 
       toast.success(isEditing ? 'Curso actualizado correctamente' : 'Curso creado correctamente');
       navigate('/admin/cursos');
@@ -552,6 +601,12 @@ const CrearCurso = () => {
               </div>
             </div>
           </div>
+
+          {/* Módulos y Lecciones */}
+          <ModulosEditor 
+            modulos={modulos} 
+            onModulosChange={setModulos} 
+          />
 
           {/* Botones de acción */}
           <div className="flex gap-4 justify-end">

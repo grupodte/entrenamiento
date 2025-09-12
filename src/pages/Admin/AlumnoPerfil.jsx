@@ -5,8 +5,9 @@ import { toast } from 'react-hot-toast';
 import { MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useDragState } from '../../context/DragStateContext';
 import { FaArrowLeft, FaUser, FaDumbbell, FaChartLine } from 'react-icons/fa';
+import { BookOpen, Users, Plus, X, Calendar, Gift } from 'lucide-react';
 import { AnimatedLayout } from '../../components/animations';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Importar las secciones
 import InfoAlumno from './AlumnoSecciones/InfoAlumno';
@@ -33,7 +34,13 @@ const AlumnoPerfil = () => {
     const { setIsDragging } = useDragState();
     
     // Estado del tab activo
-    const [tab, setTab] = useState('info'); // info | rutinas | progreso
+    const [tab, setTab] = useState('info'); // info | rutinas | progreso | cursos
+    
+    // Estados para cursos
+    const [cursosAsignados, setCursosAsignados] = useState([]);
+    const [cursosDisponibles, setCursosDisponibles] = useState([]);
+    const [showAsignarCurso, setShowAsignarCurso] = useState(false);
+    const [assigningAccess, setAssigningAccess] = useState(false);
 
     const sensors = useSensors(
         useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -86,7 +93,100 @@ const AlumnoPerfil = () => {
 
     useEffect(() => {
         fetchData();
+        if (tab === 'cursos') {
+            fetchCursos();
+        }
     }, [id, alumnoInicial]);
+
+    useEffect(() => {
+        if (tab === 'cursos') {
+            fetchCursos();
+        }
+    }, [tab]);
+
+    // Función para cargar cursos
+    const fetchCursos = async () => {
+        try {
+            // Cargar cursos asignados al alumno
+            const { data: accesosData, error: accesosError } = await supabase
+                .from('acceso_cursos')
+                .select(`
+                    *,
+                    cursos(id, titulo, descripcion, categoria, nivel, precio, imagen_portada)
+                `)
+                .eq('usuario_id', id)
+                .eq('activo', true);
+
+            if (accesosError) throw accesosError;
+            setCursosAsignados(accesosData || []);
+
+            // Cargar todos los cursos disponibles
+            const { data: cursosData, error: cursosError } = await supabase
+                .from('cursos')
+                .select('id, titulo, descripcion, categoria, nivel, precio, imagen_portada')
+                .eq('estado', 'publicado')
+                .order('titulo');
+
+            if (cursosError) throw cursosError;
+            
+            // Filtrar cursos que ya tienen acceso
+            const cursosYaAsignados = (accesosData || []).map(acceso => acceso.cursos.id);
+            const cursosDisponiblesFiltrados = (cursosData || []).filter(
+                curso => !cursosYaAsignados.includes(curso.id)
+            );
+            
+            setCursosDisponibles(cursosDisponiblesFiltrados);
+        } catch (error) {
+            console.error('Error al cargar cursos:', error);
+            toast.error('Error al cargar los cursos');
+        }
+    };
+
+    // Función para asignar acceso a curso
+    const asignarCurso = async (cursoId, tipoAcceso = 'regalo') => {
+        try {
+            setAssigningAccess(true);
+            
+            const { error } = await supabase
+                .from('acceso_cursos')
+                .insert({
+                    usuario_id: id,
+                    curso_id: cursoId,
+                    tipo_acceso: tipoAcceso,
+                    activo: true,
+                    notas: `Asignado manualmente desde perfil del alumno el ${new Date().toLocaleString()}`
+                });
+
+            if (error) throw error;
+
+            toast.success('Curso asignado correctamente');
+            fetchCursos(); // Recargar cursos
+            setShowAsignarCurso(false);
+        } catch (error) {
+            console.error('Error al asignar curso:', error);
+            toast.error('Error al asignar el curso');
+        } finally {
+            setAssigningAccess(false);
+        }
+    };
+
+    // Función para remover acceso a curso
+    const removerAccesoCurso = async (accesoId) => {
+        try {
+            const { error } = await supabase
+                .from('acceso_cursos')
+                .delete()
+                .eq('id', accesoId);
+
+            if (error) throw error;
+
+            toast.success('Acceso al curso removido correctamente');
+            fetchCursos(); // Recargar cursos
+        } catch (error) {
+            console.error('Error al remover acceso:', error);
+            toast.error('Error al remover el acceso');
+        }
+    };
 
     // Función para manejar drop de drag and drop
     const handleDrop = async (event) => {
@@ -220,7 +320,8 @@ const AlumnoPerfil = () => {
     const tabs = [
         { id: 'info', label: 'Información', icon: FaUser },
         { id: 'rutinas', label: 'Rutinas', icon: FaDumbbell },
-        { id: 'progreso', label: 'Progreso', icon: FaChartLine }
+        { id: 'progreso', label: 'Progreso', icon: FaChartLine },
+        { id: 'cursos', label: 'Cursos', icon: BookOpen }
     ];
 
     if (loading) {
@@ -319,6 +420,197 @@ const AlumnoPerfil = () => {
                     />
                 )}
                 {tab === 'progreso' && <ProgresoAlumno alumnoId={id} />}
+                {tab === 'cursos' && (
+                    <div className="space-y-6">
+                        {/* Header de cursos */}
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-xl font-bold text-white">Cursos del Alumno</h2>
+                                <p className="text-gray-400 text-sm mt-1">
+                                    Gestiona los cursos asignados a este alumno
+                                </p>
+                            </div>
+                            <motion.button
+                                onClick={() => setShowAsignarCurso(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-medium"
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                            >
+                                <Plus className="w-4 h-4" />
+                                Asignar Curso
+                            </motion.button>
+                        </div>
+
+                        {/* Cursos asignados */}
+                        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <BookOpen className="w-5 h-5" />
+                                Cursos Asignados ({cursosAsignados.length})
+                            </h3>
+                            
+                            {cursosAsignados.length > 0 ? (
+                                <div className="space-y-3">
+                                    {cursosAsignados.map((acceso) => (
+                                        <motion.div
+                                            key={acceso.id}
+                                            className="bg-gray-700/50 rounded-lg p-4 flex items-center gap-4"
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            layout
+                                        >
+                                            {acceso.cursos.imagen_portada ? (
+                                                <img
+                                                    src={acceso.cursos.imagen_portada}
+                                                    alt={acceso.cursos.titulo}
+                                                    className="w-16 h-12 rounded object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-16 h-12 bg-purple-500/20 rounded flex items-center justify-center">
+                                                    <BookOpen className="w-6 h-6 text-purple-400" />
+                                                </div>
+                                            )}
+                                            
+                                            <div className="flex-1">
+                                                <h4 className="text-white font-medium">
+                                                    {acceso.cursos.titulo}
+                                                </h4>
+                                                <div className="flex items-center gap-3 mt-1">
+                                                    <span className="text-sm text-gray-400">
+                                                        {acceso.cursos.categoria}
+                                                    </span>
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                                        acceso.tipo_acceso === 'comprado' ? 'bg-blue-500/20 text-blue-400' :
+                                                        acceso.tipo_acceso === 'regalo' ? 'bg-green-500/20 text-green-400' :
+                                                        'bg-purple-500/20 text-purple-400'
+                                                    }`}>
+                                                        {acceso.tipo_acceso === 'comprado' ? 'Comprado' :
+                                                         acceso.tipo_acceso === 'regalo' ? 'Regalo' :
+                                                         acceso.tipo_acceso}
+                                                    </span>
+                                                    {acceso.fecha_expiracion && (
+                                                        <span className="text-xs text-gray-400 flex items-center gap-1">
+                                                            <Calendar className="w-3 h-3" />
+                                                            Expira: {new Date(acceso.fecha_expiracion).toLocaleDateString()}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="text-right">
+                                                <div className="text-lg font-bold text-purple-400">
+                                                    ${acceso.cursos.precio}
+                                                </div>
+                                                <button
+                                                    onClick={() => removerAccesoCurso(acceso.id)}
+                                                    className="mt-1 p-1 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
+                                                    title="Remover acceso"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-gray-400">
+                                    <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                                    <p className="mb-2">Este alumno no tiene cursos asignados</p>
+                                    <p className="text-sm">Usa el botón "Asignar Curso" para darle acceso a un curso</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Modal para asignar curso */}
+                        <AnimatePresence>
+                            {showAsignarCurso && (
+                                <motion.div
+                                className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setShowAsignarCurso(false)}
+                            >
+                                <motion.div
+                                    className="bg-gray-900 rounded-xl p-6 w-full max-w-md border border-gray-700"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-lg font-semibold text-white">Asignar Curso</h3>
+                                        <button
+                                            onClick={() => setShowAsignarCurso(false)}
+                                            className="p-2 text-gray-400 hover:text-white rounded-lg transition-colors"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="space-y-4 max-h-96 overflow-y-auto">
+                                        {cursosDisponibles.length > 0 ? (
+                                            cursosDisponibles.map((curso) => (
+                                                <motion.div
+                                                    key={curso.id}
+                                                    className="bg-gray-800/50 rounded-lg p-4 hover:bg-gray-800 transition-colors cursor-pointer"
+                                                    whileHover={{ scale: 1.02 }}
+                                                    onClick={() => asignarCurso(curso.id)}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        {curso.imagen_portada ? (
+                                                            <img
+                                                                src={curso.imagen_portada}
+                                                                alt={curso.titulo}
+                                                                className="w-12 h-8 rounded object-cover"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-12 h-8 bg-purple-500/20 rounded flex items-center justify-center">
+                                                                <BookOpen className="w-4 h-4 text-purple-400" />
+                                                            </div>
+                                                        )}
+                                                        
+                                                        <div className="flex-1">
+                                                            <h4 className="text-white font-medium text-sm">
+                                                                {curso.titulo}
+                                                            </h4>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <span className="text-xs text-gray-400">
+                                                                    {curso.categoria}
+                                                                </span>
+                                                                <span className="text-sm font-semibold text-purple-400">
+                                                                    ${curso.precio}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <Gift className="w-5 h-5 text-green-400" />
+                                                    </div>
+                                                </motion.div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-8 text-gray-400">
+                                                <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                                                <p>No hay cursos disponibles para asignar</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {assigningAccess && (
+                                        <div className="mt-4 flex items-center justify-center gap-2 text-purple-400">
+                                            <motion.div
+                                                className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full"
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                            />
+                                            Asignando curso...
+                                        </div>
+                                    )}
+                                </motion.div>
+                            </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                )}
             </motion.div>
         </AnimatedLayout>
     );

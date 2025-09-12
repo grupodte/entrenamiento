@@ -88,6 +88,7 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                                 tipoElemento={'simple'}
                                 tipoEjecucion={serie.tipo_ejecucion}
                                 duracionSegundos={serie.duracion_segundos}
+                                unidadTiempo={serie.unidad_tiempo}
                                 lastSessionData={lastSessionData}
                                 esEjercicioSimple={true}
                                 // Ocultar nombre del ejercicio ya que está en el header

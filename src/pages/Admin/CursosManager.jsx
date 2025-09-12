@@ -165,7 +165,7 @@ const CursosManager = () => {
       whileHover={{ y: -2 }}
     >
       {/* Header con imagen */}
-      <div className="relative h-48 bg-gradient-to-br from-purple-600 to-pink-600">
+      <div className="relative h-48 bg-gradient-to-br from-purple-600 to-black-600">
         {curso.imagen_portada ? (
           <img 
             src={curso.imagen_portada} 
@@ -221,6 +221,13 @@ const CursosManager = () => {
                 >
                   <Edit3 className="w-4 h-4" />
                   Editar
+                </button>
+                <button 
+                  onClick={() => navigate(`/admin/cursos/asignar/${curso.id}`)}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <Users className="w-4 h-4" />
+                  Asignar Alumnos
                 </button>
                 <button className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors flex items-center gap-2">
                   <Settings className="w-4 h-4" />
@@ -319,7 +326,7 @@ const CursosManager = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-6">
+    <div className="min-h-screen to-gray-900 p-6">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">Gestión de Cursos</h1>
@@ -400,7 +407,7 @@ const CursosManager = () => {
           {/* Botón crear curso */}
           <motion.button
             onClick={() => navigate('/admin/cursos/crear')}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-purple-500/25"
+            className="text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-purple-500/25"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >

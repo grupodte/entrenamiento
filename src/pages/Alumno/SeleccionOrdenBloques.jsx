@@ -69,10 +69,8 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
     const currentError = error || cacheError;
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose}>
-            {isLoading ? (
-                <DrawerLoader />
-            ) : currentError ? (
+        <Drawer isOpen={isOpen} onClose={onClose} height="h-[95vh]">
+            {currentError ? (
                 <div className=" text-white font-sans p-4">
                     <div className="mb-4">
                         <h1 className="text-xl font-bold text-white">Error</h1>
