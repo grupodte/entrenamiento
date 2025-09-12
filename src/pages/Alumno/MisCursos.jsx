@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 const MisCursos = () => {
-  const { user } = useAuth();
+  const { user, rol } = useAuth();
   const navigate = useNavigate();
   const [cursos, setCursos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,9 +27,14 @@ const MisCursos = () => {
 
   useEffect(() => {
     if (user) {
+      // Solo permitir acceso a usuarios con rol de alumno o admin
+      if (rol !== 'alumno' && rol !== 'admin') {
+        navigate('/dashboard');
+        return;
+      }
       fetchMisCursos();
     }
-  }, [user]);
+  }, [user, rol, navigate]);
 
   const fetchMisCursos = async () => {
     try {

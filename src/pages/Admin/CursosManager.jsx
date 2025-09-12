@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
 import { 
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react';
 
 const CursosManager = () => {
+  const navigate = useNavigate();
   const [cursos, setCursos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -213,7 +215,10 @@ const CursosManager = () => {
                   <Eye className="w-4 h-4" />
                   {curso.estado === 'publicado' ? 'Despublicar' : 'Publicar'}
                 </button>
-                <button className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors flex items-center gap-2">
+                <button 
+                  onClick={() => navigate(`/admin/cursos/editar/${curso.id}`)}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors flex items-center gap-2"
+                >
                   <Edit3 className="w-4 h-4" />
                   Editar
                 </button>
@@ -298,7 +303,10 @@ const CursosManager = () => {
 
         {/* Botones de acción */}
         <div className="flex gap-2">
-          <button className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+          <button 
+            onClick={() => navigate(`/admin/cursos/editar/${curso.id}`)}
+            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
             <Edit3 className="w-4 h-4" />
             Editar
           </button>
@@ -391,6 +399,7 @@ const CursosManager = () => {
 
           {/* Botón crear curso */}
           <motion.button
+            onClick={() => navigate('/admin/cursos/crear')}
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-purple-500/25"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

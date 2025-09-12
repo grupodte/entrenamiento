@@ -43,6 +43,7 @@ import AdminRutinasReales from './pages/Admin/AdminRutinasReales';
 import VerRutinaReal from './pages/Admin/VerRutinaReal';
 import EditarRutinaReal from './pages/Admin/EditarRutinaReal';
 import CursosManager from './pages/Admin/CursosManager';
+import CrearCurso from './pages/Admin/CrearCurso';
 
 // Componente simplificado para páginas públicas
 const PublicLayout = () => (
@@ -97,6 +98,8 @@ const AppContent = () => {
         <Route path="ejercicios/seleccionar" element={<SeleccionarEjercicios />} />
         <Route path="asignar-rutina/:id" element={<AsignarRutina />} />
         <Route path="cursos" element={<CursosManager />} />
+        <Route path="cursos/crear" element={<CrearCurso />} />
+        <Route path="cursos/editar/:cursoId" element={<CrearCurso />} />
       </Route>
 
       {/* --- RUTAS PÚBLICAS --- */}

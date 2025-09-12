@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Home, User, Target, ArrowLeft, BookOpen } from 'lucide-react';
+import { Home, User, Target, ArrowLeft } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -28,23 +28,14 @@ const FloatingNavBar = ({
   
   // Detectar rutas específicas
   const isInRutinaDetalle = location.pathname.includes('/rutina/');
-  const isInCursos = location.pathname.includes('/mis-cursos') || location.pathname.includes('/curso/');
   const shouldShowProgressButton = isInRutinaDetalle && onToggleProgressDock;
 
-  // Sincronizar activeButton con la ruta actual y estado del drawer
+  // Sincronizar activeButton con el estado del drawer
   useEffect(() => {
     if (!isPerfilOpen && activeButton === 'profile') {
-      if (isInCursos) {
-        setActiveButton('cursos');
-      } else {
-        setActiveButton('home');
-      }
-    } else if (isInCursos && activeButton !== 'profile') {
-      setActiveButton('cursos');
-    } else if (location.pathname === '/dashboard' && activeButton !== 'profile') {
       setActiveButton('home');
     }
-  }, [isPerfilOpen, activeButton, isInCursos, location.pathname]);
+  }, [isPerfilOpen, activeButton]);
 
   // Detectar modo PWA y características del dispositivo
   useEffect(() => {
@@ -358,33 +349,6 @@ const FloatingNavBar = ({
             {/* Tooltip dinámico */}
             <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
               {isInRutinaDetalle ? 'Salir' : 'Inicio'}
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-black/80"></div>
-            </div>
-          </div>
-        </motion.button>
-
-        {/* Separador visual */}
-        <div className="w-px h-5 bg-white/20"></div>
-
-        {/* Botón Mis Cursos */}
-        <motion.button
-          onClick={() => {
-            setActiveButton('cursos');
-            navigate('/mis-cursos');
-          }}
-          className={navButtonClass(activeButton === 'cursos')}
-          onPointerDown={(e) => e.stopPropagation()}
-          style={{ WebkitTapHighlightColor: 'transparent' }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <div className="relative">
-            <BookOpen className="w-4 h-4" />
-            {activeButton === 'cursos' && (
-              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-cyan-400 rounded-full" />
-            )}
-            <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
-              Mis Cursos
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-black/80"></div>
             </div>
           </div>

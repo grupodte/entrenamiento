@@ -23,7 +23,7 @@ import {
 
 const VisualizarCurso = () => {
   const { cursoId } = useParams();
-  const { user } = useAuth();
+  const { user, rol } = useAuth();
   const navigate = useNavigate();
   
   const [curso, setCurso] = useState(null);
@@ -35,31 +35,43 @@ const VisualizarCurso = () => {
   const [modulosExpandidos, setModulosExpandidos] = useState({});
 
   useEffect(() => {
-    if (user && cursoId) {
+    if (user && cursoId && rol) {
       verificarAccesoYCargarCurso();
     }
-  }, [user, cursoId]);
+  }, [user, cursoId, rol]);
 
   const verificarAccesoYCargarCurso = async () => {
     try {
       setLoading(true);
       
-      // Verificar acceso del usuario al curso
-      const { data: acceso } = await supabase
-        .from('acceso_cursos')
-        .select('*')
-        .eq('usuario_id', user.id)
-        .eq('curso_id', cursoId)
-        .eq('activo', true)
-        .single();
-
-      if (!acceso) {
+      // Verificar que el usuario tenga rol apropiado
+      if (rol !== 'alumno' && rol !== 'admin') {
         setTieneAcceso(false);
         setLoading(false);
         return;
       }
+      
+      // Los admins tienen acceso automático
+      if (rol === 'admin') {
+        setTieneAcceso(true);
+      } else {
+        // Verificar acceso del usuario al curso
+        const { data: acceso } = await supabase
+          .from('acceso_cursos')
+          .select('*')
+          .eq('usuario_id', user.id)
+          .eq('curso_id', cursoId)
+          .eq('activo', true)
+          .single();
 
-      setTieneAcceso(true);
+        if (!acceso) {
+          setTieneAcceso(false);
+          setLoading(false);
+          return;
+        }
+        
+        setTieneAcceso(true);
+      }
 
       // Cargar datos del curso
       const { data: cursoData } = await supabase

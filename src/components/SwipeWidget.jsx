@@ -1,11 +1,15 @@
 // ✅ SwipeWidget.jsx actualizado para compatibilidad con el fix del gesture
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Music } from 'lucide-react';
+import { X, Music, BookOpen, Play, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import SpotifyWidget from './SpotifyWidget';
 
 const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const navigate = useNavigate();
+  const { user, rol } = useAuth();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -77,6 +81,40 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     </div>
   );
 
+  const CursosWidget = () => {
+    const handleCursosClick = () => {
+      onClose();
+      if (rol === 'admin') {
+        navigate('/admin/cursos');
+      } else if (rol === 'alumno') {
+        navigate('/mis-cursos');
+      }
+    };
+
+    if (!user || (rol !== 'admin' && rol !== 'alumno')) {
+      return null;
+    }
+
+    return (
+      <motion.button
+        onClick={handleCursosClick}
+        className="rounded-3xl bg-gradient-to-br from-purple-500/20 to-pink-600/20 p-6 flex flex-col justify-center items-center h-25 backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-500/30 mb-2 group-hover:bg-purple-400/40 transition-colors">
+          <BookOpen className="w-6 h-6 text-purple-300 group-hover:text-purple-200" />
+        </div>
+        <div className="text-sm font-medium text-white mb-1">
+          {rol === 'admin' ? 'Gestionar Cursos' : 'Mis Cursos'}
+        </div>
+        <div className="text-xs text-gray-400">
+          {rol === 'admin' ? 'Panel Admin' : 'Ver disponibles'}
+        </div>
+      </motion.button>
+    );
+  };
+
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -125,7 +163,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             >
               <div className="grid grid-cols-2 gap-3">
                 <TimeWidget />
-                
+                <CursosWidget />
 
                 <div className="col-span-2" style={{ pointerEvents: 'auto' }}>
                   <SpotifyWidget />
