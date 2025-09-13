@@ -1,15 +1,25 @@
 // ✅ SwipeWidget.jsx actualizado para compatibilidad con el fix del gesture
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Music, BookOpen, Play, Users } from 'lucide-react';
+import { X, Music, BookOpen, Play, Users, Download, Smartphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import useInstallPWA from '../hooks/useInstallPWA';
 import SpotifyWidget from './SpotifyWidget';
 
 const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
   const { user, rol } = useAuth();
+  
+  // Hook para instalación PWA
+  const { 
+    handleInstallApp, 
+    shouldShowInstallButton, 
+    getInstallButtonText, 
+    isInstalling,
+    isIOS 
+  } = useInstallPWA();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -80,6 +90,51 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
       </div>
     </div>
   );
+
+  const PWAInstallWidget = () => {
+    if (!shouldShowInstallButton()) return null;
+    
+    const handleInstallClick = async () => {
+      const success = await handleInstallApp();
+      if (success && !isIOS) {
+        // Cerrar el widget después de una instalación exitosa
+        setTimeout(() => onClose(), 1000);
+      }
+    };
+    
+    return (
+      <motion.button
+        onClick={handleInstallClick}
+        disabled={isInstalling}
+        className="rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-600/20 p-4 flex items-center gap-3 backdrop-blur-sm border border-green-500/20 hover:border-green-400/40 transition-all duration-300 group w-full disabled:opacity-50"
+        whileHover={{ scale: isInstalling ? 1 : 1.02 }}
+        whileTap={{ scale: isInstalling ? 1 : 0.98 }}
+      >
+        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-500/30 group-hover:bg-green-400/40 transition-colors">
+          {isInstalling ? (
+            <div className="w-6 h-6 border-2 border-green-300 border-t-transparent rounded-full animate-spin" />
+          ) : isIOS ? (
+            <Smartphone className="w-6 h-6 text-green-300 group-hover:text-green-200" />
+          ) : (
+            <Download className="w-6 h-6 text-green-300 group-hover:text-green-200" />
+          )}
+        </div>
+        <div className="flex-1 text-left">
+          <div className="text-sm font-semibold text-white mb-1">
+            {isInstalling ? 'Instalando...' : getInstallButtonText()}
+          </div>
+          <div className="text-xs text-gray-400">
+            {isIOS ? 'Añadir a pantalla de inicio' : 'Acceso rápido desde escritorio'}
+          </div>
+        </div>
+        
+        {/* Indicador de instalación */}
+        {!isInstalling && (
+          <div className="w-2 h-2 bg-green-400 rounded-full opacity-60 group-hover:opacity-100 transition-opacity" />
+        )}
+      </motion.button>
+    );
+  };
 
   const CursosWidget = () => {
     const handleMisCursosClick = () => {
@@ -221,6 +276,9 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
                 <div className="space-y-4">
                   {/* Tiempo */}
                   <TimeWidget />
+                  
+                  {/* PWA Install Widget */}
+                  <PWAInstallWidget />
                   
                   {/* Cursos */}
                   <CursosWidget />

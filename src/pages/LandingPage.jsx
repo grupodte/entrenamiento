@@ -12,12 +12,21 @@ import {
   PlayCircle
 } from 'lucide-react';
 import InstallButton from '../components/InstallButton';
-import { SimpleInstallWidget, ExpandedInstallWidget } from '../components/PWAInstallWidget';
+import useInstallPWA from '../hooks/useInstallPWA';
 import { Link } from 'react-router-dom';
 
 const LandingPage = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const navigate = useNavigate();
+  
+  // Hook para instalar PWA con control total
+  const { 
+    handleInstallApp, 
+    shouldShowInstallButton, 
+    getInstallButtonText, 
+    isInstalling,
+    isIOS 
+  } = useInstallPWA();
 
   const testimonials = [
     {
@@ -372,21 +381,44 @@ const LandingPage = () => {
               </button>
             </div>
             
-            {/* PWA Installation Section */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-              <InstallButton 
-                variant="outline"
-                size="md"
-                className="border-purple-400 text-purple-400 hover:bg-purple-400/10"
-              />
-              <span className="text-gray-400">o</span>
-              <Link 
-                to="/instalar"
-                className="text-purple-400 hover:text-purple-300 underline underline-offset-4 transition-colors"
-              >
-                Ver más sobre la instalación
-              </Link>
-            </div>
+            {/* PWA Installation Section - Control Total */}
+            {shouldShowInstallButton() && (
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+                <button
+                  onClick={handleInstallApp}
+                  disabled={isInstalling}
+                  className="
+                    bg-gradient-to-r from-green-600 to-emerald-600 
+                    hover:from-green-700 hover:to-emerald-700
+                    disabled:from-gray-600 disabled:to-gray-700
+                    text-white font-bold py-3 px-6 rounded-full 
+                    flex items-center gap-3 transition-all duration-300 
+                    transform hover:scale-105 disabled:scale-100
+                    shadow-lg hover:shadow-green-500/25
+                  "
+                >
+                  {isInstalling ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Instalando...
+                    </>
+                  ) : (
+                    <>
+                      {isIOS ? '📱' : '⬇️'} {getInstallButtonText()}
+                    </>
+                  )}
+                </button>
+                
+                <span className="text-gray-400">o</span>
+                
+                <Link 
+                  to="/instalar"
+                  className="text-purple-400 hover:text-purple-300 underline underline-offset-4 transition-colors"
+                >
+                  Ver más información
+                </Link>
+              </div>
+            )}
 
             {/* Trust Indicators */}
             <div className="mt-12 flex flex-wrap justify-center items-center gap-6 text-gray-500">
@@ -407,13 +439,6 @@ const LandingPage = () => {
         </div>
       </section>
       
-      {/* Simple Install Widget */}
-      <SimpleInstallWidget />
-      
-      {/* Widget expandido para testing */}
-      <div className="fixed bottom-20 right-6 z-50">
-        <ExpandedInstallWidget />
-      </div>
     </div>
   );
 };

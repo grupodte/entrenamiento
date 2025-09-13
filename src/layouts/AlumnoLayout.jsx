@@ -6,7 +6,6 @@ import PerfilDrawer from '../pages/Alumno/PerfilDrawer';
 import EditarPerfilDrawer from '../pages/Alumno/EditarPerfil';
 import SwipeWidget from '../components/SwipeWidget';
 import GradualBlur from '../components/GradualBlur';
-import { SimpleInstallWidget } from '../components/PWAInstallWidget';
 import { ProgressDockProvider, useProgressDock } from '../context/ProgressDockContext';
 import { BackNavigationProvider, useBackNavigation } from '../context/BackNavigationContext';
 import { useViewportHeight } from '../hooks/useViewportHeight';
@@ -160,8 +159,6 @@ const AlumnoLayoutContent = () => {
         onProfileUpdate={handleProfileUpdate}
       />
       
-      {/* Widget simple de instalación PWA */}
-      <SimpleInstallWidget />
     </div>
   );
 };
