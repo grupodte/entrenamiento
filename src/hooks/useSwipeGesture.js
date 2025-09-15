@@ -42,6 +42,9 @@ export const useSwipeGesture = ({
         currentElement.onmouseup ||
         currentElement.ontouchstart ||
         currentElement.ontouchend ||
+        currentElement.ontouchmove ||
+        // Verificar si tiene data attributes de eventos táctiles
+        currentElement.hasAttribute('data-touch-handler') ||
         // Elementos marcados como interactivos
         currentElement.dataset?.interactive === 'true' ||
         // Elementos con cursor pointer
@@ -80,13 +83,23 @@ export const useSwipeGesture = ({
 
     // Solo prevenir si es desde el borde y NO es un elemento interactivo
     const isInteractive = isElementInteractive(e.target, e.currentTarget);
+    
+    console.log('TouchStart:', {
+      isFromLeftEdge,
+      isFromWidget,
+      isInteractive,
+      tagName: e.target.tagName,
+      hasDataTouchHandler: e.target.hasAttribute('data-touch-handler')
+    });
+    
     if (!isInteractive && preventBrowserBack && isFromLeftEdge && !isWidgetOpen) {
       // Solo prevenir en borde izquierdo para apertura
+      console.log('Preventing touchstart for edge swipe');
       e.preventDefault();
       document.body.style.overscrollBehaviorX = 'none';
+    } else if (isInteractive) {
+      console.log('Allowing touchstart on interactive element');
     }
-    
-    // No prevenir eventos en el widget abierto para permitir clicks
   }, [edgeThreshold, preventBrowserBack, isWidgetOpen]);
 
   const handleTouchMove = useCallback((e) => {
@@ -100,10 +113,13 @@ export const useSwipeGesture = ({
     const isHorizontalSwipe = deltaX > deltaY && deltaX > 10;
 
     // Solo prevenir si es claramente un swipe horizontal y no es un elemento interactivo
-    if (isHorizontalSwipe && (isEdgeSwipe || isClosingSwipe) && preventBrowserBack) {
-      if (!isElementInteractive(e.target, e.currentTarget)) {
-        e.preventDefault();
-      }
+    const isInteractive = isElementInteractive(e.target, e.currentTarget);
+    
+    if (isHorizontalSwipe && (isEdgeSwipe || isClosingSwipe) && preventBrowserBack && !isInteractive) {
+      console.log('Preventing touchmove for horizontal swipe');
+      e.preventDefault();
+    } else if (isInteractive) {
+      console.log('Allowing touchmove on interactive element');
     }
   }, [isTracking, isEdgeSwipe, isClosingSwipe, preventBrowserBack, startPos]);
 

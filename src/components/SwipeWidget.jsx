@@ -12,6 +12,57 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
   const navigate = useNavigate();
   const { user, rol } = useAuth();
   
+  // Helper para manejar clicks táctiles en móvil
+  const createTouchHandler = (callback, debugName) => {
+    let touchStartTime = 0;
+    let touchStartPos = { x: 0, y: 0 };
+    
+    return {
+      onTouchStart: (e) => {
+        touchStartTime = Date.now();
+        const touch = e.touches[0];
+        touchStartPos = { x: touch.clientX, y: touch.clientY };
+        console.log(`${debugName}: TouchStart detected`, { x: touch.clientX, y: touch.clientY });
+        e.stopPropagation(); // Prevenir que el swipe interfiera
+      },
+      onTouchEnd: (e) => {
+        const touchEndTime = Date.now();
+        const touchDuration = touchEndTime - touchStartTime;
+        const touch = e.changedTouches[0];
+        const touchEndPos = { x: touch.clientX, y: touch.clientY };
+        
+        const deltaX = Math.abs(touchEndPos.x - touchStartPos.x);
+        const deltaY = Math.abs(touchEndPos.y - touchStartPos.y);
+        const totalMovement = deltaX + deltaY;
+        
+        console.log(`${debugName}: TouchEnd detected`, {
+          duration: touchDuration,
+          movement: totalMovement,
+          isClick: touchDuration < 300 && totalMovement < 15
+        });
+        
+        // Detectar si fue un tap/click válido
+        if (touchDuration < 300 && totalMovement < 15) {
+          console.log(`${debugName}: Executing touch click`);
+          e.preventDefault();
+          e.stopPropagation();
+          callback(e);
+        }
+      },
+      onTouchMove: (e) => {
+        // Permitir pequeños movimientos pero prevenir swipes
+        const touch = e.touches[0];
+        const deltaX = Math.abs(touch.clientX - touchStartPos.x);
+        const deltaY = Math.abs(touch.clientY - touchStartPos.y);
+        
+        if (deltaX > 15 || deltaY > 15) {
+          // Si hay mucho movimiento, no es un click
+          console.log(`${debugName}: TouchMove cancelled click (movement too large)`);
+        }
+      }
+    };
+  };
+  
   // Hook para instalación PWA
   const { 
     handleInstallApp, 
@@ -130,6 +181,9 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
       navigate('/instalar');
     };
     
+    // Crear handlers táctiles
+    const touchHandlers = createTouchHandler(handleInstallClick, 'PWA Install Button');
+    
     const handleMouseDown = (e) => {
       console.log('PWA: Mouse down detected', e.target);
     };
@@ -154,6 +208,8 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
         onClick={handleInstallClick}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
+        {...touchHandlers}
+        data-touch-handler="true"
         disabled={isInstalling}
         className="rounded-2xl p-3 flex flex-col items-center justify-center backdrop-blur-sm border border-green-500/20 hover:border-green-400/40 transition-all duration-300 group w-full disabled:opacity-50 h-full cursor-pointer hover:scale-105 active:scale-95"
         style={{ 
@@ -215,6 +271,10 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
       navigate('/cursos');
     };
     
+    // Crear handlers táctiles
+    const misCursosTouchHandlers = createTouchHandler(handleMisCursosClick, 'Mis Cursos Button');
+    const catalogoTouchHandlers = createTouchHandler(handleCatalogoClick, 'Catalogo Button');
+    
     const handleMouseDownCursos = (e) => {
       console.log('CursosWidget: Mouse down detected', e.target);
     };
@@ -253,6 +313,8 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
           onClick={handleCatalogoClick}
           onMouseDown={handleMouseDownCursos}
           onMouseUp={handleMouseUpCursos}
+          {...catalogoTouchHandlers}
+          data-touch-handler="true"
           data-action="catalogo"
           className="rounded-2xl p-6 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
           style={{ 
@@ -288,6 +350,8 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
           onClick={handleMisCursosClick}
           onMouseDown={handleMouseDownCursos}
           onMouseUp={handleMouseUpCursos}
+          {...misCursosTouchHandlers}
+          data-touch-handler="true"
           data-action="mis-cursos"
           className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
           style={{ 
@@ -315,6 +379,8 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             onClick={handleCatalogoClick}
             onMouseDown={handleMouseDownCursos}
             onMouseUp={handleMouseUpCursos}
+            {...catalogoTouchHandlers}
+            data-touch-handler="true"
             data-action="catalogo"
             className="rounded-2xl p-4 flex items-center gap-3 backdrop-blur-sm border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
             style={{ 
