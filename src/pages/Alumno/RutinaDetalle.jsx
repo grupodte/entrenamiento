@@ -24,6 +24,7 @@ const RutinaDetalle = () => {
     const { user } = useAuth();
     const [showExitModal, setShowExitModal] = useState(false);
     const [pendingNavigation, setPendingNavigation] = useState(null);
+    const [allowNavigation, setAllowNavigation] = useState(false);
     const { state } = location;
     
     // Usar contexto de ProgressDock y BackNavigation
@@ -64,16 +65,7 @@ const RutinaDetalle = () => {
 
     const isReady = !loading && !!rutina;
     
-    // Debug: verificar estado del bloqueo (solo cuando cambia isReady)
-    useEffect(() => {
-        if (isReady) {
-            console.log('[RutinaDetalle] Estado bloqueo:', { 
-                todosCompletados, 
-                shouldBlock: !todosCompletados, 
-                isReady 
-            });
-        }
-    }, [isReady, todosCompletados]);
+    // Estado del bloqueo listo
 
     // Manejadores de modal de salida
     const handleBackButtonClick = useCallback(() => {
@@ -94,7 +86,6 @@ const RutinaDetalle = () => {
     usePrompt(
         !todosCompletados, // Solo bloquear si no está completado el entrenamiento
         useCallback((transition) => {
-            console.log('[RutinaDetalle] Navegación interceptada:', transition);
             // Guardar la transición pendiente y mostrar modal
             setPendingNavigation(transition);
             setShowExitModal(true);
@@ -109,15 +100,12 @@ const RutinaDetalle = () => {
 
     const handleConfirmExit = () => {
         setShowExitModal(false);
+        setPendingNavigation(null);
         
-        // Si hay una navegación pendiente, continuar con ella
-        if (pendingNavigation) {
-            pendingNavigation.proceed();
-            setPendingNavigation(null);
-        } else {
-            // Navegación manual (botón de back)
-            navigate('/dashboard');
-        }
+        // Navegar al dashboard
+        setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+        }, 100);
     };
 
     const handleCancelExit = () => {
@@ -172,11 +160,7 @@ const RutinaDetalle = () => {
                 <Drawer isOpen={showExitModal} onClose={handleCancelExit} height="h-[95vh]">
                     <div className="p-6">
                         <div className="text-center mb-6">
-                            <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L4.732 15.5c-.77.833.192 2.5 1.732 2.5z" />
-                                </svg>
-                            </div>
+                       
                             <h3 className="text-lg font-semibold text-white mb-2">
                                 ¿Salir del entrenamiento?
                             </h3>
@@ -188,20 +172,26 @@ const RutinaDetalle = () => {
                             </p>
                         </div>
                         
-                        <div className="space-y-3">
-                            <button
+                        <div className="space-y-4 px-2">
+                            <motion.button
                                 onClick={handleCancelExit}
-                                className="w-full px-4 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors font-medium"
+                                className="w-full px-4 py-3 bg-500/90 text-white rounded-xl shadow-lg shadow-cyan-500/20 border border-cyan-400/30 backdrop-blur-md font-semibold transition-all duration-200 hover:bg-cyan-400 hover:shadow-cyan-400/30"
+                                whileHover={{ scale: 1.03 }}
+                                whileTap={{ scale: 0.98 }}
                             >
                                 Continuar Entrenando
-                            </button>
-                            <button
+                            </motion.button>
+
+                            <motion.button
                                 onClick={handleConfirmExit}
-                                className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                                className="w-full px-4 py-3  text-gray-300 rounded-xl shadow-lg border border-white/20 backdrop-blur-md font-medium transition-colors duration-200 hover:bg-red-500/30 hover:text-white hover:border-red-400/40"
+                                whileHover={{ scale: 1.03 }}
+                                whileTap={{ scale: 0.98 }}
                             >
                                 Salir sin Guardar
-                            </button>
+                            </motion.button>
                         </div>
+
                     </div>
                 </Drawer>
 

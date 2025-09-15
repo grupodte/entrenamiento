@@ -73,7 +73,7 @@ const ProgressDock = ({
 
   return (
     <motion.div
-      className="fixed bottom-4 left-4 right-4 mx-auto md:left-auto md:right-4 md:mx-0 z-50 w-full max-w-sm md:w-64"
+      className="fixed bottom-4 left-4 right-4 mx-auto md:left-auto mb-2 md:right-4 md:mx-0 z-50 w-full max-w-[250px] md:w-100"
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -81,9 +81,9 @@ const ProgressDock = ({
     >
       {/* Contenedor principal */}
       <motion.div
-        className="bg-black/30 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+        className="bg-black/10 bg-blur-xl rounded-2xl shadow-2xl overflow-hidden justify-center"
         style={{
-          backdropFilter: 'blur(20px) saturate(180%)',
+          backdropFilter: 'blur(20px) saturate(100%)',
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
         }}
         layout

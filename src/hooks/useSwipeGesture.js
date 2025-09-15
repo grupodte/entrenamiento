@@ -100,7 +100,7 @@ export const useSwipeGesture = ({
     // Determinar tipo de gesto ANTES de verificar interactividad
     const isFromLeftEdge = startX <= edgeThreshold && !isWidgetOpen;
     const isFromRightEdge = startX >= (window.innerWidth - edgeThreshold) && !isWidgetOpen;
-    const isFromWidget = isWidgetOpen && startX < window.innerWidth * 0.9; // Para cerrar desde la izquierda del widget
+    const isFromWidget = isWidgetOpen && startX < window.innerWidth * 0.8; // Para cerrar desde dentro del widget
     
     console.log('Gesture analysis:', {
       isFromLeftEdge,
@@ -203,13 +203,14 @@ export const useSwipeGesture = ({
       
       if (absDeltaX > absDeltaY && absDeltaX > threshold) {
         if (isEdgeSwipe && deltaX > 0) {
-          console.log('Left edge swipe completed:', deltaX);
+          console.log('Left edge swipe completed - opening SwipeWidget:', deltaX);
           onSwipeFromEdge?.(deltaX);
         } else if (isRightEdgeSwipe && deltaX < 0) {
-          console.log('Right edge swipe completed:', Math.abs(deltaX));
-          onSwipeFromEdge?.(Math.abs(deltaX));
+          console.log('Right edge swipe detected but not executing navigation - preventing back navigation');
+          // NO ejecutar onSwipeFromEdge para evitar navegación hacia atrás
+          // onSwipeFromEdge?.(Math.abs(deltaX));
         } else if (isClosingSwipe && deltaX < 0) {
-          console.log('Close swipe completed:', Math.abs(deltaX));
+          console.log('SwipeWidget close swipe completed:', Math.abs(deltaX));
           onSwipeToClose?.(Math.abs(deltaX));
         }
       }

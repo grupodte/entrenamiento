@@ -41,10 +41,14 @@ const AlumnoLayoutContent = () => {
 
   useViewportHeight();
 
-  // Prevenir swipe back del navegador
+  // Prevenir swipe back del navegador pero permitir SwipeWidget
   const { isActive: swipeBackPreventionActive } = usePreventSwipeBack({
-    enabled: true,
-    exceptions: ['[data-swipe-widget]'] // Permitir gestos en el SwipeWidget
+    enabled: !isSwipeWidgetOpen, // Desactivar cuando el widget está abierto
+    exceptions: [
+      '[data-swipe-widget]', 
+      '.swipe-widget-area',
+      '.touch-interactive'
+    ]
   });
 
   // Handlers memorizados - definir ANTES de los hooks que los usan

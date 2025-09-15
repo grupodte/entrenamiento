@@ -11,7 +11,7 @@ const ProgressBar = ({ currentStep, totalSteps }) => {
                 <span className="text-sm text-cyan-400 font-medium">{Math.round(progress)}%</span>
             </div>
             
-            <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+            <div className="w-full  rounded-full h-2 overflow-hidden">
                 <motion.div
                     className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"
                     initial={{ width: 0 }}

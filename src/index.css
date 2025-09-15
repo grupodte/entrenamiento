@@ -4,21 +4,33 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ✅ Prevención de navegación - Versión simplificada */
+/* ✅ Prevención de navegación - Versión mejorada y robusta */
 /* Combina con useNoBack + usePreventSwipeBack */
 html {
   overscroll-behavior-x: none;
   overscroll-behavior-y: auto;
   -webkit-overscroll-behavior-x: none;
+  -webkit-overscroll-behavior-y: auto;
+  /* Prevenir touch actions horizontales */
+  touch-action: pan-y;
+  /* Propiedades adicionales para mayor compatibilidad */
+  overflow-x: hidden;
+  position: relative;
 }
 
 body {
   overscroll-behavior-x: none;
   overscroll-behavior-y: auto;
   -webkit-overscroll-behavior-x: none;
+  -webkit-overscroll-behavior-y: auto;
+  /* Touch actions permitiendo solo scroll vertical y zoom */
+  touch-action: pan-y pinch-zoom;
   /* Solo prevenir selección accidental, mantener usabilidad */
   -webkit-touch-callout: none;
   user-select: none;
+  /* Propiedades adicionales para robustez */
+  overflow-x: hidden;
+  position: relative;
 }
 
 /* Para drawers y modales activos - Prevenir swipe back solo cuando es necesario */
@@ -39,6 +51,9 @@ body {
   overscroll-behavior-x: none !important;
   -webkit-overscroll-behavior-x: none !important;
   touch-action: pan-y pinch-zoom !important;
+  /* Propiedades adicionales para mejor compatibilidad */
+  overflow-x: hidden !important;
+  position: relative !important;
 }
 
 .allow-swipe-back {
