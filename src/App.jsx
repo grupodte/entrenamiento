@@ -10,6 +10,7 @@ import AdminLayout from './layouts/AdminLayout';
 import RutaProtegida from './components/RutaProtegida';
 import useSmoothScroll from './hooks/useSmoothScroll';
 import usePreventSwipeBack from './hooks/usePreventSwipeBack';
+import usePWANavigation from './hooks/usePWANavigation';
 import AlumnoLayout from './layouts/AlumnoLayout';
 import BrandedLoader from './components/BrandedLoader';
 
@@ -167,8 +168,30 @@ const App = () => {
     }
   }, []);
   
-  // Prevenir swipe back navigation en móviles
-  usePreventSwipeBack();
+  // Sistema completo de prevención de navegación
+  usePreventSwipeBack({
+    enabled: true,
+    edgeThreshold: 40, // Píxeles desde el borde
+    swipeThreshold: 25, // Sensibilidad del swipe
+    exceptions: ['.touch-interactive', '.allow-swipe-back'] // Elementos que permiten navegación
+  });
+  
+  const { setPreventionActive } = usePWANavigation({
+    preventBrowserBack: true,
+    enableLogging: false, // Cambiar a true para debug
+    onNavigationAttempt: (event, location) => {
+      // Lógica personalizada para permitir/denegar navegación
+      console.log('Navigation attempt detected on:', location.pathname);
+      return false; // No permitir navegación hacia atrás
+    }
+  });
+  
+  // Activar prevención cuando la app esté lista
+  React.useEffect(() => {
+    if (!loading) {
+      setPreventionActive(true);
+    }
+  }, [loading, setPreventionActive]);
 
   if (loading) {
     return <BrandedLoader />;

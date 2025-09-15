@@ -139,5 +139,12 @@
     },
     "launch_handler": {
         "client_mode": "navigate-existing"
+    },
+    "navigation_override": {
+        "enabled": true,
+        "prevent_back_gesture": true
+    },
+    "edge_side_panel": {
+        "preferred_width": 400
     }
 }

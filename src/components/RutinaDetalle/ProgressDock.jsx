@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CheckSquare, 
-  Square, 
-  ChevronUp, 
-  ChevronDown, 
+import {
+  CheckSquare,
+  Square,
+  ChevronUp,
+  ChevronDown,
   Target,
   Clock,
   TrendingUp,
@@ -22,20 +22,20 @@ const ProgressDock = ({
   workoutTime = 0,
   formatWorkoutTime = (t) => t,
   progressPorSubBloque = {},
-  onElementClick = () => {},
+  onElementClick = () => { },
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Generar lista de elementos para el checklist
   const generateChecklistItems = () => {
     if (!rutina) return [];
-    
+
     const items = [];
-    
+
     rutina.bloques.forEach(bloque => {
       bloque.subbloques.forEach(subbloque => {
         const progressInfo = progressPorSubBloque[subbloque.id] || {};
-        
+
         items.push({
           id: subbloque.id,
           type: 'subbloque',
@@ -47,7 +47,7 @@ const ProgressDock = ({
         });
       });
     });
-    
+
     return items;
   };
 
@@ -73,7 +73,7 @@ const ProgressDock = ({
 
   return (
     <motion.div
-      className="fixed bottom-7 left-1/2 -translate-x-1/2 md:left-auto md:right-4 md:translate-x-0 z-50 w-64 max-w-[calc(100vw-32px)]"
+      className="fixed bottom-4 left-4 right-4 mx-auto md:left-auto md:right-4 md:mx-0 z-50 w-full max-w-sm md:w-64"
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -104,7 +104,7 @@ const ProgressDock = ({
             >
               <Target className="w-3.5 h-3.5 text-emerald-400" />
             </ProgressRing>
-            
+
             <div>
               <h3 className="text-[13px] font-semibold text-white leading-none">
                 Progreso
@@ -123,7 +123,7 @@ const ProgressDock = ({
                 {formatWorkoutTime(workoutTime)}
               </span>
             </div>
-            
+
             <motion.div
               animate={{ rotate: isExpanded ? 180 : 0 }}
               transition={{ duration: 0.2 }}
@@ -155,7 +155,7 @@ const ProgressDock = ({
                       Activo
                     </span>
                   </div>
-                  
+
                   {/* Barra de progreso principal */}
                   <div className="mt-2 w-full h-1 bg-white/10 rounded-full overflow-hidden">
                     <motion.div
@@ -216,10 +216,9 @@ const ProgressDock = ({
                             <Check className="w-2.5 h-2.5 text-white" />
                           </motion.div>
                         ) : (
-                          <Square 
-                            className={`w-4 h-4 ${
-                              item.isInProgress ? 'text-yellow-400' : 'text-gray-400'
-                            }`} 
+                          <Square
+                            className={`w-4 h-4 ${item.isInProgress ? 'text-yellow-400' : 'text-gray-400'
+                              }`}
                           />
                         )}
                       </div>
@@ -227,9 +226,8 @@ const ProgressDock = ({
                       {/* Información del elemento */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <span className={`text-[13px] font-medium truncate ${
-                            item.isCompleted ? 'text-green-300' : 'text-white'
-                          }`}>
+                          <span className={`text-[13px] font-medium truncate ${item.isCompleted ? 'text-green-300' : 'text-white'
+                            }`}>
                             {item.name}
                           </span>
                           {item.variant === 'superset' && (
@@ -238,7 +236,7 @@ const ProgressDock = ({
                             </span>
                           )}
                         </div>
-                        
+
                         {/* Mini barra de progreso */}
                         {item.progress > 0 && !item.isCompleted && (
                           <div className="mt-1 w-full h-0.5 bg-white/10 rounded-full overflow-hidden">

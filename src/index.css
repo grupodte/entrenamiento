@@ -4,14 +4,24 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ✅ Prevención contextual de swipe back - Simplificado */
-/* Base: comportamiento normal de swipe */
+/* ✅ Prevención contextual de swipe back - Optimizado para PWA */
+/* Base: comportamiento controlado para prevenir navegación accidental */
 html {
-  overscroll-behavior-x: auto;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+  -webkit-overscroll-behavior-x: none;
+  -webkit-overscroll-behavior-y: contain;
 }
 
 body {
-  overscroll-behavior-x: auto;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+  -webkit-overscroll-behavior-x: none;
+  -webkit-overscroll-behavior-y: contain;
+  /* Prevenir gestos de navegación en iOS Safari */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* Para drawers y modales activos - Prevenir swipe back solo cuando es necesario */
@@ -25,6 +35,27 @@ body {
 .drawer-content {
   touch-action: pan-y;
   overscroll-behavior-x: none;
+}
+
+/* Clases utilitarias para control de navegación */
+.prevent-swipe-back {
+  overscroll-behavior-x: none !important;
+  -webkit-overscroll-behavior-x: none !important;
+  touch-action: pan-y pinch-zoom !important;
+}
+
+.allow-swipe-back {
+  overscroll-behavior-x: auto !important;
+  -webkit-overscroll-behavior-x: auto !important;
+  touch-action: auto !important;
+}
+
+/* Para elementos que necesitan interacción táctil completa */
+.touch-interactive {
+  -webkit-touch-callout: default;
+  -webkit-user-select: auto;
+  user-select: auto;
+  touch-action: auto;
 }
 
 /* ====== UTILIDADES PERSONALIZADAS DE TAILWIND ====== */
