@@ -382,7 +382,7 @@ const LandingPage = () => {
             </div>
             
             {/* PWA Installation Section - Control Total */}
-            {shouldShowInstallButton() && (
+            {shouldShowInstallButton && (
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
                 <button
                   onClick={handleInstallApp}

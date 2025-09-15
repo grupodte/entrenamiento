@@ -83,6 +83,13 @@ body {
   --sal: env(safe-area-inset-left);
   --sar: env(safe-area-inset-right);
 
+  /* Variables de viewport dinámico para móviles */
+  --vh: 1vh; /* Valor base, será actualizado por JS */
+  --full-vh: 100vh; /* Altura completa actual */
+  --real-vh: 100vh; /* Altura real considerando navegador móvil */
+  --viewport-height: 100vh; /* Altura del viewport disponible */
+  --safe-viewport-height: 100vh; /* Altura segura para elementos fixed bottom */
+
   /* Colores del tema */
   --bg-primary: #121212;
   --bg-secondary: #1f1f1f;
@@ -594,4 +601,62 @@ ol::-webkit-scrollbar,
   margin-bottom: var(--content-margin-bottom);
   margin-left: var(--content-margin-horizontal);
   margin-right: var(--content-margin-horizontal);
+}
+
+/* ====== CLASES UTILITARIAS PARA VIEWPORT DINÁMICO ====== */
+/* Altura completa del viewport (considera barra de direcciones) */
+.h-viewport-full {
+  height: var(--viewport-height);
+}
+
+.min-h-viewport-full {
+  min-height: var(--viewport-height);
+}
+
+.max-h-viewport-full {
+  max-height: var(--viewport-height);
+}
+
+/* Altura segura para elementos fixed bottom (evita barra de direcciones) */
+.h-safe-viewport {
+  height: var(--safe-viewport-height);
+}
+
+.min-h-safe-viewport {
+  min-height: var(--safe-viewport-height);
+}
+
+.max-h-safe-viewport {
+  max-height: var(--safe-viewport-height);
+}
+
+/* Altura real sin barras de navegador */
+.h-real-viewport {
+  height: var(--real-vh);
+}
+
+/* Posicionamiento seguro para elementos fixed bottom */
+.bottom-safe {
+  bottom: max(0px, calc(100vh - var(--safe-viewport-height)));
+}
+
+/* Container que ocupa todo el viewport disponible */
+.viewport-container {
+  height: var(--viewport-height);
+  overflow: hidden;
+}
+
+/* Para drawers y modales que necesitan posicionamiento seguro */
+.drawer-safe-positioning {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: var(--safe-viewport-height);
+}
+
+/* Variante con altura calculada dinámicamente */
+.drawer-dynamic-height {
+  height: calc(min(85vh, var(--safe-viewport-height) * 0.85));
+  max-height: var(--safe-viewport-height);
 }

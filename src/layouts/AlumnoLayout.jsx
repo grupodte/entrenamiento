@@ -11,6 +11,7 @@ import { BackNavigationProvider, useBackNavigation } from '../context/BackNaviga
 import { useViewportHeight } from '../hooks/useViewportHeight';
 import { useSwipeGesture } from '../hooks/useSwipeGesture';
 import { useSwipeBackContext } from '../hooks/useSwipeBackContext';
+import ViewportDebugger from '../components/ViewportDebugger';
 
 // Variantes de animación optimizadas
 const pageVariants = {
@@ -158,6 +159,11 @@ const AlumnoLayoutContent = () => {
         onBack={handleBackToProfile}
         onProfileUpdate={handleProfileUpdate}
       />
+      
+      {/* Debug component - TEMPORAL para testing */}
+      {process.env.NODE_ENV === 'development' && (
+        <ViewportDebugger position="bottom-left" />
+      )}
       
     </div>
   );

@@ -184,6 +184,20 @@ module.exports = {
                         display: 'none',
                     },
                 },
+                // Clases para viewport dinámico móvil
+                '.h-viewport-dynamic': {
+                    height: 'var(--safe-viewport-height)',
+                },
+                '.max-h-viewport-dynamic': {
+                    'max-height': 'var(--safe-viewport-height)',
+                },
+                '.drawer-safe': {
+                    position: 'fixed',
+                    bottom: '0',
+                    left: '0',
+                    right: '0',
+                    'max-height': 'var(--safe-viewport-height)',
+                },
                 // Clases para glass effect
                 '.glass': {
                     'backdrop-filter': 'blur(12px)',

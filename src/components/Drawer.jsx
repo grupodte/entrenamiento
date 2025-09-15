@@ -4,6 +4,29 @@ import ReactDOM from 'react-dom';
 import { useEffect, useCallback, useState, useRef } from 'react';
 
 const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
+    // Normalizar la altura para usar nuestras nuevas clases CSS
+    const getResponsiveHeight = (heightProp) => {
+        // Si ya usa nuestras clases personalizadas, devolverlo tal como está
+        if (heightProp.includes('safe-viewport') || heightProp.includes('viewport-full')) {
+            return heightProp;
+        }
+        
+        // Convertir alturas comunes a versiones seguras para móviles
+        if (heightProp.includes('max-h-[85vh]') || heightProp.includes('h-[85vh]')) {
+            return 'drawer-dynamic-height';
+        }
+        if (heightProp.includes('max-h-[95vh]') || heightProp.includes('h-[95vh]')) {
+            return 'max-h-safe-viewport';
+        }
+        if (heightProp.includes('max-h-[90vh]') || heightProp.includes('h-[90vh]')) {
+            return 'drawer-dynamic-height';
+        }
+        
+        // Para otros casos, usar una altura segura por defecto
+        return `${heightProp} max-h-safe-viewport`;
+    };
+    
+    const responsiveHeight = getResponsiveHeight(height);
     const [swipeProgress, setSwipeProgress] = useState(0);
     const startPosRef = useRef({ x: 0, y: 0 });
     const isSwipingRef = useRef(false);
@@ -181,8 +204,8 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                             }
                         }}
                         className={`
-                            fixed bottom-0 left-0 right-0 
-                            ${height} 
+                            drawer-safe-positioning
+                            ${responsiveHeight}
                             bg-gray-900/98
                             text-white 
                             shadow-2xl 
