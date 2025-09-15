@@ -16,24 +16,45 @@ export const useSwipeGesture = ({
   const [currentPos, setCurrentPos] = useState({ x: 0, y: 0 });
   const [isEdgeSwipe, setIsEdgeSwipe] = useState(false);
   const [isClosingSwipe, setIsClosingSwipe] = useState(false);
+  const [startTime, setStartTime] = useState(0);
   const containerRef = useRef(null);
   const lastTouchTime = useRef(0);
+  const CLICK_TIME_THRESHOLD = 200; // ms
+  const CLICK_DISTANCE_THRESHOLD = 10; // px
 
   const isElementInteractive = (targetElement, eTarget) => {
     const interactiveTags = ['BUTTON', 'A', 'INPUT', 'TEXTAREA', 'SELECT', 'RANGE'];
     let isInteractive = false;
-    while (targetElement && targetElement !== eTarget) {
-      const tagName = targetElement.tagName;
+    let currentElement = targetElement;
+    
+    while (currentElement && currentElement !== eTarget) {
+      const tagName = currentElement.tagName;
+      const computedStyle = window.getComputedStyle(currentElement);
+      
       if (
+        // Elementos interactivos por tag
         interactiveTags.includes(tagName) ||
-        targetElement.hasAttribute('role') ||
-        targetElement.onclick ||
-        targetElement.dataset?.interactive === 'true'
+        // Elementos con role interactivo
+        currentElement.hasAttribute('role') ||
+        // Elementos con event handlers
+        currentElement.onclick ||
+        currentElement.onmousedown ||
+        currentElement.onmouseup ||
+        currentElement.ontouchstart ||
+        currentElement.ontouchend ||
+        // Elementos marcados como interactivos
+        currentElement.dataset?.interactive === 'true' ||
+        // Elementos con cursor pointer
+        computedStyle.cursor === 'pointer' ||
+        // Elementos clickeables por clase CSS
+        currentElement.classList.contains('cursor-pointer') ||
+        currentElement.classList.contains('hover:scale-105') ||
+        currentElement.classList.contains('active:scale-95')
       ) {
         isInteractive = true;
         break;
       }
-      targetElement = targetElement.parentElement;
+      currentElement = currentElement.parentElement;
     }
     return isInteractive;
   };
@@ -49,6 +70,7 @@ export const useSwipeGesture = ({
 
     setStartPos({ x: startX, y: startY });
     setCurrentPos({ x: startX, y: startY });
+    setStartTime(now);
     setIsTracking(true);
 
     const isFromLeftEdge = startX <= edgeThreshold && !isWidgetOpen;
@@ -56,10 +78,15 @@ export const useSwipeGesture = ({
     const isFromWidget = isWidgetOpen && startX <= window.innerWidth * 0.95;
     setIsClosingSwipe(isFromWidget);
 
-    if (!isElementInteractive(e.target, e.currentTarget) && preventBrowserBack && (isFromLeftEdge || isFromWidget)) {
+    // Solo prevenir si es desde el borde y NO es un elemento interactivo
+    const isInteractive = isElementInteractive(e.target, e.currentTarget);
+    if (!isInteractive && preventBrowserBack && isFromLeftEdge && !isWidgetOpen) {
+      // Solo prevenir en borde izquierdo para apertura
       e.preventDefault();
       document.body.style.overscrollBehaviorX = 'none';
     }
+    
+    // No prevenir eventos en el widget abierto para permitir clicks
   }, [edgeThreshold, preventBrowserBack, isWidgetOpen]);
 
   const handleTouchMove = useCallback((e) => {
@@ -67,20 +94,37 @@ export const useSwipeGesture = ({
     const touch = e.touches[0];
     setCurrentPos({ x: touch.clientX, y: touch.clientY });
 
-    if ((isEdgeSwipe || isClosingSwipe) && preventBrowserBack) {
+    // Calcular si realmente se está haciendo un swipe horizontal
+    const deltaX = Math.abs(touch.clientX - startPos.x);
+    const deltaY = Math.abs(touch.clientY - startPos.y);
+    const isHorizontalSwipe = deltaX > deltaY && deltaX > 10;
+
+    // Solo prevenir si es claramente un swipe horizontal y no es un elemento interactivo
+    if (isHorizontalSwipe && (isEdgeSwipe || isClosingSwipe) && preventBrowserBack) {
       if (!isElementInteractive(e.target, e.currentTarget)) {
         e.preventDefault();
       }
     }
-  }, [isTracking, isEdgeSwipe, isClosingSwipe, preventBrowserBack]);
+  }, [isTracking, isEdgeSwipe, isClosingSwipe, preventBrowserBack, startPos]);
 
-  const handleTouchEnd = useCallback(() => {
+  const handleTouchEnd = useCallback((e) => {
     if (!isTracking) return;
+    const endTime = Date.now();
+    const elapsedTime = endTime - startTime;
+    
     const deltaX = currentPos.x - startPos.x;
     const absDeltaX = Math.abs(deltaX);
     const absDeltaY = Math.abs(currentPos.y - startPos.y);
-
-    if (absDeltaX > absDeltaY && absDeltaX > threshold) {
+    const totalMovement = absDeltaX + absDeltaY;
+    
+    // Detectar si fue un click genuino o un swipe
+    const wasClick = elapsedTime < CLICK_TIME_THRESHOLD && totalMovement < CLICK_DISTANCE_THRESHOLD;
+    
+    // Si fue un click genuino, no hacer nada para permitir que el evento click se propague
+    if (wasClick) {
+      console.log('Detectado como click genuino, permitiendo propagación');
+    } else if (absDeltaX > absDeltaY && absDeltaX > threshold) {
+      // Fue un swipe, procesar normalmente
       if (isClosingSwipe && deltaX < 0) onSwipeToClose?.(Math.abs(deltaX)); // Cambiado: cierre con swipe izquierda
       else if (isEdgeSwipe && deltaX > 0) onSwipeFromEdge?.(deltaX);
       else if (!isWidgetOpen && deltaX > 0) onSwipeRight?.(deltaX);
@@ -91,7 +135,7 @@ export const useSwipeGesture = ({
     setIsEdgeSwipe(false);
     setIsClosingSwipe(false);
     document.body.style.overscrollBehaviorX = 'auto';
-  }, [isTracking, currentPos, startPos, threshold, isEdgeSwipe, isClosingSwipe, isWidgetOpen, onSwipeLeft, onSwipeRight, onSwipeFromEdge, onSwipeToClose]);
+  }, [isTracking, currentPos, startPos, startTime, threshold, isEdgeSwipe, isClosingSwipe, isWidgetOpen, onSwipeLeft, onSwipeRight, onSwipeFromEdge, onSwipeToClose, CLICK_TIME_THRESHOLD, CLICK_DISTANCE_THRESHOLD]);
 
   const handleMouseDown = useCallback((e) => {
     if (e.button !== 0) return;

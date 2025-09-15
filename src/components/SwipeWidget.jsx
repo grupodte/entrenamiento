@@ -156,7 +156,13 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
         onMouseUp={handleMouseUp}
         disabled={isInstalling}
         className="rounded-2xl p-3 flex flex-col items-center justify-center backdrop-blur-sm border border-green-500/20 hover:border-green-400/40 transition-all duration-300 group w-full disabled:opacity-50 h-full cursor-pointer hover:scale-105 active:scale-95"
-        style={{ pointerEvents: 'auto', zIndex: 100 }}
+        style={{ 
+          pointerEvents: 'auto', 
+          zIndex: 800, 
+          touchAction: 'manipulation',
+          WebkitUserSelect: 'none',
+          userSelect: 'none'
+        }}
       >
         <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-500/30 group-hover:bg-green-400/40 transition-colors mb-2">
           {isInstalling ? (
@@ -249,7 +255,13 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
           onMouseUp={handleMouseUpCursos}
           data-action="catalogo"
           className="rounded-2xl p-6 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
-          style={{ pointerEvents: 'auto', zIndex: 100 }}
+          style={{ 
+            pointerEvents: 'auto', 
+            zIndex: 800, 
+            touchAction: 'manipulation',
+            WebkitUserSelect: 'none',
+            userSelect: 'none'
+          }}
         >
           <div className="flex items-center justify-center w-14 h-14 rounded-full bg-purple-500/30 mb-3 group-hover:bg-purple-400/40 transition-colors">
             <BookOpen className="w-7 h-7 text-purple-300 group-hover:text-purple-200" />
@@ -265,7 +277,12 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     }
 
     return (
-      <div className="space-y-3" style={{ pointerEvents: 'auto' }}>
+      <div 
+        className="space-y-3" 
+        style={{ 
+          pointerEvents: 'auto', 
+          touchAction: 'manipulation'
+        }}>
         {/* Botón principal según el rol */}
         <button
           onClick={handleMisCursosClick}
@@ -273,7 +290,13 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
           onMouseUp={handleMouseUpCursos}
           data-action="mis-cursos"
           className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
-          style={{ pointerEvents: 'auto', zIndex: 100 }}
+          style={{ 
+            pointerEvents: 'auto', 
+            zIndex: 800, 
+            touchAction: 'manipulation',
+            WebkitUserSelect: 'none',
+            userSelect: 'none'
+          }}
         >
           <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-500/30 mb-2 group-hover:bg-purple-400/40 transition-colors">
             <BookOpen className="w-6 h-6 text-purple-300 group-hover:text-purple-200" />
@@ -294,7 +317,13 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             onMouseUp={handleMouseUpCursos}
             data-action="catalogo"
             className="rounded-2xl p-4 flex items-center gap-3 backdrop-blur-sm border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
-            style={{ pointerEvents: 'auto', zIndex: 100 }}
+            style={{ 
+              pointerEvents: 'auto', 
+              zIndex: 800, 
+              touchAction: 'manipulation',
+              WebkitUserSelect: 'none',
+              userSelect: 'none'
+            }}
           >
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/30 group-hover:bg-blue-400/40 transition-colors">
               <Play className="w-5 h-5 text-blue-300 group-hover:text-blue-200" />
@@ -344,7 +373,8 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
               left: '50%',
               boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.3)',
               WebkitBackdropFilter: 'blur(20px) saturate(150%)',
-              backdropFilter: 'blur(20px) saturate(150%)'
+              backdropFilter: 'blur(20px) saturate(150%)',
+              touchAction: 'pan-y' // Permitir scroll vertical pero controlar horizontal
             }}
           >
             {/* Indicador de arrastre */}
@@ -354,16 +384,28 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
               {/* Content */}
               <div
                 className="w-full max-w-md px-4 py-8"
-                style={{ pointerEvents: 'auto', position: 'relative', zIndex: 5 }}
+                style={{ 
+                  pointerEvents: 'auto', 
+                  position: 'relative', 
+                  zIndex: 500, 
+                  touchAction: 'manipulation' 
+                }}
               >
-                <div className="grid grid-cols-2 gap-3 auto-rows-min" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}>
+                <div 
+                  className="grid grid-cols-2 gap-3 auto-rows-min" 
+                  style={{ 
+                    pointerEvents: 'auto', 
+                    position: 'relative', 
+                    zIndex: 600,
+                    touchAction: 'manipulation'
+                  }}>
                   {/* Tiempo - 1 columna */}
-                  <div className="col-span-1" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 20 }}>
+                  <div className="col-span-1" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 700, touchAction: 'manipulation' }}>
                     <TimeWidget />
                   </div>
                   
                   {/* PWA Install Widget - 1 columna */}
-                  <div className="col-span-1" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 20 }}>
+                  <div className="col-span-1" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 700, touchAction: 'manipulation' }}>
                     <PWAInstallWidget />
                     
                     {/* Widget simple si PWA no está disponible */}
@@ -385,7 +427,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
                   </div>
                   
                   {/* Cursos - 2 columnas */}
-                  <div className="col-span-2" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 20 }}>
+                  <div className="col-span-2" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 700, touchAction: 'manipulation' }}>
                     <CursosWidget />
                   </div>
 
