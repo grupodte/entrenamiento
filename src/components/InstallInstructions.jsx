@@ -13,34 +13,28 @@ const InstallInstructions = ({ platform, className = '' }) => {
   const instructionsConfig = {
     'ios': {
       title: 'Agregar a Pantalla de Inicio',
-      subtitle: 'Sigue estos pasos en Safari:',
+      subtitle: 'Proceso simplificado:',
       icon: DevicePhoneMobileIcon,
       iconColor: 'text-blue-500',
       bgColor: 'bg-blue-500/10',
       steps: [
         {
           number: 1,
-          text: 'Toque el botón "Compartir" en Safari',
-          icon: ShareIcon,
-          detail: '(El ícono con una flecha hacia arriba en la barra inferior)'
+          text: 'Ir al botón de compartir',
+          icon: Share,
+          detail: 'Toca el ícono de compartir en Safari'
         },
         {
           number: 2,
-          text: 'Desplácese hacia abajo en el menú',
-          icon: EllipsisHorizontalIcon,
-          detail: 'Busque la opción "Agregar a pantalla de inicio"'
+          text: 'Agregar al inicio',
+          icon: SquarePlus,
+          detail: 'Selecciona "Agregar a pantalla de inicio"'
         },
         {
           number: 3,
-          text: 'Seleccione "Agregar a pantalla de inicio"',
-          icon: PlusIcon,
-          detail: 'Aparecerá un diálogo de confirmación'
-        },
-        {
-          number: 4,
-          text: 'Toque "Agregar" para confirmar',
+          text: 'Confirmar',
           icon: HomeIcon,
-          detail: 'La app aparecerá en su pantalla de inicio'
+          detail: 'Confirma y queda listo agregado al inicio'
         }
       ],
       tip: 'La aplicación funcionará sin conexión a internet y se comportará como una app nativa.',
@@ -48,34 +42,28 @@ const InstallInstructions = ({ platform, className = '' }) => {
     },
     'android-chrome': {
       title: 'Instalar Aplicación',
-      subtitle: 'Sigue estos pasos en Chrome:',
+      subtitle: 'Proceso simplificado:',
       icon: DevicePhoneMobileIcon,
       iconColor: 'text-green-500',
       bgColor: 'bg-green-500/10',
       steps: [
         {
           number: 1,
-          text: 'Toque el menú (tres puntos) en la esquina superior derecha',
-          icon: EllipsisHorizontalIcon,
-          detail: 'Se abrirá el menú principal de Chrome'
+          text: 'Ir al botón de compartir',
+          icon: Share,
+          detail: 'Toca el menú (tres puntos) o el ícono de compartir'
         },
         {
           number: 2,
-          text: 'Seleccione "Agregar a pantalla de inicio" o "Instalar app"',
-          icon: ArrowDownTrayIcon,
-          detail: 'La opción puede variar según la versión de Chrome'
+          text: 'Agregar al inicio',
+          icon: SquarePlus,
+          detail: 'Selecciona "Agregar a pantalla de inicio" o "Instalar app"'
         },
         {
           number: 3,
-          text: 'Toque "Instalar" para confirmar',
-          icon: PlusIcon,
-          detail: 'Aparecerá una ventana de confirmación'
-        },
-        {
-          number: 4,
-          text: 'La aplicación se instalará automáticamente',
+          text: 'Confirmar',
           icon: HomeIcon,
-          detail: 'Aparecerá un ícono en su pantalla de inicio'
+          detail: 'Confirma y queda listo agregado al inicio'
         }
       ],
       tip: 'También puede buscar el ícono de instalación en la barra de direcciones del navegador.',
@@ -83,34 +71,28 @@ const InstallInstructions = ({ platform, className = '' }) => {
     },
     'android-firefox': {
       title: 'Agregar a Pantalla de Inicio',
-      subtitle: 'Sigue estos pasos en Firefox:',
+      subtitle: 'Proceso simplificado:',
       icon: DevicePhoneMobileIcon,
       iconColor: 'text-orange-500',
       bgColor: 'bg-orange-500/10',
       steps: [
         {
           number: 1,
-          text: 'Toque el menú (tres líneas) en la esquina superior derecha',
-          icon: EllipsisHorizontalIcon,
-          detail: 'Se abrirá el menú principal de Firefox'
+          text: 'Ir al botón de compartir',
+          icon: Share,
+          detail: 'Toca el menú (tres líneas) en Firefox'
         },
         {
           number: 2,
-          text: 'Seleccione "Agregar a pantalla de inicio"',
-          icon: HomeIcon,
-          detail: 'Esta opción aparece en la parte superior del menú'
+          text: 'Agregar al inicio',
+          icon: SquarePlus,
+          detail: 'Selecciona "Agregar a pantalla de inicio"'
         },
         {
           number: 3,
-          text: 'Personalice el nombre si lo desea',
-          icon: PlusIcon,
-          detail: 'Puede cambiar el nombre que aparecerá en su pantalla'
-        },
-        {
-          number: 4,
-          text: 'Toque "Agregar" para confirmar',
+          text: 'Confirmar',
           icon: HomeIcon,
-          detail: 'La app aparecerá como un acceso directo'
+          detail: 'Confirma y queda listo agregado al inicio'
         }
       ],
       tip: 'El acceso directo abrirá la aplicación directamente en Firefox sin mostrar la interfaz del navegador.',
