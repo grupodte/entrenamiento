@@ -73,7 +73,7 @@ const ProgressDock = ({
 
   return (
     <motion.div
-      className="fixed bottom-7 left-1/2 transform -translate-x-1/2 md:left-auto md:right-3 md:transform-none z-50 w-64 max-w-[69vw] "
+      className="fixed bottom-7 left-1/2 -translate-x-1/2 md:left-auto md:right-3 md:translate-x-0 z-50 w-64 max-w-[calc(100vw-2rem)] mx-4 md:mx-0"
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9, y: 20 }}
