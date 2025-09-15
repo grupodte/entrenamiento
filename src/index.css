@@ -4,24 +4,46 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ✅ Prevención contextual de swipe back - Optimizado para PWA */
-/* Base: comportamiento controlado para prevenir navegación accidental */
+/* ✅ Prevención total de zoom, scroll horizontal y swipe back */
+/* Base: comportamiento controlado para prevenir navegación accidental y zoom */
 html {
+  /* Prevenir scroll horizontal y swipe back */
   overscroll-behavior-x: none;
   overscroll-behavior-y: contain;
   -webkit-overscroll-behavior-x: none;
   -webkit-overscroll-behavior-y: contain;
+  
+  /* Prevenir zoom completamente */
+  touch-action: pan-y;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  
+  /* Forzar ancho fijo para prevenir scroll horizontal */
+  overflow-x: hidden;
+  width: 100vw;
+  max-width: 100vw;
 }
 
 body {
+  /* Prevenir scroll horizontal y swipe back */
   overscroll-behavior-x: none;
   overscroll-behavior-y: contain;
   -webkit-overscroll-behavior-x: none;
   -webkit-overscroll-behavior-y: contain;
+  
   /* Prevenir gestos de navegación en iOS Safari */
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+  
+  /* Prevenir zoom y scroll horizontal */
+  touch-action: pan-y;
+  overflow-x: hidden;
+  width: 100vw;
+  max-width: 100vw;
+  position: relative;
 }
 
 /* Para drawers y modales activos - Prevenir swipe back solo cuando es necesario */
@@ -765,4 +787,117 @@ ol::-webkit-scrollbar,
   min-height: var(--safe-viewport-height);
   height: auto;
   max-height: var(--safe-viewport-height);
+}
+
+/* ====== PREVENCIÓN TOTAL DE ZOOM Y SCROLL HORIZONTAL ====== */
+/* Reglas robustas para prevenir zoom en todos los navegadores */
+*,
+*::before,
+*::after {
+  /* Prevenir zoom con touch-action */
+  touch-action: pan-y !important;
+  /* Forzar ancho máximo para prevenir scroll horizontal */
+  max-width: 100vw;
+  /* Prevenir overflow horizontal en todos los elementos */
+  overflow-x: hidden !important;
+}
+
+/* Contenedor principal de la aplicación */
+#root {
+  touch-action: pan-y !important;
+  overflow-x: hidden !important;
+  width: 100vw;
+  max-width: 100vw;
+  position: relative;
+}
+
+/* Prevenir zoom en inputs y elementos interactivos */
+input,
+textarea,
+select,
+button {
+  touch-action: manipulation !important;
+  /* Prevenir zoom automático en iOS */
+  font-size: max(16px, 1rem) !important;
+}
+
+/* Prevenir zoom en imágenes */
+img,
+video,
+canvas,
+svg {
+  touch-action: pan-y !important;
+  pointer-events: auto;
+}
+
+/* Elementos que pueden tener contenido ancho */
+.main-content,
+.content-wrapper,
+.dashboard,
+.app-container,
+div,
+section,
+article,
+aside,
+header,
+footer,
+nav {
+  overflow-x: hidden !important;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+/* Prevenir zoom en elementos de lista y contenedores flex/grid */
+ul,
+ol,
+.flex,
+.grid,
+[class*="flex"],
+[class*="grid"] {
+  overflow-x: hidden !important;
+  max-width: 100vw;
+}
+
+/* Reglas específicas para navegadores móviles */
+@media (max-width: 768px) {
+  /* Prevenir zoom con reglas adicionales para móviles */
+  html {
+    -webkit-text-size-adjust: none !important;
+    -moz-text-size-adjust: none !important;
+    -ms-text-size-adjust: none !important;
+    text-size-adjust: none !important;
+  }
+  
+  /* Forzar touch-action en toda la aplicación móvil */
+  * {
+    touch-action: pan-y !important;
+  }
+  
+  /* Prevenir double-tap zoom */
+  a, button, [role="button"], [onclick] {
+    touch-action: manipulation !important;
+  }
+}
+
+/* Reglas específicas para iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  /* Prevenir zoom en iOS */
+  html {
+    -webkit-text-size-adjust: none !important;
+    touch-action: pan-y !important;
+  }
+  
+  body {
+    touch-action: pan-y !important;
+    -webkit-touch-callout: none !important;
+  }
+  
+  /* Prevenir zoom en elementos interactivos de iOS */
+  input,
+  textarea,
+  select {
+    -webkit-appearance: none !important;
+    border-radius: 0 !important;
+    font-size: 16px !important;
+  }
 }
