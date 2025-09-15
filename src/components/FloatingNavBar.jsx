@@ -318,7 +318,7 @@ const FloatingNavBar = ({
   return (
     <nav
       ref={navRef}
-      className="fixed z-[150] select-none"
+      className="fixed z-[99999] select-none"
       style={{
         left: position.x,
         top: position.y,
@@ -342,7 +342,7 @@ const FloatingNavBar = ({
       }}
     >
       <motion.div
-        className={`flex items-center rounded-full bg-black/30 backdrop-blur-2xl border border-white/10 ${isStandalone ? 'shadow-lg' : 'shadow-2xl'}
+        className={`flex items-center rounded-full backdrop-blur-md ${isStandalone ? 'shadow-lg' : 'shadow-2xl'}
           }`}
         style={{
           backdropFilter: 'blur(20px) saturate(180%)',
@@ -371,7 +371,7 @@ const FloatingNavBar = ({
             <motion.button
               key="toggle-button"
               onClick={toggleExpanded}
-              className="relative flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 group backdrop-blur-xl border shadow-lg hover:scale-105 active:scale-95 bg-white/10 border-white/20 text-gray-300 hover:text-white hover:bg-white/15 hover:border-white/30 shadow-black/20"
+              className="relative flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 group backdrop-blur-md border shadow-lg hover:scale-105 active:scale-95 bg-white/10 border-white/20 text-gray-300 hover:text-white hover:bg-white/15 hover:border-white/30 shadow-black/20"
               onPointerDown={(e) => e.stopPropagation()}
               style={{ WebkitTapHighlightColor: 'transparent' }}
               initial={{ opacity: 0, scale: 0.8, rotate: -90 }}

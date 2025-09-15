@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Play, Download, Smartphone } from 'lucide-react';
+import { BookOpen, Play, Download, Smartphone, Dumbbell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import usePWAInstall from '../hooks/usePWAInstall';
@@ -43,6 +43,11 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
         case 'catalogo':
           console.log('SwipeWidget: Navigate to /cursos');
           navigate('/cursos');
+          break;
+        case 'rutinas':
+          const rutinaDestination = rol === 'admin' ? '/admin/rutinas' : '/dashboard';
+          console.log('SwipeWidget: Navigate to', rutinaDestination);
+          navigate(rutinaDestination);
           break;
         default:
           console.warn('SwipeWidget: Unknown action:', action);
@@ -167,6 +172,33 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     );
   };
 
+  // Widget de Rutinas
+  const RutinasWidget = () => {
+    // Caso sin usuario: no mostrar widget de rutinas
+    if (!user || (rol !== 'admin' && rol !== 'alumno')) {
+      return null;
+    }
+
+    return (
+      <button
+        onClick={(e) => handleButtonClick(e, 'rutinas')}
+        data-action="rutinas"
+        className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-orange-500/20 hover:border-orange-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
+        style={{ touchAction: 'manipulation' }}
+      >
+        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-orange-500/30 mb-2 group-hover:bg-orange-400/40 transition-colors">
+          <Dumbbell className="w-6 h-6 text-orange-300 group-hover:text-orange-200" />
+        </div>
+        <div className="text-sm font-semibold text-white mb-1">
+          {rol === 'admin' ? 'Gestionar Rutinas' : 'Mis Rutinas'}
+        </div>
+        <div className="text-xs text-gray-400 text-center">
+          {rol === 'admin' ? 'Panel de rutinas' : 'Ver mis entrenamientos'}
+        </div>
+      </button>
+    );
+  };
+
   // Widget de Cursos con navegación por rol
   const CursosWidget = () => {
     // Caso sin usuario: mostrar sólo catálogo
@@ -191,49 +223,53 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
       );
     }
 
-    // Caso con usuario logueado
+    // Caso con usuario logueado - solo botón principal
     return (
-      <div className="space-y-3">
-        {/* Botón principal según el rol */}
-        <button
-          onClick={(e) => handleButtonClick(e, 'mis-cursos')}
-          data-action="mis-cursos"
-          className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
-          style={{ touchAction: 'manipulation' }}
-        >
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-500/30 mb-2 group-hover:bg-purple-400/40 transition-colors">
-            <BookOpen className="w-6 h-6 text-purple-300 group-hover:text-purple-200" />
-          </div>
-          <div className="text-sm font-semibold text-white mb-1">
-            {rol === 'admin' ? 'Gestionar Cursos' : 'Mis Cursos'}
-          </div>
-          <div className="text-xs text-gray-400 text-center">
-            {rol === 'admin' ? 'Panel admin' : 'Tus cursos asignados'}
-          </div>
-        </button>
+      <button
+        onClick={(e) => handleButtonClick(e, 'mis-cursos')}
+        data-action="mis-cursos"
+        className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
+        style={{ touchAction: 'manipulation' }}
+      >
+        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-500/30 mb-2 group-hover:bg-purple-400/40 transition-colors">
+          <BookOpen className="w-6 h-6 text-purple-300 group-hover:text-purple-200" />
+        </div>
+        <div className="text-sm font-semibold text-white mb-1">
+          {rol === 'admin' ? 'Gestionar Cursos' : 'Mis Cursos'}
+        </div>
+        <div className="text-xs text-gray-400 text-center">
+          {rol === 'admin' ? 'Panel admin' : 'Tus cursos asignados'}
+        </div>
+      </button>
+    );
+  };
 
-        {/* Botón secundario para alumnos */}
-        {rol === 'alumno' && (
-          <button
-            onClick={(e) => handleButtonClick(e, 'catalogo')}
-            data-action="catalogo"
-            className="rounded-2xl p-4 flex items-center gap-3 backdrop-blur-sm border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
-            style={{ touchAction: 'manipulation' }}
-          >
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/30 group-hover:bg-blue-400/40 transition-colors">
-              <Play className="w-5 h-5 text-blue-300 group-hover:text-blue-200" />
-            </div>
-            <div className="flex-1 text-left">
-              <div className="text-sm font-semibold text-white">
-                Explorar Catálogo
-              </div>
-              <div className="text-xs text-gray-400">
-                Todos los cursos
-              </div>
-            </div>
-          </button>
-        )}
-      </div>
+  // Widget de Catálogo (solo para alumnos)
+  const CatalogoWidget = () => {
+    // Solo mostrar para alumnos autenticados
+    if (!user || rol !== 'alumno') {
+      return null;
+    }
+
+    return (
+      <button
+        onClick={(e) => handleButtonClick(e, 'catalogo')}
+        data-action="catalogo"
+        className="rounded-2xl p-4 flex items-center gap-3 backdrop-blur-sm border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
+        style={{ touchAction: 'manipulation' }}
+      >
+        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/30 group-hover:bg-blue-400/40 transition-colors">
+          <Play className="w-5 h-5 text-blue-300 group-hover:text-blue-200" />
+        </div>
+        <div className="flex-1 text-left">
+          <div className="text-sm font-semibold text-white">
+            Explorar Catálogo
+          </div>
+          <div className="text-xs text-gray-400">
+            Todos los cursos disponibles
+          </div>
+        </div>
+      </button>
     );
   };
 
@@ -292,9 +328,19 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
                     <PWAInstallWidget />
                   </div>
                   
+                  {/* Rutinas */}
+                  <div className="col-span-1">
+                    <RutinasWidget />
+                  </div>
+                  
                   {/* Cursos */}
-                  <div className="col-span-2">
+                  <div className="col-span-1">
                     <CursosWidget />
+                  </div>
+
+                  {/* Catálogo - Fila separada */}
+                  <div className="col-span-2">
+                    <CatalogoWidget />
                   </div>
 
                   {/* Espaciado final */}
