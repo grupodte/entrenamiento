@@ -111,6 +111,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     closing: { opacity: (1 - closeProgressNormalized) * 0.6 }
   };
 
+
   // Widget de Tiempo
   const TimeWidget = () => (
     <div className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-blue-500/20">

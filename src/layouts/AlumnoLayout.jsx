@@ -11,6 +11,7 @@ import { BackNavigationProvider, useBackNavigation } from '../context/BackNaviga
 import { useViewportHeight } from '../hooks/useViewportHeight';
 import { useSwipeGesture } from '../hooks/useSwipeGesture';
 import { useSwipeBackContext } from '../hooks/useSwipeBackContext';
+import usePreventSwipeBack from '../hooks/usePreventSwipeBack';
 
 // Variantes de animación optimizadas
 const pageVariants = {
@@ -39,6 +40,12 @@ const AlumnoLayoutContent = () => {
   const { onBackClick } = useBackNavigation();
 
   useViewportHeight();
+
+  // Prevenir swipe back del navegador
+  const { isActive: swipeBackPreventionActive } = usePreventSwipeBack({
+    enabled: true,
+    exceptions: ['[data-swipe-widget]'] // Permitir gestos en el SwipeWidget
+  });
 
   // Handlers memorizados - definir ANTES de los hooks que los usan
   const handleOpenPerfil = useCallback(() => setIsPerfilDrawerOpen(true), []);

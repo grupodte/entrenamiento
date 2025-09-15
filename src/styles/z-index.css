@@ -29,7 +29,7 @@
   
   /* Navegación crítica (1000-1099) */
   --z-navbar: 1000;
-  --z-floating-nav: 1000;
+  --z-floating-nav: 1050; /* Por encima de drawer/swipe widget */
   
   /* Elementos críticos del sistema (1100+) */
   --z-notification: 1100;

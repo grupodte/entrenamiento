@@ -11,6 +11,7 @@ export const useSwipeGesture = ({
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   const [currentPos, setCurrentPos] = useState({ x: 0, y: 0 });
   const [isEdgeSwipe, setIsEdgeSwipe] = useState(false);
+  const [isRightEdgeSwipe, setIsRightEdgeSwipe] = useState(false);
   const [isClosingSwipe, setIsClosingSwipe] = useState(false);
   const [startTime, setStartTime] = useState(0);
   const containerRef = useRef(null);
@@ -98,10 +99,12 @@ export const useSwipeGesture = ({
     
     // Determinar tipo de gesto ANTES de verificar interactividad
     const isFromLeftEdge = startX <= edgeThreshold && !isWidgetOpen;
-    const isFromWidget = isWidgetOpen && startX > window.innerWidth * 0.1;
+    const isFromRightEdge = startX >= (window.innerWidth - edgeThreshold) && !isWidgetOpen;
+    const isFromWidget = isWidgetOpen && startX < window.innerWidth * 0.9; // Para cerrar desde la izquierda del widget
     
     console.log('Gesture analysis:', {
       isFromLeftEdge,
+      isFromRightEdge,
       isFromWidget,
       startX,
       edgeThreshold,
@@ -109,13 +112,13 @@ export const useSwipeGesture = ({
     });
     
     // Si no es un gesto válido, salir temprano
-    if (!isFromLeftEdge && !isFromWidget) {
+    if (!isFromLeftEdge && !isFromRightEdge && !isFromWidget) {
       console.log('Not a valid gesture area, ignoring');
       return;
     }
     
-    // Solo para edge swipes, verificar si está en elemento interactivo
-    if (isFromLeftEdge && isElementInteractive(e.target)) {
+    // Para edge swipes, verificar si está en elemento interactivo
+    if ((isFromLeftEdge || isFromRightEdge) && isElementInteractive(e.target)) {
       console.log('Edge swipe blocked by interactive element');
       return;
     }
@@ -126,10 +129,11 @@ export const useSwipeGesture = ({
     setStartTime(now);
     setIsTracking(true);
     setIsEdgeSwipe(isFromLeftEdge);
+    setIsRightEdgeSwipe(isFromRightEdge);
     setIsClosingSwipe(isFromWidget);
     
-    // Prevenir scroll horizontal solo para edge swipe
-    if (isFromLeftEdge) {
+    // Prevenir scroll horizontal para edge swipes
+    if (isFromLeftEdge || isFromRightEdge) {
       document.body.style.overscrollBehaviorX = 'none';
       console.log('Edge swipe initiated, preventing horizontal scroll');
     }
@@ -150,6 +154,7 @@ export const useSwipeGesture = ({
         absDeltaX,
         deltaY,
         isEdgeSwipe,
+        isRightEdgeSwipe,
         isClosingSwipe,
         currentX: touch.clientX
       });
@@ -159,12 +164,17 @@ export const useSwipeGesture = ({
     
     // Solo prevenir si es claramente horizontal Y es un gesto válido
     if (absDeltaX > deltaY && absDeltaX > 15) { // Mayor threshold para evitar falsos positivos
-      // Para edge swipe: movimiento hacia la derecha con momentum suficiente
+      // Para edge swipe izquierdo: movimiento hacia la derecha
       if (isEdgeSwipe && deltaX > 20) {
-        console.log('Preventing edge swipe move, deltaX:', deltaX);
+        console.log('Preventing left edge swipe move, deltaX:', deltaX);
         e.preventDefault();
       }
-      // Para closing swipe: movimiento hacia la izquierda con momentum suficiente
+      // Para edge swipe derecho: movimiento hacia la izquierda 
+      else if (isRightEdgeSwipe && deltaX < -20) {
+        console.log('Preventing right edge swipe move, deltaX:', deltaX);
+        e.preventDefault();
+      }
+      // Para closing swipe: movimiento hacia la izquierda
       else if (isClosingSwipe && deltaX < -20) {
         console.log('Preventing close swipe move, deltaX:', deltaX);
         e.preventDefault();
@@ -193,8 +203,11 @@ export const useSwipeGesture = ({
       
       if (absDeltaX > absDeltaY && absDeltaX > threshold) {
         if (isEdgeSwipe && deltaX > 0) {
-          console.log('Edge swipe completed:', deltaX);
+          console.log('Left edge swipe completed:', deltaX);
           onSwipeFromEdge?.(deltaX);
+        } else if (isRightEdgeSwipe && deltaX < 0) {
+          console.log('Right edge swipe completed:', Math.abs(deltaX));
+          onSwipeFromEdge?.(Math.abs(deltaX));
         } else if (isClosingSwipe && deltaX < 0) {
           console.log('Close swipe completed:', Math.abs(deltaX));
           onSwipeToClose?.(Math.abs(deltaX));
@@ -205,6 +218,7 @@ export const useSwipeGesture = ({
     // Reset estado
     setIsTracking(false);
     setIsEdgeSwipe(false);
+    setIsRightEdgeSwipe(false);
     setIsClosingSwipe(false);
     document.body.style.overscrollBehaviorX = 'auto';
   }, [isTracking, currentPos, startPos, startTime, threshold, isEdgeSwipe, isClosingSwipe, onSwipeFromEdge, onSwipeToClose]);
@@ -229,9 +243,11 @@ export const useSwipeGesture = ({
   return {
     containerRef,
     isTracking,
-    swipeProgress: isTracking && isEdgeSwipe ? Math.max(0, currentPos.x - startPos.x) : 0,
+    swipeProgress: isTracking && (isEdgeSwipe || isRightEdgeSwipe) ? 
+      (isEdgeSwipe ? Math.max(0, currentPos.x - startPos.x) : Math.max(0, startPos.x - currentPos.x)) : 0,
     closeProgress: isTracking && isClosingSwipe ? Math.max(0, startPos.x - currentPos.x) : 0,
     isEdgeSwipe,
+    isRightEdgeSwipe,
     isClosingSwipe
   };
 };
