@@ -13,6 +13,9 @@ import {
   ChevronDown,
   ArrowLeft,
   Lock,
+  ChevronLeft,
+  ChevronsLeft,
+  ChevronsRight,
   User,
   Star,
   Calendar,
@@ -33,6 +36,7 @@ const VisualizarCurso = () => {
   const [loading, setLoading] = useState(true);
   const [tieneAcceso, setTieneAcceso] = useState(false);
   const [modulosExpandidos, setModulosExpandidos] = useState({});
+  const [sidebarColapsado, setSidebarColapsado] = useState(false);
 
   useEffect(() => {
     if (user && cursoId && rol) {
@@ -330,9 +334,26 @@ const VisualizarCurso = () => {
         </div>
       </div>
 
-      <div className="flex">
+      <div className="flex relative">
+        {/* Toggle Sidebar Button */}
+        <button
+          onClick={() => setSidebarColapsado(!sidebarColapsado)}
+          className={`fixed top-1/2 z-50 transform -translate-y-1/2 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white p-2 rounded-l-lg transition-all duration-300 ${
+            sidebarColapsado ? 'right-0' : 'right-96'
+          }`}
+          title={sidebarColapsado ? 'Mostrar contenido del curso' : 'Ocultar contenido del curso'}
+        >
+          {sidebarColapsado ? (
+            <ChevronsLeft className="w-5 h-5" />
+          ) : (
+            <ChevronsRight className="w-5 h-5" />
+          )}
+        </button>
+
         {/* Video Player Area */}
-        <div className="flex-1">
+        <div className={`flex-1 transition-all duration-300 ${
+          sidebarColapsado ? 'mr-0' : 'mr-96'
+        }`}>
           <div className="aspect-video bg-black">
             {leccionActual?.video_url ? (
               <VideoPlayer
@@ -408,8 +429,10 @@ const VisualizarCurso = () => {
         </div>
 
         {/* Sidebar con módulos y lecciones */}
-        <div className="w-96 bg-gray-800/50 border-l border-gray-700 h-screen overflow-y-auto">
-          <div className="p-4 border-b border-gray-700">
+        <div className={`fixed top-0 right-0 w-96 bg-gray-800/50 border-l border-gray-700 h-screen overflow-y-auto transition-transform duration-300 z-40 ${
+          sidebarColapsado ? 'translate-x-full' : 'translate-x-0'
+        }`}>
+          <div className="p-4 border-b border-gray-700 mt-16">
             <h3 className="text-lg font-semibold text-white">Contenido del curso</h3>
             <p className="text-sm text-gray-400">
               {modulos.length} módulos • {modulos.reduce((total, m) => total + (m.lecciones?.length || 0), 0)} lecciones

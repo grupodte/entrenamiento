@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Home, User, Target, ArrowLeft, MoreHorizontal, X } from 'lucide-react';
+import { Home, User, Target, ArrowLeft, MoreHorizontal, X, Menu, PanelLeftOpen } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -11,7 +11,10 @@ const FloatingNavBar = ({
   onToggleProgressDock = null,
   progressGlobal = 0,
   // Props para botón dinámico Home/Back
-  onBackClick = null
+  onBackClick = null,
+  // Props para SwipeWidget (solo en Dashboard)
+  onOpenSwipeWidget = null,
+  isSwipeWidgetOpen = false
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -33,6 +36,7 @@ const FloatingNavBar = ({
   // Detectar rutas específicas
   const isInRutinaDetalle = location.pathname.includes('/rutina/');
   const shouldShowProgressButton = isInRutinaDetalle && onToggleProgressDock;
+  const shouldShowSwipeButton = !isInRutinaDetalle && onOpenSwipeWidget; // Solo en Dashboard
   
   // Funciones para manejo de expansión
   const startAutoCloseTimer = useCallback(() => {
@@ -349,9 +353,16 @@ const FloatingNavBar = ({
           paddingLeft: isExpanded ? '10px' : '2px',
           paddingRight: isExpanded ? '10px' : '2px',
           paddingTop: '4px',
-          paddingBottom: '4px'
+          paddingBottom: '4px',
+          borderRadius: isExpanded ? '20px' : '20px',
+          scale: isExpanded ? 1 : 1
         }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
+        transition={{ 
+          type: "spring",
+          stiffness: 600,
+          damping: 35,
+          mass: 0.5
+        }}
         onMouseEnter={handleUserInteraction}
       >
         {/* Estado Colapsado - Botón Toggle */}
@@ -363,15 +374,20 @@ const FloatingNavBar = ({
               className="relative flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 group backdrop-blur-xl border shadow-lg hover:scale-105 active:scale-95 bg-white/10 border-white/20 text-gray-300 hover:text-white hover:bg-white/15 hover:border-white/30 shadow-black/20"
               onPointerDown={(e) => e.stopPropagation()}
               style={{ WebkitTapHighlightColor: 'transparent' }}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.15 }}
+              initial={{ opacity: 0, scale: 0.8, rotate: -90 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              exit={{ opacity: 0, scale: 0.8, rotate: 90 }}
+              transition={{ 
+                type: "spring",
+                stiffness: 800,
+                damping: 30,
+                mass: 0.4
+              }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <div className="relative">
-                <MoreHorizontal className="w-4 h-4" />
+                <Menu className="w-4 h-4" />
                 
                 {/* Indicador de notificación si hay progreso */}
                 {progressGlobal > 0 && (
@@ -405,10 +421,16 @@ const FloatingNavBar = ({
             <motion.div
               key="expanded-buttons"
               className="flex items-center space-x-1.5"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, x: -30, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: -30, scale: 0.9 }}
+              transition={{ 
+                type: "spring",
+                stiffness: 700,
+                damping: 30,
+                mass: 0.4,
+                delay: 0.05
+              }}
             >
               
               {/* Botón Inicio/Atrás Dinámico */}
@@ -427,9 +449,14 @@ const FloatingNavBar = ({
                 style={{ WebkitTapHighlightColor: 'transparent' }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.1, duration: 0.15 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 800,
+                  damping: 32,
+                  delay: 0.08
+                }}
               >
                 <div className="relative">
                   {/* Icono dinámico con animación */}
@@ -472,7 +499,70 @@ const FloatingNavBar = ({
 
               
               {/* Separador */}
-              <div className="w-px h-5 bg-white/20" />
+              <motion.div 
+                className="w-px h-5 bg-white/20"
+                initial={{ opacity: 0, scaleY: 0 }}
+                animate={{ opacity: 1, scaleY: 1 }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 800,
+                  damping: 32,
+                  delay: 0.10
+                }}
+              />
+              
+              {/* Botón SwipeWidget - Solo en Dashboard */}
+              {shouldShowSwipeButton && (
+                <>
+                  <motion.button
+                    onClick={() => {
+                      onOpenSwipeWidget();
+                      handleUserInteraction();
+                    }}
+                    className={navButtonClass(isSwipeWidgetOpen)}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                      type: "spring",
+                      stiffness: 800,
+                      damping: 32,
+                      delay: 0.12
+                    }}
+                  >
+                    <div className="relative">
+                      <PanelLeftOpen className="w-4 h-4" />
+                      
+                      {/* Dot indicator cuando está activo */}
+                      {isSwipeWidgetOpen && (
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-cyan-400 rounded-full" />
+                      )}
+                      
+                      {/* Tooltip */}
+                      <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                        Menú
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-black/80"></div>
+                      </div>
+                    </div>
+                  </motion.button>
+                  
+                  {/* Separador visual adicional */}
+                  <motion.div 
+                    className="w-px h-5 bg-white/20"
+                    initial={{ opacity: 0, scaleY: 0 }}
+                    animate={{ opacity: 1, scaleY: 1 }}
+                    transition={{ 
+                      type: "spring",
+                      stiffness: 800,
+                      damping: 32,
+                      delay: 0.14
+                    }}
+                  />
+                </>
+              )}
               
               {/* Botón ProgressDock - Solo en RutinaDetalle */}
               {shouldShowProgressButton && (
@@ -488,17 +578,19 @@ const FloatingNavBar = ({
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ 
-                      opacity: 1, 
-                      scale: 1,
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
                       boxShadow: showProgressDock 
                         ? ['0 0 0 0 rgba(16, 185, 129, 0.4)', '0 0 0 8px rgba(16, 185, 129, 0)', '0 0 0 0 rgba(16, 185, 129, 0.4)']
                         : ['0 0 0 0 rgba(16, 185, 129, 0.2)', '0 0 0 4px rgba(16, 185, 129, 0)', '0 0 0 0 rgba(16, 185, 129, 0.2)']
                     }}
                     transition={{ 
-                      delay: 0.15, 
-                      duration: 0.15,
+                      type: "spring",
+                      stiffness: 800,
+                      damping: 32,
+                      delay: 0.12,
                       boxShadow: {
                         duration: 2,
                         repeat: Infinity,
@@ -577,7 +669,17 @@ const FloatingNavBar = ({
                   </motion.button>
                   
                   {/* Separador visual adicional */}
-                  <div className="w-px h-5 bg-white/20" />
+                  <motion.div 
+                    className="w-px h-5 bg-white/20"
+                    initial={{ opacity: 0, scaleY: 0 }}
+                    animate={{ opacity: 1, scaleY: 1 }}
+                    transition={{ 
+                      type: "spring",
+                      stiffness: 800,
+                      damping: 32,
+                      delay: 0.14
+                    }}
+                  />
                 </>
               )}
 
@@ -595,11 +697,16 @@ const FloatingNavBar = ({
                 className={navButtonClass(activeButton === 'profile' && isPerfilOpen)}
                 onPointerDown={(e) => e.stopPropagation()}
                 style={{ WebkitTapHighlightColor: 'transparent' }}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.15, duration: 0.15 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 800,
+                  damping: 32,
+                  delay: shouldShowSwipeButton ? 0.16 : 0.12
+                }}
               >
                 <div className="relative">
                   <User className="w-4 h-4" />
@@ -624,29 +731,12 @@ const FloatingNavBar = ({
         style={{
           opacity: isDragging ? 0.6 : 0.3,
           transform: `translateX(-50%) scale(${isDragging ? 1.1 : 1})`,
-          transition: 'all 0.3s ease',
+          width: isExpanded ? '200px' : '96px',
+          transition: 'all 0.25s ease-in-out',
         }}
       />
 
-      {/* Indicador para dispositivos táctiles */}
-      {isTouchDevice && deviceOrientation === 'portrait' && (
-        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1 opacity-50">
-          {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className="w-1 h-1 bg-white/40 rounded-full animate-pulse"
-              style={{ animationDelay: `${i * 200}ms` }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Indicador de modo PWA */}
-      {process.env.NODE_ENV === 'development' && isStandalone && (
-        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-green-400 whitespace-nowrap font-mono">
-          PWA Mode
-        </div>
-      )}
+    
     </nav>
   );
 };

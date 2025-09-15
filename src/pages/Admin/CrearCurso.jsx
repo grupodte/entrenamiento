@@ -210,6 +210,36 @@ const CrearCurso = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('🏁 INICIANDO GUARDADO DEL CURSO');
+    console.log('🔍 Estado actual de módulos:', modulos);
+    console.log('🔍 Número de módulos:', modulos.length);
+    
+    modulos.forEach((modulo, index) => {
+      console.log(`📁 Módulo ${index + 1}:`, {
+        id: modulo.id,
+        titulo: modulo.titulo,
+        descripcion: modulo.descripcion,
+        orden: modulo.orden,
+        duracion_estimada: modulo.duracion_estimada,
+        num_lecciones: modulo.lecciones?.length || 0
+      });
+      
+      if (modulo.lecciones && modulo.lecciones.length > 0) {
+        modulo.lecciones.forEach((leccion, lecIndex) => {
+          console.log(`  🎥 Lección ${lecIndex + 1}:`, {
+            id: leccion.id,
+            titulo: leccion.titulo,
+            descripcion: leccion.descripcion,
+            contenido: leccion.contenido,
+            video_url: leccion.video_url,
+            duracion_segundos: leccion.duracion_segundos,
+            orden: leccion.orden,
+            es_preview: leccion.es_preview
+          });
+        });
+      }
+    });
+    
     if (!curso.titulo || !curso.descripcion || !curso.categoria || !curso.nivel) {
       toast.error('Por favor completa los campos obligatorios');
       return;
@@ -250,19 +280,45 @@ const CrearCurso = () => {
 
       // Guardar módulos y lecciones
       console.log('🔍 Guardando módulos:', modulos);
+      console.log('🔍 isEditing:', isEditing);
+      console.log('🔍 cursoId original:', cursoId);
+      console.log('🔍 cursoIdGuardado:', cursoIdGuardado);
+      
+      // Usar el ID correcto dependiendo si estamos editando o creando
+      const cursoIdFinal = isEditing ? cursoId : cursoIdGuardado;
+      console.log('🔍 cursoIdFinal a usar:', cursoIdFinal);
       
       if (modulos.length > 0) {
         // Si estamos editando, eliminamos módulos y lecciones existentes
         if (isEditing) {
-          console.log('🔍 Eliminando módulos existentes del curso:', cursoId);
+          console.log('🔍 Eliminando módulos existentes del curso:', cursoIdFinal);
           
           // Primero eliminar lecciones
-          await supabase.from('lecciones').delete().eq('curso_id', cursoId);
+          const { error: eliminarLeccionesError } = await supabase
+            .from('lecciones')
+            .delete()
+            .eq('curso_id', cursoIdFinal);
+            
+          if (eliminarLeccionesError) {
+            console.error('❌ Error al eliminar lecciones:', eliminarLeccionesError);
+            throw eliminarLeccionesError;
+          }
+          
           // Luego eliminar módulos
-          await supabase.from('modulos_curso').delete().eq('curso_id', cursoId);
+          const { error: eliminarModulosError } = await supabase
+            .from('modulos_curso')
+            .delete()
+            .eq('curso_id', cursoIdFinal);
+            
+          if (eliminarModulosError) {
+            console.error('❌ Error al eliminar módulos:', eliminarModulosError);
+            throw eliminarModulosError;
+          }
+          
+          console.log('✅ Módulos y lecciones existentes eliminados');
         }
 
-        // Insertar módulos (siempre usamos cursoIdGuardado para consistencia)
+        // Insertar módulos
         for (let i = 0; i < modulos.length; i++) {
           const modulo = modulos[i];
           
@@ -276,7 +332,7 @@ const CrearCurso = () => {
           const { data: moduloData, error: moduloError } = await supabase
             .from('modulos_curso')
             .insert({
-              curso_id: cursoIdGuardado,
+              curso_id: cursoIdFinal,
               titulo: modulo.titulo,
               descripcion: modulo.descripcion || '',
               orden: modulo.orden,
@@ -296,10 +352,19 @@ const CrearCurso = () => {
           if (modulo.lecciones && modulo.lecciones.length > 0) {
             console.log(`🔍 Guardando ${modulo.lecciones.length} lecciones para el módulo:`);
             
-            const leccionesData = modulo.lecciones.map(leccion => {
+            const leccionesData = modulo.lecciones.map((leccion, index) => {
+              console.log(`🔍 Procesando lección ${index + 1}:`);
+              console.log('  - Lección completa:', leccion);
+              console.log('  - Título:', leccion.titulo);
+              console.log('  - Descripción:', leccion.descripcion);
+              console.log('  - Contenido:', leccion.contenido);
+              console.log('  - Video URL:', leccion.video_url);
+              console.log('  - Duración segundos:', leccion.duracion_segundos);
+              console.log('  - Es preview:', leccion.es_preview);
+              
               const leccionData = {
                 modulo_id: moduloData.id,
-                curso_id: cursoIdGuardado,
+                curso_id: cursoIdFinal,
                 titulo: leccion.titulo || 'Sin título',
                 descripcion: leccion.descripcion || '',
                 contenido: leccion.contenido || '',
@@ -309,7 +374,7 @@ const CrearCurso = () => {
                 es_preview: Boolean(leccion.es_preview)
               };
               
-              console.log('🔍 Datos de lección a insertar:', leccionData);
+              console.log('  - Datos finales a insertar:', leccionData);
               return leccionData;
             });
 
@@ -329,8 +394,21 @@ const CrearCurso = () => {
         console.log('ℹ️ No hay módulos para guardar');
       }
 
+      console.log('\u2705 Proceso de guardado completado exitosamente');
+      
       toast.success(isEditing ? 'Curso actualizado correctamente' : 'Curso creado correctamente');
-      navigate('/admin/cursos');
+      
+      // Si estamos editando, recargar los datos para confirmar cambios
+      if (isEditing) {
+        console.log('\ud83d\udd04 Recargando datos del curso para confirmar cambios...');
+        await cargarCurso();
+        console.log('\u2705 Datos recargados - cambios confirmados');
+      }
+      
+      // Delay la navegaci\u00f3n para asegurar que los datos se hayan guardado
+      setTimeout(() => {
+        navigate('/admin/cursos');
+      }, 500);
     } catch (error) {
       console.error('Error al guardar curso:', error);
       toast.error('Error al guardar el curso');

@@ -48,9 +48,18 @@ const ModulosEditor = ({ modulos, onModulosChange }) => {
   };
 
   const actualizarModulo = (moduloId, datosNuevos) => {
-    const nuevosModulos = modulos.map(m => 
-      m.id === moduloId ? { ...m, ...datosNuevos } : m
-    );
+    console.log('🔄 Actualizando módulo', moduloId);
+    console.log('  - Datos nuevos:', datosNuevos);
+    
+    const nuevosModulos = modulos.map(m => {
+      if (m.id === moduloId) {
+        console.log('  - Módulo encontrado:', m.titulo, '-> actualizando a:', datosNuevos.titulo);
+        return { ...m, ...datosNuevos };
+      }
+      return m;
+    });
+    
+    console.log('  - Módulos actualizados:', nuevosModulos);
     onModulosChange(nuevosModulos);
   };
 
@@ -81,7 +90,7 @@ const ModulosEditor = ({ modulos, onModulosChange }) => {
     });
 
     onModulosChange(nuevosModulos);
-    setEditingLeccion(`${moduloId}-${nuevaLeccion.id}`);
+    setEditingLeccion(`${moduloId}___${nuevaLeccion.id}`);
     setTempLeccion(nuevaLeccion);
   };
 
@@ -99,15 +108,25 @@ const ModulosEditor = ({ modulos, onModulosChange }) => {
   };
 
   const actualizarLeccion = (moduloId, leccionId, datosNuevos) => {
+    console.log('🔄 Actualizando lección en módulo', moduloId, 'lección', leccionId);
+    console.log('  - Datos nuevos:', datosNuevos);
+    
     const nuevosModulos = modulos.map(modulo => {
       if (modulo.id === moduloId) {
-        const nuevasLecciones = (modulo.lecciones || []).map(leccion =>
-          leccion.id === leccionId ? { ...leccion, ...datosNuevos } : leccion
-        );
+        console.log('  - Módulo encontrado:', modulo.titulo);
+        const nuevasLecciones = (modulo.lecciones || []).map(leccion => {
+          if (leccion.id === leccionId) {
+            console.log('  - Lección encontrada:', leccion.titulo, '-> actualizando a:', datosNuevos.titulo);
+            return { ...leccion, ...datosNuevos };
+          }
+          return leccion;
+        });
         return { ...modulo, lecciones: nuevasLecciones };
       }
       return modulo;
     });
+    
+    console.log('  - Módulos actualizados:', nuevosModulos);
     onModulosChange(nuevosModulos);
   };
 
@@ -145,10 +164,18 @@ const ModulosEditor = ({ modulos, onModulosChange }) => {
   };
 
   const guardarModulo = () => {
+    console.log('🔄 Guardando módulo...');
+    console.log('  - editingModulo:', editingModulo);
+    console.log('  - tempModulo:', tempModulo);
+    
     if (editingModulo && tempModulo.titulo.trim()) {
       actualizarModulo(editingModulo, tempModulo);
       setEditingModulo(null);
       setTempModulo({});
+      
+      console.log('✅ Módulo guardado correctamente');
+    } else {
+      console.warn('⚠️ No se pudo guardar el módulo - faltan datos');
     }
   };
 
@@ -158,11 +185,21 @@ const ModulosEditor = ({ modulos, onModulosChange }) => {
   };
 
   const guardarLeccion = () => {
+    console.log('🔄 Guardando lección...');
+    console.log('  - editingLeccion:', editingLeccion);
+    console.log('  - tempLeccion:', tempLeccion);
+    
     if (editingLeccion && tempLeccion.titulo.trim()) {
-      const [moduloId, leccionId] = editingLeccion.split('-');
+      const [moduloId, leccionId] = editingLeccion.split('___');
+      console.log('  - moduloId:', moduloId, 'leccionId:', leccionId);
+      
       actualizarLeccion(moduloId, leccionId, tempLeccion);
       setEditingLeccion(null);
       setTempLeccion({});
+      
+      console.log('✅ Lección guardada correctamente');
+    } else {
+      console.warn('⚠️ No se pudo guardar la lección - faltan datos');
     }
   };
 
@@ -366,7 +403,7 @@ const ModulosEditor = ({ modulos, onModulosChange }) => {
                               </button>
                             </div>
 
-                            {editingLeccion === `${modulo.id}-${leccion.id}` ? (
+                            {editingLeccion === `${modulo.id}___${leccion.id}` ? (
                               <div className="flex-1 space-y-2">
                                 <div className="flex gap-2">
                                   <input
@@ -454,7 +491,7 @@ const ModulosEditor = ({ modulos, onModulosChange }) => {
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      setEditingLeccion(`${modulo.id}-${leccion.id}`);
+                                      setEditingLeccion(`${modulo.id}___${leccion.id}`);
                                       setTempLeccion(leccion);
                                     }}
                                     className="p-1 text-gray-400 hover:text-white"

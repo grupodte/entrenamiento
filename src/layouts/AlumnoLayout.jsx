@@ -59,6 +59,7 @@ const AlumnoLayoutContent = () => {
   const handleProfileUpdate = useCallback(() => setIsEditPerfilDrawerOpen(false), []);
 
   const handleCloseSwipeWidget = useCallback(() => setIsSwipeWidgetOpen(false), []);
+  const handleOpenSwipeWidget = useCallback(() => setIsSwipeWidgetOpen(prev => !prev), []);
 
   // Configurar gestos de swipe simplificados
   const { containerRef, swipeProgress, closeProgress, isEdgeSwipe } = useSwipeGesture({
@@ -140,6 +141,8 @@ const AlumnoLayoutContent = () => {
             onToggleProgressDock={toggleProgressDock}
             progressGlobal={progressGlobal}
             onBackClick={onBackClick}
+            onOpenSwipeWidget={handleOpenSwipeWidget}
+            isSwipeWidgetOpen={isSwipeWidgetOpen}
           />
         </div>
       </motion.main>

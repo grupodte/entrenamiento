@@ -14,6 +14,40 @@ import {
   RotateCcw
 } from 'lucide-react';
 
+// Utility functions to detect video types
+const getVideoType = (url) => {
+  if (!url) return 'unknown';
+  
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    return 'youtube';
+  } else if (url.includes('vimeo.com')) {
+    return 'vimeo';
+  } else if (url.match(/\.(mp4|webm|ogg|mov)$/i)) {
+    return 'direct';
+  } else if (url.includes('blob:') || url.includes('data:')) {
+    return 'direct';
+  }
+  return 'direct'; // Default to trying direct video
+};
+
+const getYouTubeEmbedUrl = (url) => {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  if (match && match[2].length === 11) {
+    return `https://www.youtube.com/embed/${match[2]}?autoplay=0&rel=0`;
+  }
+  return url;
+};
+
+const getVimeoEmbedUrl = (url) => {
+  const regExp = /vimeo.com\/(\d+)/;
+  const match = url.match(regExp);
+  if (match) {
+    return `https://player.vimeo.com/video/${match[1]}`;
+  }
+  return url;
+};
+
 const VideoPlayer = ({ 
   src, 
   poster, 
@@ -24,6 +58,7 @@ const VideoPlayer = ({
   showNotes = true,
   className = ""
 }) => {
+  const videoType = getVideoType(src);
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const progressBarRef = useRef(null);
@@ -39,6 +74,7 @@ const VideoPlayer = ({
   const [showSettings, setShowSettings] = useState(false);
   const [loading, setLoading] = useState(true);
   const [buffered, setBuffered] = useState(0);
+  const [videoError, setVideoError] = useState(null);
   
   // Control visibility timeout
   const controlsTimeoutRef = useRef(null);
@@ -152,10 +188,29 @@ const VideoPlayer = ({
 
   // Video event handlers
   const handleLoadedData = () => {
+    console.log('Video loaded successfully:', src);
     setLoading(false);
+    setVideoError(null);
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
     }
+  };
+
+  const handleVideoError = (e) => {
+    console.error('Video error:', e.target.error);
+    console.error('Video src:', src);
+    setLoading(false);
+    setVideoError(e.target.error || { code: 0, message: 'Error desconocido al cargar el video' });
+  };
+
+  const handleLoadStart = () => {
+    console.log('Starting to load video:', src);
+    setLoading(true);
+    setVideoError(null);
+  };
+
+  const handleCanPlay = () => {
+    console.log('Video can start playing:', src);
   };
 
   const handleTimeUpdate = () => {
@@ -261,15 +316,36 @@ const VideoPlayer = ({
   const playbackRates = [0.5, 0.75, 1, 1.25, 1.5, 2];
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-  return (
-    <div
-      ref={containerRef}
-      className={`relative bg-black rounded-lg overflow-hidden group ${className}`}
-      onMouseMove={showControlsTemporarily}
-      onMouseLeave={() => isPlaying && setShowControls(false)}
-      tabIndex={0}
-    >
-      {/* Video Element */}
+  // Render different video players based on video type
+  const renderVideoContent = () => {
+    if (videoType === 'youtube') {
+      return (
+        <iframe
+          src={getYouTubeEmbedUrl(src)}
+          className="w-full h-full"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          title={title}
+        />
+      );
+    }
+    
+    if (videoType === 'vimeo') {
+      return (
+        <iframe
+          src={getVimeoEmbedUrl(src)}
+          className="w-full h-full"
+          frameBorder="0"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+          title={title}
+        />
+      );
+    }
+    
+    // Direct video (MP4, WebM, etc.)
+    return (
       <video
         ref={videoRef}
         src={src}
@@ -281,19 +357,81 @@ const VideoPlayer = ({
         onPlay={handlePlay}
         onPause={handlePause}
         onClick={togglePlay}
+        onError={handleVideoError}
+        onLoadStart={handleLoadStart}
+        onCanPlay={handleCanPlay}
         preload="metadata"
+        crossOrigin="anonymous"
       />
+    );
+  };
 
-      {/* Loading Spinner */}
-      {loading && (
+  return (
+    <div
+      ref={containerRef}
+      className={`relative bg-black rounded-lg overflow-hidden group ${className}`}
+      onMouseMove={videoType === 'direct' ? showControlsTemporarily : undefined}
+      onMouseLeave={videoType === 'direct' ? () => isPlaying && setShowControls(false) : undefined}
+      tabIndex={0}
+    >
+      {/* Video Content */}
+      {renderVideoContent()}
+
+      {/* Loading Spinner - solo para videos directos */}
+      {loading && !videoError && videoType === 'direct' && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/50">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
         </div>
       )}
 
-      {/* Center Play Button */}
+      {/* Video Error Display - solo para videos directos */}
+      {videoError && videoType === 'direct' && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 text-white p-6">
+          <div className="text-center max-w-md">
+            <div className="bg-red-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Error al cargar el video</h3>
+            <p className="text-gray-300 text-sm mb-4">
+              {videoError.code === 1 && "Error de red. Verifica tu conexión a internet."}
+              {videoError.code === 2 && "Error de decodificación. El formato del video no es compatible."}
+              {videoError.code === 3 && "Error de formato. El video está corrupto o no es válido."}
+              {videoError.code === 4 && "Video no soportado. Contacta al administrador."}
+              {videoError.code === 0 && "Error desconocido al cargar el video."}
+            </p>
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  setVideoError(null);
+                  setLoading(true);
+                  if (videoRef.current) {
+                    videoRef.current.load();
+                  }
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors block mx-auto"
+              >
+                Reintentar
+              </button>
+              <p className="text-xs text-gray-400">
+                Tip: Si el video es de YouTube o Vimeo, asegúrate de usar la URL correcta del navegador.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Info para embeds de YouTube/Vimeo */}
+      {(videoType === 'youtube' || videoType === 'vimeo') && (
+        <div className="absolute top-4 left-4 bg-black/50 rounded-lg px-3 py-1 text-white text-sm">
+          <span className="capitalize">{videoType}</span> Video
+        </div>
+      )}
+
+      {/* Center Play Button - solo para videos directos */}
       <AnimatePresence>
-        {!isPlaying && !loading && (
+        {!isPlaying && !loading && videoType === 'direct' && (
           <motion.button
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -308,9 +446,9 @@ const VideoPlayer = ({
         )}
       </AnimatePresence>
 
-      {/* Controls Overlay */}
+      {/* Controls Overlay - solo para videos directos */}
       <AnimatePresence>
-        {showControls && !loading && (
+        {showControls && !loading && videoType === 'direct' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
