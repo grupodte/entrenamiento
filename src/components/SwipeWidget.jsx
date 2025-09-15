@@ -1,5 +1,5 @@
 // ✅ SwipeWidget.jsx actualizado para compatibilidad con el fix del gesture
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Music, BookOpen, Play, Users, Download, Smartphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
