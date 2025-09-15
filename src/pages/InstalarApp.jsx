@@ -38,13 +38,7 @@ const InstalarApp = () => {
         {/* Capa oscura con blur total */}
         <div className="absolute inset-0 bg-black/70 backdrop-blur-xl"></div>
 
-        {/* Botón de volver */}
-        <button
-          onClick={handleGoBack}
-          className="absolute top-6 left-6 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-200 backdrop-blur-md border border-white/20"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </button>
+    
 
         {/* Modal con animación - App ya instalada */}
         <motion.div
@@ -87,20 +81,14 @@ const InstalarApp = () => {
       {/* Capa oscura con blur total */}
       <div className="absolute inset-0 bg-black/70 backdrop-blur-xl"></div>
 
-      {/* Botón de volver */}
-      <button
-        onClick={handleGoBack}
-        className="absolute top-6 left-6 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-200 backdrop-blur-md border border-white/20"
-      >
-        <ArrowLeft className="w-6 h-6" />
-      </button>
+
 
       {/* Modal con animación */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.7, ease: 'easeOut' }}
-        className="relative z-10 p-12 rounded-2xl bg-gray-900/30 max-w-md text-white border border-gray-700/20 shadow-2xl backdrop-blur-xl text-center"
+        className="relative z-10 p-10 rounded-2xl max-w-[300px] text-white border border-gray-700/20 shadow-2xl text-center"
       >
         <div className="flex items-center justify-center w-20 h-20 rounded-full bg-cyan-500/20 mb-6 mx-auto">
           {isInstalling ? (
@@ -113,7 +101,7 @@ const InstalarApp = () => {
         </div>
         
         <h1 className="text-3xl font-bold mb-4">
-          {isInstalling ? 'Instalando...' : 'Instalar FitApp'}
+          {isInstalling ? 'Instalando...' : 'Instalar '}
         </h1>
         
         <p className="text-gray-300 mb-8 leading-relaxed">
@@ -152,15 +140,7 @@ const InstalarApp = () => {
           )}
         </button>
 
-        {/* Información adicional */}
-        <div className="mt-8 p-4 rounded-xl bg-white/5 border border-white/10">
-          <p className="text-sm text-gray-400 leading-relaxed">
-            {isIOS 
-              ? '💡 En iOS: Toca el botón compartir (⬆️) en Safari y selecciona "Agregar a pantalla de inicio"'
-              : '💡 Después de instalar podrás acceder a FitApp desde tu escritorio o menú de inicio'
-            }
-          </p>
-        </div>
+     
       </motion.div>
     </div>
   );

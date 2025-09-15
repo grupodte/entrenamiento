@@ -12,56 +12,39 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
   const navigate = useNavigate();
   const { user, rol } = useAuth();
   
-  // Helper para manejar clicks táctiles en móvil
-  const createTouchHandler = (callback, debugName) => {
-    let touchStartTime = 0;
-    let touchStartPos = { x: 0, y: 0 };
+  // Sistema simple de delegación de eventos para móvil
+  const handleMobileClick = useCallback((e, action) => {
+    console.log('Mobile click handler:', action);
+    e.preventDefault();
+    e.stopPropagation();
     
-    return {
-      onTouchStart: (e) => {
-        touchStartTime = Date.now();
-        const touch = e.touches[0];
-        touchStartPos = { x: touch.clientX, y: touch.clientY };
-        console.log(`${debugName}: TouchStart detected`, { x: touch.clientX, y: touch.clientY });
-        e.stopPropagation(); // Prevenir que el swipe interfiera
-      },
-      onTouchEnd: (e) => {
-        const touchEndTime = Date.now();
-        const touchDuration = touchEndTime - touchStartTime;
-        const touch = e.changedTouches[0];
-        const touchEndPos = { x: touch.clientX, y: touch.clientY };
-        
-        const deltaX = Math.abs(touchEndPos.x - touchStartPos.x);
-        const deltaY = Math.abs(touchEndPos.y - touchStartPos.y);
-        const totalMovement = deltaX + deltaY;
-        
-        console.log(`${debugName}: TouchEnd detected`, {
-          duration: touchDuration,
-          movement: totalMovement,
-          isClick: touchDuration < 300 && totalMovement < 15
-        });
-        
-        // Detectar si fue un tap/click válido
-        if (touchDuration < 300 && totalMovement < 15) {
-          console.log(`${debugName}: Executing touch click`);
-          e.preventDefault();
-          e.stopPropagation();
-          callback(e);
-        }
-      },
-      onTouchMove: (e) => {
-        // Permitir pequeños movimientos pero prevenir swipes
-        const touch = e.touches[0];
-        const deltaX = Math.abs(touch.clientX - touchStartPos.x);
-        const deltaY = Math.abs(touch.clientY - touchStartPos.y);
-        
-        if (deltaX > 15 || deltaY > 15) {
-          // Si hay mucho movimiento, no es un click
-          console.log(`${debugName}: TouchMove cancelled click (movement too large)`);
-        }
+    // Ejecutar la acción después de un pequeño delay para asegurar que se procese
+    setTimeout(() => {
+      switch(action) {
+        case 'install':
+          console.log('Executing install action');
+          onClose();
+          navigate('/instalar');
+          break;
+        case 'mis-cursos':
+          console.log('Executing mis cursos action');
+          onClose();
+          if (rol === 'admin') {
+            navigate('/admin/cursos');
+          } else if (rol === 'alumno') {
+            navigate('/mis-cursos');
+          }
+          break;
+        case 'catalogo':
+          console.log('Executing catalogo action');
+          onClose();
+          navigate('/cursos');
+          break;
+        default:
+          console.log('Unknown action:', action);
       }
-    };
-  };
+    }, 10);
+  }, [onClose, navigate, rol]);
   
   // Hook para instalación PWA
   const { 
@@ -73,8 +56,29 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     isIOS 
   } = useInstallPWA();
   
-  // Global click listener para debugging
+  // Global click listener para debugging y fallback táctil
   useEffect(() => {
+    const globalTouchHandler = (e) => {
+      const target = e.target;
+      const action = target.getAttribute('data-action') || target.closest('[data-action]')?.getAttribute('data-action');
+      
+      if (action && isOpen) {
+        console.log('SwipeWidget: Global touch detected on action element', {
+          action,
+          target: target.tagName,
+          type: e.type
+        });
+        
+        if (e.type === 'touchend') {
+          // Fallback táctil de emergencia
+          setTimeout(() => {
+            console.log('SwipeWidget: Executing fallback action', action);
+            handleMobileClick(e, action);
+          }, 50);
+        }
+      }
+    };
+    
     const globalClickHandler = (e) => {
       console.log('SwipeWidget: Global click detected', {
         target: e.target.tagName,
@@ -86,9 +90,13 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     
     if (isOpen) {
       document.addEventListener('click', globalClickHandler, true);
-      return () => document.removeEventListener('click', globalClickHandler, true);
+      document.addEventListener('touchend', globalTouchHandler, true);
+      return () => {
+        document.removeEventListener('click', globalClickHandler, true);
+        document.removeEventListener('touchend', globalTouchHandler, true);
+      };
     }
-  }, [isOpen]);
+  }, [isOpen, handleMobileClick]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -170,35 +178,8 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     }
     
     const handleInstallClick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      console.log('PWA: Install button clicked - navigating to install page');
-      console.log('PWA: Event details:', { target: e.target, currentTarget: e.currentTarget });
-      
-      // Cerrar el widget y navegar a la página de instalación
-      onClose();
-      navigate('/instalar');
-    };
-    
-    // Crear handlers táctiles
-    const touchHandlers = createTouchHandler(handleInstallClick, 'PWA Install Button');
-    
-    const handleMouseDown = (e) => {
-      console.log('PWA: Mouse down detected', e.target);
-    };
-    
-    const handleMouseUp = (e) => {
-      console.log('PWA: Mouse up detected', e.target);
-      e.preventDefault();
-      e.stopPropagation();
-      
-      console.log('PWA: Install button clicked via mouseUp - navigating to install page');
-      console.log('PWA: Event details:', { target: e.target, currentTarget: e.currentTarget });
-      
-      // Cerrar el widget y navegar a la página de instalación
-      onClose();
-      navigate('/instalar');
+      console.log('PWA Install: Regular click handler');
+      handleMobileClick(e, 'install');
     };
     
     console.log('PWA: Rendering install widget, isInstalling:', isInstalling, 'isIOS:', isIOS, 'canAutoInstall:', shouldShowInstallButton());
@@ -206,10 +187,8 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     return (
       <button
         onClick={handleInstallClick}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        {...touchHandlers}
-        data-touch-handler="true"
+        onTouchEnd={handleInstallClick}
+        data-action="install"
         disabled={isInstalling}
         className="rounded-2xl p-3 flex flex-col items-center justify-center backdrop-blur-sm border border-green-500/20 hover:border-green-400/40 transition-all duration-300 group w-full disabled:opacity-50 h-full cursor-pointer hover:scale-105 active:scale-95"
         style={{ 
@@ -245,76 +224,20 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     console.log('CursosWidget: Renderizando', { user: !!user, rol });
     
     const handleMisCursosClick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('CursosWidget: Mis Cursos clicked', { rol, user: !!user });
-      console.log('CursosWidget: Event details:', { target: e.target, currentTarget: e.currentTarget });
-      
-      onClose();
-      if (rol === 'admin') {
-        console.log('CursosWidget: Navigating to /admin/cursos');
-        navigate('/admin/cursos');
-      } else if (rol === 'alumno') {
-        console.log('CursosWidget: Navigating to /mis-cursos');
-        navigate('/mis-cursos');
-      }
+      console.log('CursosWidget: Mis Cursos click handler');
+      handleMobileClick(e, 'mis-cursos');
     };
 
     const handleCatalogoClick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('CursosWidget: Catálogo clicked');
-      console.log('CursosWidget: Event details:', { target: e.target, currentTarget: e.currentTarget });
-      
-      onClose();
-      console.log('CursosWidget: Navigating to /cursos');
-      navigate('/cursos');
-    };
-    
-    // Crear handlers táctiles
-    const misCursosTouchHandlers = createTouchHandler(handleMisCursosClick, 'Mis Cursos Button');
-    const catalogoTouchHandlers = createTouchHandler(handleCatalogoClick, 'Catalogo Button');
-    
-    const handleMouseDownCursos = (e) => {
-      console.log('CursosWidget: Mouse down detected', e.target);
-    };
-    
-    const handleMouseUpCursos = (e) => {
-      console.log('CursosWidget: Mouse up detected', e.target);
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Determinar qué acción tomar según el contexto
-      if (e.currentTarget.dataset.action === 'mis-cursos') {
-        console.log('CursosWidget: Mis Cursos clicked via mouseUp', { rol, user: !!user });
-        console.log('CursosWidget: Event details:', { target: e.target, currentTarget: e.currentTarget });
-        
-        onClose();
-        if (rol === 'admin') {
-          console.log('CursosWidget: Navigating to /admin/cursos');
-          navigate('/admin/cursos');
-        } else if (rol === 'alumno') {
-          console.log('CursosWidget: Navigating to /mis-cursos');
-          navigate('/mis-cursos');
-        }
-      } else if (e.currentTarget.dataset.action === 'catalogo') {
-        console.log('CursosWidget: Catálogo clicked via mouseUp');
-        console.log('CursosWidget: Event details:', { target: e.target, currentTarget: e.currentTarget });
-        
-        onClose();
-        console.log('CursosWidget: Navigating to /cursos');
-        navigate('/cursos');
-      }
+      console.log('CursosWidget: Catalogo click handler');
+      handleMobileClick(e, 'catalogo');
     };
 
     if (!user || (rol !== 'admin' && rol !== 'alumno')) {
       return (
         <button
           onClick={handleCatalogoClick}
-          onMouseDown={handleMouseDownCursos}
-          onMouseUp={handleMouseUpCursos}
-          {...catalogoTouchHandlers}
-          data-touch-handler="true"
+          onTouchEnd={handleCatalogoClick}
           data-action="catalogo"
           className="rounded-2xl p-6 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
           style={{ 
@@ -348,10 +271,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
         {/* Botón principal según el rol */}
         <button
           onClick={handleMisCursosClick}
-          onMouseDown={handleMouseDownCursos}
-          onMouseUp={handleMouseUpCursos}
-          {...misCursosTouchHandlers}
-          data-touch-handler="true"
+          onTouchEnd={handleMisCursosClick}
           data-action="mis-cursos"
           className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
           style={{ 
@@ -377,10 +297,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
         {rol === 'alumno' && (
           <button
             onClick={handleCatalogoClick}
-            onMouseDown={handleMouseDownCursos}
-            onMouseUp={handleMouseUpCursos}
-            {...catalogoTouchHandlers}
-            data-touch-handler="true"
+            onTouchEnd={handleCatalogoClick}
             data-action="catalogo"
             className="rounded-2xl p-4 flex items-center gap-3 backdrop-blur-sm border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
             style={{ 

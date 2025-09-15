@@ -45,6 +45,8 @@ export const useSwipeGesture = ({
         currentElement.ontouchmove ||
         // Verificar si tiene data attributes de eventos táctiles
         currentElement.hasAttribute('data-touch-handler') ||
+        // Elementos con data-action son zonas exclusivas para clicks
+        currentElement.hasAttribute('data-action') ||
         // Elementos marcados como interactivos
         currentElement.dataset?.interactive === 'true' ||
         // Elementos con cursor pointer
