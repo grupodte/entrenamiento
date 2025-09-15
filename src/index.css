@@ -4,33 +4,24 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ✅ Prevención de navegación - Versión mejorada y robusta */
-/* Combina con useNoBack + usePreventSwipeBack */
+/* ✅ Prevención contextual de swipe back - Optimizado para PWA */
+/* Base: comportamiento controlado para prevenir navegación accidental */
 html {
   overscroll-behavior-x: none;
-  overscroll-behavior-y: auto;
+  overscroll-behavior-y: contain;
   -webkit-overscroll-behavior-x: none;
-  -webkit-overscroll-behavior-y: auto;
-  /* Prevenir touch actions horizontales */
-  touch-action: pan-y;
-  /* Propiedades adicionales para mayor compatibilidad */
-  overflow-x: hidden;
-  position: relative;
+  -webkit-overscroll-behavior-y: contain;
 }
 
 body {
   overscroll-behavior-x: none;
-  overscroll-behavior-y: auto;
+  overscroll-behavior-y: contain;
   -webkit-overscroll-behavior-x: none;
-  -webkit-overscroll-behavior-y: auto;
-  /* Touch actions permitiendo solo scroll vertical y zoom */
-  touch-action: pan-y pinch-zoom;
-  /* Solo prevenir selección accidental, mantener usabilidad */
+  -webkit-overscroll-behavior-y: contain;
+  /* Prevenir gestos de navegación en iOS Safari */
   -webkit-touch-callout: none;
+  -webkit-user-select: none;
   user-select: none;
-  /* Propiedades adicionales para robustez */
-  overflow-x: hidden;
-  position: relative;
 }
 
 /* Para drawers y modales activos - Prevenir swipe back solo cuando es necesario */
@@ -51,9 +42,6 @@ body {
   overscroll-behavior-x: none !important;
   -webkit-overscroll-behavior-x: none !important;
   touch-action: pan-y pinch-zoom !important;
-  /* Propiedades adicionales para mejor compatibilidad */
-  overflow-x: hidden !important;
-  position: relative !important;
 }
 
 .allow-swipe-back {
@@ -72,19 +60,20 @@ body {
 
 /* ====== UTILIDADES PERSONALIZADAS DE TAILWIND ====== */
 @layer utilities {
+
   /* Utilidad para ocultar scrollbars pero mantener funcionalidad */
   .scrollbar-none {
     scrollbar-width: none;
     -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .scrollbar-none::-webkit-scrollbar {
     display: none;
     width: 0;
     height: 0;
   }
-  
+
   /* Combinación de overflow con scroll oculto */
   .overflow-y-scroll-hidden {
     overflow-y: scroll;
@@ -92,29 +81,29 @@ body {
     -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .overflow-y-scroll-hidden::-webkit-scrollbar {
     display: none;
   }
-  
+
   .overflow-x-scroll-hidden {
     overflow-x: scroll;
     scrollbar-width: none;
     -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .overflow-x-scroll-hidden::-webkit-scrollbar {
     display: none;
   }
-  
+
   .overflow-auto-hidden {
     overflow: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .overflow-auto-hidden::-webkit-scrollbar {
     display: none;
   }
@@ -128,12 +117,17 @@ body {
   --sar: env(safe-area-inset-right);
 
   /* Variables de viewport dinámico para móviles */
-  --vh: 1vh; /* Valor base, será actualizado por JS */
-  --full-vh: 100dvh; /* Altura completa actual con fallback */
-  --real-vh: 100dvh; /* Altura real considerando navegador móvil */
-  --viewport-height: 100dvh; /* Altura del viewport disponible */
-  --safe-viewport-height: 100dvh; /* Altura segura para elementos fixed bottom */
-  
+  --vh: 1vh;
+  /* Valor base, será actualizado por JS */
+  --full-vh: 100dvh;
+  /* Altura completa actual con fallback */
+  --real-vh: 100dvh;
+  /* Altura real considerando navegador móvil */
+  --viewport-height: 100dvh;
+  /* Altura del viewport disponible */
+  --safe-viewport-height: 100dvh;
+  /* Altura segura para elementos fixed bottom */
+
   /* Fallback para navegadores sin soporte dvh */
   --full-vh: 100vh;
   --real-vh: 100vh;
@@ -162,22 +156,29 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
+  overscroll-behavior: none;
+  /* Prevenir el swipe back del navegador */
+  overscroll-behavior-x: none;
   font-family: 'ProductSans', 'Inter', sans-serif;
+  /* Deshabilitar swipe navigation completamente */
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
 }
 
 html {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  /* Ya configurado arriba en la sección simplificada */
 }
 
 body {
   @apply font-sans select-none text-white scrollbar-hide;
   background-color: var(--bg-primary);
   touch-action: manipulation;
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
   -webkit-overflow-scrolling: touch;
   text-rendering: optimizeLegibility;
-  /* overscroll-behavior ya configurado arriba */
 }
 
 /* ====== TIPOGRAFÍA PERSONALIZADA ====== */
@@ -217,13 +218,15 @@ body {
 
 .content-wrapper {
   /* Aplicamos márgenes personalizados al contenido */
-  margin-top: var(--content-margin-top) ;
+  margin-top: var(--content-margin-top);
   margin-bottom: calc(var(--content-margin-bottom));
   /* 80px para la navbar flotante */
   margin-left: var(--content-margin-horizontal);
   margin-right: var(--content-margin-horizontal);
-  min-height: calc(100vh - 9rem); /* 3rem padding-top + 6rem padding-bottom - fallback */
-  min-height: calc(100dvh - 9rem); /* Usa dvh si está disponible */
+  min-height: calc(100vh - 9rem);
+  /* 3rem padding-top + 6rem padding-bottom - fallback */
+  min-height: calc(100dvh - 9rem);
+  /* Usa dvh si está disponible */
 }
 
 /* ====== DASHBOARD STYLES ====== */
@@ -440,19 +443,24 @@ body {
 /* ====== SCROLLBARS OCULTOS GLOBALES ====== */
 /* Ocultar barras de scroll en toda la aplicación */
 * {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
 }
 
 *::-webkit-scrollbar {
-  display: none; /* Safari y Chrome */
+  display: none;
+  /* Safari y Chrome */
   width: 0;
   height: 0;
   background: transparent;
 }
 
 /* Mantener funcionalidad de scroll suave y táctil */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
 }
@@ -490,14 +498,18 @@ body {
 
 /* ====== DESHABILITAR SWIPE NAVIGATION COMPLETAMENTE ====== */
 /* Prevenir swipe back en todos los navegadores móviles */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   overscroll-behavior-x: none !important;
   -webkit-overscroll-behavior-x: none !important;
 }
 
 /* Específico para webkit (Safari, Chrome móvil) */
 @supports (-webkit-touch-callout: none) {
-  body, html {
+
+  body,
+  html {
     overscroll-behavior-x: none !important;
     -webkit-overscroll-behavior-x: none !important;
     /* Prevenir pull-to-refresh también */
@@ -508,7 +520,9 @@ body {
 
 /* Para aplicaciones PWA específicamente */
 @media (display-mode: standalone) {
-  body, html {
+
+  body,
+  html {
     overscroll-behavior: none !important;
     -webkit-overscroll-behavior: none !important;
   }
@@ -609,7 +623,8 @@ div[class*="overflow-"]::-webkit-scrollbar,
 .main-content,
 .content-wrapper,
 .dashboard,
-ul, ol, 
+ul,
+ol,
 .list-container,
 .scroll-container {
   scrollbar-width: none !important;
@@ -619,7 +634,7 @@ ul, ol,
 .main-content::-webkit-scrollbar,
 .content-wrapper::-webkit-scrollbar,
 .dashboard::-webkit-scrollbar,
-ul::-webkit-scrollbar, 
+ul::-webkit-scrollbar,
 ol::-webkit-scrollbar,
 .list-container::-webkit-scrollbar,
 .scroll-container::-webkit-scrollbar {
@@ -681,17 +696,20 @@ ol::-webkit-scrollbar,
 
 /* Clases utilitarias para 100dvh con fallback automático */
 .h-dvh {
-  height: 100vh; /* fallback */
+  height: 100vh;
+  /* fallback */
   height: 100dvh;
 }
 
 .min-h-dvh {
-  min-height: 100vh; /* fallback */
+  min-height: 100vh;
+  /* fallback */
   min-height: 100dvh;
 }
 
 .max-h-dvh {
-  max-height: 100vh; /* fallback */
+  max-height: 100vh;
+  /* fallback */
   max-height: 100dvh;
 }
 
