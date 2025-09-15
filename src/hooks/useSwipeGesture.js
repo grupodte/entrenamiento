@@ -1,14 +1,10 @@
-// ✅ useSwipeGesture.js corregido para evitar bloquear botones personalizados
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 export const useSwipeGesture = ({
-  onSwipeLeft,
-  onSwipeRight,
   onSwipeFromEdge,
   onSwipeToClose,
   threshold = 50,
   edgeThreshold = 30,
-  preventBrowserBack = true,
   isWidgetOpen = false
 }) => {
   const [isTracking, setIsTracking] = useState(false);
@@ -19,215 +15,222 @@ export const useSwipeGesture = ({
   const [startTime, setStartTime] = useState(0);
   const containerRef = useRef(null);
   const lastTouchTime = useRef(0);
+  
+  // Constantes para detección de clicks genuinos
   const CLICK_TIME_THRESHOLD = 200; // ms
-  const CLICK_DISTANCE_THRESHOLD = 10; // px
+  const CLICK_DISTANCE_THRESHOLD = 18; // px (tolerancia a jitter móvil)
 
-  const isElementInteractive = (targetElement, eTarget) => {
-    const interactiveTags = ['BUTTON', 'A', 'INPUT', 'TEXTAREA', 'SELECT', 'RANGE'];
-    let isInteractive = false;
-    let currentElement = targetElement;
+  // Detección robusta de elementos interactivos (solo para elementos realmente clickeables)
+  const isElementInteractive = useCallback((element) => {
+    if (!element) return false;
     
-    while (currentElement && currentElement !== eTarget) {
-      const tagName = currentElement.tagName;
-      const computedStyle = window.getComputedStyle(currentElement);
-      
-      if (
-        // Elementos interactivos por tag
-        interactiveTags.includes(tagName) ||
-        // Elementos con role interactivo
-        currentElement.hasAttribute('role') ||
-        // Elementos con event handlers
-        currentElement.onclick ||
-        currentElement.onmousedown ||
-        currentElement.onmouseup ||
-        currentElement.ontouchstart ||
-        currentElement.ontouchend ||
-        currentElement.ontouchmove ||
-        // Verificar si tiene data attributes de eventos táctiles
-        currentElement.hasAttribute('data-touch-handler') ||
-        // Elementos con data-action son zonas exclusivas para clicks
-        currentElement.hasAttribute('data-action') ||
-        // Elementos marcados como interactivos
-        currentElement.dataset?.interactive === 'true' ||
-        // Elementos con cursor pointer
-        computedStyle.cursor === 'pointer' ||
-        // Elementos clickeables por clase CSS
-        currentElement.classList.contains('cursor-pointer') ||
-        currentElement.classList.contains('hover:scale-105') ||
-        currentElement.classList.contains('active:scale-95')
-      ) {
-        isInteractive = true;
-        break;
+    const interactiveTags = ['BUTTON', 'A', 'INPUT', 'TEXTAREA', 'SELECT'];
+    const nonInteractiveTags = ['MAIN', 'DIV', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER', 'NAV'];
+    let current = element;
+    
+    while (current && current !== document.body) {
+      // Prioridad máxima: elementos con data-action
+      if (current.hasAttribute('data-action')) {
+        console.log('Interactive: data-action element found:', current.tagName);
+        return true;
       }
-      currentElement = currentElement.parentElement;
+      
+      // Excluir explícitamente elementos de layout que no deberían bloquear edge swipe
+      if (nonInteractiveTags.includes(current.tagName)) {
+        current = current.parentElement;
+        continue;
+      }
+      
+      // Tags explícitamente interactivos
+      if (interactiveTags.includes(current.tagName)) {
+        console.log('Interactive: interactive tag found:', current.tagName);
+        return true;
+      }
+      
+      // Elementos con roles interactivos específicos
+      const role = current.getAttribute('role');
+      if (role && ['button', 'link', 'menuitem', 'tab'].includes(role)) {
+        console.log('Interactive: interactive role found:', role);
+        return true;
+      }
+      
+      // Elementos con handlers de click explícitos
+      if (current.onclick) {
+        console.log('Interactive: onclick handler found on:', current.tagName);
+        return true;
+      }
+      
+      // Solo elementos con cursor pointer que también tienen algún indicador de interactividad
+      if (current.classList.contains('cursor-pointer') && 
+          (current.onclick || current.hasAttribute('data-action') || current.getAttribute('role'))) {
+        console.log('Interactive: cursor-pointer with interaction found:', current.tagName);
+        return true;
+      }
+      
+      current = current.parentElement;
     }
-    return isInteractive;
-  };
+    
+    console.log('Not interactive: element and parents are non-interactive:', element.tagName);
+    return false;
+  }, []);
 
   const handleTouchStart = useCallback((e) => {
     const touch = e.touches[0];
+    const now = Date.now();
     const startX = touch.clientX;
     const startY = touch.clientY;
-    const now = Date.now();
-
-    if (now - lastTouchTime.current < 100) return;
+    
+    console.log('TouchStart detected:', {
+      x: startX,
+      y: startY,
+      edgeThreshold,
+      isWidgetOpen,
+      target: e.target.tagName,
+      className: e.target.className
+    });
+    
+    // Throttling básico
+    if (now - lastTouchTime.current < 50) {
+      console.log('TouchStart throttled');
+      return;
+    }
     lastTouchTime.current = now;
-
+    
+    // Determinar tipo de gesto ANTES de verificar interactividad
+    const isFromLeftEdge = startX <= edgeThreshold && !isWidgetOpen;
+    const isFromWidget = isWidgetOpen && startX > window.innerWidth * 0.1;
+    
+    console.log('Gesture analysis:', {
+      isFromLeftEdge,
+      isFromWidget,
+      startX,
+      edgeThreshold,
+      windowWidth: window.innerWidth
+    });
+    
+    // Si no es un gesto válido, salir temprano
+    if (!isFromLeftEdge && !isFromWidget) {
+      console.log('Not a valid gesture area, ignoring');
+      return;
+    }
+    
+    // Solo para edge swipes, verificar si está en elemento interactivo
+    if (isFromLeftEdge && isElementInteractive(e.target)) {
+      console.log('Edge swipe blocked by interactive element');
+      return;
+    }
+    
+    console.log('Starting gesture tracking');
     setStartPos({ x: startX, y: startY });
     setCurrentPos({ x: startX, y: startY });
     setStartTime(now);
     setIsTracking(true);
-
-    const isFromLeftEdge = startX <= edgeThreshold && !isWidgetOpen;
     setIsEdgeSwipe(isFromLeftEdge);
-    const isFromWidget = isWidgetOpen && startX <= window.innerWidth * 0.95;
     setIsClosingSwipe(isFromWidget);
-
-    // Solo prevenir si es desde el borde y NO es un elemento interactivo
-    const isInteractive = isElementInteractive(e.target, e.currentTarget);
     
-    console.log('TouchStart:', {
-      isFromLeftEdge,
-      isFromWidget,
-      isInteractive,
-      tagName: e.target.tagName,
-      hasDataTouchHandler: e.target.hasAttribute('data-touch-handler')
-    });
-    
-    if (!isInteractive && preventBrowserBack && isFromLeftEdge && !isWidgetOpen) {
-      // Solo prevenir en borde izquierdo para apertura
-      console.log('Preventing touchstart for edge swipe');
-      e.preventDefault();
+    // Prevenir scroll horizontal solo para edge swipe
+    if (isFromLeftEdge) {
       document.body.style.overscrollBehaviorX = 'none';
-    } else if (isInteractive) {
-      console.log('Allowing touchstart on interactive element');
+      console.log('Edge swipe initiated, preventing horizontal scroll');
     }
-  }, [edgeThreshold, preventBrowserBack, isWidgetOpen]);
+  }, [edgeThreshold, isWidgetOpen, isElementInteractive]);
 
   const handleTouchMove = useCallback((e) => {
     if (!isTracking) return;
-    const touch = e.touches[0];
-    setCurrentPos({ x: touch.clientX, y: touch.clientY });
-
-    // Calcular si realmente se está haciendo un swipe horizontal
-    const deltaX = Math.abs(touch.clientX - startPos.x);
-    const deltaY = Math.abs(touch.clientY - startPos.y);
-    const isHorizontalSwipe = deltaX > deltaY && deltaX > 10;
-
-    // Solo prevenir si es claramente un swipe horizontal y no es un elemento interactivo
-    const isInteractive = isElementInteractive(e.target, e.currentTarget);
     
-    if (isHorizontalSwipe && (isEdgeSwipe || isClosingSwipe) && preventBrowserBack && !isInteractive) {
-      console.log('Preventing touchmove for horizontal swipe');
-      e.preventDefault();
-    } else if (isInteractive) {
-      console.log('Allowing touchmove on interactive element');
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - startPos.x;
+    const deltaY = Math.abs(touch.clientY - startPos.y);
+    const absDeltaX = Math.abs(deltaX);
+    
+    // Log detallado del movimiento
+    if (absDeltaX > 10) {
+      console.log('TouchMove progress:', {
+        deltaX,
+        absDeltaX,
+        deltaY,
+        isEdgeSwipe,
+        isClosingSwipe,
+        currentX: touch.clientX
+      });
     }
-  }, [isTracking, isEdgeSwipe, isClosingSwipe, preventBrowserBack, startPos]);
+    
+    setCurrentPos({ x: touch.clientX, y: touch.clientY });
+    
+    // Solo prevenir si es claramente horizontal
+    if (absDeltaX > deltaY && absDeltaX > 5) {
+      // Para edge swipe: movimiento hacia la derecha
+      if (isEdgeSwipe && deltaX > 0) {
+        console.log('Preventing edge swipe move, deltaX:', deltaX);
+        e.preventDefault();
+      }
+      // Para closing swipe: movimiento hacia la izquierda
+      else if (isClosingSwipe && deltaX < 0) {
+        console.log('Preventing close swipe move, deltaX:', deltaX);
+        e.preventDefault();
+      }
+    }
+  }, [isTracking, isEdgeSwipe, isClosingSwipe, startPos]);
 
   const handleTouchEnd = useCallback((e) => {
     if (!isTracking) return;
+    
     const endTime = Date.now();
     const elapsedTime = endTime - startTime;
-    
     const deltaX = currentPos.x - startPos.x;
-    const absDeltaX = Math.abs(deltaX);
-    const absDeltaY = Math.abs(currentPos.y - startPos.y);
-    const totalMovement = absDeltaX + absDeltaY;
+    const deltaY = currentPos.y - startPos.y;
+    const totalMovement = Math.abs(deltaX) + Math.abs(deltaY);
     
-    // Detectar si fue un click genuino o un swipe
+    // Detectar click genuino vs swipe
     const wasClick = elapsedTime < CLICK_TIME_THRESHOLD && totalMovement < CLICK_DISTANCE_THRESHOLD;
     
-    // Si fue un click genuino, no hacer nada para permitir que el evento click se propague
     if (wasClick) {
-      console.log('Detectado como click genuino, permitiendo propagación');
-    } else if (absDeltaX > absDeltaY && absDeltaX > threshold) {
-      // Fue un swipe, procesar normalmente
-      if (isClosingSwipe && deltaX < 0) onSwipeToClose?.(Math.abs(deltaX)); // Cambiado: cierre con swipe izquierda
-      else if (isEdgeSwipe && deltaX > 0) onSwipeFromEdge?.(deltaX);
-      else if (!isWidgetOpen && deltaX > 0) onSwipeRight?.(deltaX);
-      else if (!isWidgetOpen && deltaX < 0) onSwipeLeft?.(Math.abs(deltaX));
+      console.log('Genuine click detected, allowing propagation');
+    } else {
+      // Procesar swipe
+      const absDeltaX = Math.abs(deltaX);
+      const absDeltaY = Math.abs(deltaY);
+      
+      if (absDeltaX > absDeltaY && absDeltaX > threshold) {
+        if (isEdgeSwipe && deltaX > 0) {
+          console.log('Edge swipe completed:', deltaX);
+          onSwipeFromEdge?.(deltaX);
+        } else if (isClosingSwipe && deltaX < 0) {
+          console.log('Close swipe completed:', Math.abs(deltaX));
+          onSwipeToClose?.(Math.abs(deltaX));
+        }
+      }
     }
-
+    
+    // Reset estado
     setIsTracking(false);
     setIsEdgeSwipe(false);
     setIsClosingSwipe(false);
     document.body.style.overscrollBehaviorX = 'auto';
-  }, [isTracking, currentPos, startPos, startTime, threshold, isEdgeSwipe, isClosingSwipe, isWidgetOpen, onSwipeLeft, onSwipeRight, onSwipeFromEdge, onSwipeToClose, CLICK_TIME_THRESHOLD, CLICK_DISTANCE_THRESHOLD]);
+  }, [isTracking, currentPos, startPos, startTime, threshold, isEdgeSwipe, isClosingSwipe, onSwipeFromEdge, onSwipeToClose]);
 
-  const handleMouseDown = useCallback((e) => {
-    if (e.button !== 0) return;
-    setStartPos({ x: e.clientX, y: e.clientY });
-    setCurrentPos({ x: e.clientX, y: e.clientY });
-    setIsTracking(true);
-    const isFromLeftEdge = e.clientX <= edgeThreshold && !isWidgetOpen;
-    setIsEdgeSwipe(isFromLeftEdge);
-    const isFromWidget = isWidgetOpen && e.clientX <= window.innerWidth * 0.95;
-    setIsClosingSwipe(isFromWidget);
-    if (!isElementInteractive(e.target, e.currentTarget) && preventBrowserBack && (isFromLeftEdge || isFromWidget)) {
-      e.preventDefault();
-    }
-  }, [edgeThreshold, preventBrowserBack, isWidgetOpen]);
-
-  const handleMouseMove = useCallback((e) => {
-    if (!isTracking) return;
-    setCurrentPos({ x: e.clientX, y: e.clientY });
-    if ((isEdgeSwipe || isClosingSwipe) && preventBrowserBack) {
-      if (!isElementInteractive(e.target, e.currentTarget)) {
-        e.preventDefault();
-      }
-    }
-  }, [isTracking, isEdgeSwipe, isClosingSwipe, preventBrowserBack]);
-
-  const handleMouseUp = useCallback((e) => {
-    if (!isTracking) return;
-    const deltaX = currentPos.x - startPos.x;
-    const absDeltaX = Math.abs(deltaX);
-    const absDeltaY = Math.abs(currentPos.y - startPos.y);
-
-    if (absDeltaX > absDeltaY && absDeltaX > threshold) {
-      if (isClosingSwipe && deltaX < 0) onSwipeToClose?.(Math.abs(deltaX)); // Cambiado: cierre con swipe izquierda
-      else if (isEdgeSwipe && deltaX > 0) onSwipeFromEdge?.(deltaX);
-      else if (!isWidgetOpen && deltaX > 0) onSwipeRight?.(deltaX);
-      else if (!isWidgetOpen && deltaX < 0) onSwipeLeft?.(Math.abs(deltaX));
-    }
-
-    setIsTracking(false);
-    setIsEdgeSwipe(false);
-    setIsClosingSwipe(false);
-  }, [isTracking, currentPos, startPos, threshold, isEdgeSwipe, isClosingSwipe, isWidgetOpen, onSwipeLeft, onSwipeRight, onSwipeFromEdge, onSwipeToClose]);
-
+  // Listeners simplificados - siempre en document para edge detection
   useEffect(() => {
-    const container = containerRef.current || document;
-    container.addEventListener('touchstart', handleTouchStart, { passive: false });
-    container.addEventListener('touchmove', handleTouchMove, { passive: false });
-    container.addEventListener('touchend', handleTouchEnd, { passive: false });
-    container.addEventListener('mousedown', handleMouseDown, { passive: false });
+    console.log('Setting up touch listeners, isWidgetOpen:', isWidgetOpen);
+    
+    document.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd, { passive: false });
 
     return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
-      container.removeEventListener('mousedown', handleMouseDown);
+      console.log('Cleaning up touch listeners');
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
       document.body.style.overscrollBehaviorX = 'auto';
     };
-  }, [handleTouchStart, handleTouchMove, handleTouchEnd, handleMouseDown]);
-
-  useEffect(() => {
-    if (!isTracking) return;
-    document.addEventListener('mousemove', handleMouseMove, { passive: false });
-    document.addEventListener('mouseup', handleMouseUp, { passive: false });
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isTracking, handleMouseMove, handleMouseUp]);
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   return {
     containerRef,
     isTracking,
     swipeProgress: isTracking && isEdgeSwipe ? Math.max(0, currentPos.x - startPos.x) : 0,
-    closeProgress: isTracking && isClosingSwipe ? Math.max(0, currentPos.x - startPos.x) : 0,
+    closeProgress: isTracking && isClosingSwipe ? Math.max(0, startPos.x - currentPos.x) : 0,
     isEdgeSwipe,
     isClosingSwipe
   };

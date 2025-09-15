@@ -60,19 +60,20 @@ const AlumnoLayoutContent = () => {
 
   const handleCloseSwipeWidget = useCallback(() => setIsSwipeWidgetOpen(false), []);
 
-  // Configurar gestos de swipe
-  const { containerRef, swipeProgress, isEdgeSwipe } = useSwipeGesture({
+  // Configurar gestos de swipe simplificados
+  const { containerRef, swipeProgress, closeProgress, isEdgeSwipe } = useSwipeGesture({
     onSwipeFromEdge: (distance) => {
       if (distance > 100) {
+        console.log('AlumnoLayout: Opening SwipeWidget from edge');
         setIsSwipeWidgetOpen(true);
       }
     },
     onSwipeToClose: (distance) => {
       if (distance > 80) {
+        console.log('AlumnoLayout: Closing SwipeWidget');
         setIsSwipeWidgetOpen(false);
       }
     },
-    preventBrowserBack: true,
     edgeThreshold: 30,
     threshold: 50,
     isWidgetOpen: isSwipeWidgetOpen
@@ -149,6 +150,7 @@ const AlumnoLayoutContent = () => {
         isOpen={isSwipeWidgetOpen}
         onClose={handleCloseSwipeWidget}
         swipeProgress={isEdgeSwipe ? swipeProgress : 0}
+        closeProgress={closeProgress}
       />
 
       {/* Drawers */}

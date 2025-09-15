@@ -1,127 +1,75 @@
-// ✅ SwipeWidget.jsx actualizado para compatibilidad con el fix del gesture
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Music, BookOpen, Play, Users, Download, Smartphone } from 'lucide-react';
+import { BookOpen, Play, Download, Smartphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import useInstallPWA from '../hooks/useInstallPWA';
-import SpotifyWidget from './SpotifyWidget';
+import usePWAInstall from '../hooks/usePWAInstall';
 
 const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
   const { user, rol } = useAuth();
   
-  // Sistema simple de delegación de eventos para móvil
-  const handleMobileClick = useCallback((e, action) => {
-    console.log('Mobile click handler:', action);
-    e.preventDefault();
-    e.stopPropagation();
+  // Hook PWA con API real
+  const { 
+    installPWA, 
+    isInstalling,
+    isInstalled,
+    shouldShowWidget,
+    getBrowserInfo
+  } = usePWAInstall();
+  
+  // Información de browser/plataforma
+  const browserInfo = getBrowserInfo();
+  
+  // Sistema de acciones simplificado
+  const executeAction = useCallback((action) => {
+    console.log('SwipeWidget: Executing action:', action);
     
-    // Ejecutar la acción después de un pequeño delay para asegurar que se procese
+    onClose();
+    
+    // Navegación inmediata sin delay innecesario
     setTimeout(() => {
       switch(action) {
         case 'install':
-          console.log('Executing install action');
-          onClose();
+          console.log('SwipeWidget: Navigate to /instalar');
           navigate('/instalar');
           break;
         case 'mis-cursos':
-          console.log('Executing mis cursos action');
-          onClose();
-          if (rol === 'admin') {
-            navigate('/admin/cursos');
-          } else if (rol === 'alumno') {
-            navigate('/mis-cursos');
-          }
+          const destination = rol === 'admin' ? '/admin/cursos' : '/mis-cursos';
+          console.log('SwipeWidget: Navigate to', destination);
+          navigate(destination);
           break;
         case 'catalogo':
-          console.log('Executing catalogo action');
-          onClose();
+          console.log('SwipeWidget: Navigate to /cursos');
           navigate('/cursos');
           break;
         default:
-          console.log('Unknown action:', action);
+          console.warn('SwipeWidget: Unknown action:', action);
       }
-    }, 10);
+    }, 50);
   }, [onClose, navigate, rol]);
   
-  // Hook para instalación PWA
-  const { 
-    handleInstallApp, 
-    shouldShowInstallButton, 
-    getInstallButtonText, 
-    isInstalling,
-    isInstalled,
-    isIOS 
-  } = useInstallPWA();
-  
-  // Global click listener para debugging y fallback táctil
-  useEffect(() => {
-    const globalTouchHandler = (e) => {
-      const target = e.target;
-      const action = target.getAttribute('data-action') || target.closest('[data-action]')?.getAttribute('data-action');
-      
-      if (action && isOpen) {
-        console.log('SwipeWidget: Global touch detected on action element', {
-          action,
-          target: target.tagName,
-          type: e.type
-        });
-        
-        if (e.type === 'touchend') {
-          // Fallback táctil de emergencia
-          setTimeout(() => {
-            console.log('SwipeWidget: Executing fallback action', action);
-            handleMobileClick(e, action);
-          }, 50);
-        }
-      }
-    };
+  // Event handler limpio para botones
+  const handleButtonClick = useCallback((e, action) => {
+    e.preventDefault();
+    e.stopPropagation();
     
-    const globalClickHandler = (e) => {
-      console.log('SwipeWidget: Global click detected', {
-        target: e.target.tagName,
-        className: e.target.className,
-        coordinates: { x: e.clientX, y: e.clientY },
-        element: e.target
-      });
-    };
-    
-    if (isOpen) {
-      document.addEventListener('click', globalClickHandler, true);
-      document.addEventListener('touchend', globalTouchHandler, true);
-      return () => {
-        document.removeEventListener('click', globalClickHandler, true);
-        document.removeEventListener('touchend', globalTouchHandler, true);
-      };
-    }
-  }, [isOpen, handleMobileClick]);
+    console.log('SwipeWidget: Button action triggered:', action);
+    executeAction(action);
+  }, [executeAction]);
 
+  // Timer para reloj
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  // Aplicar clases CSS contextuales
-  useEffect(() => {
-    if (isOpen) {
-      document.body.classList.add('widget-active');
-      document.documentElement.classList.add('widget-active');
-    } else {
-      document.body.classList.remove('widget-active');
-      document.documentElement.classList.remove('widget-active');
-    }
-
-    return () => {
-      document.body.classList.remove('widget-active');
-      document.documentElement.classList.remove('widget-active');
-    };
-  }, [isOpen]);
-
+  // Cálculo de progreso normalizado
   const openProgress = Math.min(swipeProgress / 200, 1);
   const closeProgressNormalized = Math.min(closeProgress / 150, 1);
 
+  // Determinar variante de animación
   let currentVariant = 'closed';
   if (closeProgress > 0) {
     currentVariant = 'closing';
@@ -131,32 +79,34 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     currentVariant = 'open';
   }
 
+  // Variantes optimizadas de Framer Motion
   const widgetVariants = {
     closed: {
-      x: '-150%', // Mover más a la izquierda para compensar el centrado
+      x: '-150%',
       transition: { type: 'spring', stiffness: 400, damping: 40 }
     },
     open: {
-      x: '-50%', // Posición centrada
+      x: '-50%',
       transition: { type: 'spring', stiffness: 400, damping: 40 }
     },
     dragging: {
-      x: `${-150 + openProgress * 100}%`, // Ajustar para el nuevo rango
+      x: `${-150 + openProgress * 100}%`,
       transition: { type: 'tween', duration: 0 }
     },
     closing: {
-      x: `${-50 - closeProgressNormalized * 100}%`, // Ajustar para cierre desde centro
+      x: `${-50 - closeProgressNormalized * 100}%`,
       transition: { type: 'tween', duration: 0 }
     }
   };
 
   const overlayVariants = {
     closed: { opacity: 0 },
-    open: { opacity: 1 },
+    open: { opacity: 0.6 },
     dragging: { opacity: openProgress * 0.6 },
     closing: { opacity: (1 - closeProgressNormalized) * 0.6 }
   };
 
+  // Widget de Tiempo
   const TimeWidget = () => (
     <div className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-blue-500/20">
       <div className="text-2xl font-light text-white mb-1">
@@ -168,41 +118,38 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     </div>
   );
 
+  // Widget PWA con API real
   const PWAInstallWidget = () => {
-    // Siempre mostrar el botón, ya que en móviles siempre se puede agregar manualmente
-    const showInstallButton = !isInstalled;
-    
-    if (!showInstallButton) {
-      console.log('PWA: App already installed, not showing button');
-      return null;
+    if (isInstalled || !shouldShowWidget) {
+      return (
+        <div className="rounded-2xl p-3 flex flex-col items-center justify-center backdrop-blur-sm border border-gray-500/20 h-full">
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-500/30 mb-2">
+            <Smartphone className="w-5 h-5 text-gray-300" />
+          </div>
+          <div className="text-center">
+            <div className="text-xs font-semibold text-white mb-1">
+              App Web
+            </div>
+            <div className="text-xs text-gray-400">
+              Ya disponible
+            </div>
+          </div>
+        </div>
+      );
     }
-    
-    const handleInstallClick = (e) => {
-      console.log('PWA Install: Regular click handler');
-      handleMobileClick(e, 'install');
-    };
-    
-    console.log('PWA: Rendering install widget, isInstalling:', isInstalling, 'isIOS:', isIOS, 'canAutoInstall:', shouldShowInstallButton());
     
     return (
       <button
-        onClick={handleInstallClick}
-        onTouchEnd={handleInstallClick}
+        onClick={(e) => handleButtonClick(e, 'install')}
         data-action="install"
         disabled={isInstalling}
         className="rounded-2xl p-3 flex flex-col items-center justify-center backdrop-blur-sm border border-green-500/20 hover:border-green-400/40 transition-all duration-300 group w-full disabled:opacity-50 h-full cursor-pointer hover:scale-105 active:scale-95"
-        style={{ 
-          pointerEvents: 'auto', 
-          zIndex: 800, 
-          touchAction: 'manipulation',
-          WebkitUserSelect: 'none',
-          userSelect: 'none'
-        }}
+        style={{ touchAction: 'manipulation' }}
       >
         <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-500/30 group-hover:bg-green-400/40 transition-colors mb-2">
           {isInstalling ? (
             <div className="w-5 h-5 border-2 border-green-300 border-t-transparent rounded-full animate-spin" />
-          ) : isIOS ? (
+          ) : browserInfo.isIOS ? (
             <Smartphone className="w-5 h-5 text-green-300 group-hover:text-green-200" />
           ) : (
             <Download className="w-5 h-5 text-green-300 group-hover:text-green-200" />
@@ -210,43 +157,26 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
         </div>
         <div className="text-center">
           <div className="text-xs font-semibold text-white mb-1">
-            {isInstalling ? 'Instalando...' : isIOS ? 'Añadir al Inicio' : 'Instalar App'}
+            {isInstalling ? 'Instalando...' : browserInfo.isIOS ? 'Añadir al Inicio' : 'Instalar App'}
           </div>
           <div className="text-xs text-gray-400">
-            {isIOS ? 'Ver instrucciones' : 'Agregar a escritorio'}
+            {browserInfo.isIOS ? 'Ver instrucciones' : 'Acceso rápido'}
           </div>
         </div>
       </button>
     );
   };
 
+  // Widget de Cursos con navegación por rol
   const CursosWidget = () => {
-    console.log('CursosWidget: Renderizando', { user: !!user, rol });
-    
-    const handleMisCursosClick = (e) => {
-      console.log('CursosWidget: Mis Cursos click handler');
-      handleMobileClick(e, 'mis-cursos');
-    };
-
-    const handleCatalogoClick = (e) => {
-      console.log('CursosWidget: Catalogo click handler');
-      handleMobileClick(e, 'catalogo');
-    };
-
+    // Caso sin usuario: mostrar sólo catálogo
     if (!user || (rol !== 'admin' && rol !== 'alumno')) {
       return (
         <button
-          onClick={handleCatalogoClick}
-          onTouchEnd={handleCatalogoClick}
+          onClick={(e) => handleButtonClick(e, 'catalogo')}
           data-action="catalogo"
           className="rounded-2xl p-6 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
-          style={{ 
-            pointerEvents: 'auto', 
-            zIndex: 800, 
-            touchAction: 'manipulation',
-            WebkitUserSelect: 'none',
-            userSelect: 'none'
-          }}
+          style={{ touchAction: 'manipulation' }}
         >
           <div className="flex items-center justify-center w-14 h-14 rounded-full bg-purple-500/30 mb-3 group-hover:bg-purple-400/40 transition-colors">
             <BookOpen className="w-7 h-7 text-purple-300 group-hover:text-purple-200" />
@@ -261,26 +191,15 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
       );
     }
 
+    // Caso con usuario logueado
     return (
-      <div 
-        className="space-y-3" 
-        style={{ 
-          pointerEvents: 'auto', 
-          touchAction: 'manipulation'
-        }}>
+      <div className="space-y-3">
         {/* Botón principal según el rol */}
         <button
-          onClick={handleMisCursosClick}
-          onTouchEnd={handleMisCursosClick}
+          onClick={(e) => handleButtonClick(e, 'mis-cursos')}
           data-action="mis-cursos"
           className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
-          style={{ 
-            pointerEvents: 'auto', 
-            zIndex: 800, 
-            touchAction: 'manipulation',
-            WebkitUserSelect: 'none',
-            userSelect: 'none'
-          }}
+          style={{ touchAction: 'manipulation' }}
         >
           <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-500/30 mb-2 group-hover:bg-purple-400/40 transition-colors">
             <BookOpen className="w-6 h-6 text-purple-300 group-hover:text-purple-200" />
@@ -293,20 +212,13 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
           </div>
         </button>
 
-        {/* Botón para catálogo (solo para alumnos) */}
+        {/* Botón secundario para alumnos */}
         {rol === 'alumno' && (
           <button
-            onClick={handleCatalogoClick}
-            onTouchEnd={handleCatalogoClick}
+            onClick={(e) => handleButtonClick(e, 'catalogo')}
             data-action="catalogo"
             className="rounded-2xl p-4 flex items-center gap-3 backdrop-blur-sm border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
-            style={{ 
-              pointerEvents: 'auto', 
-              zIndex: 800, 
-              touchAction: 'manipulation',
-              WebkitUserSelect: 'none',
-              userSelect: 'none'
-            }}
+            style={{ touchAction: 'manipulation' }}
           >
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/30 group-hover:bg-blue-400/40 transition-colors">
               <Play className="w-5 h-5 text-blue-300 group-hover:text-blue-200" />
@@ -316,7 +228,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
                 Explorar Catálogo
               </div>
               <div className="text-xs text-gray-400">
-                Descubre todos los cursos
+                Todos los cursos
               </div>
             </div>
           </button>
@@ -325,16 +237,18 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     );
   };
 
-  const handleOverlayClick = (e) => {
+  // Handler para overlay click
+  const handleOverlayClick = useCallback((e) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
-  };
+  }, [onClose]);
 
   return (
     <AnimatePresence>
       {(isOpen || swipeProgress > 0 || closeProgress > 0) && (
         <>
+          {/* Overlay con blur */}
           <motion.div
             className="fixed inset-0 bg-black/40 z-40"
             variants={overlayVariants}
@@ -345,8 +259,10 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             style={{ backdropFilter: 'blur(8px)' }}
           />
 
+          {/* Panel principal */}
           <motion.div
             className="fixed top-0 h-full z-50 shadow-2xl"
+            data-swipe-widget
             variants={widgetVariants}
             initial="closed"
             animate={currentVariant}
@@ -355,67 +271,31 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
               width: '95vw',
               left: '50%',
               boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.3)',
-              WebkitBackdropFilter: 'blur(20px) saturate(150%)',
               backdropFilter: 'blur(20px) saturate(150%)',
-              touchAction: 'pan-y' // Permitir scroll vertical pero controlar horizontal
+              touchAction: 'pan-y' // Permitir scroll vertical
             }}
           >
             {/* Indicador de arrastre */}
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2 w-1 h-12 bg-white/20 rounded-full" />
 
+            {/* Contenido principal */}
             <div className="h-full pt-20 flex items-center justify-center">
-              {/* Content */}
-              <div
-                className="w-full max-w-md px-4 py-8"
-                style={{ 
-                  pointerEvents: 'auto', 
-                  position: 'relative', 
-                  zIndex: 500, 
-                  touchAction: 'manipulation' 
-                }}
-              >
-                <div 
-                  className="grid grid-cols-2 gap-3 auto-rows-min" 
-                  style={{ 
-                    pointerEvents: 'auto', 
-                    position: 'relative', 
-                    zIndex: 600,
-                    touchAction: 'manipulation'
-                  }}>
-                  {/* Tiempo - 1 columna */}
-                  <div className="col-span-1" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 700, touchAction: 'manipulation' }}>
+              <div className="w-full max-w-md px-4 py-8">
+                <div className="grid grid-cols-2 gap-3 auto-rows-min">
+                  {/* Tiempo */}
+                  <div className="col-span-1">
                     <TimeWidget />
                   </div>
                   
-                  {/* PWA Install Widget - 1 columna */}
-                  <div className="col-span-1" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 700, touchAction: 'manipulation' }}>
+                  {/* PWA Install */}
+                  <div className="col-span-1">
                     <PWAInstallWidget />
-                    
-                    {/* Widget simple si PWA no está disponible */}
-                    {!shouldShowInstallButton() && (
-                      <div className="rounded-2xl p-3 flex flex-col items-center justify-center backdrop-blur-sm border border-gray-500/20 w-full h-full">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-500/30 mb-2">
-                          <Smartphone className="w-5 h-5 text-gray-300" />
-                        </div>
-                        <div className="text-center">
-                          <div className="text-xs font-semibold text-white mb-1">
-                            App Web
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            Ya disponible
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                   
-                  {/* Cursos - 2 columnas */}
-                  <div className="col-span-2" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 700, touchAction: 'manipulation' }}>
+                  {/* Cursos */}
+                  <div className="col-span-2">
                     <CursosWidget />
                   </div>
-
-                  {/* Spotify - 2 columnas completas */}
-                 
 
                   {/* Espaciado final */}
                   <div className="col-span-2 h-4" />
@@ -423,6 +303,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
               </div>
             </div>
 
+            {/* Indicador de gesto activo */}
             {(swipeProgress > 0 || closeProgress > 0) && (
               <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
                 <div className="w-1 h-16 bg-cyan-400/60 rounded-full animate-pulse" />

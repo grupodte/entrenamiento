@@ -140,7 +140,7 @@ const AppContent = () => {
                 <Navigate to="/admin" replace /> :
                 <Navigate to="/dashboard" replace />
             ) : (
-              <LandingPage />
+              <Navigate to="/login" replace />
             )
           }
         />

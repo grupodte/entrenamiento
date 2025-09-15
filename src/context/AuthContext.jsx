@@ -19,25 +19,42 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const fetchRolAndOnboarding = async (userId) => {
+    const fetchRolAndOnboarding = async (user) => {
+        if (!user) return;
         try {
             let { data, error } = await supabase
                 .from("perfiles")
                 .select("rol, onboarding_completed")
-                .eq("id", userId)
+                .eq("id", user.id)
                 .maybeSingle();
             
             if (error) throw error;
 
             // Si no existe el perfil, crearlo
             if (!data) {
-                console.log("[AuthContext] Perfil no existe, creando nuevo perfil");
+                console.log("[AuthContext] Perfil no existe, creando nuevo perfil con datos de Google");
+
+                // Procesar el nombre completo para dividirlo en nombre y apellido
+                const fullName = user.user_metadata?.full_name || '';
+                const nameParts = fullName.split(' ');
+                const nombre = nameParts[0];
+                const apellido = nameParts.slice(1).join(' ');
+
                 const { data: newProfile, error: insertError } = await supabase
                     .from("perfiles")
                     .insert({
-                        id: userId,
+                        id: user.id,
                         rol: 'alumno', // rol por defecto
-                        onboarding_completed: false
+                        onboarding_completed: false,
+                        // Datos del proveedor de OAuth (Google)
+                        nombre: nombre,
+                        apellido: apellido,
+                        avatar_url: user.user_metadata?.avatar_url,
+                        email: user.email,
+                        // Campos a completar en onboarding
+                        edad: null,
+                        telefono: null,
+                        genero: null,
                     })
                     .select("rol, onboarding_completed")
                     .single();
@@ -87,7 +104,7 @@ export const AuthProvider = ({ children }) => {
                 if (isMounted) setUser(session.user);
                 localStorage.setItem(LOCAL_STORAGE_USER_ID_KEY, session.user.id);
                 // no bloquear la carga con la query de rol
-                fetchRolAndOnboarding(session.user.id); // SIN AWAIT
+                fetchRolAndOnboarding(session.user); // SIN AWAIT
             } else {
                 if (isMounted) {
                     setUser(null);
@@ -107,7 +124,7 @@ export const AuthProvider = ({ children }) => {
                 if (session?.user) {
                     setUser(session.user);
                     localStorage.setItem(LOCAL_STORAGE_USER_ID_KEY, session.user.id);
-                    fetchRolAndOnboarding(session.user.id); // SIN AWAIT
+                    fetchRolAndOnboarding(session.user); // SIN AWAIT
                 } else {
                     setUser(null);
                     setRol(null);
