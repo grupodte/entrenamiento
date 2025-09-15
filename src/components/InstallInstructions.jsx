@@ -3,12 +3,10 @@ import { motion } from 'framer-motion';
 import { 
   DevicePhoneMobileIcon, 
   ComputerDesktopIcon,
-  ShareIcon,
-  PlusIcon,
-  EllipsisHorizontalIcon,
   HomeIcon,
   ArrowDownTrayIcon
 } from '@heroicons/react/24/outline';
+import { Share, SquarePlus } from 'lucide-react';
 
 const InstallInstructions = ({ platform, className = '' }) => {
   // Configuración de instrucciones para cada plataforma

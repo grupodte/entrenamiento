@@ -1,49 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@import './styles/z-index.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ✅ Prevención total de zoom, scroll horizontal y swipe back */
-/* Base: comportamiento controlado para prevenir navegación accidental y zoom */
+/* ✅ Prevención contextual de swipe back - Simplificado */
+/* Base: comportamiento normal de swipe */
 html {
-  /* Prevenir scroll horizontal y swipe back */
-  overscroll-behavior-x: none;
-  overscroll-behavior-y: contain;
-  -webkit-overscroll-behavior-x: none;
-  -webkit-overscroll-behavior-y: contain;
-  
-  /* Prevenir zoom completamente */
-  touch-action: pan-y;
-  -webkit-text-size-adjust: 100%;
-  -moz-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  
-  /* Forzar ancho fijo para prevenir scroll horizontal */
-  overflow-x: hidden;
-  width: 100vw;
-  max-width: 100vw;
+  overscroll-behavior-x: auto;
 }
 
 body {
-  /* Prevenir scroll horizontal y swipe back */
-  overscroll-behavior-x: none;
-  overscroll-behavior-y: contain;
-  -webkit-overscroll-behavior-x: none;
-  -webkit-overscroll-behavior-y: contain;
-  
-  /* Prevenir gestos de navegación en iOS Safari */
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-  
-  /* Prevenir zoom y scroll horizontal */
-  touch-action: pan-y;
-  overflow-x: hidden;
-  width: 100vw;
-  max-width: 100vw;
-  position: relative;
+  overscroll-behavior-x: auto;
 }
 
 /* Para drawers y modales activos - Prevenir swipe back solo cuando es necesario */
@@ -57,27 +24,6 @@ body {
 .drawer-content {
   touch-action: pan-y;
   overscroll-behavior-x: none;
-}
-
-/* Clases utilitarias para control de navegación */
-.prevent-swipe-back {
-  overscroll-behavior-x: none !important;
-  -webkit-overscroll-behavior-x: none !important;
-  touch-action: pan-y pinch-zoom !important;
-}
-
-.allow-swipe-back {
-  overscroll-behavior-x: auto !important;
-  -webkit-overscroll-behavior-x: auto !important;
-  touch-action: auto !important;
-}
-
-/* Para elementos que necesitan interacción táctil completa */
-.touch-interactive {
-  -webkit-touch-callout: default;
-  -webkit-user-select: auto;
-  user-select: auto;
-  touch-action: auto;
 }
 
 /* ====== UTILIDADES PERSONALIZADAS DE TAILWIND ====== */
