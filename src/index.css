@@ -660,3 +660,31 @@ ol::-webkit-scrollbar,
   height: calc(min(85vh, var(--safe-viewport-height) * 0.85));
   max-height: var(--safe-viewport-height);
 }
+
+/* Altura completa que siempre cubre la pantalla pero respeta máximos móviles */
+.drawer-full-safe {
+  min-height: var(--safe-viewport-height);
+  max-height: var(--safe-viewport-height);
+  height: var(--safe-viewport-height);
+}
+
+/* Altura mínima completa con máximo seguro (ideal para drawers con poco contenido) */
+.drawer-min-full-safe {
+  min-height: var(--safe-viewport-height);
+  max-height: var(--safe-viewport-height);
+}
+
+/* Clase universal para drawers que siempre cubren la pantalla */
+.drawer-smart-height {
+  /* En móviles: usa la altura segura, en desktop: usa viewport completo */
+  min-height: var(--safe-viewport-height);
+  max-height: var(--safe-viewport-height);
+  height: auto;
+}
+
+/* Para drawers con contenido variable */
+.drawer-flexible-height {
+  min-height: var(--safe-viewport-height);
+  height: auto;
+  max-height: var(--safe-viewport-height);
+}

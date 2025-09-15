@@ -13,6 +13,10 @@ import usePreventSwipeBack from './hooks/usePreventSwipeBack';
 import AlumnoLayout from './layouts/AlumnoLayout';
 import BrandedLoader from './components/BrandedLoader';
 
+// --- WIDGET GUIDE ---
+import { WidgetGuideProvider } from './context/WidgetGuideContext';
+import WidgetGuideOverlay from './components/WidgetGuide/WidgetGuideOverlay';
+
 // --- PÁGINAS PÚBLICAS ---
 import LandingPage from './pages/LandingPage';
 import CatalogoCursos from './pages/CatalogoCursos';
@@ -26,6 +30,7 @@ import InstalarApp from './pages/InstalarApp';
 import DashboardAlumno from './pages/Alumno/Dashboard';
 import RutinaDetalle from './pages/Alumno/RutinaDetalle';
 import MisCursos from './pages/Alumno/MisCursos';
+import Onboarding from './pages/Onboarding';
 
 // --- PÁGINAS DE ADMIN ---
 import AdminPanel from './pages/Admin/AdminPanel';
@@ -59,7 +64,18 @@ const AppContent = () => {
   const { user, rol, loading } = useAuth();
 
   return (
-    <Routes>
+    <WidgetGuideProvider>
+      <Routes>
+      {/* --- RUTA DE ONBOARDING --- */}
+      <Route 
+        path="/onboarding" 
+        element={
+          <RutaProtegida rolPermitido="alumno" allowOnboarding={true}>
+            <Onboarding />
+          </RutaProtegida>
+        } 
+      />
+
       {/* --- RUTAS DE ALUMNO CON AlumnoLayout --- */}
       <Route
         element={
@@ -144,6 +160,10 @@ const AppContent = () => {
         />
       </Route>
     </Routes>
+    
+    {/* Componentes de Widget Guide */}
+    <WidgetGuideOverlay />
+  </WidgetGuideProvider>
   );
 };
 

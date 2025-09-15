@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
 const LOCAL_STORAGE_USER_ID_KEY = "authUserId";
@@ -13,26 +14,59 @@ export const AuthProvider = ({ children }) => {
     // arranca con el rol guardado en localstorage de inmediato
     const [rol, setRol] = useState(localStorage.getItem(LOCAL_STORAGE_USER_ROL_KEY) || null);
     const [loading, setLoading] = useState(true);
+    const [onboardingCompleted, setOnboardingCompleted] = useState(null);
+    
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    const fetchRol = async (userId) => {
+    const fetchRolAndOnboarding = async (userId) => {
         try {
-            const { data, error } = await supabase
+            let { data, error } = await supabase
                 .from("perfiles")
-                .select("rol")
+                .select("rol, onboarding_completed")
                 .eq("id", userId)
                 .maybeSingle();
+            
             if (error) throw error;
+
+            // Si no existe el perfil, crearlo
+            if (!data) {
+                console.log("[AuthContext] Perfil no existe, creando nuevo perfil");
+                const { data: newProfile, error: insertError } = await supabase
+                    .from("perfiles")
+                    .insert({
+                        id: userId,
+                        rol: 'alumno', // rol por defecto
+                        onboarding_completed: false
+                    })
+                    .select("rol, onboarding_completed")
+                    .single();
+                
+                if (insertError) throw insertError;
+                data = newProfile;
+            }
 
             if (data?.rol) {
                 setRol(data.rol);
+                setOnboardingCompleted(data.onboarding_completed ?? false);
                 localStorage.setItem(LOCAL_STORAGE_USER_ROL_KEY, data.rol);
+                
+                // Redirigir a onboarding si no está completado y no estamos ya en esa ruta
+                if (data.onboarding_completed === false && 
+                    location.pathname !== '/onboarding' && 
+                    data.rol === 'alumno') {
+                    console.log("[AuthContext] Redirigiendo a onboarding");
+                    navigate('/onboarding', { replace: true });
+                }
             } else {
                 setRol(null);
+                setOnboardingCompleted(null);
                 localStorage.removeItem(LOCAL_STORAGE_USER_ROL_KEY);
             }
         } catch (e) {
-            console.error("[AuthContext] error consultando rol:", e);
+            console.error("[AuthContext] error consultando perfil:", e);
             setRol(null);
+            setOnboardingCompleted(null);
             localStorage.removeItem(LOCAL_STORAGE_USER_ROL_KEY);
         }
     };
@@ -53,11 +87,12 @@ export const AuthProvider = ({ children }) => {
                 if (isMounted) setUser(session.user);
                 localStorage.setItem(LOCAL_STORAGE_USER_ID_KEY, session.user.id);
                 // no bloquear la carga con la query de rol
-                fetchRol(session.user.id); // SIN AWAIT
+                fetchRolAndOnboarding(session.user.id); // SIN AWAIT
             } else {
                 if (isMounted) {
                     setUser(null);
                     setRol(null);
+                    setOnboardingCompleted(null);
                 }
                 localStorage.removeItem(LOCAL_STORAGE_USER_ID_KEY);
                 localStorage.removeItem(LOCAL_STORAGE_USER_ROL_KEY);
@@ -72,10 +107,11 @@ export const AuthProvider = ({ children }) => {
                 if (session?.user) {
                     setUser(session.user);
                     localStorage.setItem(LOCAL_STORAGE_USER_ID_KEY, session.user.id);
-                    fetchRol(session.user.id); // SIN AWAIT
+                    fetchRolAndOnboarding(session.user.id); // SIN AWAIT
                 } else {
                     setUser(null);
                     setRol(null);
+                    setOnboardingCompleted(null);
                     localStorage.removeItem(LOCAL_STORAGE_USER_ID_KEY);
                     localStorage.removeItem(LOCAL_STORAGE_USER_ROL_KEY);
                 }
@@ -106,12 +142,26 @@ export const AuthProvider = ({ children }) => {
         await supabase.auth.signOut();
         setUser(null);
         setRol(null);
+        setOnboardingCompleted(null);
         localStorage.removeItem(LOCAL_STORAGE_USER_ID_KEY);
         localStorage.removeItem(LOCAL_STORAGE_USER_ROL_KEY);
     };
+    
+    // Función para actualizar el estado de onboarding
+    const updateOnboardingStatus = (completed) => {
+        setOnboardingCompleted(completed);
+    };
 
     return (
-        <AuthContext.Provider value={{ user, rol, loading, login, logout }}>
+        <AuthContext.Provider value={{ 
+            user, 
+            rol, 
+            loading, 
+            onboardingCompleted, 
+            login, 
+            logout, 
+            updateOnboardingStatus 
+        }}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import toast from 'react-hot-toast';
 
 const usePWAInstall = () => {
   const [isInstallable, setIsInstallable] = useState(false);
@@ -122,53 +123,119 @@ const usePWAInstall = () => {
 
   // Función para mostrar instrucciones manuales
   const showManualInstructions = () => {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isIOS = /ipad|iphone|ipod/.test(userAgent);
+    const isAndroid = /android/.test(userAgent);
+    const isChrome = /chrome/.test(userAgent) && !/edge|opr\//.test(userAgent);
+    const isFirefox = /firefox/.test(userAgent);
+    const isEdge = /edge|edg/.test(userAgent);
+    const isSafari = /safari/.test(userAgent) && !/chrome|edge|opr/.test(userAgent);
     
-    let instructions = '';
     let title = '';
+    let instructions = '';
     
-    if (isIOS && isSafari) {
-      title = '📱 Instalar FitApp en iPhone/iPad';
-      instructions = `
-✨ Para añadir FitApp a tu pantalla de inicio:
+    if (isIOS) {
+      title = '📱 Agregar FitApp al Inicio (iOS)';
+      instructions = `Para agregar FitApp a tu pantalla de inicio:
 
-1️⃣ Toca el botón de compartir (⬆️) en la parte inferior
-2️⃣ Busca "Añadir a pantalla de inicio" 📋
-3️⃣ Toca "Añadir" para confirmar ✅
+` +
+        `1️⃣ Toca el botón Compartir (⬆️) en Safari
+` +
+        `2️⃣ Desplázate y toca "Agregar a pantalla de inicio" 🏠
+` +
+        `3️⃣ Toca "Agregar" para confirmar ✅
 
-¡Listo! Ahora tendrás FitApp como una app nativa en tu dispositivo 🎉`;
-    } else if (navigator.userAgent.includes('Chrome')) {
-      title = '💻 Instalar FitApp en Chrome';
-      instructions = `
-✨ Para instalar FitApp:
+` +
+        `¡Listo! FitApp aparecerá como una app en tu pantalla de inicio 🎉`;
+    } else if (isAndroid && isChrome) {
+      title = '📱 Instalar FitApp (Android Chrome)';
+      instructions = `Para instalar FitApp en tu dispositivo:
 
-1️⃣ Busca el ícono ⬇️ en la barra de direcciones
-   (o ve al menú ⋮ > "Instalar app")
-2️⃣ Haz clic en "Instalar" 📲
-3️⃣ ¡La app se añadirá automáticamente! ✅`;
+` +
+        `1️⃣ Toca el menú (⋮) en la esquina superior derecha
+` +
+        `2️⃣ Selecciona "Agregar a pantalla de inicio" o "Instalar app" 📲
+` +
+        `3️⃣ Toca "Agregar" o "Instalar" para confirmar ✅
+
+` +
+        `¡FitApp se instalará como una aplicación nativa! 🚀`;
+    } else if (isChrome) {
+      title = '💻 Instalar FitApp (Chrome)';
+      instructions = `Para instalar FitApp:
+
+` +
+        `1️⃣ Busca el ícono de instalación (⬇️) en la barra de direcciones
+` +
+        `   O ve al menú (⋮) → "Instalar app"
+` +
+        `2️⃣ Haz clic en "Instalar" 📲
+` +
+        `3️⃣ ¡La app se agregará a tu escritorio! ✅
+
+` +
+        `Podrás abrir FitApp desde el menú de inicio o escritorio 🎉`;
+    } else if (isFirefox) {
+      title = '🦊 Agregar FitApp (Firefox)';
+      instructions = `Para agregar FitApp a tu pantalla de inicio:
+
+` +
+        `1️⃣ Toca el menú (≡) en la esquina superior derecha
+` +
+        `2️⃣ Selecciona "Agregar a pantalla de inicio" 🏠
+` +
+        `3️⃣ Toca "Agregar" para confirmar ✅
+
+` +
+        `FitApp aparecerá como acceso directo en tu dispositivo 📱`;
+    } else if (isEdge) {
+      title = '🌐 Instalar FitApp (Edge)';
+      instructions = `Para instalar FitApp:
+
+` +
+        `1️⃣ Busca el ícono de instalación (+) en la barra de direcciones
+` +
+        `   O ve al menú (⋯) → "Apps" → "Instalar app"
+` +
+        `2️⃣ Haz clic en "Instalar" 📲
+` +
+        `3️⃣ ¡La app se agregará a tu sistema! ✅
+
+` +
+        `Podrás acceder a FitApp desde el menú inicio 🚀`;
     } else {
-      title = '📲 Instalar FitApp';
-      instructions = `
-✨ Para instalar FitApp como app:
+      title = '📲 Agregar FitApp como App';
+      instructions = `Para agregar FitApp a tu dispositivo:
 
-1️⃣ Busca "Instalar app" o "Añadir a pantalla de inicio" en el menú de tu navegador
-2️⃣ Sigue las instrucciones que aparezcan
-3️⃣ ¡Disfruta de la experiencia nativa! 🎉`;
+` +
+        `1️⃣ Busca "Agregar a pantalla de inicio" o "Instalar app" en el menú de tu navegador
+` +
+        `2️⃣ Sigue las instrucciones que aparezcan
+` +
+        `3️⃣ ¡Disfruta de la experiencia como app nativa! 🎉
+
+` +
+        `Nota: Las opciones pueden variar según tu navegador y dispositivo`;
     }
     
-    // Usar una notificación más amigable en lugar de alert
-    if (typeof window !== 'undefined' && window.confirm) {
-      const showInstructions = window.confirm(
-        `${title}\n\n¿Te gustaría ver las instrucciones para instalar FitApp?`
-      );
-      
-      if (showInstructions) {
-        alert(instructions);
+    // Mostrar con toast en lugar de alert para mejor UX
+    toast(
+      (t) => (
+        `${title}\n\n${instructions}\n\n¿Necesitas ayuda? Consulta la documentación de tu navegador.`
+      ),
+      {
+        duration: 8000,
+        style: {
+          maxWidth: '400px',
+          whiteSpace: 'pre-line',
+          fontSize: '14px',
+          lineHeight: '1.4'
+        },
+        icon: isIOS ? '📱' : isAndroid ? '🤖' : '💻'
       }
-    } else {
-      alert(title + instructions);
-    }
+    );
+    
+    console.log(`PWA: Showed manual instructions for ${title}`);
   };
 
   // Función para obtener información sobre el navegador

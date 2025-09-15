@@ -53,7 +53,7 @@ export const useSwipeGesture = ({
 
     const isFromLeftEdge = startX <= edgeThreshold && !isWidgetOpen;
     setIsEdgeSwipe(isFromLeftEdge);
-    const isFromWidget = isWidgetOpen && startX <= 320;
+    const isFromWidget = isWidgetOpen && startX <= window.innerWidth * 0.95;
     setIsClosingSwipe(isFromWidget);
 
     if (!isElementInteractive(e.target, e.currentTarget) && preventBrowserBack && (isFromLeftEdge || isFromWidget)) {
@@ -81,7 +81,7 @@ export const useSwipeGesture = ({
     const absDeltaY = Math.abs(currentPos.y - startPos.y);
 
     if (absDeltaX > absDeltaY && absDeltaX > threshold) {
-      if (isClosingSwipe && deltaX > 0) onSwipeToClose?.(deltaX);
+      if (isClosingSwipe && deltaX < 0) onSwipeToClose?.(Math.abs(deltaX)); // Cambiado: cierre con swipe izquierda
       else if (isEdgeSwipe && deltaX > 0) onSwipeFromEdge?.(deltaX);
       else if (!isWidgetOpen && deltaX > 0) onSwipeRight?.(deltaX);
       else if (!isWidgetOpen && deltaX < 0) onSwipeLeft?.(Math.abs(deltaX));
@@ -100,7 +100,7 @@ export const useSwipeGesture = ({
     setIsTracking(true);
     const isFromLeftEdge = e.clientX <= edgeThreshold && !isWidgetOpen;
     setIsEdgeSwipe(isFromLeftEdge);
-    const isFromWidget = isWidgetOpen && e.clientX <= 320;
+    const isFromWidget = isWidgetOpen && e.clientX <= window.innerWidth * 0.95;
     setIsClosingSwipe(isFromWidget);
     if (!isElementInteractive(e.target, e.currentTarget) && preventBrowserBack && (isFromLeftEdge || isFromWidget)) {
       e.preventDefault();
@@ -124,7 +124,7 @@ export const useSwipeGesture = ({
     const absDeltaY = Math.abs(currentPos.y - startPos.y);
 
     if (absDeltaX > absDeltaY && absDeltaX > threshold) {
-      if (isClosingSwipe && deltaX > 0) onSwipeToClose?.(deltaX);
+      if (isClosingSwipe && deltaX < 0) onSwipeToClose?.(Math.abs(deltaX)); // Cambiado: cierre con swipe izquierda
       else if (isEdgeSwipe && deltaX > 0) onSwipeFromEdge?.(deltaX);
       else if (!isWidgetOpen && deltaX > 0) onSwipeRight?.(deltaX);
       else if (!isWidgetOpen && deltaX < 0) onSwipeLeft?.(Math.abs(deltaX));

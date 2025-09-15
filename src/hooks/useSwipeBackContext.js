@@ -80,20 +80,23 @@ export const useSwipeBackContext = ({
     if (absDeltaX > absDeltaY && absDeltaX > swipeThreshold) {
       const context = contextRef.current;
       
-      // Swipe hacia la derecha (positivo) desde borde izquierdo
-      if (deltaX > 0 && startPosRef.current.x < 50) {
+      // Swipe hacia la derecha (positivo) desde borde izquierdo para apertura
+      if (deltaX > 0 && startPosRef.current.x < 50 && context === 'normal') {
+        // No hacemos nada aquí, dejamos que el browser maneje la apertura
+      }
+      // Swipe hacia la izquierda (negativo) para cerrar widget/drawer
+      else if (deltaX < 0) {
         switch (context) {
           case 'widget':
-            // Desde widget, cerrar widget
+            // Desde widget, cerrar widget con swipe izquierda
             onWidgetClose?.();
             break;
           case 'drawer':
-            // Desde drawer, cerrar drawer
+            // Desde drawer, cerrar drawer con swipe izquierda
             onDrawerClose?.();
             break;
           case 'normal':
             // En contexto normal, permitir navegación natural del browser
-            // No hacemos nada aquí, dejamos que el browser maneje
             break;
         }
       }

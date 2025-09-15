@@ -23,8 +23,11 @@ const useInstallPWA = () => {
    * Maneja automáticamente Chrome/iOS/otros navegadores
    */
   const handleInstallApp = async () => {
+    console.log('PWA: handleInstallApp called', { canInstall, isIOS: browserInfo.isIOS, supportsNative: browserInfo.supportsNativeInstall });
+    
     if (canInstall) {
-      // Instalación automática (Chrome/Edge)
+      // Instalación automática (Chrome/Edge con prompt disponible)
+      console.log('PWA: Attempting automatic install');
       const result = await installPWA();
       if (result) {
         toast.success('¡FitApp instalada! 🎉');
@@ -33,13 +36,11 @@ const useInstallPWA = () => {
         toast.error('Instalación cancelada');
         return false;
       }
-    } else if (browserInfo.isIOS || !browserInfo.supportsNativeInstall) {
-      // Instrucciones manuales (iOS Safari)
+    } else {
+      // Instrucciones manuales (iOS, Android, Chrome sin prompt, etc.)
+      console.log('PWA: Showing manual instructions');
       showManualInstructions();
       return true; // Se mostraron las instrucciones
-    } else {
-      toast.error('Instalación no disponible en este momento');
-      return false;
     }
   };
 
@@ -54,9 +55,11 @@ const useInstallPWA = () => {
 
   /**
    * Determina si debe mostrar el botón de instalación
+   * Ahora siempre muestra el botón si no está instalado, ya que en móviles
+   * siempre se puede agregar manualmente
    */
   const shouldShowInstallButton = () => {
-    return !isInstalled && (canInstall || browserInfo.isIOS);
+    return !isInstalled;
   };
 
   return {
