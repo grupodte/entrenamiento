@@ -23,8 +23,11 @@ const ModulosEditor = ({ modulos, onModulosChange }) => {
   const [tempLeccion, setTempLeccion] = useState({});
 
   const agregarModulo = () => {
+    // Usar un ID temporal único que no conflicte con IDs de base de datos
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     const nuevoModulo = {
-      id: Date.now().toString(),
+      id: tempId,
       titulo: 'Nuevo Módulo',
       descripcion: '',
       orden: modulos.length + 1,
@@ -52,8 +55,11 @@ const ModulosEditor = ({ modulos, onModulosChange }) => {
   };
 
   const agregarLeccion = (moduloId) => {
+    // Usar un ID temporal único que no conflicte con IDs de base de datos
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     const nuevaLeccion = {
-      id: Date.now().toString(),
+      id: tempId,
       titulo: 'Nueva Lección',
       descripcion: '',
       contenido: '',

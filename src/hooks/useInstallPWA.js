@@ -13,6 +13,7 @@ const useInstallPWA = () => {
     installPWA, 
     showManualInstructions,
     getBrowserInfo,
+    getInstallInstructions,
     canInstall 
   } = usePWAInstall();
 
@@ -21,9 +22,11 @@ const useInstallPWA = () => {
   /**
    * Función principal que puedes llamar desde cualquier botón
    * Maneja automáticamente Chrome/iOS/otros navegadores
+   * 
+   * @param {boolean} showInstructionsInline - Si es true, devuelve 'show_instructions' en lugar de mostrar toast
    */
-  const handleInstallApp = async () => {
-    console.log('PWA: handleInstallApp called', { canInstall, isIOS: browserInfo.isIOS, supportsNative: browserInfo.supportsNativeInstall });
+  const handleInstallApp = async (showInstructionsInline = false) => {
+    console.log('PWA: handleInstallApp called', { canInstall, isIOS: browserInfo.isIOS, supportsNative: browserInfo.supportsNativeInstall, showInstructionsInline });
     
     if (canInstall) {
       // Instalación automática (Chrome/Edge con prompt disponible)
@@ -31,16 +34,23 @@ const useInstallPWA = () => {
       const result = await installPWA();
       if (result) {
         toast.success('¡FitApp instalada! 🎉');
-        return true;
+        return { success: true, action: 'installed' };
       } else {
         toast.error('Instalación cancelada');
-        return false;
+        return { success: false, action: 'cancelled' };
       }
     } else {
       // Instrucciones manuales (iOS, Android, Chrome sin prompt, etc.)
-      console.log('PWA: Showing manual instructions');
-      showManualInstructions();
-      return true; // Se mostraron las instrucciones
+      console.log('PWA: Showing manual instructions', { showInstructionsInline });
+      
+      if (showInstructionsInline) {
+        // Para mostrar en la página en lugar de toast
+        return { success: true, action: 'show_instructions' };
+      } else {
+        // Mostrar toast tradicional
+        showManualInstructions();
+        return { success: true, action: 'instructions_shown' };
+      }
     }
   };
 
@@ -73,6 +83,7 @@ const useInstallPWA = () => {
     isIOS: browserInfo.isIOS,
     isChrome: browserInfo.isChrome,
     isSafari: browserInfo.isSafari,
+    platform: browserInfo.platform,
     
     // Funciones principales
     handleInstallApp,      // ← Esta es la función que usarás
@@ -80,7 +91,8 @@ const useInstallPWA = () => {
     shouldShowInstallButton,
     
     // Funciones adicionales si las necesitas
-    showManualInstructions
+    showManualInstructions,
+    getInstallInstructions
   };
 };
 

@@ -91,33 +91,115 @@ const CrearCurso = () => {
   const cargarCurso = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      console.log('🔍 Cargando curso con ID:', cursoId);
+      
+      // Cargar datos del curso
+      const { data: cursoData, error: cursoError } = await supabase
         .from('cursos')
-        .select(`
-          *,
-          modulos_curso (
-            *,
-            lecciones (*)
-          )
-        `)
+        .select('*')
         .eq('id', cursoId)
         .single();
 
-      if (error) throw error;
+      if (cursoError) throw cursoError;
+
+      console.log('✅ Datos del curso cargados:', cursoData);
 
       setCurso({
-        ...data,
-        precio: data.precio?.toString() || '',
-        precio_original: data.precio_original?.toString() || '',
-        tags: data.tags || [],
-        requisitos: data.requisitos || [],
-        objetivos: data.objetivos || [],
-        incluye: data.incluye || []
+        ...cursoData,
+        precio: cursoData.precio?.toString() || '',
+        precio_original: cursoData.precio_original?.toString() || '',
+        tags: cursoData.tags || [],
+        requisitos: cursoData.requisitos || [],
+        objetivos: cursoData.objetivos || [],
+        incluye: cursoData.incluye || []
       });
 
-      setModulos(data.modulos_curso || []);
+      // Cargar módulos del curso
+      console.log('🔍 Cargando módulos para curso ID:', cursoId);
+      
+      try {
+        // Intentar cargar con join primero
+        const { data: modulosData, error: modulosError } = await supabase
+          .from('modulos_curso')
+          .select(`
+            *,
+            lecciones (*)
+          `)
+          .eq('curso_id', cursoId)
+          .order('orden', { ascending: true });
+
+        if (modulosError) {
+          console.warn('⚠️ Error en consulta con join, intentando consulta separada:', modulosError);
+          
+          // Consulta de respaldo: cargar módulos y lecciones por separado
+          const { data: modulosSolos, error: modulosSolosError } = await supabase
+            .from('modulos_curso')
+            .select('*')
+            .eq('curso_id', cursoId)
+            .order('orden', { ascending: true });
+
+          if (modulosSolosError) {
+            console.error('❌ Error al cargar módulos:', modulosSolosError);
+            setModulos([]);
+            return;
+          }
+
+          console.log('✅ Módulos cargados (sin lecciones):', modulosSolos);
+
+          // Cargar lecciones para cada módulo
+          const modulosConLecciones = [];
+          for (const modulo of modulosSolos || []) {
+            const { data: leccionesData, error: leccionesError } = await supabase
+              .from('lecciones')
+              .select('*')
+              .eq('modulo_id', modulo.id)
+              .order('orden', { ascending: true });
+
+            if (leccionesError) {
+              console.warn(`⚠️ Error al cargar lecciones para módulo ${modulo.id}:`, leccionesError);
+            }
+
+            modulosConLecciones.push({
+              ...modulo,
+              lecciones: leccionesData || []
+            });
+          }
+
+          console.log('✅ Módulos con lecciones (consulta separada):', modulosConLecciones);
+          
+          const modulosProcessed = modulosConLecciones.map(modulo => ({
+            ...modulo,
+            id: modulo.id.toString(),
+            lecciones: (modulo.lecciones || []).map(leccion => ({
+              ...leccion,
+              id: leccion.id.toString()
+            }))
+          }));
+          
+          setModulos(modulosProcessed);
+        } else {
+          console.log('✅ Módulos cargados con join:', modulosData);
+          
+          // Procesar los módulos para compatibilidad con el editor
+          const modulosProcessed = (modulosData || []).map(modulo => ({
+            ...modulo,
+            id: modulo.id.toString(), // Convertir a string para compatibilidad
+            lecciones: (modulo.lecciones || []).map(leccion => ({
+              ...leccion,
+              id: leccion.id.toString() // Convertir a string para compatibilidad
+            }))
+          }));
+          
+          console.log('✅ Módulos procesados:', modulosProcessed);
+          setModulos(modulosProcessed);
+        }
+      } catch (error) {
+        console.error('❌ Error inesperado al cargar módulos:', error);
+        setModulos([]);
+      }
     } catch (error) {
-      console.error('Error al cargar curso:', error);
+      console.error('❌ Error al cargar curso:', error);
       toast.error('Error al cargar el curso');
       navigate('/admin/cursos');
     } finally {
@@ -164,52 +246,87 @@ const CrearCurso = () => {
 
       if (result.error) throw result.error;
 
-      const cursoId = result.data.id;
+      const cursoIdGuardado = result.data.id;
 
       // Guardar módulos y lecciones
+      console.log('🔍 Guardando módulos:', modulos);
+      
       if (modulos.length > 0) {
-        // Eliminar módulos existentes si estamos editando
+        // Si estamos editando, eliminamos módulos y lecciones existentes
         if (isEditing) {
+          console.log('🔍 Eliminando módulos existentes del curso:', cursoId);
+          
+          // Primero eliminar lecciones
+          await supabase.from('lecciones').delete().eq('curso_id', cursoId);
+          // Luego eliminar módulos
           await supabase.from('modulos_curso').delete().eq('curso_id', cursoId);
         }
 
-        // Insertar módulos
-        for (const modulo of modulos) {
+        // Insertar módulos (siempre usamos cursoIdGuardado para consistencia)
+        for (let i = 0; i < modulos.length; i++) {
+          const modulo = modulos[i];
+          
+          console.log(`🔍 Guardando módulo ${i + 1}:`, {
+            titulo: modulo.titulo,
+            descripcion: modulo.descripcion,
+            orden: modulo.orden,
+            duracion_estimada: modulo.duracion_estimada
+          });
+          
           const { data: moduloData, error: moduloError } = await supabase
             .from('modulos_curso')
             .insert({
-              curso_id: cursoId,
+              curso_id: cursoIdGuardado,
               titulo: modulo.titulo,
-              descripcion: modulo.descripcion,
+              descripcion: modulo.descripcion || '',
               orden: modulo.orden,
-              duracion_estimada: modulo.duracion_estimada
+              duracion_estimada: modulo.duracion_estimada || ''
             })
             .select()
             .single();
 
-          if (moduloError) throw moduloError;
+          if (moduloError) {
+            console.error('❌ Error al guardar módulo:', moduloError);
+            throw moduloError;
+          }
+
+          console.log('✅ Módulo guardado:', moduloData);
 
           // Insertar lecciones del módulo
           if (modulo.lecciones && modulo.lecciones.length > 0) {
-            const leccionesData = modulo.lecciones.map(leccion => ({
-              modulo_id: moduloData.id,
-              curso_id: cursoId,
-              titulo: leccion.titulo,
-              descripcion: leccion.descripcion,
-              contenido: leccion.contenido,
-              video_url: leccion.video_url,
-              duracion_segundos: leccion.duracion_segundos,
-              orden: leccion.orden,
-              es_preview: leccion.es_preview
-            }));
+            console.log(`🔍 Guardando ${modulo.lecciones.length} lecciones para el módulo:`);
+            
+            const leccionesData = modulo.lecciones.map(leccion => {
+              const leccionData = {
+                modulo_id: moduloData.id,
+                curso_id: cursoIdGuardado,
+                titulo: leccion.titulo || 'Sin título',
+                descripcion: leccion.descripcion || '',
+                contenido: leccion.contenido || '',
+                video_url: leccion.video_url || '',
+                duracion_segundos: parseInt(leccion.duracion_segundos) || 0,
+                orden: leccion.orden || 1,
+                es_preview: Boolean(leccion.es_preview)
+              };
+              
+              console.log('🔍 Datos de lección a insertar:', leccionData);
+              return leccionData;
+            });
 
             const { error: leccionesError } = await supabase
               .from('lecciones')
               .insert(leccionesData);
 
-            if (leccionesError) throw leccionesError;
+            if (leccionesError) {
+              console.error('❌ Error al guardar lecciones:', leccionesError);
+              throw leccionesError;
+            }
+            
+            console.log(`✅ ${leccionesData.length} lecciones guardadas correctamente`);
           }
         }
+      } else {
+        console.log('ℹ️ No hay módulos para guardar');
       }
 
       toast.success(isEditing ? 'Curso actualizado correctamente' : 'Curso creado correctamente');

@@ -229,7 +229,7 @@ const VisualizarCurso = () => {
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="bg-gray-900/50">
+              <div className="">
                 {modulo.lecciones?.map((leccion, leccionIndex) => {
                   const isCompleted = progreso[leccion.id]?.completada;
                   const isActive = leccionActual?.id === leccion.id;
@@ -287,7 +287,7 @@ const VisualizarCurso = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-white">Cargando curso...</div>
       </div>
     );
@@ -295,7 +295,7 @@ const VisualizarCurso = () => {
 
   if (!tieneAcceso) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
+      <div className="min-h-screen  flex items-center justify-center p-6">
         <div className="max-w-md text-center">
           <Lock className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-white mb-2">Acceso Restringido</h1>
@@ -312,7 +312,7 @@ const VisualizarCurso = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen">
       {/* Header */}
       <div className="bg-gray-800/50 border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-6 py-4">
@@ -394,7 +394,7 @@ const VisualizarCurso = () => {
                 </div>
 
                 {leccionActual.contenido && (
-                  <div className="bg-gray-900/50 rounded-lg p-4">
+                  <div className="rounded-lg p-4">
                     <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
                       <FileText className="w-4 h-4" />
                       Contenido de la lección

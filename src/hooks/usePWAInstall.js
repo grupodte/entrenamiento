@@ -349,6 +349,64 @@ const usePWAInstall = () => {
     };
   };
 
+  // Obtener instrucciones de instalación sin mostrar toast
+  const getInstallInstructions = () => {
+    const instructions = {
+      'ios': {
+        title: 'Agregar aplicación a la pantalla de inicio (iOS)',
+        steps: [
+          'Toque el botón Compartir en Safari',
+          'Desplácese hacia abajo y seleccione "Agregar a pantalla de inicio"',
+          'Personalice el nombre si lo desea y toque "Agregar"',
+          'La aplicación aparecerá como una app nativa en su dispositivo'
+        ],
+        tip: 'La aplicación funcionará sin conexión a internet y enviará notificaciones.'
+      },
+      'android-chrome': {
+        title: 'Instalar aplicación (Android Chrome)',
+        steps: [
+          'Toque el menú (tres puntos) en la esquina superior derecha',
+          'Seleccione "Agregar a pantalla de inicio" o "Instalar app"',
+          'Toque "Instalar" para confirmar',
+          'La aplicación se instalará como una aplicación nativa'
+        ],
+        tip: 'También puede usar el botón de instalación en la barra de direcciones.'
+      },
+      'windows-chrome': {
+        title: 'Instalar aplicación (Chrome Windows)',
+        steps: [
+          'Busque el ícono de instalación en la barra de direcciones',
+          'O vaya al menú (tres puntos) y seleccione "Instalar aplicación"',
+          'Haga clic en "Instalar"',
+          'La aplicación se agregará a su escritorio'
+        ],
+        tip: 'Aparecerá en el menú inicio y se puede anclar a la barra de tareas.'
+      },
+      'macos-chrome': {
+        title: 'Instalar aplicación (Chrome macOS)',
+        steps: [
+          'Busque el ícono de instalación en la barra de direcciones',
+          'O vaya al menú Chrome y seleccione "Instalar aplicación"',
+          'Haga clic en "Instalar"',
+          'La aplicación aparecerá en Launchpad y en el Dock'
+        ],
+        tip: 'Podrá acceder desde Spotlight escribiendo el nombre de la aplicación.'
+      },
+      'default': {
+        title: 'Instalar aplicación',
+        steps: [
+          'Busque la opción "Instalar app" o "Agregar a pantalla de inicio" en su navegador',
+          'Esta opción generalmente está en el menú principal o barra de direcciones',
+          'Siga las instrucciones que aparezcan en pantalla',
+          'Disfrute de la experiencia como aplicación nativa'
+        ],
+        tip: 'Las opciones pueden variar según su navegador y dispositivo.'
+      }
+    };
+
+    return instructions[platform] || instructions['default'];
+  };
+
   // Función para forzar re-verificación de instalación
   const recheckInstallation = useCallback(() => {
     const installed = checkIfInstalled();
@@ -370,6 +428,7 @@ const usePWAInstall = () => {
 
     // Información
     getBrowserInfo,
+    getInstallInstructions,
 
     // Propiedades computadas
     canInstall: isInstallable && !isInstalled,

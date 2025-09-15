@@ -1,21 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Download, Smartphone, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useInstallPWA from '../hooks/useInstallPWA';
+import InstallInstructions from '../components/InstallInstructions';
 
 const InstalarApp = () => {
   const navigate = useNavigate();
+  const [showInstructions, setShowInstructions] = useState(false);
   const { 
     handleInstallApp, 
     isInstalling, 
     isInstalled,
-    isIOS 
+    isIOS,
+    platform
   } = useInstallPWA();
 
   const handleInstallClick = async () => {
-    const success = await handleInstallApp();
-    if (success && !isIOS) {
+    // Determinar si es un dispositivo móvil
+    const isMobile = platform === 'ios' || platform.startsWith('android');
+    
+    const result = await handleInstallApp(isMobile);
+    
+    if (result.action === 'show_instructions') {
+      // Mostrar las instrucciones en la página
+      setShowInstructions(true);
+    } else if (result.action === 'installed') {
       // Redirigir después de instalación exitosa
       setTimeout(() => {
         navigate('/dashboard');
@@ -24,7 +34,11 @@ const InstalarApp = () => {
   };
 
   const handleGoBack = () => {
-    navigate(-1);
+    if (showInstructions) {
+      setShowInstructions(false);
+    } else {
+      navigate(-1);
+    }
   };
 
   if (isInstalled) {
@@ -67,6 +81,44 @@ const InstalarApp = () => {
             Ir al Dashboard
           </button>
         </motion.div>
+      </div>
+    );
+  }
+
+  // Vista de instrucciones
+  if (showInstructions) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Header con botón volver */}
+        <div className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700">
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
+            <button
+              onClick={handleGoBack}
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Volver
+            </button>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              Cómo instalar FitApp
+            </h1>
+          </div>
+        </div>
+
+        {/* Contenido principal */}
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <InstallInstructions platform={platform} />
+
+          {/* Botón para intentar de nuevo */}
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => setShowInstructions(false)}
+              className="px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium transition-colors"
+            >
+              Intentar instalación automática
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
