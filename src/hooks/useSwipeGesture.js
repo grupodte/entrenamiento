@@ -20,57 +20,57 @@ export const useSwipeGesture = ({
   const CLICK_TIME_THRESHOLD = 200; // ms
   const CLICK_DISTANCE_THRESHOLD = 18; // px (tolerancia a jitter móvil)
 
-  // Detección robusta de elementos interactivos (solo para elementos realmente clickeables)
+  // Detección mejorada de elementos interactivos (incluye más casos edge)
   const isElementInteractive = useCallback((element) => {
     if (!element) return false;
     
-    const interactiveTags = ['BUTTON', 'A', 'INPUT', 'TEXTAREA', 'SELECT'];
-    const nonInteractiveTags = ['MAIN', 'DIV', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER', 'NAV'];
+    const interactiveTags = ['BUTTON', 'A', 'INPUT', 'TEXTAREA', 'SELECT', 'LABEL'];
+    const nonInteractiveTags = ['MAIN', 'DIV', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER', 'NAV', 'SPAN', 'P'];
     let current = element;
     
     while (current && current !== document.body) {
       // Prioridad máxima: elementos con data-action
       if (current.hasAttribute('data-action')) {
-        console.log('Interactive: data-action element found:', current.tagName);
         return true;
-      }
-      
-      // Excluir explícitamente elementos de layout que no deberían bloquear edge swipe
-      if (nonInteractiveTags.includes(current.tagName)) {
-        current = current.parentElement;
-        continue;
       }
       
       // Tags explícitamente interactivos
       if (interactiveTags.includes(current.tagName)) {
-        console.log('Interactive: interactive tag found:', current.tagName);
         return true;
       }
       
       // Elementos con roles interactivos específicos
       const role = current.getAttribute('role');
-      if (role && ['button', 'link', 'menuitem', 'tab'].includes(role)) {
-        console.log('Interactive: interactive role found:', role);
+      if (role && ['button', 'link', 'menuitem', 'tab', 'switch', 'checkbox'].includes(role)) {
         return true;
       }
       
-      // Elementos con handlers de click explícitos
-      if (current.onclick) {
-        console.log('Interactive: onclick handler found on:', current.tagName);
+      // Elementos con handlers de eventos
+      if (current.onclick || current.ontouchstart || current.ontouchend) {
         return true;
       }
       
-      // Solo elementos con cursor pointer que también tienen algún indicador de interactividad
-      if (current.classList.contains('cursor-pointer') && 
+      // Elementos Framer Motion con whileTap o onTap
+      if (current.getAttribute('data-framer-motion') && 
+          (current.style.cursor === 'pointer' || current.classList.contains('cursor-pointer'))) {
+        return true;
+      }
+      
+      // Solo elementos con cursor pointer Y algún indicador de interactividad
+      if ((current.style.cursor === 'pointer' || current.classList.contains('cursor-pointer')) && 
           (current.onclick || current.hasAttribute('data-action') || current.getAttribute('role'))) {
-        console.log('Interactive: cursor-pointer with interaction found:', current.tagName);
         return true;
+      }
+      
+      // Excluir elementos de layout explícitamente
+      if (nonInteractiveTags.includes(current.tagName)) {
+        current = current.parentElement;
+        continue;
       }
       
       current = current.parentElement;
     }
     
-    console.log('Not interactive: element and parents are non-interactive:', element.tagName);
     return false;
   }, []);
 
@@ -157,15 +157,15 @@ export const useSwipeGesture = ({
     
     setCurrentPos({ x: touch.clientX, y: touch.clientY });
     
-    // Solo prevenir si es claramente horizontal
-    if (absDeltaX > deltaY && absDeltaX > 5) {
-      // Para edge swipe: movimiento hacia la derecha
-      if (isEdgeSwipe && deltaX > 0) {
+    // Solo prevenir si es claramente horizontal Y es un gesto válido
+    if (absDeltaX > deltaY && absDeltaX > 15) { // Mayor threshold para evitar falsos positivos
+      // Para edge swipe: movimiento hacia la derecha con momentum suficiente
+      if (isEdgeSwipe && deltaX > 20) {
         console.log('Preventing edge swipe move, deltaX:', deltaX);
         e.preventDefault();
       }
-      // Para closing swipe: movimiento hacia la izquierda
-      else if (isClosingSwipe && deltaX < 0) {
+      // Para closing swipe: movimiento hacia la izquierda con momentum suficiente
+      else if (isClosingSwipe && deltaX < -20) {
         console.log('Preventing close swipe move, deltaX:', deltaX);
         e.preventDefault();
       }

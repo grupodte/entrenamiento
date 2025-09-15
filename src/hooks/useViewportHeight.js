@@ -13,7 +13,14 @@ export const useViewportHeight = () => {
             
             // Variables básicas
             document.documentElement.style.setProperty('--vh', `${vh}px`);
-            document.documentElement.style.setProperty('--full-vh', `${currentHeight}px`);
+            
+            // Intentar usar dvh si está disponible, sino usar vh calculado
+            const supportsDvh = CSS.supports('height', '100dvh');
+            if (supportsDvh) {
+                document.documentElement.style.setProperty('--full-vh', '100dvh');
+            } else {
+                document.documentElement.style.setProperty('--full-vh', `${currentHeight}px`);
+            }
             
             // Detectar si estamos en un navegador móvil
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -25,24 +32,45 @@ export const useViewportHeight = () => {
                 
                 // Si la altura cambió significativamente, probablemente sea la barra de direcciones
                 if (Math.abs(heightDifference) > 50) {
-                    // Altura disponible real (considerando barra de direcciones)
-                    document.documentElement.style.setProperty('--real-vh', `${currentHeight}px`);
-                    document.documentElement.style.setProperty('--viewport-height', `${currentHeight}px`);
+                    // Usar dvh si está disponible, sino currentHeight
+                    if (supportsDvh) {
+                        document.documentElement.style.setProperty('--real-vh', '100dvh');
+                        document.documentElement.style.setProperty('--viewport-height', '100dvh');
+                    } else {
+                        document.documentElement.style.setProperty('--real-vh', `${currentHeight}px`);
+                        document.documentElement.style.setProperty('--viewport-height', `${currentHeight}px`);
+                    }
                 } else {
                     // Usar la altura más estable
-                    document.documentElement.style.setProperty('--real-vh', `${Math.max(currentHeight, initialHeight)}px`);
-                    document.documentElement.style.setProperty('--viewport-height', `${Math.max(currentHeight, initialHeight)}px`);
+                    const stableHeight = Math.max(currentHeight, initialHeight);
+                    if (supportsDvh) {
+                        document.documentElement.style.setProperty('--real-vh', '100dvh');
+                        document.documentElement.style.setProperty('--viewport-height', '100dvh');
+                    } else {
+                        document.documentElement.style.setProperty('--real-vh', `${stableHeight}px`);
+                        document.documentElement.style.setProperty('--viewport-height', `${stableHeight}px`);
+                    }
                 }
                 
-                // Variable específica para elementos fixed al bottom que necesitan evitar la barra
+                // Variable específica para elementos fixed al bottom
                 const safeBottomHeight = Math.min(currentHeight, initialHeight);
-                document.documentElement.style.setProperty('--safe-viewport-height', `${safeBottomHeight}px`);
+                if (supportsDvh) {
+                    document.documentElement.style.setProperty('--safe-viewport-height', '100dvh');
+                } else {
+                    document.documentElement.style.setProperty('--safe-viewport-height', `${safeBottomHeight}px`);
+                }
                 
             } else {
-                // En PWA o desktop, usar altura normal
-                document.documentElement.style.setProperty('--real-vh', `${currentHeight}px`);
-                document.documentElement.style.setProperty('--viewport-height', `${currentHeight}px`);
-                document.documentElement.style.setProperty('--safe-viewport-height', `${currentHeight}px`);
+                // En PWA o desktop, usar dvh si está disponible
+                if (supportsDvh) {
+                    document.documentElement.style.setProperty('--real-vh', '100dvh');
+                    document.documentElement.style.setProperty('--viewport-height', '100dvh');
+                    document.documentElement.style.setProperty('--safe-viewport-height', '100dvh');
+                } else {
+                    document.documentElement.style.setProperty('--real-vh', `${currentHeight}px`);
+                    document.documentElement.style.setProperty('--viewport-height', `${currentHeight}px`);
+                    document.documentElement.style.setProperty('--safe-viewport-height', `${currentHeight}px`);
+                }
             }
             
             // Debug info (solo en desarrollo)

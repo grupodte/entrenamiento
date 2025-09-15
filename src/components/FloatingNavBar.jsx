@@ -243,9 +243,12 @@ const FloatingNavBar = ({
     if (!isTouchDevice) return;
 
     const handleTouchMove = (e) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      handleDragMove(touch.clientX, touch.clientY);
+      // Solo preventDefault si realmente estamos arrastrando
+      if (isDragging) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        handleDragMove(touch.clientX, touch.clientY);
+      }
     };
 
     const handleTouchEnd = () => handleDragEnd();
@@ -254,7 +257,9 @@ const FloatingNavBar = ({
       document.addEventListener('touchmove', handleTouchMove, {
         passive: false,
       });
-      document.addEventListener('touchend', handleTouchEnd);
+      document.addEventListener('touchend', handleTouchEnd, {
+        passive: true,
+      });
     }
 
     return () => {
@@ -318,19 +323,19 @@ const FloatingNavBar = ({
   return (
     <nav
       ref={navRef}
-      className="fixed z-[99999] select-none"
+      className="fixed z-floating-nav select-none"
       style={{
         left: position.x,
         top: position.y,
         transform: isDragging ? 'scale(1.03)' : 'scale(1)',
         transition: isDragging ? 'none' : 'transform 0.3s ease',
         cursor: isTouchDevice ? (isDragging ? 'grabbing' : 'grab') : 'default',
-        touchAction: 'none',
+        touchAction: 'pan-x pan-y',
         WebkitUserSelect: 'none',
         userSelect: 'none',
       }}
       onMouseDown={(e) => {
-        if (!isTouchDevice) return;
+        if (isTouchDevice) return;
         e.preventDefault();
         handleDragStart(e.clientX, e.clientY);
       }}

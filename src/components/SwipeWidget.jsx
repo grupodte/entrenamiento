@@ -286,7 +286,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
         <>
           {/* Overlay con blur */}
           <motion.div
-            className="fixed inset-0 bg-black/40 z-40"
+            className="fixed inset-0 bg-black/40 z-overlay"
             variants={overlayVariants}
             initial="closed"
             animate={currentVariant}
@@ -297,7 +297,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
 
           {/* Panel principal */}
           <motion.div
-            className="fixed top-0 h-full z-50 shadow-2xl"
+            className="fixed top-0 h-full z-drawer shadow-2xl"
             data-swipe-widget
             variants={widgetVariants}
             initial="closed"
@@ -308,7 +308,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
               left: '50%',
               boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.3)',
               backdropFilter: 'blur(20px) saturate(150%)',
-              touchAction: 'pan-y' // Permitir scroll vertical
+              touchAction: 'pan-y manipulation' // Permitir scroll vertical y optimizar toques
             }}
           >
             {/* Indicador de arrastre */}

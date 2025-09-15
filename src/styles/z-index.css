@@ -1,0 +1,85 @@
+/* =============================================================================
+   SISTEMA DE Z-INDEX NORMALIZADO
+   =============================================================================
+   
+   Evita z-index "mágicos" y problemas de stacking context.
+   Usar estas variables CSS en lugar de valores hardcoded.
+*/
+
+:root {
+  /* Capas base (0-99) */
+  --z-base: 0;
+  --z-behind: -1;
+  --z-default: 1;
+  
+  /* Contenido principal (100-399) */
+  --z-content: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  
+  /* Elementos flotantes (400-699) */
+  --z-dropdown: 400;
+  --z-popover: 500;
+  --z-tooltip: 600;
+  
+  /* Overlays y modales (700-999) */
+  --z-overlay: 700;
+  --z-modal: 800;
+  --z-drawer: 850;
+  
+  /* Navegación crítica (1000-1099) */
+  --z-navbar: 1000;
+  --z-floating-nav: 1000;
+  
+  /* Elementos críticos del sistema (1100+) */
+  --z-notification: 1100;
+  --z-alert: 1200;
+  --z-emergency: 1300;
+}
+
+/* =============================================================================
+   CLASES UTILITARIAS
+   ============================================================================= */
+
+.z-base { z-index: var(--z-base); }
+.z-behind { z-index: var(--z-behind); }
+.z-default { z-index: var(--z-default); }
+
+.z-content { z-index: var(--z-content); }
+.z-sticky { z-index: var(--z-sticky); }
+.z-fixed { z-index: var(--z-fixed); }
+
+.z-dropdown { z-index: var(--z-dropdown); }
+.z-popover { z-index: var(--z-popover); }
+.z-tooltip { z-index: var(--z-tooltip); }
+
+.z-overlay { z-index: var(--z-overlay); }
+.z-modal { z-index: var(--z-modal); }
+.z-drawer { z-index: var(--z-drawer); }
+
+.z-navbar { z-index: var(--z-navbar); }
+.z-floating-nav { z-index: var(--z-floating-nav); }
+
+.z-notification { z-index: var(--z-notification); }
+.z-alert { z-index: var(--z-alert); }
+.z-emergency { z-index: var(--z-emergency); }
+
+/* =============================================================================
+   GUÍAS DE USO
+   =============================================================================
+   
+   ✅ USAR:
+   className="z-floating-nav"
+   style={{ zIndex: 'var(--z-modal)' }}
+   
+   ❌ NO USAR:
+   className="z-[99999]"
+   style={{ zIndex: 99999 }}
+   
+   JERARQUÍA:
+   1. Base/Content (0-399)
+   2. Floating elements (400-699)
+   3. Overlays/Modals (700-999)
+   4. Critical Navigation (1000-1099)
+   5. System Critical (1100+)
+*/

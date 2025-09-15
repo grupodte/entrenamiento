@@ -23,11 +23,11 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
     const isSwipingRef = useRef(false);
     const drawerRef = useRef(null);
 
-    // Optimización: Prevenir scroll del body cuando está abierto
+    // Optimización: Prevenir scroll del body cuando está abierto, pero permitir interacción en drawer
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
-            document.body.style.touchAction = 'none';
+            document.body.style.touchAction = 'pan-y'; // Permitir scroll vertical
             document.body.classList.add('drawer-active');
             document.documentElement.classList.add('drawer-active');
         } else {
@@ -111,19 +111,22 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
         isSwipingRef.current = false;
     }, [isOpen, onClose]);
 
-    // Agregar listeners de touch events
+    // Agregar listeners de touch events solo en el drawer
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen || !drawerRef.current) return;
 
+        const drawerElement = drawerRef.current;
         const options = { passive: false };
-        document.addEventListener('touchstart', handleTouchStart, options);
-        document.addEventListener('touchmove', handleTouchMove, options);
-        document.addEventListener('touchend', handleTouchEnd, options);
+        
+        // Solo escuchar eventos en el drawer específicamente
+        drawerElement.addEventListener('touchstart', handleTouchStart, options);
+        drawerElement.addEventListener('touchmove', handleTouchMove, options);
+        drawerElement.addEventListener('touchend', handleTouchEnd, options);
 
         return () => {
-            document.removeEventListener('touchstart', handleTouchStart);
-            document.removeEventListener('touchmove', handleTouchMove);
-            document.removeEventListener('touchend', handleTouchEnd);
+            drawerElement.removeEventListener('touchstart', handleTouchStart);
+            drawerElement.removeEventListener('touchmove', handleTouchMove);
+            drawerElement.removeEventListener('touchend', handleTouchEnd);
         };
     }, [isOpen, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
@@ -143,7 +146,7 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                         className="fixed inset-0 bg-black/50 will-change-[opacity]"
                         onClick={handleOverlayClick}
                         style={{
-                            zIndex: 99999,
+                            zIndex: 'var(--z-overlay)',
                             WebkitBackdropFilter: 'blur(4px)',
                             backdropFilter: 'blur(4px)'
                         }}

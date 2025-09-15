@@ -25,6 +25,7 @@ import AuthPage from './pages/AuthPage';
 import Tyc from './pages/tyc';
 import PoliticaPrivacidad from './pages/PoliticaPrivacidad';
 import InstalarApp from './pages/InstalarApp';
+import NotFound from './pages/NotFound';
 
 // --- PÁGINAS DE ALUMNO ---
 import DashboardAlumno from './pages/Alumno/Dashboard';
@@ -146,18 +147,7 @@ const AppContent = () => {
         />
         
         {/* Ruta 404 - Catch all */}
-        <Route
-          path="*"
-          element={
-            user ? (
-              rol === 'admin' ?
-                <Navigate to="/admin" replace /> :
-                <Navigate to="/dashboard" replace />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
     
