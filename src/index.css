@@ -4,23 +4,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ✅ Prevención contextual de swipe back - Optimizado para PWA */
-/* Base: comportamiento controlado para prevenir navegación accidental */
+/* ✅ Prevención de navegación - Versión simplificada */
+/* Combina con useNoBack + usePreventSwipeBack */
 html {
   overscroll-behavior-x: none;
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: auto;
   -webkit-overscroll-behavior-x: none;
-  -webkit-overscroll-behavior-y: contain;
 }
 
 body {
   overscroll-behavior-x: none;
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: auto;
   -webkit-overscroll-behavior-x: none;
-  -webkit-overscroll-behavior-y: contain;
-  /* Prevenir gestos de navegación en iOS Safari */
+  /* Solo prevenir selección accidental, mantener usabilidad */
   -webkit-touch-callout: none;
-  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -150,29 +147,22 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
-  overscroll-behavior: none;
-  /* Prevenir el swipe back del navegador */
-  overscroll-behavior-x: none;
   font-family: 'ProductSans', 'Inter', sans-serif;
-  /* Deshabilitar swipe navigation completamente */
-  overscroll-behavior: none;
-  overscroll-behavior-x: none;
-  overscroll-behavior-y: none;
 }
 
 html {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  /* Ya configurado arriba en la sección simplificada */
 }
 
 body {
   @apply font-sans select-none text-white scrollbar-hide;
   background-color: var(--bg-primary);
   touch-action: manipulation;
-  overscroll-behavior: none;
-  overscroll-behavior-x: none;
   -webkit-overflow-scrolling: touch;
   text-rendering: optimizeLegibility;
+  /* overscroll-behavior ya configurado arriba */
 }
 
 /* ====== TIPOGRAFÍA PERSONALIZADA ====== */

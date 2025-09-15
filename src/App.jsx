@@ -10,7 +10,8 @@ import AdminLayout from './layouts/AdminLayout';
 import RutaProtegida from './components/RutaProtegida';
 import useSmoothScroll from './hooks/useSmoothScroll';
 import usePreventSwipeBack from './hooks/usePreventSwipeBack';
-import usePWANavigation from './hooks/usePWANavigation';
+import useNoBack from './hooks/useNoBack';
+import { useLocation } from 'react-router-dom';
 import AlumnoLayout from './layouts/AlumnoLayout';
 import BrandedLoader from './components/BrandedLoader';
 
@@ -64,6 +65,25 @@ const PublicLayout = () => (
 const AppContent = () => {
   useSmoothScroll();
   const { user, rol, loading } = useAuth();
+  const location = useLocation();
+  
+  // No aplicar prevención global en RutinaDetalle (tiene su propio control)
+  const isInRutinaDetalle = location.pathname.includes('/rutina/');
+  
+  // Sistema de prevención de navegación - Versión simplificada
+  
+  // 1. Prevenir historial (botones de navegación del navegador)
+  useNoBack(!isInRutinaDetalle, (event) => {
+    console.log('Usuario intentó navegar hacia atrás - bloqueado');
+  });
+  
+  // 2. Prevenir gestos táctiles (swipe desde bordes)
+  usePreventSwipeBack({ 
+    enabled: !isInRutinaDetalle, // No aplicar en RutinaDetalle
+    edgeThreshold: 30,
+    swipeThreshold: 20,
+    exceptions: ['.touch-interactive', '.allow-swipe-back']
+  });
 
   return (
     <WidgetGuideProvider>
@@ -168,30 +188,7 @@ const App = () => {
     }
   }, []);
   
-  // Sistema completo de prevención de navegación
-  usePreventSwipeBack({
-    enabled: true,
-    edgeThreshold: 40, // Píxeles desde el borde
-    swipeThreshold: 25, // Sensibilidad del swipe
-    exceptions: ['.touch-interactive', '.allow-swipe-back'] // Elementos que permiten navegación
-  });
-  
-  const { setPreventionActive } = usePWANavigation({
-    preventBrowserBack: true,
-    enableLogging: false, // Cambiar a true para debug
-    onNavigationAttempt: (event, location) => {
-      // Lógica personalizada para permitir/denegar navegación
-      console.log('Navigation attempt detected on:', location.pathname);
-      return false; // No permitir navegación hacia atrás
-    }
-  });
-  
-  // Activar prevención cuando la app esté lista
-  React.useEffect(() => {
-    if (!loading) {
-      setPreventionActive(true);
-    }
-  }, [loading, setPreventionActive]);
+  // Los hooks de prevención ahora están en AppContent
 
   if (loading) {
     return <BrandedLoader />;

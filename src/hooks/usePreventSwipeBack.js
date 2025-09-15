@@ -99,10 +99,7 @@ const usePreventSwipeBack = ({
     }
   }, [enabled]);
   
-  const handlePopState = useCallback((e) => {
-    if (!enabled) return;
-    console.log('[PreventSwipeBack] Navigation event detected');
-  }, [enabled]);
+  // Removido handlePopState - useNoBack se encarga del historial
 
   useEffect(() => {
     if (!enabled) return;
@@ -133,7 +130,7 @@ const usePreventSwipeBack = ({
     document.addEventListener('touchmove', handleTouchMove, touchOptions);
     document.addEventListener('touchend', handleTouchEnd, passiveOptions);
     document.addEventListener('touchcancel', handleTouchEnd, passiveOptions);
-    window.addEventListener('popstate', handlePopState, passiveOptions);
+    // popstate manejado por useNoBack
 
     console.log('[PreventSwipeBack] Hook initialized and active');
 
@@ -143,7 +140,6 @@ const usePreventSwipeBack = ({
       document.removeEventListener('touchmove', handleTouchMove, touchOptions);
       document.removeEventListener('touchend', handleTouchEnd, passiveOptions);
       document.removeEventListener('touchcancel', handleTouchEnd, passiveOptions);
-      window.removeEventListener('popstate', handlePopState, passiveOptions);
       
       // Limpiar timeout si existe
       if (preventionTimeoutRef.current) {
@@ -157,7 +153,7 @@ const usePreventSwipeBack = ({
       
       console.log('[PreventSwipeBack] Hook cleaned up');
     };
-  }, [enabled, handleTouchStart, handleTouchMove, handleTouchEnd, handlePopState]);
+  }, [enabled, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   return {
     isActive: enabled,
