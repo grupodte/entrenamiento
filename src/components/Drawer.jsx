@@ -6,15 +6,7 @@ import { useEffect, useCallback, useState, useRef } from 'react';
 const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
     // Normalizar la altura para usar nuestras nuevas clases CSS
     const getResponsiveHeight = (heightProp) => {
-        // OBJETIVO: Los drawers SIEMPRE deben cubrir toda la pantalla,
-        // pero nunca exceder el máximo seguro en móviles
-        
-        // Para cualquier caso, usar la clase inteligente que:
-        // - Mínimo: altura completa de la pantalla
-        // - Máximo: altura segura (evita barras de navegación en móviles)
-        // - Altura: auto (se ajusta al contenido entre min y max)
-        
-        return 'drawer-smart-height';
+        return heightProp;
     };
     
     const responsiveHeight = getResponsiveHeight(height);
@@ -200,6 +192,7 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                         className={`
                             drawer-safe-positioning
                             ${responsiveHeight}
+                            w-full md:w-[95%] lg:w-[95%] mx-auto
                             bg-gray-900/98
                             text-white 
                             shadow-2xl 

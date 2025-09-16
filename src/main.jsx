@@ -8,10 +8,6 @@ import { AuthProvider } from './context/AuthContext';
 
 import { BrowserRouter as Router } from 'react-router-dom';
 
-import { initializePreventZoomAndScroll } from './utils/preventZoomAndScroll';
-// Inicializar prevención de zoom, scroll X y gestos
-initializePreventZoomAndScroll();
-
 // Configuración del Service Worker
 const updateSW = registerSW({
   onNeedRefresh() {
