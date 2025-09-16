@@ -305,7 +305,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             animate={currentVariant}
             exit="closed"
             style={{
-              width: '95vw',
+              width: '100vw',
               left: '0',
               boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.3)',
               backdropFilter: 'blur(20px) saturate(150%)',

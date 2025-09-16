@@ -17,9 +17,9 @@ export const useSwipeGesture = ({
   const containerRef = useRef(null);
   const lastTouchTime = useRef(0);
   
-  // Constantes para detección de clicks genuinos
-  const CLICK_TIME_THRESHOLD = 200; // ms
-  const CLICK_DISTANCE_THRESHOLD = 18; // px (tolerancia a jitter móvil)
+  // Constantes para detección de clicks genuinos - VALORES MEJORADOS
+  const CLICK_TIME_THRESHOLD = 250; // ms - aumentado para ser más permisivo
+  const CLICK_DISTANCE_THRESHOLD = 25; // px - aumentado para mejor tolerancia a jitter móvil
 
   // Detección simplificada de elementos interactivos - Solo bloquear elementos claramente interactivos
   const isElementInteractive = useCallback((element) => {
@@ -104,15 +104,15 @@ export const useSwipeGesture = ({
       windowWidth: window.innerWidth
     });
     
-    // Si no es un gesto válido, salir temprano
+    // Si no es un gesto válido, salir temprano SIN interferir
     if (!isFromLeftEdge && !isFromRightEdge && !isFromWidget) {
-      console.log('Not a valid gesture area, ignoring');
+      console.log('Not a valid gesture area, ignoring - allowing normal touch events');
       return;
     }
     
-    // Para edge swipes, verificar si está en elemento interactivo - TEMPORALMENTE DESACTIVADO
-    if (false && (isFromLeftEdge || isFromRightEdge) && isElementInteractive(e.target)) {
-      console.log('Edge swipe blocked by interactive element:', {
+    // Verificar si el touch está en un elemento interactivo
+    if ((isFromLeftEdge || isFromRightEdge || isFromWidget) && isElementInteractive(e.target)) {
+      console.log('Gesture blocked by interactive element - allowing normal touch events:', {
         tagName: e.target.tagName,
         className: e.target.className,
         id: e.target.id,
@@ -162,28 +162,31 @@ export const useSwipeGesture = ({
     
     setCurrentPos({ x: touch.clientX, y: touch.clientY });
     
-    // Solo prevenir si es claramente horizontal Y es un gesto válido
-    if (absDeltaX > deltaY && absDeltaX > 15) { // Mayor threshold para evitar falsos positivos
+    // Solo prevenir si es claramente horizontal Y es un gesto válido Y supera un threshold mayor
+    if (absDeltaX > deltaY && absDeltaX > 35) { // Threshold más alto para ser más conservador
       // Para edge swipe izquierdo: movimiento hacia la derecha
-      if (isEdgeSwipe && deltaX > 20) {
+      if (isEdgeSwipe && deltaX > 45) {
         console.log('Preventing left edge swipe move, deltaX:', deltaX);
         e.preventDefault();
       }
       // Para edge swipe derecho: movimiento hacia la izquierda 
-      else if (isRightEdgeSwipe && deltaX < -20) {
+      else if (isRightEdgeSwipe && deltaX < -45) {
         console.log('Preventing right edge swipe move, deltaX:', deltaX);
         e.preventDefault();
       }
       // Para closing swipe: movimiento hacia la izquierda
-      else if (isClosingSwipe && deltaX < -20) {
+      else if (isClosingSwipe && deltaX < -45) {
         console.log('Preventing close swipe move, deltaX:', deltaX);
         e.preventDefault();
       }
     }
-  }, [isTracking, isEdgeSwipe, isClosingSwipe, startPos]);
+  }, [isTracking, isEdgeSwipe, isClosingSwipe, startPos, isRightEdgeSwipe]);
 
   const handleTouchEnd = useCallback((e) => {
-    if (!isTracking) return;
+    if (!isTracking) {
+      // Si no estamos tracking, no interferir con eventos normales
+      return;
+    }
     
     const endTime = Date.now();
     const elapsedTime = endTime - startTime;
@@ -191,40 +194,48 @@ export const useSwipeGesture = ({
     const deltaY = currentPos.y - startPos.y;
     const totalMovement = Math.abs(deltaX) + Math.abs(deltaY);
     
-    // Detectar click genuino vs swipe
+    // Detectar click genuino vs swipe con thresholds más permisivos
     const wasClick = elapsedTime < CLICK_TIME_THRESHOLD && totalMovement < CLICK_DISTANCE_THRESHOLD;
     
     if (wasClick) {
-      console.log('Genuine click detected, allowing propagation');
-    } else {
-      // Procesar swipe
-      const absDeltaX = Math.abs(deltaX);
-      const absDeltaY = Math.abs(deltaY);
-      
-      console.log('TouchEnd swipe analysis:', {
-        absDeltaX,
-        absDeltaY,
-        threshold,
-        deltaX,
-        isEdgeSwipe,
-        passesThreshold: absDeltaX > Math.min(threshold, 15)
-      });
-      
-      if (absDeltaX > absDeltaY && absDeltaX > Math.min(threshold, 15)) {
-        if (isEdgeSwipe && deltaX > 0) {
-          console.log('Left edge swipe completed - opening SwipeWidget:', deltaX);
-          onSwipeFromEdge?.(deltaX);
-        } else if (isRightEdgeSwipe && deltaX < 0) {
-          console.log('Right edge swipe detected but not executing navigation - preventing back navigation');
-          // NO ejecutar onSwipeFromEdge para evitar navegación hacia atrás
-          // onSwipeFromEdge?.(Math.abs(deltaX));
-        } else if (isClosingSwipe && deltaX < 0) {
-          console.log('SwipeWidget close swipe completed:', Math.abs(deltaX));
-          onSwipeToClose?.(Math.abs(deltaX));
-        }
-      } else {
-        console.log('Swipe did not meet threshold requirements');
+      console.log('Genuine click detected, allowing propagation - NO preventDefault');
+      // Reset estado pero NO prevenir el evento - permitir que el click se propague normalmente
+      setIsTracking(false);
+      setIsEdgeSwipe(false);
+      setIsRightEdgeSwipe(false);
+      setIsClosingSwipe(false);
+      document.body.style.overscrollBehaviorX = 'auto';
+      return;
+    }
+    
+    // Solo procesar como swipe si el movimiento es significativo
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
+    
+    console.log('TouchEnd swipe analysis:', {
+      absDeltaX,
+      absDeltaY,
+      threshold,
+      deltaX,
+      isEdgeSwipe,
+      passesThreshold: absDeltaX > Math.max(threshold, 25)
+    });
+    
+    // Threshold más alto para swipes para evitar falsos positivos
+    if (absDeltaX > absDeltaY && absDeltaX > Math.max(threshold, 40)) {
+      if (isEdgeSwipe && deltaX > 0) {
+        console.log('Left edge swipe completed - opening SwipeWidget:', deltaX);
+        onSwipeFromEdge?.(deltaX);
+      } else if (isRightEdgeSwipe && deltaX < 0) {
+        console.log('Right edge swipe detected but not executing navigation - preventing back navigation');
+        // NO ejecutar onSwipeFromEdge para evitar navegación hacia atrás
+        // onSwipeFromEdge?.(Math.abs(deltaX));
+      } else if (isClosingSwipe && deltaX < 0) {
+        console.log('SwipeWidget close swipe completed:', Math.abs(deltaX));
+        onSwipeToClose?.(Math.abs(deltaX));
       }
+    } else {
+      console.log('Swipe did not meet threshold requirements');
     }
     
     // Reset estado
@@ -233,15 +244,16 @@ export const useSwipeGesture = ({
     setIsRightEdgeSwipe(false);
     setIsClosingSwipe(false);
     document.body.style.overscrollBehaviorX = 'auto';
-  }, [isTracking, currentPos, startPos, startTime, threshold, isEdgeSwipe, isClosingSwipe, onSwipeFromEdge, onSwipeToClose]);
+  }, [isTracking, currentPos, startPos, startTime, threshold, isEdgeSwipe, isRightEdgeSwipe, isClosingSwipe, onSwipeFromEdge, onSwipeToClose]);
 
   // Listeners simplificados - siempre en document para edge detection
   useEffect(() => {
     console.log('Setting up touch listeners, isWidgetOpen:', isWidgetOpen);
     
-    document.addEventListener('touchstart', handleTouchStart, { passive: false });
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd, { passive: false });
+    // touchstart y touchend como passive para no interferir con clicks
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false }); // Este necesita preventDefault
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
       console.log('Cleaning up touch listeners');

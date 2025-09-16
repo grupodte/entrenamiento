@@ -58,10 +58,37 @@ const usePreventSwipeBack = ({
         deltaX > swipeThreshold && 
         absDeltaX > deltaY) {
       
+      console.log('[PreventSwipeBack] Potential swipe back detected:', {
+        deltaX,
+        target: e.target.tagName,
+        className: e.target.className,
+        hasDataAction: e.target.hasAttribute?.('data-action'),
+        exceptions: exceptions
+      });
+      
       // Verificar si el elemento target tiene excepciones
       const hasException = exceptions.some(selector => {
-        const element = document.querySelector(selector);
-        return element && element.contains(e.target);
+        // Si el selector es para atributos data
+        if (selector.startsWith('[') && selector.endsWith(']')) {
+          const attribute = selector.slice(1, -1);
+          // Verificar si el target o algún ancestro tiene el atributo
+          let current = e.target;
+          while (current && current !== document.body) {
+            if (current.hasAttribute && current.hasAttribute(attribute.split('=')[0])) {
+              console.log(`[PreventSwipeBack] Exception found - ${attribute}`);
+              return true;
+            }
+            current = current.parentElement;
+          }
+        } else {
+          // Método original para clases CSS
+          const element = document.querySelector(selector);
+          if (element && element.contains(e.target)) {
+            console.log(`[PreventSwipeBack] Exception found - ${selector}`);
+            return true;
+          }
+        }
+        return false;
       });
       
       if (!hasException) {
@@ -70,6 +97,8 @@ const usePreventSwipeBack = ({
         e.stopPropagation();
         e.stopImmediatePropagation();
         return false;
+      } else {
+        console.log('[PreventSwipeBack] Allowing gesture due to exception');
       }
     }
     
@@ -122,11 +151,11 @@ const usePreventSwipeBack = ({
       document.head.appendChild(metaTag);
     }
     
-    // Event listeners con mejor configuración
-    const touchOptions = { passive: false, capture: true };
-    const passiveOptions = { passive: true, capture: true };
+    // Event listeners con configuración menos agresiva para no interferir con useSwipeGesture
+    const touchOptions = { passive: false, capture: false }; // CAMBIADO: capture: false
+    const passiveOptions = { passive: true, capture: false }; // CAMBIADO: capture: false
     
-    document.addEventListener('touchstart', handleTouchStart, touchOptions);
+    document.addEventListener('touchstart', handleTouchStart, passiveOptions); // CAMBIADO: passive
     document.addEventListener('touchmove', handleTouchMove, touchOptions);
     document.addEventListener('touchend', handleTouchEnd, passiveOptions);
     document.addEventListener('touchcancel', handleTouchEnd, passiveOptions);
@@ -136,7 +165,7 @@ const usePreventSwipeBack = ({
 
     return () => {
       // Cleanup event listeners
-      document.removeEventListener('touchstart', handleTouchStart, touchOptions);
+      document.removeEventListener('touchstart', handleTouchStart, passiveOptions);
       document.removeEventListener('touchmove', handleTouchMove, touchOptions);
       document.removeEventListener('touchend', handleTouchEnd, passiveOptions);
       document.removeEventListener('touchcancel', handleTouchEnd, passiveOptions);
