@@ -3,31 +3,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ✅ Prevención agresiva de navegación hacia atrás */
-/* Base: bloquear completamente swipe back */
+/* ✅ Prevención contextual de swipe back - Simplificado */
+/* Base: comportamiento normal de swipe */
 html {
-  overscroll-behavior: none !important;
-  overscroll-behavior-x: none !important;
-  overscroll-behavior-y: auto;
-  -webkit-overscroll-behavior: none !important;
-  -webkit-overscroll-behavior-x: none !important;
-  -webkit-overscroll-behavior-y: auto;
-  /* Propiedades adicionales para iOS Safari */
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-x: auto;
 }
 
 body {
-  overscroll-behavior: none !important;
-  overscroll-behavior-x: none !important;
-  overscroll-behavior-y: auto;
-  -webkit-overscroll-behavior: none !important;
-  -webkit-overscroll-behavior-x: none !important;
-  -webkit-overscroll-behavior-y: auto;
-  /* Prevenir swipe gestures de navegación */
-  touch-action: pan-y manipulation;
-  -ms-touch-action: pan-y manipulation;
+  overscroll-behavior-x: auto;
 }
 
 /* Para drawers y modales activos - Prevenir swipe back solo cuando es necesario */
@@ -41,24 +24,6 @@ body {
 .drawer-content {
   touch-action: pan-y;
   overscroll-behavior-x: none;
-}
-
-/* Elementos que necesitan gestos horizontales (como SwipeWidget) */
-.allow-horizontal-gestures,
-[data-swipe-widget],
-[data-action] {
-  /* Permitir todos los gestos para estos elementos específicos */
-  touch-action: auto !important;
-  -ms-touch-action: auto !important;
-  /* Pero seguir previniendo overscroll para evitar navegación */
-  overscroll-behavior-x: none;
-  -webkit-overscroll-behavior-x: none;
-}
-
-/* Clase para elementos que deben permitir swipe back */
-.allow-swipe-back {
-  overscroll-behavior-x: auto;
-  -webkit-overscroll-behavior-x: auto;
 }
 
 /* ====== UTILIDADES PERSONALIZADAS DE TAILWIND ====== */
@@ -153,20 +118,14 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
+  overscroll-behavior: none;
+  /* Prevenir el swipe back del navegador */
+  overscroll-behavior-x: none;
   font-family: 'ProductSans', 'Inter', sans-serif;
-  /* Prevención agresiva de navegación */
-  overscroll-behavior: none !important;
-  overscroll-behavior-x: none !important;
-  overscroll-behavior-y: none !important;
-  -webkit-overscroll-behavior: none !important;
-  -webkit-overscroll-behavior-x: none !important;
-  -webkit-overscroll-behavior-y: none !important;
-  /* Bloquear gestos de touch horizontales */
-  touch-action: pan-y manipulation !important;
-  -ms-touch-action: pan-y manipulation !important;
-  /* Prevenir desbordamiento horizontal */
-  overflow-x: hidden !important;
-  max-width: 100vw !important;
+  /* Deshabilitar swipe navigation completamente */
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
 }
 
 html {
@@ -177,9 +136,11 @@ html {
 body {
   @apply font-sans select-none text-white scrollbar-hide;
   background-color: var(--bg-primary);
-  text-rendering: optimizeLegibility;
+  touch-action: manipulation;
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
   -webkit-overflow-scrolling: touch;
-  /* Las reglas de overscroll y touch-action ya están definidas arriba */
+  text-rendering: optimizeLegibility;
 }
 
 /* ====== TIPOGRAFÍA PERSONALIZADA ====== */
@@ -203,40 +164,27 @@ body {
 .app-container {
   @apply h-screen flex flex-col relative;
   /* Prevenir gestos de navegación del navegador */
-  overscroll-behavior: none !important;
-  overscroll-behavior-x: none !important;
-  -webkit-overscroll-behavior: none !important;
-  -webkit-overscroll-behavior-x: none !important;
+  overscroll-behavior-x: none;
   -webkit-overflow-scrolling: touch;
-  overflow-x: hidden !important;
-  max-width: 100vw !important;
-  /* Prevenir cualquier gesto horizontal */
-  touch-action: pan-y manipulation !important;
-  -ms-touch-action: pan-y manipulation !important;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 .main-content {
   @apply flex-1 overflow-y-auto scrollbar-hide;
   -webkit-overflow-scrolling: touch;
-  /* Prevenir navegación horizontal */
-  overscroll-behavior: none !important;
-  overscroll-behavior-x: none !important;
-  overscroll-behavior-y: auto;
-  -webkit-overscroll-behavior: none !important;
-  -webkit-overscroll-behavior-x: none !important;
-  -webkit-overscroll-behavior-y: auto;
-  overflow-x: hidden !important;
-  max-width: 100vw !important;
-  /* Solo permitir gestos verticales */
-  touch-action: pan-y manipulation !important;
-  -ms-touch-action: pan-y manipulation !important;
+  overscroll-behavior-x: none;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 .content-wrapper {
   /* Aplicamos márgenes personalizados al contenido */
   margin-top: var(--content-margin-top);
   margin-bottom: calc(var(--content-margin-bottom));
-
+  /* 80px para la navbar flotante */
+  margin-left: var(--content-margin-horizontal);
+  margin-right: var(--content-margin-horizontal);
   min-height: calc(100vh - 9rem);
   /* 3rem padding-top + 6rem padding-bottom */
 }
@@ -248,52 +196,21 @@ body {
   /* Aplicamos márgenes personalizados al contenido */
   margin-top: var(--content-margin-top);
   margin-bottom: calc(var(--content-margin-bottom));
-
-}
-
-/* New Header Styles */
-.dashboard-header-new {
-  @apply mb-8;
-}
-
-.header-content {
-  @apply flex justify-between items-start mb-4;
-}
-
-.greeting-section {
-  @apply flex-1;
-}
-
-.greeting-text {
-  @apply text-gray-400 text-base mb-1;
-}
-
-.user-name {
-  @apply text-2xl font-bold text-white;
-}
-
-.welcome-message {
-  @apply text-sm text-cyan-300 font-medium;
-}
-
-.profile-avatar {
-  @apply relative;
-}
-
-.avatar-container {
-  @apply w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-800 rounded-full flex items-center justify-center relative;
-}
-
-.avatar-icon {
-  @apply text-white text-lg;
-}
-
-.status-indicator {
-  @apply absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border-2 border-gray-900;
+  /* 80px para la navbar flotante */
+  margin-left: var(--content-margin-horizontal);
+  margin-right: var(--content-margin-horizontal);
 }
 
 .dashboard-header {
   @apply space-y-1 mb-6;
+}
+
+.greeting-text {
+  @apply text-gray-400 text-base;
+}
+
+.user-name {
+  @apply text-2xl font-bold text-white;
 }
 
 /* Stats Grid */
@@ -322,47 +239,6 @@ body {
 }
 
 .progress-total {
-  @apply text-gray-400 text-xs;
-}
-
-/* New Progress Section Styles */
-.progress-section {
-  @apply mb-8;
-}
-
-.progress-title {
-  @apply text-lg font-semibold text-white mb-4;
-}
-
-.progress-card {
-  @apply flex justify-center;
-}
-
-.progress-circle-container {
-  @apply relative;
-}
-
-.progress-circle-svg {
-  @apply w-20 h-20;
-}
-
-.progress-bg {
-  @apply text-gray-700;
-}
-
-.progress-bar {
-  @apply text-cyan-400;
-}
-
-.progress-text-new {
-  @apply absolute inset-0 flex flex-col items-center justify-center;
-}
-
-.progress-number-new {
-  @apply text-white font-bold text-xl;
-}
-
-.progress-total-new {
   @apply text-gray-400 text-xs;
 }
 

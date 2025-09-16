@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Share, PlusSquare, EllipsisVertical, Download } from "lucide-react";
 
 // Página simple y universal de instalación de PWA
 // - Muestra pasos claros para iOS, Android y Desktop
@@ -80,27 +81,28 @@ export default function InstalarAppSimple() {
 
     if (isIOS) {
       return [
-        { title: "Abrí en Safari", desc: "Asegurate de estar usando Safari (iOS no muestra botón 'Instalar' en otros navegadores)." },
-        { title: "Tocá Compartir", desc: "Presioná el ícono de compartir (cuadrado con flecha hacia arriba)." },
-        { title: "Agregar a Inicio", desc: "Deslizá y elegí 'Agregar a la pantalla de inicio'. Confirmá con 'Agregar'." },
+        { title: "Abrí en Safari o tu navegador", desc: "En iOS podés usar Safari, Chrome, ARC el que quieras. La opción 'Agregar a inicio' aparece desde el menú de compartir.", icon: null },
+        { title: "Tocá Compartir", desc: "Presioná el ícono de compartir (cuadrado con flecha hacia arriba).", icon: Share },
+        { title: "Agregar a Inicio", desc: "Deslizá y elegí 'Agregar a la pantalla de inicio'. Confirmá con 'Agregar'.", icon: PlusSquare },
       ];
     }
 
     if (isAndroid) {
       return [
-        { title: "Menú del navegador", desc: "Tocá el menú (⋮) en la barra superior de tu navegador." },
-        { title: "Instalar app", desc: "Elegí 'Instalar app' o 'Agregar a la pantalla de inicio'." },
-        { title: "Confirmá", desc: "Aceptá el diálogo para instalar la PWA." },
+        { title: "Menú del navegador", desc: "Tocá el menú (⋮) en la barra superior de tu navegador.", icon: EllipsisVertical },
+        { title: "Instalar app", desc: "Elegí 'Instalar app' o 'Agregar a la pantalla de inicio'.", icon: Download },
+        { title: "Confirmá", desc: "Aceptá el diálogo para instalar la PWA.", icon: null },
       ];
     }
 
     // Desktop
     return [
-      { title: "Menú del navegador", desc: "Abrí el menú (Chrome/Edge) o la barra de direcciones (ícono de instalación si aparece)." },
-      { title: "Instalar", desc: "Seleccioná 'Instalar app' / 'Instalar FitApp' y confirmá." },
-      { title: "Atajo en tu escritorio", desc: "La app quedará como una ventana propia, sin barra del navegador." },
+      { title: "Menú del navegador", desc: "Abrí el menú (Chrome/Edge) o la barra de direcciones (ícono de instalación si aparece).", icon: EllipsisVertical },
+      { title: "Instalar", desc: "Seleccioná 'Instalar app' / 'Instalar FitApp' y confirmá.", icon: Download },
+      { title: "Atajo en tu escritorio", desc: "La app quedará como una ventana propia, sin barra del navegador.", icon: null },
     ];
   }, [installed, isIOS, isAndroid]);
+
 
   return (
     <div className="min-h-[100dvh] bg-neutral-950 text-white flex items-center justify-center p-4">
@@ -141,10 +143,14 @@ export default function InstalarAppSimple() {
                   <div className="flex-none w-8 h-8 rounded-full bg-white/10 border border-white/15 grid place-items-center font-semibold">
                     {i + 1}
                   </div>
-                  <div>
-                    <div className="font-medium">{s.title}</div>
+                  <div className="flex-1">
+                    <div className="font-medium flex items-center gap-2">
+                      {s.icon ? <s.icon size={16} className="opacity-80" /> : null}
+                      {s.title}
+                    </div>
                     <div className="text-neutral-300 text-sm">{s.desc}</div>
                   </div>
+
                 </li>
               ))}
             </ol>
