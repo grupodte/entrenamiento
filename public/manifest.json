@@ -14,12 +14,6 @@
     "icons": [
         {
             "src": "/icons/icon-192x192.png",
-            "type": "image/svg+xml",
-            "sizes": "any",
-            "purpose": "any"
-        },
-        {
-            "src": "/icons/icon-192x192.png",
             "type": "image/png",
             "sizes": "192x192",
             "purpose": "any"
@@ -79,7 +73,7 @@
             "label": "Panel de administración para entrenadores"
         }
     ],
-    "shortcuts": [
+    "shortcuts": [  
         {
             "name": "Mi Dashboard",
             "short_name": "Dashboard",

@@ -15,7 +15,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import SeleccionOrdenBloques from './SeleccionOrdenBloques';
 import { useRutinaCache } from '../../hooks/useRutinaCache';
 import { useRutinaPrefetch } from '../../hooks/useRutinaPrefetch';
-import DashboardSkeleton from '../../components/DashboardSkeleton';
 
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -154,10 +153,9 @@ const Dashboard = () => {
         ? (completedWorkoutsThisWeek / totalWorkoutsThisWeek) * 100
         : 0;
 
-    if (loading) return <DashboardSkeleton />;
 
     return (
-        <div className="min-h-svh  text-white dashboard">
+        <div className={`min-h-svh text-white dashboard transition-all duration-300 ${loading ? 'blur-[20px] pointer-events-none' : 'blur-0'}`}>
       
 
             {/* Contenido */}

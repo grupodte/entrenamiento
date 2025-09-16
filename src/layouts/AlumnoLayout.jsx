@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import FloatingNavBar from '../components/FloatingNavBar';
+import FloatingNavBar from '../components/FloatingNavBar'; // Componente original funcional
 import PerfilDrawer from '../pages/Alumno/PerfilDrawer';
 import EditarPerfilDrawer from '../pages/Alumno/EditarPerfil';
 import SwipeWidget from '../components/SwipeWidget';
@@ -135,7 +135,7 @@ const AlumnoLayoutContent = () => {
         <div className="content-wrapper" style={{ paddingTop: '3rem', paddingBottom: '6rem' }}>
           <Outlet />
 
-          {/* Navegación flotante */}
+          {/* Navegación flotante original funcional */}
           <FloatingNavBar 
             onOpenPerfil={handleOpenPerfil}
             isPerfilOpen={isPerfilDrawerOpen}
@@ -145,7 +145,6 @@ const AlumnoLayoutContent = () => {
             onBackClick={onBackClick}
             onOpenSwipeWidget={handleOpenSwipeWidget}
             isSwipeWidgetOpen={isSwipeWidgetOpen}
-
           />
         </div>
       </motion.main>
