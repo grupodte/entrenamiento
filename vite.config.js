@@ -35,59 +35,6 @@ export default defineConfig({
     })
   ],
   build: {
-    // Configuración de chunking manual para optimizar el tamaño de bundles
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // Chunk para React y dependencias relacionadas
-          'react-vendor': [
-            'react',
-            'react-dom',
-            'react-router-dom'
-          ],
-          // Chunk para librerías de animación
-          'animation': [
-            'framer-motion',
-            'gsap',
-            '@use-gesture/react'
-          ],
-          // Chunk para Supabase
-          'supabase': [
-            '@supabase/supabase-js'
-          ],
-          // Chunk para UI components
-          'ui-components': [
-            '@headlessui/react',
-            '@heroicons/react',
-            'lucide-react',
-            'react-icons'
-          ],
-          // Chunk para utilidades de datos/visualización
-          'data-viz': [
-            'recharts',
-            'mathjs'
-          ],
-          // Chunk para utilidades diversas
-          'utilities': [
-            'clsx',
-            'tailwind-merge',
-            'uuid',
-            'react-use',
-            'react-hot-toast'
-          ],
-          // Chunk para funcionalidades específicas
-          'features': [
-            '@dnd-kit/core',
-            '@dnd-kit/sortable',
-            '@dnd-kit/utilities',
-            '@dnd-kit/modifiers',
-            'react-confetti',
-            'html-to-image',
-            'react-pull-to-refresh'
-          ]
-        }
-      }
-    },
     // Aumentar el límite de advertencia de chunk size
     chunkSizeWarningLimit: 800,
     // Optimizaciones adicionales

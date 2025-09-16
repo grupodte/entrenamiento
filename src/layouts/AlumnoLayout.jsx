@@ -145,6 +145,7 @@ const AlumnoLayoutContent = () => {
             onBackClick={onBackClick}
             onOpenSwipeWidget={handleOpenSwipeWidget}
             isSwipeWidgetOpen={isSwipeWidgetOpen}
+
           />
         </div>
       </motion.main>

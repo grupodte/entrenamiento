@@ -7,10 +7,6 @@ import { guardarSesionEntrenamiento } from '../utils/guardarSesionEntrenamiento'
 import useWindowSize from 'react-use/lib/useWindowSize';
 import toast from "react-hot-toast";
 
-import { gsap } from 'gsap';
-import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
-gsap.registerPlugin(ScrollToPlugin);
-
 let orderedInteractiveElementIds = [];
 
 const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
@@ -501,15 +497,13 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
 
     useEffect(() => {
         if (elementoActivoId && elementoRefs.current[elementoActivoId]) {
-            const target = elementoRefs.current[elementoActivoId];
-            gsap.to(window, {
-                duration: 0.8,
-                scrollTo: {
-                    y: target,
-                    offsetY: window.innerHeight / 2,
-                },
-                ease: "power2.out",
-            });
+            const targetElement = elementoRefs.current[elementoActivoId];
+            if (targetElement && typeof targetElement.scrollIntoView === 'function') {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
         }
     }, [elementoActivoId]);
 

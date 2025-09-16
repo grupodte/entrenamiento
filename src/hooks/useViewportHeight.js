@@ -74,7 +74,7 @@ export const useViewportHeight = () => {
             }
             
             // Debug info (solo en desarrollo)
-            if (process.env.NODE_ENV === 'development') {
+            if (import.meta.env.MODE === 'development') {
                 console.log('Viewport update:', {
                     currentHeight,
                     initialHeight,

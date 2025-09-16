@@ -1,6 +1,6 @@
 {
-    "name": "FitApp - Entrenamiento Personalizado",
-    "short_name": "FitApp",
+    "name": "DD - Entrenamiento Personalizado",
+    "short_name": "DD",
     "description": "Entrena inteligente con rutinas personalizadas, seguimiento de progreso y ejercicios en video HD. Tu entrenador personal en el bolsillo.",
     "start_url": "/",
     "scope": "/",

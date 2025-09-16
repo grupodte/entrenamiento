@@ -1,10 +1,11 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { 
   DevicePhoneMobileIcon, 
   ComputerDesktopIcon,
   HomeIcon,
-  ArrowDownTrayIcon
+  ArrowDownTrayIcon,
+  EllipsisHorizontalIcon,
+  PlusIcon
 } from '@heroicons/react/24/outline';
 import { Share, SquarePlus } from 'lucide-react';
 

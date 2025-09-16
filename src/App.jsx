@@ -67,7 +67,7 @@ const PublicLayout = () => (
 
 const AppContent = () => {
   useSmoothScroll();
-  const { user, rol, loading } = useAuth();
+  const { user, rol } = useAuth();
   const location = useLocation();
   
   // No aplicar prevención global en RutinaDetalle (tiene su propio control)
@@ -80,9 +80,11 @@ const AppContent = () => {
     console.log('Usuario intentó navegar hacia atrás - bloqueado');
   });
   
-  // 2. Prevenir gestos táctiles (swipe desde bordes) - DESACTIVADO, usando solo CSS
+  // 2. Prevenir gestos táctiles (swipe desde bordes) - Activado en dispositivos táctiles
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  
   usePreventSwipeBack({ 
-    enabled: false, // Desactivado - usando solo CSS para prevenir navegación
+    enabled: isTouchDevice && !isInRutinaDetalle, // Habilitado solo en táctiles y fuera de la rutina
     edgeThreshold: 30,
     swipeThreshold: 20,
     exceptions: [

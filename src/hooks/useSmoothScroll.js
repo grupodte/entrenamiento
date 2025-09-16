@@ -6,8 +6,10 @@ const useSmoothScroll = () => {
   const location = useLocation();
   
   useEffect(() => {
-    // No aplicar smooth scroll en rutas de admin para evitar conflictos con PWA
-    if (location.pathname.startsWith('/admin')) {
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    // No aplicar smooth scroll en rutas de admin o en dispositivos táctiles
+    if (location.pathname.startsWith('/admin') || isTouchDevice) {
       return;
     }
 
