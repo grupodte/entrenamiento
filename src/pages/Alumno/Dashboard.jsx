@@ -4,12 +4,11 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import {
     FaDumbbell,
-    FaUtensils,
-    FaEnvelope,
     FaPlayCircle,
     FaCheckCircle,
     FaArrowRight,
-    FaChevronDown
+    FaChevronDown,
+    FaUserCircle,
 } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -27,15 +26,7 @@ const getSaludo = () => {
     return "Buenas noches,";
 };
 
-const tipsDelDia = [
-    "Mantén una buena hidratación durante el día.",
-    "Haz estiramientos después de entrenar para mejorar la recuperación.",
-    "La constancia es más importante que la intensidad.",
-    "Una buena alimentación es clave para tus resultados.",
-    "Descansa bien, el sueño es parte del progreso.",
-    "Calienta antes de entrenar para evitar lesiones.",
-    "Escucha a tu cuerpo y evita sobreentrenarte."
-];
+
 
 const getTipDelDia = () => tipsDelDia[new Date().getDay() % tipsDelDia.length];
 
@@ -159,134 +150,152 @@ const Dashboard = () => {
 
     useRutinaPrefetch(rutinas);
 
-    const progreso = totalWorkoutsThisWeek > 0 ? (completedWorkoutsThisWeek / totalWorkoutsThisWeek) * 100 : 0;
+    const progreso = totalWorkoutsThisWeek > 0
+        ? (completedWorkoutsThisWeek / totalWorkoutsThisWeek) * 100
+        : 0;
 
-    if (loading) {
-        return <DashboardSkeleton />;
-    }
+    if (loading) return <DashboardSkeleton />;
 
     return (
-        <div className="dashboard ">
-            {/* Header */}
-            <header className="dashboard-header">
-                <p className="greeting-text">{getSaludo()}</p>
-                <h1 className="user-name">{nombre}</h1>
-            </header>
+        <div className="min-h-svh  text-white dashboard">
+      
 
-            {/* Stats Grid */}
-            <div className="stats-grid">
-                {/* Weekly Progress */}
-                <div className="stat-card">
-                    <h3 className="stat-title">Progreso Semanal</h3>
-                    <div className="progress-circle">
-                        <svg className="w-16 h-16" viewBox="0 0 36 36">
-                            <path
-                                className="text-gray-700"
-                                stroke="currentColor"
-                                strokeWidth="3"
-                                fill="none"
-                                d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32"
-                            />
-                            <path
-                                className="text-cyan-400"
-                                stroke="currentColor"
-                                strokeWidth="3"
-                                fill="none"
-                                strokeDasharray={`${progreso}, 100`}
-                                strokeLinecap="round"
-                                d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32"
-                            />
-                        </svg>
-                        <div className="progress-text">
-                            <span className="progress-number">{completedWorkoutsThisWeek}</span>
-                            <span className="progress-total">de {totalWorkoutsThisWeek}</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Tip of the day */}
-                <div className="stat-card">
-                    <h3 className="tip-title">
-                        <FaDumbbell />
-                        Tip del Día
-                    </h3>
-                    <p className="tip-text">{getTipDelDia()}</p>
-                </div>
-            </div>
-
-            {/* Today's workout */}
-            <h3 className="section-title">Rutina de hoy</h3>
-            <section className="today-section">
-                {rutinaHoy ? (
-                    <div className={`workout-card ${rutinaHoy.isCompleted ? 'completed' : 'pending'}`}>
-                        <div className="workout-info">
-                            <p className="workout-day">{diasSemana[rutinaHoy.dia]}</p>
-                            <h3 className="workout-name">{rutinaHoy.nombre}</h3>
-                        </div>
-                        {rutinaHoy.isCompleted ? (
-                            <div className="completed-badge">
-                                <FaCheckCircle />
-                                <span>Completado</span>
+            {/* Contenido */}
+            <main className="max-w-screen-md mx-auto px-4 pb-[env(safe-area-inset-bottom)] py-6 space-y-8">
+                {/* Stats */}
+                <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Progreso semanal */}
+                    <div className="rounded-2xl p-4 bg-white/[0.03] border border-white/10 backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.35)]">
+                        <h3 className="text-sm font-medium text-white/80 mb-4">Progreso Semanal</h3>
+                        <div className="flex items-center gap-4">
+                            <svg className="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
+                                {/* fondo */}
+                                <path
+                                    stroke="currentColor"
+                                    className="text-white/15"
+                                    strokeWidth="3.5"
+                                    fill="none"
+                                    d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32"
+                                />
+                                {/* progreso */}
+                                <path
+                                    stroke="url(#grad)"
+                                    strokeWidth="3.5"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeDasharray={`${Math.max(0, Math.min(100, progreso))}, 100`}
+                                    d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32"
+                                />
+                                <defs>
+                                    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0%" stopColor="currentColor" />
+                                        <stop offset="100%" stopColor="currentColor" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div>
+                                <div className="text-3xl font-bold">
+                                    {completedWorkoutsThisWeek}
+                                    <span className="text-white/60 text-base font-medium"> / {totalWorkoutsThisWeek}</span>
+                                </div>
+                                <p className="text-xs text-white/60 mt-1">Sesiones completadas</p>
                             </div>
-                        ) : (
-                            <button
-                                onClick={() => iniciarRutina(rutinaHoy)}
-                                className="start-button"
-                            >
-                                <FaPlayCircle />
-                                <span>Iniciar</span>
-                            </button>
-                        )}
+                        </div>
                     </div>
-                ) : (
-                    <div className="rest-day-card">
-                        <p>No tienes ninguna rutina para hoy. ¡Día de descanso!</p>
-                    </div>
-                )}
-            </section>
 
-            {/* Next workouts */}
-            {proximasRutinas.length > 0 && (
-                <section className="upcoming-section">
-                    <h3 className="section-title">Próximos entrenamientos</h3>
-                    <motion.div layout className="upcoming-list">
-                        <AnimatePresence>
-                            {rutinasVisibles.map(rutina => (
-                                <motion.div
-                                    key={rutina.dia}
-                                    layout
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="upcoming-card cursor-pointer"
-                                    onClick={() => iniciarRutina(rutina)}
-                                >
-                                    <div className="upcoming-info">
-                                        <p className="upcoming-day">{diasSemana[rutina.dia]}</p>
-                                        <p className="upcoming-name">{rutina.nombre}</p>
-                                    </div>
-                                    <FaArrowRight className="upcoming-arrow" />
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-                    </motion.div>
-                    {proximasRutinas.length > 2 && (
-                        <button
-                            onClick={() => setMostrarTodas(!mostrarTodas)}
-                            className="show-more-button"
+          
+                </section>
+
+                {/* Rutina de hoy */}
+                <section className="space-y-3">
+                    <h3 className="text-base font-semibold text-white/90">Rutina de hoy</h3>
+
+                    {rutinaHoy ? (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`rounded-2xl p-4 border backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.35)]
+               ${rutinaHoy.isCompleted
+                                    ? 'bg-emerald-500/10 border-emerald-400/20'
+                                    : 'bg-white/[0.03] border-white/10'}`}
                         >
-                            {mostrarTodas ? 'Mostrar menos' : 'Mostrar todos'}
-                            <motion.div animate={{ rotate: mostrarTodas ? 180 : 0 }}>
-                                <FaChevronDown />
-                            </motion.div>
-                        </button>
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    <p className="text-xs uppercase tracking-wide text-white/60">
+                                        {diasSemana[rutinaHoy.dia]}
+                                    </p>
+                                    <h4 className="text-lg font-semibold leading-tight">{rutinaHoy.nombre}</h4>
+                                </div>
+
+                                {rutinaHoy.isCompleted ? (
+                                    <span className="inline-flex items-center gap-2 text-emerald-400 text-sm font-medium">
+                                        <FaCheckCircle /> Completado
+                                    </span>
+                                ) : (
+                                    <motion.button
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => iniciarRutina(rutinaHoy)}
+                                        className="inline-flex items-center gap-2 rounded-xl px-4 py-2 bg-cyan-500 text-white font-semibold
+                               shadow-[0_6px_20px_rgba(56,189,248,0.3)] hover:bg-cyan-400 transition"
+                                    >
+                                        <FaPlayCircle /> Iniciar
+                                    </motion.button>
+                                )}
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <div className="rounded-2xl p-4 bg-white/[0.03] border border-white/10 text-white/80">
+                            No tenés rutina hoy. ¡Día de descanso!
+                        </div>
                     )}
                 </section>
-            )}
 
-     
+                {/* Próximos entrenamientos */}
+                {proximasRutinas.length > 0 && (
+                    <section className="space-y-3">
+                        <h3 className="text-base font-semibold text-white/90">Próximos entrenamientos</h3>
 
-            {/* Modal */}
+                        <motion.div layout className="space-y-2">
+                            <AnimatePresence>
+                                {rutinasVisibles.map((rutina) => (
+                                    <motion.button
+                                        key={rutina.dia}
+                                        layout
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -8 }}
+                                        onClick={() => iniciarRutina(rutina)}
+                                        className="w-full text-left rounded-2xl p-4 bg-white/[0.03] border border-white/10 
+                               hover:bg-white/[0.06] transition flex items-center justify-between"
+                                    >
+                                        <div>
+                                            <p className="text-xs uppercase tracking-wide text-white/60">
+                                                {diasSemana[rutina.dia]}
+                                            </p>
+                                            <p className="text-sm font-medium text-white/90">{rutina.nombre}</p>
+                                        </div>
+                                        <FaArrowRight className="text-white/50" />
+                                    </motion.button>
+                                ))}
+                            </AnimatePresence>
+                        </motion.div>
+
+                        {proximasRutinas.length > 2 && (
+                            <button
+                                onClick={() => setMostrarTodas(!mostrarTodas)}
+                                className="mx-auto flex items-center gap-2 text-sm text-white/80 hover:text-white transition"
+                            >
+                                {mostrarTodas ? 'Mostrar menos' : 'Mostrar todos'}
+                                <motion.span animate={{ rotate: mostrarTodas ? 180 : 0 }}>
+                                    <FaChevronDown />
+                                </motion.span>
+                            </button>
+                        )}
+                    </section>
+                )}
+            </main>
+
+            {/* Sheet / Modal */}
             {selectedRutina && (
                 <SeleccionOrdenBloques
                     isOpen={isSheetOpen}

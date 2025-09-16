@@ -11,7 +11,6 @@ import { BackNavigationProvider, useBackNavigation } from '../context/BackNaviga
 import { useViewportHeight } from '../hooks/useViewportHeight';
 import { useSwipeGesture } from '../hooks/useSwipeGesture';
 import { useSwipeBackContext } from '../hooks/useSwipeBackContext';
-import usePreventSwipeBack from '../hooks/usePreventSwipeBack';
 
 // Variantes de animación optimizadas
 const pageVariants = {
@@ -41,15 +40,6 @@ const AlumnoLayoutContent = () => {
 
   useViewportHeight();
 
-  // Prevenir swipe back del navegador pero permitir SwipeWidget
-  const { isActive: swipeBackPreventionActive } = usePreventSwipeBack({
-    enabled: !isSwipeWidgetOpen, // Desactivar cuando el widget está abierto
-    exceptions: [
-      '[data-swipe-widget]', 
-      '.swipe-widget-area',
-      '.touch-interactive'
-    ]
-  });
 
   // Handlers memorizados - definir ANTES de los hooks que los usan
   const handleOpenPerfil = useCallback(() => setIsPerfilDrawerOpen(true), []);
@@ -75,19 +65,20 @@ const AlumnoLayoutContent = () => {
   // Configurar gestos de swipe simplificados
   const { containerRef, swipeProgress, closeProgress, isEdgeSwipe } = useSwipeGesture({
     onSwipeFromEdge: (distance) => {
-      if (distance > 100) {
+      console.log('AlumnoLayout: onSwipeFromEdge called with distance:', distance);
+      if (distance > 30) {
         console.log('AlumnoLayout: Opening SwipeWidget from edge');
         setIsSwipeWidgetOpen(true);
       }
     },
     onSwipeToClose: (distance) => {
-      if (distance > 80) {
+      if (distance > 40) {
         console.log('AlumnoLayout: Closing SwipeWidget');
         setIsSwipeWidgetOpen(false);
       }
     },
-    edgeThreshold: 30,
-    threshold: 50,
+    edgeThreshold: 50,
+    threshold: 20,
     isWidgetOpen: isSwipeWidgetOpen
   });
 

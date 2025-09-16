@@ -77,9 +77,9 @@ const AppContent = () => {
     console.log('Usuario intentó navegar hacia atrás - bloqueado');
   });
   
-  // 2. Prevenir gestos táctiles (swipe desde bordes)
+  // 2. Prevenir gestos táctiles (swipe desde bordes) - DESACTIVADO para permitir SwipeWidget
   usePreventSwipeBack({ 
-    enabled: !isInRutinaDetalle, // No aplicar en RutinaDetalle
+    enabled: false, // Desactivado temporalmente para permitir SwipeWidget
     edgeThreshold: 30,
     swipeThreshold: 20,
     exceptions: ['.touch-interactive', '.allow-swipe-back']

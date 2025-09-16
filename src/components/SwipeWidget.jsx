@@ -87,19 +87,19 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
   // Variantes optimizadas de Framer Motion
   const widgetVariants = {
     closed: {
-      x: '-150%',
+      x: '-100%',
       transition: { type: 'spring', stiffness: 400, damping: 40 }
     },
     open: {
-      x: '-50%',
+      x: '0%',
       transition: { type: 'spring', stiffness: 400, damping: 40 }
     },
     dragging: {
-      x: `${-150 + openProgress * 100}%`,
+      x: `${-100 + openProgress * 100}%`,
       transition: { type: 'tween', duration: 0 }
     },
     closing: {
-      x: `${-50 - closeProgressNormalized * 100}%`,
+      x: `${0 - closeProgressNormalized * 100}%`,
       transition: { type: 'tween', duration: 0 }
     }
   };
@@ -306,7 +306,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             exit="closed"
             style={{
               width: '95vw',
-              left: '50%',
+              left: '0',
               boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.3)',
               backdropFilter: 'blur(20px) saturate(150%)',
               touchAction: 'pan-y manipulation' // Permitir scroll vertical y optimizar toques

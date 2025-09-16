@@ -21,57 +21,50 @@ export const useSwipeGesture = ({
   const CLICK_TIME_THRESHOLD = 200; // ms
   const CLICK_DISTANCE_THRESHOLD = 18; // px (tolerancia a jitter móvil)
 
-  // Detección mejorada de elementos interactivos (incluye más casos edge)
+  // Detección simplificada de elementos interactivos - Solo bloquear elementos claramente interactivos
   const isElementInteractive = useCallback((element) => {
     if (!element) return false;
     
-    const interactiveTags = ['BUTTON', 'A', 'INPUT', 'TEXTAREA', 'SELECT', 'LABEL'];
-    const nonInteractiveTags = ['MAIN', 'DIV', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER', 'NAV', 'SPAN', 'P'];
     let current = element;
+    console.log('Checking element interactivity:', {
+      tagName: element.tagName,
+      className: element.className,
+      hasDataAction: element.hasAttribute('data-action'),
+      onclick: !!element.onclick
+    });
     
     while (current && current !== document.body) {
-      // Prioridad máxima: elementos con data-action
+      console.log('Checking current element:', {
+        tagName: current.tagName,
+        className: current.className,
+        hasDataAction: current.hasAttribute('data-action'),
+        onclick: !!current.onclick,
+        isInteractiveTag: ['BUTTON', 'A', 'INPUT', 'TEXTAREA', 'SELECT'].includes(current.tagName)
+      });
+      
+      // Solo bloquear elementos con data-action
       if (current.hasAttribute('data-action')) {
+        console.log('Blocked by data-action');
         return true;
       }
       
-      // Tags explícitamente interactivos
-      if (interactiveTags.includes(current.tagName)) {
+      // Solo bloquear botones, links e inputs reales
+      if (['BUTTON', 'A', 'INPUT', 'TEXTAREA', 'SELECT'].includes(current.tagName)) {
+        console.log('Blocked by interactive tag:', current.tagName);
         return true;
       }
       
-      // Elementos con roles interactivos específicos
-      const role = current.getAttribute('role');
-      if (role && ['button', 'link', 'menuitem', 'tab', 'switch', 'checkbox'].includes(role)) {
+      // Solo bloquear elementos con onclick explícito
+      if (current.onclick) {
+        console.log('Blocked by onclick');
         return true;
-      }
-      
-      // Elementos con handlers de eventos
-      if (current.onclick || current.ontouchstart || current.ontouchend) {
-        return true;
-      }
-      
-      // Elementos Framer Motion con whileTap o onTap
-      if (current.getAttribute('data-framer-motion') && 
-          (current.style.cursor === 'pointer' || current.classList.contains('cursor-pointer'))) {
-        return true;
-      }
-      
-      // Solo elementos con cursor pointer Y algún indicador de interactividad
-      if ((current.style.cursor === 'pointer' || current.classList.contains('cursor-pointer')) && 
-          (current.onclick || current.hasAttribute('data-action') || current.getAttribute('role'))) {
-        return true;
-      }
-      
-      // Excluir elementos de layout explícitamente
-      if (nonInteractiveTags.includes(current.tagName)) {
-        current = current.parentElement;
-        continue;
       }
       
       current = current.parentElement;
     }
     
+    console.log('Element allowed - not interactive');
+    // Por defecto, permitir el swipe (no bloquear)
     return false;
   }, []);
 
@@ -117,9 +110,16 @@ export const useSwipeGesture = ({
       return;
     }
     
-    // Para edge swipes, verificar si está en elemento interactivo
-    if ((isFromLeftEdge || isFromRightEdge) && isElementInteractive(e.target)) {
-      console.log('Edge swipe blocked by interactive element');
+    // Para edge swipes, verificar si está en elemento interactivo - TEMPORALMENTE DESACTIVADO
+    if (false && (isFromLeftEdge || isFromRightEdge) && isElementInteractive(e.target)) {
+      console.log('Edge swipe blocked by interactive element:', {
+        tagName: e.target.tagName,
+        className: e.target.className,
+        id: e.target.id,
+        hasDataAction: e.target.hasAttribute('data-action'),
+        onclick: !!e.target.onclick,
+        cursor: getComputedStyle(e.target).cursor
+      });
       return;
     }
     
@@ -201,7 +201,16 @@ export const useSwipeGesture = ({
       const absDeltaX = Math.abs(deltaX);
       const absDeltaY = Math.abs(deltaY);
       
-      if (absDeltaX > absDeltaY && absDeltaX > threshold) {
+      console.log('TouchEnd swipe analysis:', {
+        absDeltaX,
+        absDeltaY,
+        threshold,
+        deltaX,
+        isEdgeSwipe,
+        passesThreshold: absDeltaX > Math.min(threshold, 15)
+      });
+      
+      if (absDeltaX > absDeltaY && absDeltaX > Math.min(threshold, 15)) {
         if (isEdgeSwipe && deltaX > 0) {
           console.log('Left edge swipe completed - opening SwipeWidget:', deltaX);
           onSwipeFromEdge?.(deltaX);
@@ -213,6 +222,8 @@ export const useSwipeGesture = ({
           console.log('SwipeWidget close swipe completed:', Math.abs(deltaX));
           onSwipeToClose?.(Math.abs(deltaX));
         }
+      } else {
+        console.log('Swipe did not meet threshold requirements');
       }
     }
     

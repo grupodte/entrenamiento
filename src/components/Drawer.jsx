@@ -2,6 +2,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactDOM from 'react-dom';
 import { useEffect, useCallback, useState, useRef } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
     // Normalizar la altura para usar nuestras nuevas clases CSS
@@ -214,12 +215,7 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                     >
                         {/* Handle mejorado con indicador de swipe */}
                         <div className="w-full flex justify-center py-4 cursor-grab active:cursor-grabbing relative">
-                            <motion.div
-                                className="w-10 h-1.5 bg-gray-400 rounded-full"
-                                whileHover={{ scale: 1.1, backgroundColor: '#9CA3AF' }}
-                                whileTap={{ scale: 0.95 }}
-                                transition={{ duration: 0.15 }}
-                            />
+                            <ChevronDown className="text-gray-400" />
                             {/* Indicador visual de swipe horizontal */}
                             {swipeProgress > 0 && (
                                 <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
