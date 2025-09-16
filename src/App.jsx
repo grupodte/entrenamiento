@@ -10,7 +10,6 @@ import useSmoothScroll from './hooks/useSmoothScroll';
 import usePreventSwipeBack from './hooks/usePreventSwipeBack';
 import useNoBack from './hooks/useNoBack';
 import { useLocation } from 'react-router-dom';
-import BrandedLoader from './components/BrandedLoader';
 import { WidgetGuideProvider } from './context/WidgetGuideContext';
 
 // --- LAZY LOADING DE COMPONENTES GRANDES ---
@@ -97,7 +96,7 @@ const AppContent = () => {
 
   return (
     <WidgetGuideProvider>
-      <Suspense fallback={<BrandedLoader />}>
+      <Suspense fallback={<div></div>}>
         <Routes>
         {/* --- RUTA DE ONBOARDING --- */}
         <Route 
@@ -205,7 +204,7 @@ const App = () => {
   // Los hooks de prevención ahora están en AppContent
 
   if (loading) {
-    return <BrandedLoader />;
+    return <div></div>;
   }
 
   return <AppContent />;

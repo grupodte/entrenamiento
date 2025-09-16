@@ -139,33 +139,9 @@ const MisCursos = () => {
     </motion.div>
   );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen p-3 sm:p-4 md:p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-4 md:mb-6">
-            <div className="h-6 md:h-8 bg-gray-700/50 rounded w-48 md:w-64 mb-1 md:mb-2 animate-pulse" />
-            <div className="h-3 md:h-4 bg-gray-700/30 rounded w-64 md:w-96 animate-pulse" />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-gray-800/30 rounded-lg md:rounded-xl overflow-hidden">
-                <div className="h-32 md:h-40 bg-gray-700/50 animate-pulse" />
-                <div className="p-3 md:p-4 space-y-2 md:space-y-3">
-                  <div className="h-3 md:h-4 bg-gray-700/50 rounded animate-pulse" />
-                  <div className="h-2 md:h-3 bg-gray-700/30 rounded animate-pulse" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen p-3 sm:p-4 md:p-6">
+    <div className={`min-h-screen p-3 sm:p-4 md:p-6 transition-all duration-300 ${loading ? 'blur-[20px] pointer-events-none' : 'blur-0'}`}>
       <div className="max-w-7xl mx-auto">
 
 

@@ -13,7 +13,6 @@ import EntrenamientoCompletado from "../../components/RutinaDetalle/Entrenamient
 import ProgressDock from "../../components/RutinaDetalle/ProgressDock";
 import Drawer from "../../components/Drawer";
 import VideoPanel from "../../components/VideoPanel"; // Importar VideoPanel
-import BrandedLoader from "../../components/BrandedLoader"; // Importar BrandedLoader
 import { motion } from 'framer-motion'; // <-- 2. IMPORTAR MOTION
 
 const RutinaDetalle = () => {
@@ -116,11 +115,13 @@ const RutinaDetalle = () => {
 
 
     return (
-        <div className="flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto">
-                {isReady ? (
-                    <>
-                        {/* Contenido principal */}
+        <>
+            <div className={`flex flex-col overflow-hidden transition-all duration-300 ${
+                loading ? 'blur-[20px] pointer-events-none' : 'blur-0'
+            }`}>
+                <div className="flex-1 overflow-y-auto">
+                    {/* Contenido principal */}
+                    {rutina && (
                         <div className="">
                             <RutinaContent
                                 // 4. PROPS SIMPLIFICADAS
@@ -134,7 +135,9 @@ const RutinaDetalle = () => {
                                 openVideoPanel={openVideoPanel}
                             />
                         </div>
+                    )}
 
+                    {rutina && (
                         <RutinaTimersDisplay
                             isResting={isResting}
                             restTimeLeft={restTimeLeft}
@@ -142,21 +145,22 @@ const RutinaDetalle = () => {
                             restExerciseName={restExerciseName}
                             skipRest={skipRest}
                         />
+                    )}
+                </div>
 
-                        {/* 5. MODAL DE COMPLETADO MOVIDO AQUÍ */}
-                        <EntrenamientoCompletado
-                            isOpen={todosCompletados}
-                            workoutTime={workoutTime}
-                            seriesCompletadas={seriesCompletadas}
-                            handleFinalizarYGuardar={handleFinalizarAndNavigate}
-                            formatWorkoutTime={formatWorkoutTime}
-                            
-                        />
-                    </>
-                ) : (
-                    <BrandedLoader />
+                {/* Componentes que deben estar fuera del scroll */}
+                {/* 5. MODAL DE COMPLETADO */}
+                {rutina && (
+                    <EntrenamientoCompletado
+                        isOpen={todosCompletados}
+                        workoutTime={workoutTime}
+                        seriesCompletadas={seriesCompletadas}
+                        handleFinalizarYGuardar={handleFinalizarAndNavigate}
+                        formatWorkoutTime={formatWorkoutTime}
+                    />
                 )}
 
+                {/* Modales y paneles */}
                 <Drawer isOpen={showExitModal} onClose={handleCancelExit} height="h-[95vh]">
                     <div className="p-6">
                         <div className="text-center mb-6">
@@ -200,28 +204,28 @@ const RutinaDetalle = () => {
                     onClose={closeVideoPanel}
                     videoUrl={videoUrlToShow}
                 />
-
-                {/* Dock de progreso flotante */}
-                <ProgressDock
-                    isVisible={showProgressDock && isReady}
-                    rutina={rutina}
-                    elementosCompletados={elementosCompletados}
-                    progressGlobal={progressGlobal}
-                    seriesCompletadas={seriesCompletadas}
-                    totalSeries={seriesCompletadas + (rutina ? Object.keys(elementosCompletados).length : 0)}
-                    workoutTime={workoutTime}
-                    formatWorkoutTime={formatWorkoutTime}
-                    progressPorSubBloque={progressPorSubBloque}
-                    onElementClick={(elementId) => {
-                        // Scroll hacia el elemento específico si existe
-                        const element = elementoRefs.current[elementId];
-                        if (element) {
-                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                    }}
-                />
             </div>
-        </div>
+
+            {/* ProgressDock completamente independiente */}
+            <ProgressDock
+                isVisible={showProgressDock && !!rutina}
+                rutina={rutina}
+                elementosCompletados={elementosCompletados}
+                progressGlobal={progressGlobal}
+                seriesCompletadas={seriesCompletadas}
+                totalSeries={seriesCompletadas + (rutina ? Object.keys(elementosCompletados).length : 0)}
+                workoutTime={workoutTime}
+                formatWorkoutTime={formatWorkoutTime}
+                progressPorSubBloque={progressPorSubBloque}
+                onElementClick={(elementId) => {
+                    // Scroll hacia el elemento específico si existe
+                    const element = elementoRefs.current[elementId];
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }}
+            />
+        </>
     );
 };
 
