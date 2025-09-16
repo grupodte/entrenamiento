@@ -5,6 +5,7 @@ import './index.css';
 import { registerSW } from 'virtual:pwa-register';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import { HelmetProvider } from 'react-helmet-async';
 
 import { BrowserRouter as Router } from 'react-router-dom';
 
@@ -26,13 +27,15 @@ import  SpotifyProvider from './context/SpotifyContext.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <Router>
-      <AuthProvider>
-        <SpotifyProvider>
-          <Toaster />
-          <App />
-        </SpotifyProvider>
-      </AuthProvider>
-    </Router>
+    <HelmetProvider>
+      <Router>
+        <AuthProvider>
+          <SpotifyProvider>
+            <Toaster />
+            <App />
+          </SpotifyProvider>
+        </AuthProvider>
+      </Router>
+    </HelmetProvider>
   </React.StrictMode>,
 )

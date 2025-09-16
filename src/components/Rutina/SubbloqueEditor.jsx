@@ -3,6 +3,7 @@ import { Trash2, ChevronDown } from 'lucide-react';
 import Select from 'react-select';
 import { Disclosure } from '@headlessui/react';
 import { v4 as uuidv4 } from 'uuid';
+import { Reorder, useDragControls } from 'framer-motion';
 import ComboboxEjercicios from './ComboboxEjercicios';
 import EjercicioChip from './EjercicioChip';
 import SupersetSharedConfigEditor from './SupersetSharedConfigEditor';
@@ -197,6 +198,10 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
         });
     };
 
+    const handleReorderEjercicios = (newOrder) => {
+        onChange({ ...currentSubbloque, ejercicios: newOrder });
+    };
+
     return (
         <Disclosure defaultOpen>
             {({ open }) => (
@@ -303,10 +308,15 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
                             onSelect={agregarEjercicio}
                         />
 
-                        <table className="w-full text-sm text-white border border-white/10 rounded-lg" style={{ overflow: 'visible' }}>
+                        <Reorder.Group
+                            as="table"
+                            values={currentSubbloque.ejercicios}
+                            onReorder={handleReorderEjercicios}
+                            className="w-full text-sm text-white border border-white/10 rounded-lg"
+                        >
                             <tbody style={{ overflow: 'visible' }}>
                                 {currentSubbloque.ejercicios.map((ejercicio, i) => (
-                                    <EjercicioChip
+                                    <EjercicioReordenable
                                         key={ejercicio.id || i}
                                         ejercicio={ejercicio}
                                         onChange={(nuevo) => actualizarEjercicio(i, nuevo)}
@@ -317,11 +327,41 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
                                     />
                                 ))}
                             </tbody>
-                        </table>
+                        </Reorder.Group>
                     </Disclosure.Panel>
                 </div>
             )}
         </Disclosure>
+    );
+};
+
+const EjercicioReordenable = ({
+    ejercicio,
+    onChange,
+    onRemove,
+    ejerciciosDisponibles,
+    isSharedStructure,
+    numberOfSharedSets
+}) => {
+    const dragControls = useDragControls();
+
+    return (
+        <Reorder.Item
+            as="tr"
+            value={ejercicio}
+            dragListener={false}
+            dragControls={dragControls}
+        >
+            <EjercicioChip
+                ejercicio={ejercicio}
+                onChange={onChange}
+                onRemove={onRemove}
+                ejerciciosDisponibles={ejerciciosDisponibles}
+                isSharedStructure={isSharedStructure}
+                numberOfSharedSets={numberOfSharedSets}
+                dragControls={dragControls}
+            />
+        </Reorder.Item>
     );
 };
 

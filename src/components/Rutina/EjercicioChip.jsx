@@ -1,4 +1,4 @@
-import { Pencil, Trash2, Check } from 'lucide-react';
+import { Pencil, Trash2, Check, GripVertical } from 'lucide-react';
 import ComboboxEjercicios from './ComboboxEjercicios';
 import ExecutionTypeSelector from './ExecutionTypeSelector';
 import TimeUnitSelector from './TimeUnitSelector';
@@ -20,6 +20,7 @@ const EjercicioChip = ({
     ejerciciosDisponibles,
     isSharedStructure = false,
     numberOfSharedSets = 0,
+    dragControls,
 }) => {
     const [modoEditar, setModoEditar] = useState(false);
 
@@ -101,7 +102,14 @@ const EjercicioChip = ({
                     )}
                 </td>
 
-                <td className="p-2 flex justify-end gap-2">
+                <td className="p-2 flex items-center justify-end gap-2">
+                    <div
+                        className="cursor-grab text-white/40"
+                        title="Arrastrar para reordenar"
+                        onPointerDown={(e) => dragControls.start(e)}
+                    >
+                        <GripVertical size={18} />
+                    </div>
                     <button
                         onClick={() => setModoEditar(!modoEditar)}
                         className={`${modoEditar ? 'text-green-400 hover:text-green-300' : 'text-sky-400 hover:text-sky-300'
