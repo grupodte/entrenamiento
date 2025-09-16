@@ -3,14 +3,24 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ✅ Prevención contextual de swipe back - Simplificado */
-/* Base: comportamiento normal de swipe */
+/* ✅ Prevención TOTAL de swipe back - Configuración robusta */
+/* Prevenir completamente el swipe back del navegador */
 html {
-  overscroll-behavior-x: auto;
+  overscroll-behavior-x: none !important;
+  overscroll-behavior-y: contain;
+  -webkit-overscroll-behavior-x: none !important;
+  -webkit-overscroll-behavior-y: contain !important;
+  /* Prevenir también touch desde los bordes */
+  touch-action: pan-y;
 }
 
 body {
-  overscroll-behavior-x: auto;
+  overscroll-behavior-x: none !important;
+  overscroll-behavior-y: contain;
+  -webkit-overscroll-behavior-x: none !important;
+  -webkit-overscroll-behavior-y: contain !important;
+  /* Prevenir touch horizontal desde cualquier punto */
+  touch-action: pan-y;
 }
 
 /* Para drawers y modales activos - Prevenir swipe back solo cuando es necesario */
@@ -164,10 +174,18 @@ body {
 .app-container {
   @apply h-screen flex flex-col relative;
   /* Prevenir gestos de navegación del navegador */
-  overscroll-behavior-x: none;
+  overscroll-behavior-x: none !important;
+  overscroll-behavior-y: contain;
+  -webkit-overscroll-behavior-x: none !important;
+  -webkit-overscroll-behavior-y: contain !important;
   -webkit-overflow-scrolling: touch;
   overflow-x: hidden;
   max-width: 100vw;
+  /* Configuración específica para prevenir swipe */
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .main-content {
@@ -182,9 +200,7 @@ body {
   /* Aplicamos márgenes personalizados al contenido */
   margin-top: var(--content-margin-top);
   margin-bottom: calc(var(--content-margin-bottom));
-  /* 80px para la navbar flotante */
-  margin-left: var(--content-margin-horizontal);
-  margin-right: var(--content-margin-horizontal);
+
   min-height: calc(100vh - 9rem);
   /* 3rem padding-top + 6rem padding-bottom */
 }
@@ -196,9 +212,7 @@ body {
   /* Aplicamos márgenes personalizados al contenido */
   margin-top: var(--content-margin-top);
   margin-bottom: calc(var(--content-margin-bottom));
-  /* 80px para la navbar flotante */
-  margin-left: var(--content-margin-horizontal);
-  margin-right: var(--content-margin-horizontal);
+
 }
 
 .dashboard-header {
@@ -485,6 +499,26 @@ body {
   html {
     overscroll-behavior: none !important;
     -webkit-overscroll-behavior: none !important;
+    touch-action: pan-y !important;
+  }
+}
+
+/* Configuración específica para Chrome móvil */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  body, html, #root {
+    overscroll-behavior-x: none !important;
+    -webkit-overscroll-behavior-x: none !important;
+  }
+}
+
+/* Configuración para Safari móvil */
+@supports (-webkit-touch-callout: none) and (not (translate: none)) {
+  body, html {
+    overscroll-behavior-x: none !important;
+    -webkit-overscroll-behavior-x: none !important;
+    /* Prevenir también el pull-to-refresh */
+    overscroll-behavior-y: none !important;
+    -webkit-overscroll-behavior-y: none !important;
   }
 }
 

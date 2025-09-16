@@ -161,7 +161,7 @@ const Dashboard = () => {
       
 
             {/* Contenido */}
-            <main className="max-w-screen-md mx-auto px-4 pb-[env(safe-area-inset-bottom)] py-6 space-y-8">
+            <main className="max-w-screen-md mx-auto px-2 pb-[env(safe-area-inset-bottom)] py-6 space-y-8">
                 {/* Stats */}
                 <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Progreso semanal */}
