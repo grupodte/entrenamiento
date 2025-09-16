@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Share, PlusSquare, EllipsisVertical, Download } from "lucide-react";
+import { motion } from 'framer-motion';
 
 // Página simple y universal de instalación de PWA
 // - Muestra pasos claros para iOS, Android y Desktop
@@ -105,23 +106,23 @@ export default function InstalarAppSimple() {
 
 
   return (
-    <div className="min-h-[100dvh] bg-neutral-950 text-white flex items-center justify-center p-4">
-      <div className="w-full max-w-xl">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <button
-            onClick={() => (typeof navigate === "function" ? navigate(-1) : null)}
-            className="text-sm/none text-neutral-300 hover:text-white transition"
-          >
-            ← Volver
-          </button>
-          <span className="text-xs text-neutral-400">
-            {installed ? "Instalada" : isIOS ? "iOS" : isAndroid ? "Android" : "Desktop"}
-          </span>
-        </div>
+    <div className="fixed inset-0 flex items-center justify-center">
+      {/* Video de fondo */}
+      <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover">
+        <source src="/backgrounds/loginbg.mp4" type="video/mp4" />
+      </video>
 
-        {/* Card */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl">
+      {/* Capa oscura */}
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-lg"></div>
+
+      <div className="relative z-10 w-full max-w-xl p-4">
+        {/* Card con animación */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.7, ease: 'easeOut' }}
+          className="rounded-2xl border border-gray-700/10 bg-gray-900/30 backdrop-blur-sm shadow-2xl"
+        >
           <div className="p-6 md:p-8">
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
               {installed ? "La app ya está instalada" : "Instalá la app en tu dispositivo"}
@@ -168,7 +169,7 @@ export default function InstalarAppSimple() {
 
             {/* Tips extra */}
             {!installed && !deferredPrompt && (
-              <p className="mt-6 text-xs text-neutral-400">
+              <p className="mt-6 text-xs text-neutral-200">
                 {isIOS
                   ? "Tip: Si no ves la opción, asegurate de que el sitio tenga conexión segura (https) y esté cargado en Safari."
                   : isAndroid
@@ -177,10 +178,10 @@ export default function InstalarAppSimple() {
               </p>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Footer */}
-        <div className="mt-6 text-center text-xs text-neutral-500">
+        <div className="mt-6 text-center text-xs text-neutral-200">
           Esta es una PWA. Una vez instalada, funciona como una app nativa.
         </div>
       </div>

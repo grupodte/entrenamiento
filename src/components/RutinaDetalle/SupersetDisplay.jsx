@@ -83,12 +83,12 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                 // Estilos optimizados para móvil con resaltado del conjunto completo
                 const getSetStyles = () => {
                     if (completado) {
-                        return 'bg-violet-900/20 border-green-500/40 ring-1 ring-green-400/20';
+                        return 'bg-violet-900/20 border-green-500/40 ';
                     }
                     if (isActive) {
-                        return 'bg-violet-900/50 border-violet-400/70 ring-2 ring-violet-400/60 shadow-lg shadow-violet-500/25';
+                        return ' bg-violet-900/30 border-violet-400/70 ring-2 ring-violet-400/60 shadow-lg shadow-violet-500/25';
                     }
-                    return 'bg-violet-900/15 border-violet-700/30 active:bg-violet-900/25';
+                    return 'bg-black-900 border-violet-700/30 active:bg-violet-900/25';
                 };
 
                 return (

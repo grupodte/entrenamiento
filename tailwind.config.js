@@ -51,6 +51,13 @@ module.exports = {
                 'dashboard-subtitle': ['1.125rem', { lineHeight: '1.75rem', fontWeight: '600' }],
                 'dashboard-body': ['0.875rem', { lineHeight: '1.25rem' }],
                 'dashboard-caption': ['0.75rem', { lineHeight: '1rem' }],
+                // Tamaños específicos para personas mayores - Rutina Detalle
+                'senior-number-xl': ['3rem', { lineHeight: '3.5rem', fontWeight: '800' }], // Para números de repeticiones/peso
+                'senior-number-lg': ['2.5rem', { lineHeight: '3rem', fontWeight: '700' }], // Para números de sets
+                'senior-number-md': ['2rem', { lineHeight: '2.5rem', fontWeight: '700' }], // Para pausas
+                'senior-label': ['0.875rem', { lineHeight: '1.25rem', fontWeight: '600' }], // Para labels
+                'senior-exercise-name': ['1.125rem', { lineHeight: '1.75rem', fontWeight: '600' }], // Para nombres de ejercicios
+                'senior-input': ['2rem', { lineHeight: '2.5rem', fontWeight: '700' }], // Para inputs de peso
             },
             borderRadius: {
                 'ios-sm': '0.5rem',

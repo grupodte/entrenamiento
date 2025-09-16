@@ -94,13 +94,13 @@ const SetRow = ({
       exit={{ opacity: 0, x: 20 }}
       transition={{ duration: 0.2 }}
       className={`
-        flex items-center gap-3 p-3 rounded-lg border backdrop-blur-sm
-        transition-all duration-200 ${getContainerStyle()}
+        flex items-center gap-4 p-4 rounded-lg border backdrop-blur-sm
+        transition-all duration-200 min-h-[80px] ${getContainerStyle()}
       `}
     >
       {/* Número del set */}
-      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-700/50 border border-gray-600/50 shrink-0">
-        <span className="text-sm font-bold text-gray-300">
+      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-700/50 border border-gray-600/50 shrink-0">
+        <span className="text-xl font-bold text-gray-300">
           {set.nro_set || set.setNumber || 1}
         </span>
       </div>
@@ -110,8 +110,8 @@ const SetRow = ({
         {/* Reps */}
         <div className="flex-1 relative">
           <div className="flex items-center gap-1 mb-1">
-            <Hash className="w-3 h-3 text-gray-400" />
-            <label className="text-xs text-gray-400 font-medium">REPS</label>
+            <Hash className="w-4 h-4 text-gray-300" />
+            <label className="text-sm text-gray-300 font-semibold tracking-wide">REPS</label>
           </div>
           <input
             ref={repsRef}
@@ -123,19 +123,20 @@ const SetRow = ({
             disabled={isCompleted}
             placeholder={lastSessionData.reps || set.reps || '12'}
             className={`
-              w-full px-2 py-2 rounded-md border bg-black/30 text-white text-center
-              font-mono font-bold placeholder-gray-500 backdrop-blur-sm
-              transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+              w-full px-3 py-3 rounded-md border bg-black/30 text-white text-center
+              font-mono font-bold placeholder-gray-500 backdrop-blur-sm text-2xl
+              min-h-[3.5rem] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
               ${styles.input} ${isCompleted ? 'border-green-500/30' : 'border-gray-600/50'}
             `}
+            style={{fontSize: 'max(1.5rem, 1.5rem)'}}
           />
         </div>
 
         {/* Peso */}
         <div className="flex-1 relative">
           <div className="flex items-center gap-1 mb-1">
-            <Weight className="w-3 h-3 text-gray-400" />
-            <label className="text-xs text-gray-400 font-medium">KG</label>
+            <Weight className="w-4 h-4 text-gray-300" />
+            <label className="text-sm text-gray-300 font-semibold tracking-wide">KG</label>
           </div>
           <input
             ref={weightRef}
@@ -148,11 +149,12 @@ const SetRow = ({
             disabled={isCompleted}
             placeholder={lastSessionData.weight || set.carga || '20'}
             className={`
-              w-full px-2 py-2 rounded-md border bg-black/30 text-white text-center
-              font-mono font-bold placeholder-gray-500 backdrop-blur-sm
-              transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+              w-full px-3 py-3 rounded-md border bg-black/30 text-white text-center
+              font-mono font-bold placeholder-gray-500 backdrop-blur-sm text-2xl
+              min-h-[3.5rem] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
               ${styles.input} ${isCompleted ? 'border-green-500/30' : 'border-gray-600/50'}
             `}
+            style={{fontSize: 'max(1.5rem, 1.5rem)'}}
           />
         </div>
       </div>
@@ -161,8 +163,8 @@ const SetRow = ({
       <div className="flex items-center gap-2 shrink-0">
         {/* Timer de descanso */}
         {!isCompleted && (
-          <div className="flex items-center gap-1 text-xs font-medium">
-            <Clock className={`w-3 h-3 ${
+          <div className="flex items-center gap-1 text-sm font-semibold">
+            <Clock className={`w-4 h-4 ${
               variant === 'superset' 
                 ? 'text-violet-300' 
                 : 'text-cyan-300'

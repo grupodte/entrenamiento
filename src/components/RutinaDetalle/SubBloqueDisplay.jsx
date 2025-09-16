@@ -30,34 +30,55 @@ const SubBloqueDisplay = (props) => {
 
     // Colores diferenciados para cada tipo
     const getContainerStyles = () => {
+        // Base: fondo muy oscuro + sutil glow púrpura y borde fino
+        const base =
+            'relative rounded-2xl border text-white/90 transition-all duration-300 backdrop-blur-sm ' +
+            'bg-gradient-to-b from-[#121018] to-[#0A0A0F] ' + // fondo oscuro con leve gradiente
+            'border-[#7C3AED40] ring-1 ring-inset ring-[#A855F71f] ' + // borde/línea interior suave
+            'shadow-[inset_0_0_0_1px_rgba(168,85,247,0.25),0_0_18px_rgba(124,58,237,0.25)] ' + // glow doble
+            'hover:ring-[#A855F74d] hover:shadow-[inset_0_0_0_1px_rgba(168,85,247,0.35),0_0_24px_rgba(124,58,237,0.35)]';
+
         if (isCompleted) {
-            return isSuperset 
-                ? 'bg-gradient-to-r from-violet-900/20 to-violet-800/15 border-violet-600/40'
-                : 'bg-gradient-to-r from-cyan-900/20 to-cyan-800/15 border-cyan-600/40';
+            // Un poco menos intenso, como “apagado” pero aún con halo
+            return (
+                base +
+                ' border-[#7C3AED80] ' +
+                'shadow-[inset_0_0_0_1px_rgba(168,85,247,0.32),0_0_22px_rgba(124,58,237,0.28)] ' +
+                'from-[#120E1C] to-[#0A0912]'
+            );
         }
+
         if (isInProgress) {
-            return isSuperset 
-                ? 'bg-gradient-to-r from-violet-900/40 to-violet-800/30 border-violet-500/60 ring-2 ring-violet-400/50 shadow-lg shadow-violet-500/20'
-                : 'bg-gradient-to-r from-cyan-900/40 to-cyan-800/30 border-cyan-500/60 ring-2 ring-cyan-400/50 shadow-lg shadow-cyan-500/20';
+            // Estado activo: más brillo y contraste
+            return (
+                base +
+                ' border-[#A855F7B3] ' +
+                'shadow-[inset_0_0_0_1px_rgba(168,85,247,0.5),0_0_36px_rgba(168,85,247,0.45)] ' +
+                'from-[#1A1326] to-[#0E0B15]'
+            );
         }
-        return isSuperset 
-            ? 'bg-gradient-to-r from-violet-900/10 to-violet-800/5 border-violet-700/20 hover:from-violet-900/20 hover:to-violet-800/15'
-            : 'bg-gradient-to-r from-cyan-900/10 to-cyan-800/5 border-cyan-700/20 hover:from-cyan-900/20 hover:to-cyan-800/15';
+
+        // Idle / hover suave
+        return (
+            base +
+            ' hover:from-[#171223] hover:to-[#0E0B15]'
+        );
     };
+
 
     const getSidebarStyles = () => {
         return isSuperset 
-            ? 'bg-gradient-to-b from-violet-500 to-violet-700'
-            : 'bg-gradient-to-b from-cyan-500 to-cyan-700';
+            ? ''
+            : '';
     };
 
     const getBadgeStyles = () => {
         return isSuperset 
-            ? 'bg-violet-600/80 text-violet-100 border-violet-500/50'
+            ? 'bg-violet-600/10 text-violet-100 border-violet-500/10'
             : 'bg-cyan-600/80 text-cyan-100 border-cyan-500/50';
     };
 
-    const borderTopColor = isSuperset ? 'border-violet-300/10' : 'border-cyan-300/10';
+    const borderTopColor = isSuperset ? 'border-violet-300/0' : 'border-cyan-300/0';
 
     // 3. Calcular información del resumen
     const numEjercicios = subbloque.subbloques_ejercicios?.length || 0;
@@ -137,9 +158,7 @@ const SubBloqueDisplay = (props) => {
                     transition={{ duration: 0.2 }}
                     className="flex-shrink-0"
                 >
-                    <FaChevronDown className={`text-sm ${
-                        isSuperset ? 'text-violet-400' : 'text-cyan-400'
-                    }`} />
+                    <FaChevronDown className={`text-sm text-white/20`} />
                 </motion.div>
             </button>
 

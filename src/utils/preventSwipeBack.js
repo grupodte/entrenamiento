@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * Utilidades para prevenir el swipe back del navegador
  * Uso: importar y llamar las funciones en componentes donde sea necesario

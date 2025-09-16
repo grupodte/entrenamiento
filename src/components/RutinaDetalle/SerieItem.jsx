@@ -91,7 +91,7 @@ const SerieItem = React.forwardRef(({
         const baseColor = isSuperset ? 'violet' : 'cyan';
         
         if (isCompletada) {
-            return `bg-gray-800/40 border-green-500/50 ring-1 ring-green-400/30`;
+            return `bg-gray-800/40 border-none`;
         }
         // En supersets NO resaltar ejercicios individuales, solo el conjunto completo
         if (isActive && !isSuperset) {
@@ -120,8 +120,8 @@ const SerieItem = React.forwardRef(({
             transition={{ duration: 0.2, ease: 'easeInOut' }}
             onClick={handleClick}
             className={`
-                        relative w-full rounded-lg p-2.5 transition-all duration-200
-                        backdrop-blur-md border min-h-[40px] touch-manipulation
+                        relative w-full rounded-lg p-4 transition-all duration-200
+                        backdrop-blur-md border min-h-[10px] touch-manipulation
                         ${tipoElemento?.includes('superset') ? 'cursor-default' : 'cursor-pointer'}
                         ${getItemStyles()}
                         ${classNameExtra}
@@ -135,12 +135,12 @@ const SerieItem = React.forwardRef(({
                 <div className="flex items-center justify-between mb-2">
                     <div className="flex-1 min-w-0">
                         {!hideExerciseName && (
-                            <h4 className="text-sm font-medium text-white truncate">
+                            <h4 className="text-xl font-semibold text-white truncate">
                                 {nombreEjercicio}
                             </h4>
                         )}
                         {nota && (
-                            <p className="text-[10px] text-white/60 mt-0.5 truncate">{nota}</p>
+                            <p className="text-sm text-white/60 mt-1 truncate">{nota}</p>
                         )}
                     </div>
                     
@@ -162,16 +162,16 @@ const SerieItem = React.forwardRef(({
             )}
 
             {/* Grid adaptativo: 2 columnas para supersets, 4 para ejercicios simples */}
-            <div className={`grid gap-2 text-center ${
+            <div className={`grid gap-4 text-center ${
                 tipoElemento?.includes('superset') ? 'grid-cols-2' : 'grid-cols-4'
             }`}>
                 {/* Set - Solo mostrar en ejercicios simples */}
                 {!tipoElemento?.includes('superset') && (
                     <div>
-                        <label className="block text-[10px] font-medium text-gray-400 mb-1 uppercase">
+                        <label className="block text-sm font-semibold text-gray-300 mb-1 uppercase tracking-wide">
                             Set
                         </label>
-                        <div className={`relative text-lg font-bold text-white bg-gray-900/50 py-1.5 rounded border border-gray-600/30 ${
+                        <div className={`relative text-4xl font-bold text-white py-3 rounded  min-h-[4rem] flex items-center justify-center ${
                             isCompletada ? 'bg-green-600/30 border-green-500/50' : ''
                         }`}>
                             {nroSet || '0'}
@@ -189,10 +189,10 @@ const SerieItem = React.forwardRef(({
                 <div>
                     {tipoEjecucion === EXECUTION_TYPES.STANDARD && (
                         <>
-                            <label className="block text-[10px] font-medium text-gray-400 mb-1 uppercase">
+                            <label className="block text-sm font-semibold text-gray-300 mb-1 uppercase tracking-wide">
                                 Reps
                             </label>
-                            <div className="w-full text-lg font-bold text-center py-1.5 rounded bg-gray-900/50 text-white border border-gray-600/30">
+                            <div className="w-full text-4xl font-bold text-center py-3 rounded  text-white  min-h-[4rem] flex items-center justify-center">
                                 {reps || '0'}
                             </div>
                         </>
@@ -207,10 +207,10 @@ const SerieItem = React.forwardRef(({
                             
                             return (
                                 <>
-                                    <label className="block text-[10px] font-medium text-gray-400 mb-1 uppercase">
+                                    <label className="block text-sm font-semibold text-gray-300 mb-1 uppercase tracking-wide">
                                         <span>{config.label}</span>
                                     </label>
-                                    <div className="w-full text-lg font-bold text-center py-1.5 rounded bg-blue-900/50 text-white border border-blue-600/30 flex items-center justify-center gap-1">
+                                    <div className="w-full text-4xl font-bold text-center py-3 text-white  min-h-[4rem] flex items-center justify-center gap-1">
                                         <span>{valorTiempo}</span>
                                     </div>
                                 </>
@@ -220,10 +220,10 @@ const SerieItem = React.forwardRef(({
                     
                     {tipoEjecucion === EXECUTION_TYPES.FALLO && (
                         <>
-                            <label className="block text-[10px] font-medium text-gray-400 mb-1 uppercase">
+                            <label className="block text-sm font-semibold text-gray-300 mb-1 uppercase tracking-wide">
                                 Ejecución
                             </label>
-                            <div className="text-sm font-bold text-orange-300 bg-orange-900/50 py-1.5 rounded border border-orange-600/30 flex items-center justify-center">
+                            <div className="text-lg font-bold text-orange-300  py-3 min-h-[4rem] flex items-center justify-center">
                                 Al Fallo
                             </div>
                         </>
@@ -232,7 +232,7 @@ const SerieItem = React.forwardRef(({
 
                 {/* Peso */}
                 <div>
-                    <label className="block text-[10px] font-medium text-gray-400 mb-1 uppercase">
+                    <label className="block text-sm font-semibold text-gray-300 mb-1 uppercase tracking-wide">
                         Peso
                     </label>
                     <input
@@ -246,19 +246,18 @@ const SerieItem = React.forwardRef(({
                         onFocus={(e) => e.stopPropagation()}
                         onTouchStart={(e) => e.stopPropagation()}
                         placeholder="0kg"
-                        className={`w-full text-lg font-bold text-center py-1.5 rounded bg-gray-900/50 text-white border border-gray-600/30 focus:ring-1 focus:ring-${accentColor}-400/40 focus:outline-none focus:border-${accentColor}-400/50 touch-manipulation`}
+                        className={`w-full text-3xl font-bold text-center py-3 rounded bg-gray-900/0 border-none  min-h-[4rem]  touch-manipulation`}
+                        style={{fontSize: 'max(1.875rem, 1.875rem)'}} // Forzar tamaño mínimo
                     />
                 </div>
 
                 {/* Pausa - Solo mostrar en ejercicios simples */}
                 {!tipoElemento?.includes('superset') && (
                     <div>
-                        <label className="block text-[10px] font-medium text-gray-400 mb-1 uppercase">
+                        <label className="block text-sm font-semibold text-gray-300 mb-1 uppercase tracking-wide">
                             Pausa
                         </label>
-                        <div className={`text-sm font-bold py-1.5 rounded border border-gray-600/30 ${
-                            isCompletada ? 'bg-green-600/30 border-green-500/50 text-green-100' : 'bg-gray-900/50 text-white'
-                        }`}>
+                        <div className={`text-2xl font-bold py-3 rounded   min-h-[4rem] flex items-center justify-center `}>
                             {pausa && pausa > 0 ? `${pausa}s` : 'Sin pausa'}
                         </div>
                     </div>

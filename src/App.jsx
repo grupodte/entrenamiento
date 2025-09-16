@@ -1,59 +1,62 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import SpotifyCallback from './pages/SpotifyCallback';
 // Debug utils
 import { diagnosticarTiposEjecucion } from './utils/diagnosticoTiposEjecucion';
 
-// --- LAYOUT Y COMPONENTES GLOBALES ---
-import AdminLayout from './layouts/AdminLayout';
+// --- IMPORTACIONES INMEDIATAS (CRÍTICAS) ---
 import RutaProtegida from './components/RutaProtegida';
 import useSmoothScroll from './hooks/useSmoothScroll';
 import usePreventSwipeBack from './hooks/usePreventSwipeBack';
 import useNoBack from './hooks/useNoBack';
 import { useLocation } from 'react-router-dom';
-import AlumnoLayout from './layouts/AlumnoLayout';
 import BrandedLoader from './components/BrandedLoader';
-
-// --- WIDGET GUIDE ---
 import { WidgetGuideProvider } from './context/WidgetGuideContext';
-import WidgetGuideOverlay from './components/WidgetGuide/WidgetGuideOverlay';
 
-// --- PÁGINAS PÚBLICAS ---
-import LandingPage from './pages/LandingPage';
-import CatalogoCursos from './pages/CatalogoCursos';
-import VisualizarCurso from './pages/VisualizarCurso';
-import AuthPage from './pages/AuthPage';
-import Tyc from './pages/tyc';
-import PoliticaPrivacidad from './pages/PoliticaPrivacidad';
-import InstalarApp from './pages/InstalarApp';
-import NotFound from './pages/NotFound';
+// --- LAZY LOADING DE COMPONENTES GRANDES ---
+// Layouts
+const AdminLayout = React.lazy(() => import('./layouts/AdminLayout'));
+const AlumnoLayout = React.lazy(() => import('./layouts/AlumnoLayout'));
 
-// --- PÁGINAS DE ALUMNO ---
-import DashboardAlumno from './pages/Alumno/Dashboard';
-import RutinaDetalle from './pages/Alumno/RutinaDetalle';
-import MisCursos from './pages/Alumno/MisCursos';
-import Onboarding from './pages/Onboarding';
+// Widget Guide
+const WidgetGuideOverlay = React.lazy(() => import('./components/WidgetGuide/WidgetGuideOverlay'));
 
-// --- PÁGINAS DE ADMIN ---
-import AdminPanel from './pages/Admin/AdminPanel';
-import AlumnoPerfil from './pages/Admin/AlumnoPerfil';
-import CrearRutina from './pages/Admin/CrearRutina';
-import EditarRutina from './pages/Admin/EditarRutina';
-import VerRutina from './pages/Admin/VerRutina';
-import SeleccionarEjercicios from './pages/Admin/SeleccionarEjercicios';
-import AdminRutinas from './pages/Admin/AdminRutinas';
-import AdminAlumnos from './pages/Admin/AdminAlumnos';
-import AdminEjercicios from './pages/Admin/AdminEjercicios';
-import AsignarRutina from './pages/Admin/AsignarRutina';
-import EditarDia from './pages/Admin/EditarDia';
-import CrearRutinaReal from './pages/Admin/CrearRutinaReal';
-import AdminRutinasReales from './pages/Admin/AdminRutinasReales';
-import VerRutinaReal from './pages/Admin/VerRutinaReal';
-import EditarRutinaReal from './pages/Admin/EditarRutinaReal';
-import CursosManager from './pages/Admin/CursosManager';
-import CrearCurso from './pages/Admin/CrearCurso';
-import AsignarCurso from './pages/Admin/AsignarCurso';
+// Páginas públicas
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
+const CatalogoCursos = React.lazy(() => import('./pages/CatalogoCursos'));
+const VisualizarCurso = React.lazy(() => import('./pages/VisualizarCurso'));
+const AuthPage = React.lazy(() => import('./pages/AuthPage'));
+const Tyc = React.lazy(() => import('./pages/tyc'));
+const PoliticaPrivacidad = React.lazy(() => import('./pages/PoliticaPrivacidad'));
+const InstalarApp = React.lazy(() => import('./pages/InstalarApp'));
+const NotFound = React.lazy(() => import('./pages/NotFound'));
+const SpotifyCallback = React.lazy(() => import('./pages/SpotifyCallback'));
+
+// Páginas de alumno
+const DashboardAlumno = React.lazy(() => import('./pages/Alumno/Dashboard'));
+const RutinaDetalle = React.lazy(() => import('./pages/Alumno/RutinaDetalle'));
+const MisCursos = React.lazy(() => import('./pages/Alumno/MisCursos'));
+const Onboarding = React.lazy(() => import('./pages/Onboarding'));
+
+// Páginas de admin
+const AdminPanel = React.lazy(() => import('./pages/Admin/AdminPanel'));
+const AlumnoPerfil = React.lazy(() => import('./pages/Admin/AlumnoPerfil'));
+const CrearRutina = React.lazy(() => import('./pages/Admin/CrearRutina'));
+const EditarRutina = React.lazy(() => import('./pages/Admin/EditarRutina'));
+const VerRutina = React.lazy(() => import('./pages/Admin/VerRutina'));
+const SeleccionarEjercicios = React.lazy(() => import('./pages/Admin/SeleccionarEjercicios'));
+const AdminRutinas = React.lazy(() => import('./pages/Admin/AdminRutinas'));
+const AdminAlumnos = React.lazy(() => import('./pages/Admin/AdminAlumnos'));
+const AdminEjercicios = React.lazy(() => import('./pages/Admin/AdminEjercicios'));
+const AsignarRutina = React.lazy(() => import('./pages/Admin/AsignarRutina'));
+const EditarDia = React.lazy(() => import('./pages/Admin/EditarDia'));
+const CrearRutinaReal = React.lazy(() => import('./pages/Admin/CrearRutinaReal'));
+const AdminRutinasReales = React.lazy(() => import('./pages/Admin/AdminRutinasReales'));
+const VerRutinaReal = React.lazy(() => import('./pages/Admin/VerRutinaReal'));
+const EditarRutinaReal = React.lazy(() => import('./pages/Admin/EditarRutinaReal'));
+const CursosManager = React.lazy(() => import('./pages/Admin/CursosManager'));
+const CrearCurso = React.lazy(() => import('./pages/Admin/CrearCurso'));
+const AsignarCurso = React.lazy(() => import('./pages/Admin/AsignarCurso'));
 
 // Componente simplificado para páginas públicas
 const PublicLayout = () => (
@@ -92,16 +95,17 @@ const AppContent = () => {
 
   return (
     <WidgetGuideProvider>
-      <Routes>
-      {/* --- RUTA DE ONBOARDING --- */}
-      <Route 
-        path="/onboarding" 
-        element={
-          <RutaProtegida rolPermitido="alumno" allowOnboarding={true}>
-            <Onboarding />
-          </RutaProtegida>
-        } 
-      />
+      <Suspense fallback={<BrandedLoader />}>
+        <Routes>
+        {/* --- RUTA DE ONBOARDING --- */}
+        <Route 
+          path="/onboarding" 
+          element={
+            <RutaProtegida rolPermitido="alumno" allowOnboarding={true}>
+              <Onboarding />
+            </RutaProtegida>
+          } 
+        />
 
       {/* --- RUTAS DE ALUMNO CON AlumnoLayout --- */}
       <Route
@@ -175,11 +179,14 @@ const AppContent = () => {
         {/* Ruta 404 - Catch all */}
         <Route path="*" element={<NotFound />} />
       </Route>
-    </Routes>
-    
-    {/* Componentes de Widget Guide */}
-    <WidgetGuideOverlay />
-  </WidgetGuideProvider>
+        </Routes>
+      </Suspense>
+      
+      {/* Componentes de Widget Guide */}
+      <Suspense fallback={<div></div>}>
+        <WidgetGuideOverlay />
+      </Suspense>
+    </WidgetGuideProvider>
   );
 };
 

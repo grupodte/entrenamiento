@@ -128,14 +128,8 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
-  overscroll-behavior: none;
-  /* Prevenir el swipe back del navegador */
-  overscroll-behavior-x: none;
   font-family: 'ProductSans', 'Inter', sans-serif;
-  /* Deshabilitar swipe navigation completamente */
-  overscroll-behavior: none;
-  overscroll-behavior-x: none;
-  overscroll-behavior-y: none;
+  /* Las configuraciones de overscroll se manejan arriba de forma más específica */
 }
 
 html {
@@ -146,9 +140,7 @@ html {
 body {
   @apply font-sans select-none text-white scrollbar-hide;
   background-color: var(--bg-primary);
-  touch-action: manipulation;
-  overscroll-behavior: none;
-  overscroll-behavior-x: none;
+  /* touch-action se maneja más arriba de forma global */
   -webkit-overflow-scrolling: touch;
   text-rendering: optimizeLegibility;
 }

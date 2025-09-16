@@ -12,33 +12,25 @@ const BloqueDisplay = (props) => {
         const nombreLower = nombre.toLowerCase();
         if (nombreLower.includes('calentamiento')) {
             return {
-                bg: 'bg-gradient-to-br from-orange-900/15 to-orange-800/10',
                 border: 'border-orange-600/30',
-                titleColor: 'text-orange-300',
                 accentColor: 'orange'
             };
         }
         if (nombreLower.includes('principal')) {
             return {
-                bg: 'bg-gradient-to-br from-blue-900/15 to-blue-800/10',
                 border: 'border-blue-600/30',
-                titleColor: 'text-blue-300',
                 accentColor: 'blue'
             };
         }
         if (nombreLower.includes('cooldown')) {
             return {
-                bg: 'bg-gradient-to-br from-green-900/15 to-green-800/10',
                 border: 'border-green-600/30',
-                titleColor: 'text-green-300',
                 accentColor: 'green'
             };
         }
         if (nombreLower.includes('estiramiento')) {
             return {
-                bg: 'bg-gradient-to-br from-purple-900/15 to-purple-800/10',
                 border: 'border-purple-600/30',
-                titleColor: 'text-purple-300',
                 accentColor: 'purple'
             };
         }
@@ -82,7 +74,7 @@ const BloqueDisplay = (props) => {
 
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-2">
             {Object.entries(groupedSubBloques).map(([nombre, subbloquesDelGrupo]) => {
                 const isAGroupWithTitle = !nombre.startsWith('__individual__');
                 const theme = getBlockTheme(nombre);
@@ -90,22 +82,22 @@ const BloqueDisplay = (props) => {
                 return (
                     <div 
                         key={nombre} 
-                        className={`rounded-xl backdrop-blur-sm border transition-all duration-300 p-3 space-y-3 ${
+                        className={`rounded-xl backdrop-blur-sm border transition-all duration-300 p-1  ${
                             isAGroupWithTitle ? `${theme.bg} ${theme.border}` : 'bg-gray-900/10 border-gray-700/20'
                         }`}
                     >
                         {isAGroupWithTitle && (
-                            <div className="flex items-center gap-2 pb-2 border-b border-white/10">
-                                <div className={`w-1 h-6 rounded-full bg-gradient-to-b from-${theme.accentColor}-400 to-${theme.accentColor}-600`} />
+                            <div className="flex items-center justify-center gap-2 pb-2">
+                                <div className={`rounded-full bg-gradient-to-b from-${theme.accentColor}-400 to-${theme.accentColor}-600`} />
                                 <ShinyText
                                     text={nombre.toUpperCase()}
                                     disabled={false}
                                     speed={3}
-                                    className={`text-lg font-semibold ${theme.titleColor}`}
+                                    className={`text-xl font-bold ${theme.titleColor}`}
                                 />
                             </div>
                         )}
-                        <div className="space-y-2">
+                        <div className="space-y-1">
                             {subbloquesDelGrupo.map((subbloque, index) => {
                                 const progressInfo = progressPorSubBloque[subbloque.id] || { isCompleted: false, isInProgress: false };
                                 

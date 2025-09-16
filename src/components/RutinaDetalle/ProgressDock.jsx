@@ -106,10 +106,10 @@ const ProgressDock = ({
             </ProgressRing>
 
             <div>
-              <h3 className="text-[13px] font-semibold text-white leading-none">
+              <h3 className="text-sm font-semibold text-white leading-none">
                 Progreso
               </h3>
-              <p className="text-[11px] text-gray-400 leading-tight">
+              <p className="text-sm text-gray-300 leading-tight font-medium">
                 {completedCount}/{checklistItems.length}
               </p>
             </div>
@@ -119,7 +119,7 @@ const ProgressDock = ({
             {/* Timer compacto */}
             <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 rounded-full border border-emerald-400/20">
               <Clock className="w-3 h-3 text-emerald-300" />
-              <span className="text-[12px] font-bold font-mono text-emerald-300 tracking-wide">
+              <span className="text-sm font-bold font-mono text-emerald-300 tracking-wide">
                 {formatWorkoutTime(workoutTime)}
               </span>
             </div>
@@ -146,7 +146,7 @@ const ProgressDock = ({
               <div className="p-3">
                 {/* Nombre de la rutina */}
                 <div className="mb-3 text-center">
-                  <h2 className="text-base font-bold text-white mb-0.5 truncate">
+                  <h2 className="text-lg font-bold text-white mb-0.5 truncate">
                     {rutina?.nombre || "Entrenamiento"}
                   </h2>
                   <div className="flex items-center justify-center gap-1.5">
@@ -172,17 +172,17 @@ const ProgressDock = ({
 
                 {/* Resumen de estadísticas */}
                 <div className="grid grid-cols-3 gap-2 mb-3">
-                  <div className="text-center p-1.5 bg-white/5 rounded-lg">
-                    <div className="text-sm font-bold text-green-400 leading-none">{completedCount}</div>
-                    <div className="text-[10px] text-gray-400">Done</div>
+                  <div className="text-center p-2 bg-white/5 rounded-lg">
+                    <div className="text-lg font-bold text-green-400 leading-none">{completedCount}</div>
+                    <div className="text-xs text-gray-400">Done</div>
                   </div>
-                  <div className="text-center p-1.5 bg-white/5 rounded-lg">
-                    <div className="text-sm font-bold text-yellow-400 leading-none">{inProgressCount}</div>
-                    <div className="text-[10px] text-gray-400">En curso</div>
+                  <div className="text-center p-2 bg-white/5 rounded-lg">
+                    <div className="text-lg font-bold text-yellow-400 leading-none">{inProgressCount}</div>
+                    <div className="text-xs text-gray-400">En curso</div>
                   </div>
-                  <div className="text-center p-1.5 bg-white/5 rounded-lg">
-                    <div className="text-sm font-bold text-cyan-400 leading-none">{totalSeries}</div>
-                    <div className="text-[10px] text-gray-400">Series</div>
+                  <div className="text-center p-2 bg-white/5 rounded-lg">
+                    <div className="text-lg font-bold text-cyan-400 leading-none">{totalSeries}</div>
+                    <div className="text-xs text-gray-400">Series</div>
                   </div>
                 </div>
 

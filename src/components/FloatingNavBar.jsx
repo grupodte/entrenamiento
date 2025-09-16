@@ -28,6 +28,7 @@ const FloatingNavBar = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 });
+  const [isLowPerformance, setIsLowPerformance] = useState(false);
   
   // Estados para colapso/expansión
   const [isExpanded, setIsExpanded] = useState(false);
@@ -45,7 +46,7 @@ const FloatingNavBar = ({
     }
     autoCloseTimeoutRef.current = setTimeout(() => {
       setIsExpanded(false);
-    }, 4000); // 4 segundos
+    }, 3000); // 3 segundos - más rápido para móviles
   }, []);
   
   const clearAutoCloseTimer = useCallback(() => {
@@ -82,6 +83,12 @@ const FloatingNavBar = ({
 
     const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     setIsTouchDevice(hasTouch);
+    
+    // Detectar dispositivos de bajo rendimiento para reducir animaciones
+    const isLowPowerDevice = /Android.*[2-5]\.|iPhone.*[1-7]_|iPad.*[1-6]_/.test(navigator.userAgent) ||
+                            navigator.hardwareConcurrency < 4 ||
+                            navigator.deviceMemory < 4;
+    setIsLowPerformance(isLowPowerDevice);
 
     const computedStyle = getComputedStyle(document.documentElement);
     const safeTop = parseInt(
@@ -327,12 +334,14 @@ const FloatingNavBar = ({
       style={{
         left: position.x,
         top: position.y,
-        transform: isDragging ? 'scale(1.03)' : 'scale(1)',
-        transition: isDragging ? 'none' : 'transform 0.3s ease',
+        transform: isDragging ? 'scale(1.03) translateZ(0)' : 'scale(1) translateZ(0)',
+        transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.4, 0.0, 0.2, 1)',
         cursor: isTouchDevice ? (isDragging ? 'grabbing' : 'grab') : 'default',
         touchAction: 'pan-x pan-y',
         WebkitUserSelect: 'none',
         userSelect: 'none',
+        willChange: isDragging ? 'transform' : 'auto',
+        backfaceVisibility: 'hidden',
       }}
       onMouseDown={(e) => {
         if (isTouchDevice) return;
@@ -352,6 +361,9 @@ const FloatingNavBar = ({
         style={{
           backdropFilter: 'blur(20px) saturate(180%)',
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          willChange: isExpanded ? 'transform, width, padding' : 'auto',
+          backfaceVisibility: 'hidden',
+          perspective: 1000,
         }}
         animate={{
           width: isExpanded ? 'auto' : '40px',
@@ -362,11 +374,16 @@ const FloatingNavBar = ({
           borderRadius: isExpanded ? '20px' : '20px',
           scale: isExpanded ? 1 : 1
         }}
-        transition={{ 
+        transition={isLowPerformance ? {
+          type: "tween",
+          duration: 0.2,
+          ease: "easeInOut"
+        } : { 
           type: "spring",
-          stiffness: 600,
-          damping: 35,
-          mass: 0.5
+          stiffness: 400,
+          damping: 28,
+          mass: 0.3,
+          velocity: 2
         }}
         onMouseEnter={handleUserInteraction}
       >
@@ -384,9 +401,10 @@ const FloatingNavBar = ({
               exit={{ opacity: 0, scale: 0.8, rotate: 90 }}
               transition={{ 
                 type: "spring",
-                stiffness: 800,
-                damping: 30,
-                mass: 0.4
+                stiffness: 500,
+                damping: 25,
+                mass: 0.2,
+                velocity: 1
               }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -431,10 +449,10 @@ const FloatingNavBar = ({
               exit={{ opacity: 0, x: -30, scale: 0.9 }}
               transition={{ 
                 type: "spring",
-                stiffness: 700,
-                damping: 30,
-                mass: 0.4,
-                delay: 0.05
+                stiffness: 450,
+                damping: 22,
+                mass: 0.25,
+                delay: 0.02
               }}
             >
               
@@ -458,9 +476,9 @@ const FloatingNavBar = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ 
                   type: "spring",
-                  stiffness: 800,
-                  damping: 32,
-                  delay: 0.08
+                  stiffness: 550,
+                  damping: 26,
+                  delay: 0.04
                 }}
               >
                 <div className="relative">
@@ -510,9 +528,9 @@ const FloatingNavBar = ({
                 animate={{ opacity: 1, scaleY: 1 }}
                 transition={{ 
                   type: "spring",
-                  stiffness: 800,
-                  damping: 32,
-                  delay: 0.10
+                  stiffness: 600,
+                  damping: 28,
+                  delay: 0.05
                 }}
               />
               
@@ -533,9 +551,9 @@ const FloatingNavBar = ({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ 
                       type: "spring",
-                      stiffness: 800,
-                      damping: 32,
-                      delay: 0.12
+                      stiffness: 550,
+                      damping: 26,
+                      delay: 0.06
                     }}
                   >
                     <div className="relative">
@@ -561,9 +579,9 @@ const FloatingNavBar = ({
                     animate={{ opacity: 1, scaleY: 1 }}
                     transition={{ 
                       type: "spring",
-                      stiffness: 800,
-                      damping: 32,
-                      delay: 0.14
+                      stiffness: 600,
+                      damping: 28,
+                      delay: 0.07
                     }}
                   />
                 </>
@@ -593,11 +611,11 @@ const FloatingNavBar = ({
                     }}
                     transition={{ 
                       type: "spring",
-                      stiffness: 800,
-                      damping: 32,
-                      delay: 0.12,
+                      stiffness: 550,
+                      damping: 26,
+                      delay: 0.06,
                       boxShadow: {
-                        duration: 2,
+                        duration: 2.5,
                         repeat: Infinity,
                         ease: "easeInOut"
                       }
@@ -680,9 +698,9 @@ const FloatingNavBar = ({
                     animate={{ opacity: 1, scaleY: 1 }}
                     transition={{ 
                       type: "spring",
-                      stiffness: 800,
-                      damping: 32,
-                      delay: 0.14
+                      stiffness: 600,
+                      damping: 28,
+                      delay: 0.07
                     }}
                   />
                 </>
@@ -708,9 +726,9 @@ const FloatingNavBar = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ 
                   type: "spring",
-                  stiffness: 800,
-                  damping: 32,
-                  delay: shouldShowSwipeButton ? 0.16 : 0.12
+                  stiffness: 550,
+                  damping: 26,
+                  delay: shouldShowSwipeButton ? 0.08 : 0.06
                 }}
               >
                 <div className="relative">
