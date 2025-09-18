@@ -30,9 +30,9 @@ const PreferenciasStep = ({ value, onChange }) => {
 
     return (
         <div className="space-y-6">
-            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
-                <p className="text-sm text-green-300">
-                    <strong>¡Casi terminamos!</strong> ¿Cómo te gustaría empezar tu experiencia en Fit?
+            <div className="rounded-2xl p-4 bg-white/[0.03] border border-white/10 backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.35)]">
+                <p className="text-sm text-white/80">
+                    <strong className="text-cyan-400">¡Casi terminamos!</strong> ¿Cómo te gustaría empezar tu experiencia?
                 </p>
             </div>
 

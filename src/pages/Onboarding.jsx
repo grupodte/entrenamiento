@@ -9,6 +9,7 @@ import ProgressBar from '../components/Onboarding/ProgressBar';
 import StepContainer from '../components/Onboarding/StepContainer';
 
 // Pasos
+import DatosPersonalesStep from '../components/Onboarding/steps/DatosPersonalesStep';
 import ObjetivoStep from '../components/Onboarding/steps/ObjetivoStep';
 import ExperienciaStep from '../components/Onboarding/steps/ExperienciaStep';
 import BiometriaStep from '../components/Onboarding/steps/BiometriaStep';
@@ -25,6 +26,14 @@ const Onboarding = () => {
     
     // Estado de datos del onboarding
     const [onboardingData, setOnboardingData] = useState({
+        // Datos personales (paso 1)
+        nombre: '',
+        apellido: '',
+        email: '',
+        edad: '',
+        telefono: '',
+        genero: '',
+        // Resto de pasos
         objetivo: '',
         experiencia: '',
         altura: '',
@@ -34,20 +43,54 @@ const Onboarding = () => {
         preferencia_inicio: ''
     });
 
-    const totalSteps = 5;
+    const totalSteps = 6;
 
     // Cargar datos existentes al montar el componente
     useEffect(() => {
         if (user) {
             loadExistingData();
+            // Autocompletar con datos de Google si están disponibles
+            autoFillFromGoogle();
         }
     }, [user]);
+
+    // Función para autocompletar datos desde Google
+    const autoFillFromGoogle = () => {
+        if (!user || !user.user_metadata) return;
+
+        const metadata = user.user_metadata;
+        const updates = {};
+
+        // Autocompletar nombre y apellido desde full_name
+        if (metadata.full_name && (!onboardingData.nombre || !onboardingData.apellido)) {
+            const nameParts = metadata.full_name.split(' ');
+            if (!onboardingData.nombre && nameParts[0]) {
+                updates.nombre = nameParts[0];
+            }
+            if (!onboardingData.apellido && nameParts.length > 1) {
+                updates.apellido = nameParts.slice(1).join(' ');
+            }
+        }
+
+        // Autocompletar email
+        if (user.email && !onboardingData.email) {
+            updates.email = user.email;
+        }
+
+        // Actualizar solo si hay datos para autocompletar
+        if (Object.keys(updates).length > 0) {
+            setOnboardingData(prev => ({
+                ...prev,
+                ...updates
+            }));
+        }
+    };
 
     const loadExistingData = async () => {
         try {
             const { data, error } = await supabase
                 .from('perfiles')
-                .select('objetivo, experiencia, altura, peso, porcentaje_grasa, cintura_cm, preferencia_inicio')
+                .select('nombre, apellido, email, edad, telefono, genero, objetivo, experiencia, altura, peso, porcentaje_grasa, cintura_cm, preferencia_inicio')
                 .eq('id', user.id)
                 .single();
 
@@ -92,19 +135,43 @@ const Onboarding = () => {
         const newErrors = {};
 
         switch (currentStep) {
-            case 1: // Objetivo
+            case 1: // Datos personales
+                if (!onboardingData.nombre || onboardingData.nombre.trim().length < 2) {
+                    newErrors.nombre = 'El nombre debe tener al menos 2 caracteres';
+                }
+                if (!onboardingData.apellido || onboardingData.apellido.trim().length < 2) {
+                    newErrors.apellido = 'El apellido debe tener al menos 2 caracteres';
+                }
+                if (!onboardingData.email) {
+                    newErrors.email = 'El email es requerido';
+                }
+                if (!onboardingData.edad) {
+                    newErrors.edad = 'La edad es requerida';
+                } else if (onboardingData.edad < 13 || onboardingData.edad > 100) {
+                    newErrors.edad = 'La edad debe estar entre 13 y 100 años';
+                }
+                if (!onboardingData.genero) {
+                    newErrors.genero = 'Debes seleccionar tu género';
+                }
+                // Validación opcional de teléfono si se proporciona
+                if (onboardingData.telefono && onboardingData.telefono.length < 10) {
+                    newErrors.telefono = 'El número de teléfono debe tener al menos 10 dígitos';
+                }
+                break;
+                
+            case 2: // Objetivo
                 if (!onboardingData.objetivo) {
                     newErrors.objetivo = 'Debes seleccionar un objetivo';
                 }
                 break;
                 
-            case 2: // Experiencia
+            case 3: // Experiencia
                 if (!onboardingData.experiencia) {
                     newErrors.experiencia = 'Debes seleccionar tu nivel de experiencia';
                 }
                 break;
                 
-            case 3: // Biometría
+            case 4: // Biometría
                 if (!onboardingData.altura) {
                     newErrors.altura = 'La altura es requerida';
                 } else if (onboardingData.altura < 100 || onboardingData.altura > 250) {
@@ -127,13 +194,13 @@ const Onboarding = () => {
                 }
                 break;
                 
-            case 4: // Preferencias
+            case 5: // Preferencias
                 if (!onboardingData.preferencia_inicio) {
                     newErrors.preferencia_inicio = 'Debes seleccionar una preferencia';
                 }
                 break;
                 
-            case 5: // Resumen - no hay validaciones adicionales
+            case 6: // Resumen - no hay validaciones adicionales
                 break;
         }
 
@@ -152,7 +219,7 @@ const Onboarding = () => {
             Object.entries(onboardingData).forEach(([key, value]) => {
                 if (value !== '' && value !== null && value !== undefined) {
                     // Convertir a número los campos numéricos
-                    if (['altura', 'peso', 'porcentaje_grasa', 'cintura_cm'].includes(key)) {
+                    if (['altura', 'peso', 'porcentaje_grasa', 'cintura_cm', 'edad'].includes(key)) {
                         dataToUpdate[key] = parseFloat(value) || null;
                     } else {
                         dataToUpdate[key] = value;
@@ -248,14 +315,16 @@ const Onboarding = () => {
     const canContinue = () => {
         switch (currentStep) {
             case 1:
-                return !!onboardingData.objetivo;
+                return !!onboardingData.nombre && !!onboardingData.apellido && !!onboardingData.email && !!onboardingData.edad && !!onboardingData.genero;
             case 2:
-                return !!onboardingData.experiencia;
+                return !!onboardingData.objetivo;
             case 3:
-                return !!onboardingData.altura && !!onboardingData.peso;
+                return !!onboardingData.experiencia;
             case 4:
-                return !!onboardingData.preferencia_inicio;
+                return !!onboardingData.altura && !!onboardingData.peso;
             case 5:
+                return !!onboardingData.preferencia_inicio;
+            case 6:
                 return true;
             default:
                 return false;
@@ -265,6 +334,17 @@ const Onboarding = () => {
     // Configuración de pasos
     const stepConfig = {
         1: {
+            title: "Cuéntanos sobre ti",
+            description: "Necesitamos algunos datos básicos para personalizar tu experiencia",
+            component: (
+                <DatosPersonalesStep
+                    values={onboardingData}
+                    onChange={updateStepData}
+                    errors={errors}
+                />
+            )
+        },
+        2: {
             title: "¿Cuál es tu objetivo principal?",
             description: "Esto nos ayudará a personalizar tu experiencia",
             component: (
@@ -274,7 +354,7 @@ const Onboarding = () => {
                 />
             )
         },
-        2: {
+        3: {
             title: "¿Cuál es tu nivel de experiencia?",
             description: "Queremos adaptar el contenido a tu nivel",
             component: (
@@ -284,8 +364,8 @@ const Onboarding = () => {
                 />
             )
         },
-        3: {
-            title: "Cuéntanos sobre ti",
+        4: {
+            title: "Datos físicos",
             description: "Estos datos nos ayudan a personalizar mejor tu plan",
             component: (
                 <BiometriaStep
@@ -295,7 +375,7 @@ const Onboarding = () => {
                 />
             )
         },
-        4: {
+        5: {
             title: "¿Cómo prefieres comenzar?",
             description: "Elige la opción que más te interese",
             component: (
@@ -305,7 +385,7 @@ const Onboarding = () => {
                 />
             )
         },
-        5: {
+        6: {
             title: "¡Todo listo!",
             description: "Revisa tu información antes de continuar",
             component: <ResumenStep data={onboardingData} />
@@ -315,7 +395,7 @@ const Onboarding = () => {
     const currentStepConfig = stepConfig[currentStep];
 
     return (
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col ">
             <div className="flex-1 container mx-auto px-4 py-8 max-w-2xl">
                 {/* Barra de progreso */}
                 <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />

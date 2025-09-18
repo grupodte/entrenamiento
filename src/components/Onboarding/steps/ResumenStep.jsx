@@ -11,7 +11,12 @@ import {
     FaCalendarCheck,
     FaGraduationCap,
     FaCompass,
-    FaCheckCircle
+    FaCheckCircle,
+    FaUser,
+    FaEnvelope,
+    FaPhone,
+    FaBirthdayCake,
+    FaVenusMars
 } from 'react-icons/fa';
 
 const ResumenStep = ({ data }) => {
@@ -43,41 +48,78 @@ const ResumenStep = ({ data }) => {
         return preferencias[preferencia] || { title: preferencia, icon: FaCheckCircle, color: 'text-gray-400' };
     };
 
+    const getGeneroLabel = (genero) => {
+        const generos = {
+            masculino: 'Masculino',
+            femenino: 'Femenino',
+            otro: 'Otro',
+            prefiero_no_decir: 'Prefiero no decir'
+        };
+        return generos[genero] || genero;
+    };
+
     const objetivoInfo = getObjetivoInfo(data.objetivo);
     const experienciaInfo = getExperienciaInfo(data.experiencia);
     const preferenciaInfo = getPreferenciaInfo(data.preferencia_inicio);
 
     return (
         <div className="space-y-6">
-            {/* Header de bienvenida */}
-            <div className="text-center">
-                <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.2 }}
-                    className="w-20 h-20 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4"
-                >
-                    <FaCheckCircle className="w-10 h-10 text-white" />
-                </motion.div>
-                
-                <h3 className="text-xl font-bold text-white mb-2">¡Perfecto! Tu perfil está listo</h3>
-                <p className="text-gray-300">Aquí tienes un resumen de tu configuración:</p>
-            </div>
+           
 
             {/* Resumen de datos */}
             <div className="space-y-4">
-                {/* Objetivo */}
+                {/* Datos personales */}
                 <motion.div
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="bg-gray-800/50 rounded-lg p-4 border border-gray-700"
+                    className="rounded-2xl p-5 bg-white/[0.03] border border-white/10 backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.35)]"
                 >
-                    <div className="flex items-center space-x-3">
-                        <objetivoInfo.icon className={`w-6 h-6 ${objetivoInfo.color}`} />
-                        <div>
-                            <p className="text-white font-medium">Tu objetivo:</p>
-                            <p className="text-gray-300">{objetivoInfo.title}</p>
+                    <div className="space-y-4">
+                        <p className="text-white/90 font-semibold flex items-center text-lg">
+                            <FaUser className="w-5 h-5 mr-3 text-cyan-400" />
+                            Información personal
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div className="space-y-1">
+                                <span className="text-white/50 text-xs uppercase tracking-wide">Nombre completo</span>
+                                <p className="text-white/90 font-medium">{data.nombre} {data.apellido}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <span className="text-white/50 text-xs uppercase tracking-wide">Email</span>
+                                <p className="text-white/90 font-medium truncate">{data.email}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <span className="text-white/50 text-xs uppercase tracking-wide">Edad</span>
+                                <p className="text-white/90 font-medium">{data.edad} años</p>
+                            </div>
+                            <div className="space-y-1">
+                                <span className="text-white/50 text-xs uppercase tracking-wide">Género</span>
+                                <p className="text-white/90 font-medium">{getGeneroLabel(data.genero)}</p>
+                            </div>
+                            {data.telefono && (
+                                <div className="md:col-span-2 space-y-1">
+                                    <span className="text-white/50 text-xs uppercase tracking-wide">Teléfono</span>
+                                    <p className="text-white/90 font-medium">{data.telefono}</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </motion.div>
+                {/* Objetivo */}
+                <motion.div
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className="rounded-2xl p-5 bg-white/[0.03] border border-white/10 backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.35)]"
+                >
+                    <div className="flex items-center space-x-4">
+                        <div className={`p-3 rounded-xl bg-white/[0.08] ${objetivoInfo.color}`}>
+                            <objetivoInfo.icon className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-white/50 text-xs uppercase tracking-wide mb-1">Tu objetivo</p>
+                            <p className="text-white/90 font-semibold text-lg">{objetivoInfo.title}</p>
                         </div>
                     </div>
                 </motion.div>
@@ -86,14 +128,16 @@ const ResumenStep = ({ data }) => {
                 <motion.div
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                    className="bg-gray-800/50 rounded-lg p-4 border border-gray-700"
+                    transition={{ delay: 0.5 }}
+                    className="rounded-2xl p-5 bg-white/[0.03] border border-white/10 backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.35)]"
                 >
-                    <div className="flex items-center space-x-3">
-                        <experienciaInfo.icon className={`w-6 h-6 ${experienciaInfo.color}`} />
-                        <div>
-                            <p className="text-white font-medium">Tu nivel:</p>
-                            <p className="text-gray-300">{experienciaInfo.title}</p>
+                    <div className="flex items-center space-x-4">
+                        <div className={`p-3 rounded-xl bg-white/[0.08] ${experienciaInfo.color}`}>
+                            <experienciaInfo.icon className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-white/50 text-xs uppercase tracking-wide mb-1">Tu nivel</p>
+                            <p className="text-white/90 font-semibold text-lg">{experienciaInfo.title}</p>
                         </div>
                     </div>
                 </motion.div>
@@ -103,34 +147,37 @@ const ResumenStep = ({ data }) => {
                     <motion.div
                         initial={{ x: -20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.5 }}
-                        className="bg-gray-800/50 rounded-lg p-4 border border-gray-700"
+                        transition={{ delay: 0.6 }}
+                        className="rounded-2xl p-5 bg-white/[0.03] border border-white/10 backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.35)]"
                     >
-                        <div className="space-y-2">
-                            <p className="text-white font-medium">Datos físicos:</p>
+                        <div className="space-y-4">
+                            <p className="text-white/90 font-semibold flex items-center text-lg">
+                                <FaDumbbell className="w-5 h-5 mr-3 text-cyan-400" />
+                                Datos físicos
+                            </p>
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 {data.altura && (
-                                    <div>
-                                        <span className="text-gray-400">Altura:</span>
-                                        <span className="text-gray-300 ml-2">{data.altura} cm</span>
+                                    <div className="space-y-1">
+                                        <span className="text-white/50 text-xs uppercase tracking-wide">Altura</span>
+                                        <p className="text-white/90 font-medium">{data.altura} cm</p>
                                     </div>
                                 )}
                                 {data.peso && (
-                                    <div>
-                                        <span className="text-gray-400">Peso:</span>
-                                        <span className="text-gray-300 ml-2">{data.peso} kg</span>
+                                    <div className="space-y-1">
+                                        <span className="text-white/50 text-xs uppercase tracking-wide">Peso</span>
+                                        <p className="text-white/90 font-medium">{data.peso} kg</p>
                                     </div>
                                 )}
                                 {data.porcentaje_grasa && (
-                                    <div>
-                                        <span className="text-gray-400">Grasa:</span>
-                                        <span className="text-gray-300 ml-2">{data.porcentaje_grasa}%</span>
+                                    <div className="space-y-1">
+                                        <span className="text-white/50 text-xs uppercase tracking-wide">Grasa corporal</span>
+                                        <p className="text-white/90 font-medium">{data.porcentaje_grasa}%</p>
                                     </div>
                                 )}
                                 {data.cintura_cm && (
-                                    <div>
-                                        <span className="text-gray-400">Cintura:</span>
-                                        <span className="text-gray-300 ml-2">{data.cintura_cm} cm</span>
+                                    <div className="space-y-1">
+                                        <span className="text-white/50 text-xs uppercase tracking-wide">Cintura</span>
+                                        <p className="text-white/90 font-medium">{data.cintura_cm} cm</p>
                                     </div>
                                 )}
                             </div>
@@ -142,33 +189,22 @@ const ResumenStep = ({ data }) => {
                 <motion.div
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.6 }}
-                    className="bg-gray-800/50 rounded-lg p-4 border border-gray-700"
+                    transition={{ delay: 0.7 }}
+                    className="rounded-2xl p-5 bg-white/[0.03] border border-white/10 backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.35)]"
                 >
-                    <div className="flex items-center space-x-3">
-                        <preferenciaInfo.icon className={`w-6 h-6 ${preferenciaInfo.color}`} />
-                        <div>
-                            <p className="text-white font-medium">Tu preferencia:</p>
-                            <p className="text-gray-300">{preferenciaInfo.title}</p>
+                    <div className="flex items-center space-x-4">
+                        <div className={`p-3 rounded-xl bg-white/[0.08] ${preferenciaInfo.color}`}>
+                            <preferenciaInfo.icon className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-white/50 text-xs uppercase tracking-wide mb-1">Tu preferencia</p>
+                            <p className="text-white/90 font-semibold text-lg">{preferenciaInfo.title}</p>
                         </div>
                     </div>
                 </motion.div>
             </div>
 
-            {/* Mensaje final */}
-            <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.7 }}
-                className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-lg p-4 text-center"
-            >
-                <p className="text-cyan-300 font-medium">
-                    ¡Bienvenido a Fit! 🎉
-                </p>
-                <p className="text-sm text-gray-300 mt-2">
-                    Estás listo para comenzar tu viaje fitness personalizado
-                </p>
-            </motion.div>
+     
         </div>
     );
 };

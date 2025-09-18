@@ -192,6 +192,9 @@ export function initializePreventZoomAndScroll() {
   // Siempre prevenir scroll horizontal (útil en desktop también)
   preventHorizontalScroll();
   
+  // Aplicar fix específico para Android scrollbars
+  applyAndroidScrollbarFix();
+  
   console.log('🚫 Scroll horizontal deshabilitado');
 }
 
@@ -235,11 +238,134 @@ export function applyAdditionalStyles() {
   document.head.appendChild(style);
 }
 
+/**
+ * Función específica para ocultar scrollbars en Android
+ */
+export function applyAndroidScrollbarFix() {
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  
+  if (isAndroid) {
+    const androidStyle = document.createElement('style');
+    androidStyle.id = 'android-scrollbar-fix';
+    androidStyle.textContent = `
+      /* Fix agresivo para Android */
+      * {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+      }
+      
+      *::-webkit-scrollbar {
+        display: none !important;
+        width: 0px !important;
+        height: 0px !important;
+        background: transparent !important;
+        -webkit-appearance: none !important;
+      }
+      
+      *::-webkit-scrollbar-track {
+        display: none !important;
+        background: transparent !important;
+        -webkit-appearance: none !important;
+      }
+      
+      *::-webkit-scrollbar-thumb {
+        display: none !important;
+        background: transparent !important;
+        -webkit-appearance: none !important;
+      }
+      
+      *::-webkit-scrollbar-corner {
+        display: none !important;
+        background: transparent !important;
+      }
+      
+      /* Fix específico para elementos con overflow */
+      div[class*="overflow-"],
+      .overflow-auto,
+      .overflow-x-auto, 
+      .overflow-y-auto,
+      .overflow-scroll,
+      .overflow-x-scroll,
+      .overflow-y-scroll,
+      .scrollbar-hide,
+      .scroll-smooth-hidden {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+      }
+      
+      div[class*="overflow-"]::-webkit-scrollbar,
+      .overflow-auto::-webkit-scrollbar,
+      .overflow-x-auto::-webkit-scrollbar,
+      .overflow-y-auto::-webkit-scrollbar,
+      .overflow-scroll::-webkit-scrollbar,
+      .overflow-x-scroll::-webkit-scrollbar,
+      .overflow-y-scroll::-webkit-scrollbar,
+      .scrollbar-hide::-webkit-scrollbar,
+      .scroll-smooth-hidden::-webkit-scrollbar {
+        display: none !important;
+        width: 0px !important;
+        height: 0px !important;
+        -webkit-appearance: none !important;
+      }
+    `;
+    
+    document.head.appendChild(androidStyle);
+    console.log('🤖 Fix específico para Android scrollbars aplicado');
+  }
+}
+
+/**
+ * Función para verificar si las scrollbars siguen visibles y re-aplicar estilos
+ */
+export function checkAndReapplyScrollbarFix() {
+  // Crear un elemento de prueba con scroll
+  const testDiv = document.createElement('div');
+  testDiv.style.cssText = `
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+    width: 100px;
+    height: 100px;
+    overflow: scroll;
+    visibility: hidden;
+  `;
+  
+  document.body.appendChild(testDiv);
+  
+  // Verificar si la scrollbar es visible
+  const scrollbarWidth = testDiv.offsetWidth - testDiv.clientWidth;
+  document.body.removeChild(testDiv);
+  
+  if (scrollbarWidth > 0) {
+    console.warn('⚠️ Scrollbars detectadas en Android, re-aplicando fix...');
+    // Re-aplicar fix más agresivo
+    applyAndroidScrollbarFix();
+    
+    // Aplicar estilos inline directos a elementos problemáticos
+    const elements = document.querySelectorAll('*');
+    elements.forEach(el => {
+      if (el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth) {
+        el.style.scrollbarWidth = 'none';
+        el.style.msOverflowStyle = 'none';
+      }
+    });
+    
+    return true; // Indica que se aplicó el fix
+  }
+  
+  return false; // No era necesario aplicar el fix
+}
+
 // Auto-inicializar cuando se carga el DOM
 if (typeof document !== 'undefined') {
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializePreventZoomAndScroll);
+    document.addEventListener('DOMContentLoaded', () => {
+      initializePreventZoomAndScroll();
+      // Verificar después de un breve delay para asegurar que todo esté cargado
+      setTimeout(checkAndReapplyScrollbarFix, 1000);
+    });
   } else {
     initializePreventZoomAndScroll();
+    setTimeout(checkAndReapplyScrollbarFix, 1000);
   }
 }

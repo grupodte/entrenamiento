@@ -12,44 +12,34 @@ const OptionCard = ({
     return (
         <motion.div
             whileTap={{ scale: 0.98 }}
-            className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+            className={`relative p-5 rounded-2xl cursor-pointer transition-all duration-200 backdrop-blur-md ${
                 selected
-                    ? 'border-glass bg-cyan-500/10'
-                    : 'border-gray-600 bg-gray-800/50 hover:border-gray-500'
+                    ? 'bg-cyan-500/10 border border-cyan-400/30 shadow-[0_2px_15px_rgba(56,189,248,0.2)]'
+                    : 'bg-white/[0.03] border border-white/10 hover:bg-white/[0.05] hover:border-white/20 shadow-[0_4px_20px_rgba(0,0,0,0.1)]'
             } ${className}`}
             onClick={onClick}
         >
-            <div className="flex items-start space-x-3">
+            <div className="flex items-start space-x-4">
                 {Icon && (
-                    <div className={`p-2 rounded-lg ${
-                        selected ? 'bg-cyan-500 text-white' : 'bg-gray-700 text-gray-300'
+                    <div className={`p-3 rounded-xl ${
+                        selected ? 'bg-cyan-500/50 text-white shadow-[0_4px_15px_rgba(56,189,248,0.3)]' : 'bg-white/[0.08] text-cyan-400'
                     }`}>
                         <Icon className="w-6 h-6" />
                     </div>
                 )}
                 
                 <div className="flex-1">
-                    <h3 className={`font-semibold mb-1 ${
-                        selected ? 'text-cyan-300' : 'text-white'
+                    <h3 className={`font-semibold mb-2 text-lg ${
+                        selected ? 'text-cyan-300' : 'text-white/90'
                     }`}>
                         {title}
                     </h3>
                     {description && (
-                        <p className="text-sm text-gray-400">{description}</p>
+                        <p className="text-sm text-white/60 leading-relaxed">{description}</p>
                     )}
                 </div>
                 
-                {selected && (
-                    <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center"
-                    >
-                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                    </motion.div>
-                )}
+               
             </div>
         </motion.div>
     );
