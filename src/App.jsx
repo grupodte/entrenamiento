@@ -1,8 +1,6 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-// Debug utils
-import { diagnosticarTiposEjecucion } from './utils/diagnosticoTiposEjecucion';
 
 // --- IMPORTACIONES INMEDIATAS (CRÍTICAS) ---
 import RutaProtegida from './components/RutaProtegida';
@@ -75,9 +73,7 @@ const AppContent = () => {
   // Sistema de prevención de navegación - Versión simplificada
   
   // 1. Prevenir historial (botones de navegación del navegador)
-  useNoBack(!isInRutinaDetalle, (event) => {
-    console.log('Usuario intentó navegar hacia atrás - bloqueado');
-  });
+  useNoBack(!isInRutinaDetalle);
   
   // 2. Prevenir gestos táctiles (swipe desde bordes) - Activado en dispositivos táctiles
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -193,15 +189,6 @@ const AppContent = () => {
 
 const App = () => {
   const { loading } = useAuth();
-  
-  // Hacer disponible la función de diagnóstico globalmente
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.diagnosticarTiposEjecucion = diagnosticarTiposEjecucion;
-    }
-  }, []);
-  
-  // Los hooks de prevención ahora están en AppContent
 
   if (loading) {
     return <div></div>;

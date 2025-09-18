@@ -24,33 +24,28 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
   
   // Sistema de acciones simplificado
   const executeAction = useCallback((action) => {
-    console.log('SwipeWidget: Executing action:', action);
-    
     onClose();
     
     // Navegación inmediata sin delay innecesario
     setTimeout(() => {
       switch(action) {
         case 'install':
-          console.log('SwipeWidget: Navigate to /instalar');
           navigate('/instalar');
           break;
         case 'mis-cursos':
           const destination = rol === 'admin' ? '/admin/cursos' : '/mis-cursos';
-          console.log('SwipeWidget: Navigate to', destination);
           navigate(destination);
           break;
         case 'catalogo':
-          console.log('SwipeWidget: Navigate to /cursos');
           navigate('/cursos');
           break;
         case 'rutinas':
           const rutinaDestination = rol === 'admin' ? '/admin/rutinas' : '/dashboard';
-          console.log('SwipeWidget: Navigate to', rutinaDestination);
           navigate(rutinaDestination);
           break;
         default:
-          console.warn('SwipeWidget: Unknown action:', action);
+          // Unknown action - do nothing
+          break;
       }
     }, 50);
   }, [onClose, navigate, rol]);
@@ -60,7 +55,6 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('SwipeWidget: Button action triggered:', action);
     executeAction(action);
   }, [executeAction]);
 

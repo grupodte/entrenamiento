@@ -19,7 +19,7 @@ const updateSW = registerSW({
   },
   onOfflineReady() {
     // Lógica para cuando la app está lista para funcionar offline (opcional)
-    console.log('La aplicación está lista para funcionar sin conexión.');
+    // App ready for offline use
   },
 });
 

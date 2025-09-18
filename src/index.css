@@ -571,6 +571,10 @@ body {
   touch-action: pan-y;
 }
 
+.ios-inertial {
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Fix para Safari iOS */
 @supports (-webkit-touch-callout: none) {
   .scrollbar-hide {
