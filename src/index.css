@@ -149,16 +149,16 @@ body {
 /* ====== TIPOGRAFÍA PERSONALIZADA ====== */
 @font-face {
   font-family: 'ProductSans';
-  src: url('./assets/fonts/ProductSansRegular.woff2') format('woff2'),
-    url('./assets/fonts/ProductSansRegular.ttf') format('truetype');
+  src: url('./assets/fonts/BlauerNue-Regular.otf') format('woff2'),
+    url('./assets/fonts/BlauerNue-Regular.otf') format('truetype');
   font-weight: 400;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'ProductSans';
-  src: url('./assets/fonts/ProductSansBold.woff2') format('woff2'),
-    url('./assets/fonts/ProductSansBold.ttf') format('truetype');
+  src: url('./assets/fonts/BlauerNue-Bold.otf') format('woff2'),
+    url('./assets/fonts/BlauerNue-Bold.otf') format('truetype');
   font-weight: 700;
   font-display: swap;
 }

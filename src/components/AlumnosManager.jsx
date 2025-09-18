@@ -32,7 +32,7 @@ const AlumnosManager = () => {
 
     const alumnosFiltrados = useMemo(() => 
         alumnos.filter(al =>
-            `${al.nombre} ${al.apellido}`.toLowerCase().includes(busqueda.toLowerCase())
+            `${al.nombre} ${al.apellido} ${al.email}`.toLowerCase().includes(busqueda.toLowerCase())
         ), [alumnos, busqueda]);
 
     if (cargando) {
@@ -86,7 +86,8 @@ const AlumnoCard = ({ alumno, onClick }) => (
                 </div>
             )}
             <div>
-                <p className="font-bold text-lg text-white">{alumno.nombre} {alumno.apellido}</p>
+                <p className="font-bold text-lg text-white">{alumno.nombre} {alumno.apellido && alumno.apellido !== '-' ? alumno.apellido : ''}</p>
+                <p className="text-sm text-white/50">{alumno.email}</p>
             </div>
         </div>
     </li>

@@ -14,7 +14,7 @@ const OptionCard = ({
             whileTap={{ scale: 0.98 }}
             className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
                 selected
-                    ? 'border-cyan-500 bg-cyan-500/10'
+                    ? 'border-glass bg-cyan-500/10'
                     : 'border-gray-600 bg-gray-800/50 hover:border-gray-500'
             } ${className}`}
             onClick={onClick}
