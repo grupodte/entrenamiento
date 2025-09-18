@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getYouTubeVideoId } from '../utils/youtube';
 import { FaTimes } from 'react-icons/fa';
@@ -6,67 +7,98 @@ import { FaTimes } from 'react-icons/fa';
 const VideoPanel = ({ isOpen, onClose, videoUrl }) => {
     const videoId = getYouTubeVideoId(videoUrl);
     const embedUrl = videoId
-        ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&showinfo=0&modestbranding=1`
+        ? `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0&showinfo=0&modestbranding=1`
         : null;
 
-    // Evita el scroll mientras está abierto
+    // Cerrar con tecla Escape
+    const handleEscapeKey = useCallback((event) => {
+        if (event.key === 'Escape') {
+            onClose();
+        }
+    }, [onClose]);
+
+    // Evita el scroll mientras está abierto y añade listener para Escape
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
+            document.addEventListener('keydown', handleEscapeKey);
         } else {
             document.body.style.overflow = '';
+            document.removeEventListener('keydown', handleEscapeKey);
         }
         return () => {
             document.body.style.overflow = '';
+            document.removeEventListener('keydown', handleEscapeKey);
         };
-    }, [isOpen]);
+    }, [isOpen, handleEscapeKey]);
 
     if (!videoUrl || !videoId) return null;
 
-    return (
+    // No renderizar si no hay video
+    if (!isOpen || !videoUrl || !videoId || !embedUrl) {
+        return null;
+    }
+
+    // Crear el contenido del modal
+    const modalContent = (
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    key={`panel-${videoId}`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm !mt-0"
+                    transition={{ duration: 0.3 }}
+                    className="video-panel-overlay"
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 999999,
+                        backdropFilter: 'blur(5px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '20px'
+                    }}
                     onClick={onClose}
-                    style={{ marginTop: '0 !important' }}
                 >
-                    {/* Botón cerrar */}
-                    <button
-                        onClick={onClose}
-                        className="absolute top-5 right-5 text-white bg-black/50 p-2 rounded-full hover:bg-white/20 transition-colors"
-                        aria-label="Cerrar video"
-                    >
-                        <FaTimes className="w-5 h-5" />
-                    </button>
+            
 
                     {/* Contenedor del video */}
                     <motion.div
-                        key={`video-${videoId}`}
-                        initial={{ scale: 0.95, opacity: 0 }}
+                        initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.95, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: 'easeInOut' }}
-                        className="w-full h-full md:w-11/12 md:h-5/6 md:max-w-6xl md:rounded-lg overflow-hidden shadow-2xl bg-black"
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="w-[100%] relative overflow-hidden shadow-2xl px-2"
                         onClick={(e) => e.stopPropagation()}
+                        style={{ aspectRatio: '16/9' }}
                     >
-                        <iframe
-                            src={embedUrl}
-                            title="Video del ejercicio"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowFullScreen
-                            className="w-full h-full border-0"
-                        />
+                        {/* Contenedor interno del iframe */}
+                        <div className="w-full h-full rounded-2xl overflow-hidden">
+                            <iframe
+                                src={embedUrl}
+                                title="Video del ejercicio"
+                                className="w-full h-full border-0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                                style={{
+                                    borderRadius: 'inherit'
+                                }}
+                            />
+                        </div>
+                        
+                    
                     </motion.div>
                 </motion.div>
             )}
         </AnimatePresence>
     );
+
+    // Renderizar usando Portal para evitar problemas de posicionamiento
+    return createPortal(modalContent, document.body);
 };
 
 export default VideoPanel;

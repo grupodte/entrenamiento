@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowRight, FaCalendarAlt, FaExclamationTriangle } from 'react-icons/fa';
+import { FaCalendarAlt, FaExclamationTriangle } from 'react-icons/fa';
+import { ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Drawer from '../../components/Drawer';
 import DrawerLoader from '../../components/DrawerLoader';
@@ -109,19 +110,17 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                         >
                             {rutinaData.bloques.map((bloque) => (
                                 <motion.div key={bloque.id} variants={itemVariants}>
-                                    <div className="flex justify-between items-center bg-gray-700/10 shadow-lg rounded-xl p-4 border border-gray-600/10 hover:border-cyan-400 transition-colors duration-300">
+                                    <button
+                                        onClick={() => handleElegirBloque(bloque.id)}
+                                        className="w-full flex justify-between items-center bg-gray-700/10 shadow-lg rounded-xl p-4 border border-gray-600/10 hover:border-cyan-400 hover:bg-gray-600/20 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+                                    >
                                         <div className="flex items-center gap-3">
                                             <span className="text-base font-semibold text-white">
                                                 {bloque.nombre}
                                             </span>
                                         </div>
-                                        <button
-                                            onClick={() => handleElegirBloque(bloque.id)}
-                                            className="flex items-center bg-cyan-500 text-gray-900 font-bold px-3 py-1.5 rounded-lg hover:bg-cyan-400 transition-transform transform hover:scale-105 text-sm"
-                                        >
-                                            Iniciar <FaArrowRight className="ml-1 text-sm" />
-                                        </button>
-                                    </div>
+                                        <ChevronRight className="text-cyan-400 text-lg transition-transform group-hover:translate-x-1" />
+                                    </button>
                                 </motion.div>
                             ))}
                         </motion.div>
