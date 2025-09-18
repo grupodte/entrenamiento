@@ -111,7 +111,6 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                                 <motion.div key={bloque.id} variants={itemVariants}>
                                     <div className="flex justify-between items-center bg-gray-700/10 shadow-lg rounded-xl p-4 border border-gray-600/10 hover:border-cyan-400 transition-colors duration-300">
                                         <div className="flex items-center gap-3">
-                                            <FaCalendarAlt className="text-cyan-300 text-lg" />
                                             <span className="text-base font-semibold text-white">
                                                 {bloque.nombre}
                                             </span>

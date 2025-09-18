@@ -228,7 +228,7 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                         {/* Contenido con scroll optimizado */}
                         <div
                             className="
-                                px-4 pb-6 flex-grow 
+                                flex-grow 
                                 overflow-y-auto 
                                 overscroll-contain
                                 scrollbar-hide

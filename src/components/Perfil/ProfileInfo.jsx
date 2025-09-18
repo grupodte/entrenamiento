@@ -1,9 +1,9 @@
 import React from 'react';
 import {
     FaEdit, FaUserCircle, FaBullseye, FaWeight,
-    FaRulerVertical, FaPercentage, FaHeartbeat, FaSignOutAlt,
-    FaMapMarkerAlt, FaBirthdayCake, FaPhone, FaEnvelope,
-    FaCalendarAlt, FaFire, FaBalanceScale
+    FaRulerVertical, FaPercentage, FaHeartbeat, 
+    FaFire, FaBalanceScale, FaChartLine,
+    FaDumbbell, FaCalendarCheck
 } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 
@@ -24,6 +24,7 @@ const MetricCard = ({ icon, label, value, accent = 'cyan' }) => {
         </div>
     );
 };
+
 
 // Componente para información personal
 const InfoItem = ({ icon, label, value }) => {
@@ -50,88 +51,84 @@ const ProfileInfo = ({ user, perfil, onEdit }) => {
     const biografia = perfil?.biografia;
     const email = user?.email;
     
-    // Datos físicos
-    const peso = perfil?.peso ? `${perfil.peso} kg` : null;
-    const altura = perfil?.altura ? `${perfil.altura} cm` : null;
-    const imc = perfil?.imc ? perfil.imc.toFixed(1) : null;
-    const grasa = perfil?.porcentaje_grasa ? `${perfil.porcentaje_grasa.toFixed(1)}%` : null;
-    
-    // Información personal
-    const edad = perfil?.edad ? `${perfil.edad} años` : null;
-    const telefono = perfil?.telefono;
-    const ubicacion = perfil?.ciudad && perfil?.pais 
-        ? `${perfil.ciudad}, ${perfil.pais}` 
-        : perfil?.ciudad || perfil?.pais;
-    const fechaNacimiento = perfil?.fecha_nacimiento 
-        ? new Date(perfil.fecha_nacimiento).toLocaleDateString('es-ES', { 
-            year: 'numeric', month: 'long', day: 'numeric' 
-          })
-        : null;
+    // Datos físicos (usando nombres correctos de la BD)
+    const peso = perfil?.peso_kg ? parseFloat(perfil.peso_kg) : null;
+    const altura = perfil?.altura_cm ? parseInt(perfil.altura_cm) : null;
+    const imc = peso && altura ? ((peso / Math.pow(altura / 100, 2)).toFixed(1)) : null;
+    const grasa = perfil?.grasa_pct ? `${parseFloat(perfil.grasa_pct).toFixed(1)}%` : null;
     
     // Metas y objetivos
-    const metaPeso = perfil?.meta_peso ? `${perfil.meta_peso} kg` : null;
-    const nivel = perfil?.nivel;
-    const actividad = perfil?.actividad_fisica || perfil?.frecuencia_entrenamiento;
+    const metaPeso = perfil?.meta_peso ? parseFloat(perfil.meta_peso) : null;
+    const experiencia = perfil?.experiencia;
+    
+    // Cálculo de categoría de IMC
+    const getIMCCategory = (imcValue) => {
+        if (!imcValue) return null;
+        const imc = parseFloat(imcValue);
+        if (imc < 18.5) return { text: 'Bajo peso', color: 'text-blue-400' };
+        if (imc < 25) return { text: 'Normal', color: 'text-green-400' };
+        if (imc < 30) return { text: 'Sobrepeso', color: 'text-yellow-400' };
+        return { text: 'Obesidad', color: 'text-red-400' };
+    };
+    
+    const imcCategoria = getIMCCategory(imc);
 
     return (
         <div className="flex flex-col space-y-6">
-            {/* Header del Perfil - Estilo Red Social */}
-            <div className="relative">
-                {/* Cover/Background */}
-                <div className="h-24 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl relative overflow-hidden">
-                    <div className="absolute inset-0 bg-black/20" />
-                    <div className="absolute top-2 right-2">
-                        <button
-                            onClick={onEdit}
-                            className="px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-all duration-200 flex items-center space-x-1"
-                            title="Editar perfil"
-                        >
-                            <FaEdit className="text-white text-xs" />
-                            <span className="text-white text-xs font-medium">Editar</span>
-                        </button>
-                    </div>
-                </div>
+            {/* Header con Avatar Centrado (sin portada) */}
+            <div className="relative pt-4">
+                {/* Botón Editar */}
+                <button
+                    onClick={onEdit}
+                    className="absolute top-4 right-4 p-2 rounded-full bg-gray-700/80 hover:bg-gray-600 transition-all duration-200 shadow-lg z-10"
+                    title="Editar perfil"
+                >
+                    <FaEdit className="text-cyan-400 text-sm" />
+                </button>
                 
-                {/* Avatar */}
-                <div className="absolute -bottom-8 left-4">
-                    <div className="relative">
-                        {avatarUrl ? (
-                            <img 
-                                src={avatarUrl} 
-                                alt="Avatar" 
-                                className="w-16 h-16 rounded-full border-4 border-gray-800 shadow-lg" 
-                            />
-                        ) : (
-                            <div className="w-16 h-16 rounded-full border-4 border-gray-800 bg-gray-700 flex items-center justify-center shadow-lg">
-                                <FaUserCircle className="text-2xl text-cyan-400" />
-                            </div>
-                        )}
-                        {/* Status indicator */}
-                        <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-gray-800" />
-                    </div>
+                {/* Avatar Centrado */}
+                <div className="flex flex-col items-center pb-2">
+                    {avatarUrl ? (
+                        <img 
+                            src={avatarUrl} 
+                            alt="Avatar" 
+                            className="w-20 h-20 rounded-full border-3 border-cyan-500 shadow-xl" 
+                        />
+                    ) : (
+                        <div className="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center border-3 border-gray-600 shadow-xl">
+                            <FaUserCircle className="text-4xl text-cyan-400" />
+                        </div>
+                    )}
+                    
+                    {/* Nombre Discreto */}
+                    <h1 className="text-lg font-medium text-gray-300 mt-3 mb-1">{nombreCompleto}</h1>
                 </div>
             </div>
             
-            {/* Información Básica */}
-            <div className="pt-8 space-y-3">
-                <div>
-                    <h1 className="text-xl font-bold text-white">{nombreCompleto}</h1>
-                    <div className="flex items-center space-x-2 mt-1">
-                        <FaBullseye className="text-cyan-400 text-xs" />
-                        <p className="text-sm text-cyan-400 font-medium">{objetivo}</p>
+            <div className="space-y-5">
+                {/* Objetivo Principal Destacado */}
+                {objetivo && objetivo !== "Definí tu objetivo" && (
+                    <div className="bg-gradient-to-r from-cyan-500/15 to-blue-500/15 border border-cyan-500/25 rounded-xl p-4">
+                        <div className="flex items-center space-x-3">
+                            <div className="p-2 bg-cyan-500/20 rounded-lg">
+                                <FaBullseye className="text-cyan-400 text-lg" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-cyan-300 font-medium">Objetivo:</p>
+                                <p className="text-white font-semibold">{objetivo}</p>
+                            </div>
+                        </div>
                     </div>
-                    {biografia && (
-                        <p className="text-sm text-gray-300 mt-2 leading-relaxed">{biografia}</p>
-                    )}
-                </div>
+                )}
                 
-                {/* Métricas Principales */}
+                
+                {/* Métricas Físicas */}
                 <div className="grid grid-cols-2 gap-3">
                     {peso && (
                         <MetricCard 
                             icon={<FaWeight />} 
                             label="Peso Actual" 
-                            value={peso} 
+                            value={`${peso} kg`} 
                             accent="cyan" 
                         />
                     )}
@@ -139,15 +136,41 @@ const ProfileInfo = ({ user, perfil, onEdit }) => {
                         <MetricCard 
                             icon={<FaRulerVertical />} 
                             label="Altura" 
-                            value={altura} 
+                            value={`${altura} cm`} 
                             accent="green" 
                         />
                     )}
-                    {imc && (
+                </div>
+                
+                {/* IMC con Categoría */}
+                {imc && (
+                    <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                                <div className="p-2 bg-orange-500/20 rounded-lg">
+                                    <FaHeartbeat className="text-orange-400 text-lg" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-400">IMC</p>
+                                    <p className="text-lg font-semibold text-white">{imc}</p>
+                                </div>
+                            </div>
+                            {imcCategoria && (
+                                <span className={`text-sm font-medium ${imcCategoria.color}`}>
+                                    {imcCategoria.text}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                )}
+                
+                {/* Experiencia y Grasa */}
+                <div className="grid grid-cols-2 gap-3">
+                    {experiencia && (
                         <MetricCard 
-                            icon={<FaHeartbeat />} 
-                            label="IMC" 
-                            value={imc} 
+                            icon={<FaChartLine />} 
+                            label="Experiencia" 
+                            value={experiencia.charAt(0).toUpperCase() + experiencia.slice(1)} 
                             accent="orange" 
                         />
                     )}
@@ -159,23 +182,6 @@ const ProfileInfo = ({ user, perfil, onEdit }) => {
                             accent="purple" 
                         />
                     )}
-                </div>
-                
-                {/* Información Personal */}
-                <div className="bg-gray-800/50 rounded-xl p-4 space-y-1">
-                    <h3 className="text-sm font-semibold text-white mb-3 flex items-center space-x-2">
-                        <div className="w-1 h-4 bg-cyan-400 rounded-full" />
-                        <span>Información Personal</span>
-                    </h3>
-                    
-                    <InfoItem icon={<FaEnvelope />} label="Email" value={email} />
-                    <InfoItem icon={<FaBirthdayCake />} label="Edad" value={edad} />
-                    <InfoItem icon={<FaCalendarAlt />} label="Fecha de Nacimiento" value={fechaNacimiento} />
-                    <InfoItem icon={<FaPhone />} label="Teléfono" value={telefono} />
-                    <InfoItem icon={<FaMapMarkerAlt />} label="Ubicación" value={ubicacion} />
-                    <InfoItem icon={<FaFire />} label="Nivel" value={nivel} />
-                    <InfoItem icon={<FaBullseye />} label="Actividad" value={actividad} />
-                    {metaPeso && <InfoItem icon={<FaBalanceScale />} label="Meta de Peso" value={metaPeso} />}
                 </div>
             </div>
         </div>

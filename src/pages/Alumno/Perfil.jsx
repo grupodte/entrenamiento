@@ -2,148 +2,137 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
-import { FaEdit, FaUserCircle, FaEnvelope, FaPhone, FaBirthdayCake, FaTransgender, FaMapMarkerAlt, FaBullseye, FaChartLine, FaBook, FaExclamationTriangle, FaSave, FaArrowLeft } from 'react-icons/fa';
+import { 
+    FaEdit, FaUserCircle, FaBullseye, FaChartLine, FaExclamationTriangle, 
+    FaWeight, FaRuler, FaFire, FaTrophy, FaDumbbell, FaCalendarCheck 
+} from 'react-icons/fa';
 import Drawer from '../../components/Drawer';
 import DrawerLoader from '../../components/DrawerLoader';
 
-const PerfilDrawer = ({ isOpen, onClose }) => {
+const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
     const { user } = useAuth();
-    const navigate = useNavigate();
 
     const [perfil, setPerfil] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [isEditing, setIsEditing] = useState(false);
-    const [editPerfil, setEditPerfil] = useState({ nombre: '', apellido: '', edad: '', objetivo: '', nivel: '', telefono: '', genero: '', fecha_nacimiento: '', biografia: '', ciudad: '', pais: '', avatar_url: '' });
-    const [email, setEmail] = useState('');
-    const [preview, setPreview] = useState('');
-    const [saving, setSaving] = useState(false);
-    const [success, setSuccess] = useState('');
+    const [rutinasCompletadas, setRutinasCompletadas] = useState(0);
+    const [rutinaActual, setRutinaActual] = useState(null);
 
     useEffect(() => {
         if (!isOpen || !user) return;
-        setEmail(user.email);
 
         const fetchPerfil = async () => {
             setLoading(true);
             setError('');
-            const { data, error: err } = await supabase.from('perfiles').select('*').eq('id', user.id).single();
-            if (err) {
-                console.error('Error al cargar el perfil:', err);
+            
+            try {
+                // Cargar perfil
+                const { data: perfilData, error: perfilErr } = await supabase
+                    .from('perfiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (perfilErr) throw perfilErr;
+                
+                // Cargar rutinas completadas
+                const { count } = await supabase
+                    .from('sesiones_entrenamiento')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('usuario_id', user.id)
+                    .eq('completada', true);
+                
+                // Cargar rutina actual asignada
+                const { data: rutinaData } = await supabase
+                    .from('rutinas_asignadas')
+                    .select('rutina_real:rutina_real_id(nombre)')
+                    .eq('alumno_id', user.id)
+                    .eq('activa', true)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single();
+                
+                setPerfil(perfilData);
+                setRutinasCompletadas(count || 0);
+                setRutinaActual(rutinaData?.rutina_real?.nombre || null);
+                
+            } catch (err) {
+                console.error('Error al cargar datos:', err);
                 setError('No se pudo cargar el perfil.');
-            } else {
-                setPerfil(data);
-                // Configurar datos para edición
-                setEditPerfil(prev => ({ ...prev, ...data }));
-                setPreview(data?.avatar_url || '');
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
         fetchPerfil();
     }, [isOpen, user]);
 
+    // Función para calcular IMC
+    const calculateIMC = (peso, altura) => {
+        if (!peso || !altura) return null;
+        const pesoNum = parseFloat(peso);
+        const alturaCm = parseFloat(altura);
+        if (isNaN(pesoNum) || isNaN(alturaCm) || alturaCm <= 0) return null;
+        const alturaM = alturaCm / 100;
+        return (pesoNum / (alturaM * alturaM)).toFixed(1);
+    };
+
+    // Función para obtener categoría de IMC
+    const getIMCCategory = (imc) => {
+        if (!imc) return null;
+        const imcNum = parseFloat(imc);
+        if (imcNum < 18.5) return { text: 'Bajo peso', color: 'text-blue-400' };
+        if (imcNum < 25) return { text: 'Normal', color: 'text-green-400' };
+        if (imcNum < 30) return { text: 'Sobrepeso', color: 'text-yellow-400' };
+        return { text: 'Obesidad', color: 'text-red-400' };
+    };
+
+    // Abrir drawer de editar perfil
     const handleEditProfile = () => {
-        setIsEditing(true);
-        setError('');
-        setSuccess('');
-    };
-
-    const handleCancelEdit = () => {
-        setIsEditing(false);
-        setEditPerfil(prev => ({ ...prev, ...perfil }));
-        setPreview(perfil?.avatar_url || '');
-        setError('');
-        setSuccess('');
-    };
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setEditPerfil(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setEditPerfil(prev => ({ ...prev, avatarFile: file }));
-            setPreview(URL.createObjectURL(file));
+        if (onEdit) {
+            onEdit();
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setSaving(true);
-        setError('');
-        setSuccess('');
-        try {
-            let avatar_url = editPerfil.avatar_url;
-
-            if (editPerfil.avatarFile) {
-                const ext = editPerfil.avatarFile.name.split('.').pop();
-                const fileName = `${user.id}_${Date.now()}.${ext}`;
-                const filePath = `avatars/${fileName}`;
-
-                const { error: uploadError } = await supabase.storage
-                    .from('avatars')
-                    .upload(filePath, editPerfil.avatarFile);
-
-                if (uploadError) throw uploadError;
-
-                const { data: publicUrlData } = supabase.storage
-                    .from('avatars')
-                    .getPublicUrl(filePath);
-
-                avatar_url = publicUrlData.publicUrl;
-            }
-
-            const { error: updateError } = await supabase
-                .from('perfiles')
-                .update({
-                    nombre: editPerfil.nombre,
-                    apellido: editPerfil.apellido,
-                    edad: editPerfil.edad ? parseInt(editPerfil.edad) : null,
-                    objetivo: editPerfil.objetivo,
-                    nivel: editPerfil.nivel,
-                    telefono: editPerfil.telefono,
-                    genero: editPerfil.genero,
-                    fecha_nacimiento: editPerfil.fecha_nacimiento,
-                    biografia: editPerfil.biografia,
-                    ciudad: editPerfil.ciudad,
-                    pais: editPerfil.pais,
-                    avatar_url: avatar_url
-                })
-                .eq('id', user.id);
-
-            if (updateError) throw updateError;
-
-            // Actualizar estados locales
-            const updatedPerfil = { ...editPerfil, avatar_url, avatarFile: undefined };
-            setPerfil(updatedPerfil);
-            setEditPerfil(updatedPerfil);
-            setPreview(avatar_url);
-
-            setSuccess('Perfil actualizado correctamente');
-            
-            // Volver a vista de perfil después de un delay
-            setTimeout(() => {
-                setIsEditing(false);
-                setSuccess('');
-            }, 2000);
-        } catch (err) {
-            console.error(err);
-            setError(`Error al guardar cambios: ${err.message || err}`);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const InfoRow = ({ icon, label, value }) => {
-        if (!value) return null;
+    // Componente para métricas fitness
+    const MetricCard = ({ icon, label, value, subValue, colorClass = "text-cyan-400" }) => {
+        if (value === null || value === undefined || value === '') return null;
         return (
-            <div className="flex items-center text-gray-300">
-                {icon && <span className="mr-3 text-cyan-400 text-lg">{icon}</span>}
-                <div>
-                    <p className="text-sm font-semibold text-gray-400">{label}</p>
-                    <p className="text-base text-white">{value}</p>
+            <div className="bg-gray-700/50 rounded-lg p-3 flex items-center space-x-3">
+                <div className={`p-2 rounded-lg bg-gray-600/50`}>
+                    <span className={`${colorClass} text-lg`}>{icon}</span>
+                </div>
+                <div className="flex-1">
+                    <p className="text-sm text-gray-400">{label}</p>
+                    <p className="text-lg font-semibold text-white">{value}</p>
+                    {subValue && <p className="text-xs text-gray-400">{subValue}</p>}
+                </div>
+            </div>
+        );
+    };
+
+    // Componente para progreso
+    const ProgressCard = ({ label, current, target, unit = "kg", icon }) => {
+        if (!current && !target) return null;
+        const progress = target ? Math.min((current / target) * 100, 100) : 0;
+        
+        return (
+            <div className="bg-gray-700/50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                        <span className="text-purple-400">{icon}</span>
+                        <span className="text-sm text-gray-400">{label}</span>
+                    </div>
+                    <span className="text-xs text-gray-400">{progress.toFixed(0)}%</span>
+                </div>
+                <div className="w-full bg-gray-600 rounded-full h-2 mb-2">
+                    <div 
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${progress}%` }}
+                    ></div>
+                </div>
+                <div className="flex justify-between text-sm">
+                    <span className="text-white font-medium">{current || 0} {unit}</span>
+                    <span className="text-gray-400">Meta: {target || 0} {unit}</span>
                 </div>
             </div>
         );
@@ -187,61 +176,138 @@ const PerfilDrawer = ({ isOpen, onClose }) => {
                     </div>
                 </div>
             ) : (
-                <div className="bg-gray-800 text-white font-sans p-4">
-                    <div className="mb-4 flex items-center justify-between">
-                        <div>
+                <div className="bg-gray-900 text-white font-sans min-h-full">
+                    {/* Header con avatar centrado */}
+                    <div className="relative pb-4">
+                        {/* Botón editar */}
+                        <button
+                            onClick={handleEditProfile}
+                            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-gray-700/80 hover:bg-gray-600 transition-all duration-200 shadow-lg"
+                        >
+                            <FaEdit className="text-cyan-400 text-sm" />
+                        </button>
+
+                        {/* Avatar centrado */}
+                        <div className="flex flex-col items-center pt-8 pb-2">
+                            {perfil.avatar_url ? (
+                                <img 
+                                    src={perfil.avatar_url} 
+                                    alt="Avatar" 
+                                    className="w-20 h-20 rounded-full object-cover border-3 border-cyan-500 shadow-xl" 
+                                />
+                            ) : (
+                                <div className="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center border-3 border-gray-600">
+                                    <FaUserCircle className="text-4xl text-gray-400" />
+                                </div>
+                            )}
+                            
+                            {/* Nombre discreto */}
+                            <h2 className="text-lg font-medium text-gray-300 mt-2 mb-1">
+                                {perfil.nombre} {perfil.apellido}
+                            </h2>
                         </div>
-                       
                     </div>
 
-                    <div className="space-y-4">
-                        {/* Avatar y nombre */}
-                        <div className="flex flex-col items-center bg-gray-700 rounded-xl p-6 shadow-lg">
-                                        <button
-                                            onClick={handleEditProfile}
-                                            className=" absolute p-2 rounded-full bg-cyan-600 hover:bg-cyan-700 transition-colors"
-                                        >
-                                            <FaEdit className="text-white" />
-                                        </button>
-                           
-                            {perfil.avatar_url ? (
-                                <img src={perfil.avatar_url} alt="Avatar" className="w-24 h-24 rounded-full object-cover border-4 border-cyan-500 shadow-md" />
-                            ) : (
-                                <FaUserCircle className="text-6xl text-blue-400 mb-2" />
-                            )}
-                          
-                            <h2 className="text-2xl font-bold text-white mt-4">{perfil.nombre} {perfil.apellido}</h2>
-                        </div>
-
-                        
-
-                        {/* Información Personal */}
-                        <div className="bg-gray-700 rounded-xl p-4 shadow-lg">
-                            <h3 className="text-lg font-bold text-white mb-3">Información Personal</h3>
-                            <div className="space-y-3">
-                                <InfoRow icon={<FaBirthdayCake />} label="Edad" value={perfil.edad ? `${perfil.edad} años` : null} />
-                                <InfoRow icon={<FaTransgender />} label="Género" value={perfil.genero} />
-                                <InfoRow icon={<FaPhone />} label="Teléfono" value={perfil.telefono} />
-                                <InfoRow icon={<FaMapMarkerAlt />} label="Ubicación" value={perfil.ciudad && perfil.pais ? `${perfil.ciudad}, ${perfil.pais}` : perfil.ciudad || perfil.pais} />
-                            </div>
-                        </div>
-
-                        {/* Objetivos y Nivel */}
-                        <div className="bg-gray-700 rounded-xl p-4 shadow-lg">
-                            <h3 className="text-lg font-bold text-white mb-3">Objetivos y Nivel</h3>
-                            <div className="space-y-3">
-                                <InfoRow icon={<FaBullseye />} label="Objetivo" value={perfil.objetivo} />
-                                <InfoRow icon={<FaChartLine />} label="Nivel" value={perfil.nivel} />
-                            </div>
-                        </div>
-
-                        {/* Biografía */}
-                        {perfil.biografia && (
-                            <div className="bg-gray-700 rounded-xl p-4 shadow-lg">
-                                <h3 className="text-lg font-bold text-white mb-3">Biografía</h3>
-                                <InfoRow icon={<FaBook />} value={perfil.biografia} />
+                    <div className="px-4 pb-4 space-y-4">
+                        {/* Objetivo Principal */}
+                        {perfil.objetivo && (
+                            <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-xl p-4">
+                                <div className="flex items-center space-x-3">
+                                    <div className="p-2 bg-cyan-500/20 rounded-lg">
+                                        <FaBullseye className="text-cyan-400 text-lg" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-cyan-300 font-medium">Objetivo:</p>
+                                        <p className="text-white font-semibold">{perfil.objetivo}</p>
+                                    </div>
+                                </div>
                             </div>
                         )}
+
+                        {/* Progreso de Peso */}
+                        {(perfil.peso_kg || perfil.meta_peso) && (
+                            <ProgressCard 
+                                label="Progreso de Peso"
+                                current={perfil.peso_kg}
+                                target={perfil.meta_peso}
+                                unit="kg"
+                                icon={<FaTrophy />}
+                            />
+                        )}
+
+                        {/* Métricas Físicas */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <MetricCard 
+                                icon={<FaWeight />}
+                                label="Peso Actual"
+                                value={perfil.peso_kg ? `${perfil.peso_kg} kg` : null}
+                                colorClass="text-blue-400"
+                            />
+                            <MetricCard 
+                                icon={<FaRuler />}
+                                label="Altura"
+                                value={perfil.altura_cm ? `${perfil.altura_cm} cm` : null}
+                                colorClass="text-green-400"
+                            />
+                        </div>
+
+                        {/* IMC */}
+                        {(() => {
+                            const imc = calculateIMC(perfil.peso_kg, perfil.altura_cm);
+                            const categoria = getIMCCategory(imc);
+                            return imc ? (
+                                <MetricCard 
+                                    icon={<FaChartLine />}
+                                    label="Índice de Masa Corporal"
+                                    value={imc}
+                                    subValue={categoria?.text}
+                                    colorClass={categoria?.color || "text-cyan-400"}
+                                />
+                            ) : null;
+                        })()}
+
+                        {/* Nivel y Experiencia */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <MetricCard 
+                                icon={<FaChartLine />}
+                                label="Experiencia"
+                                value={perfil.experiencia}
+                                colorClass="text-orange-400"
+                            />
+                            <MetricCard 
+                                icon={<FaFire />}
+                                label="% Grasa"
+                                value={perfil.grasa_pct ? `${perfil.grasa_pct}%` : null}
+                                colorClass="text-red-400"
+                            />
+                        </div>
+
+                        {/* Rutina Actual y Entrenamientos */}
+                        <div className="space-y-3">
+                            {rutinaActual && (
+                                <MetricCard 
+                                    icon={<FaDumbbell />}
+                                    label="Rutina Actual"
+                                    value={rutinaActual}
+                                    colorClass="text-purple-400"
+                                />
+                            )}
+                            
+                            {rutinasCompletadas > 0 ? (
+                                <MetricCard 
+                                    icon={<FaCalendarCheck />}
+                                    label="Entrenamientos Completados"
+                                    value={`${rutinasCompletadas} sesiones`}
+                                    colorClass="text-green-400"
+                                />
+                            ) : (
+                                <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-lg p-4 text-center">
+                                    <FaCalendarCheck className="text-yellow-400 text-2xl mx-auto mb-2" />
+                                    <p className="text-sm text-yellow-300 font-medium">¡Comienza tu primer entrenamiento!</p>
+                                    <p className="text-xs text-gray-400 mt-1">Tus sesiones aparecerán aquí</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
