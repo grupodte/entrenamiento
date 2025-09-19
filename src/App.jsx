@@ -54,6 +54,8 @@ const EditarRutinaReal = React.lazy(() => import('./pages/Admin/EditarRutinaReal
 const CursosManager = React.lazy(() => import('./pages/Admin/CursosManager'));
 const CrearCurso = React.lazy(() => import('./pages/Admin/CrearCurso'));
 const AsignarCurso = React.lazy(() => import('./pages/Admin/AsignarCurso'));
+const AdminGrupos = React.lazy(() => import('./pages/Admin/AdminGrupos'));
+const GrupoDetalleAdmin = React.lazy(() => import('./pages/Admin/GrupoDetalleAdmin'));
 
 // Componente simplificado para páginas públicas
 const PublicLayout = () => (
@@ -130,6 +132,8 @@ const AppContent = () => {
         <Route index element={<AdminPanel />} />
         <Route path="alumnos" element={<AdminAlumnos />} />
         <Route path="alumno/:id" element={<AlumnoPerfil />} />
+        <Route path="grupos" element={<AdminGrupos />} />
+        <Route path="grupos/:grupoId" element={<GrupoDetalleAdmin />} />
         <Route path="rutinas" element={<AdminRutinas />} />
         <Route path="rutinas/crear" element={<CrearRutina />} />
         <Route path="rutinas/rutina" element={<CrearRutinaReal />} />

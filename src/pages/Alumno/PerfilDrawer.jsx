@@ -56,7 +56,7 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
 
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose} height="h-[95vh]">
+        <Drawer isOpen={isOpen} onClose={onClose} height="h-[100vh]">
             <div className="flex flex-col h-full">
                 {/* Navegación de pestañas */}
                 <div className="flex-shrink-0 px-4 pt-2">

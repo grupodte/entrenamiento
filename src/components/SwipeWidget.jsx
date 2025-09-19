@@ -106,66 +106,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
   };
 
 
-  // Widget de Tiempo
-  const TimeWidget = () => (
-    <div className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-blue-500/20">
-      <div className="text-2xl font-light text-white mb-1">
-        {currentTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-      </div>
-      <div className="text-xs text-gray-300 text-center">
-        {currentTime.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' })}
-      </div>
-    </div>
-  );
 
-  // Widget PWA con API real
-  const PWAInstallWidget = () => {
-    if (isInstalled || !shouldShowWidget) {
-      return (
-        <div className="rounded-2xl p-3 flex flex-col items-center justify-center backdrop-blur-sm border border-gray-500/20 h-full">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-500/30 mb-2">
-            <Smartphone className="w-5 h-5 text-gray-300" />
-          </div>
-          <div className="text-center">
-            <div className="text-xs font-semibold text-white mb-1">
-              App Web
-            </div>
-            <div className="text-xs text-gray-400">
-              Ya disponible
-            </div>
-          </div>
-        </div>
-      );
-    }
-    
-    return (
-      <button
-        onClick={(e) => handleButtonClick(e, 'install')}
-        data-action="install"
-        disabled={isInstalling}
-        className="rounded-2xl p-3 flex flex-col items-center justify-center backdrop-blur-sm border border-green-500/20 hover:border-green-400/40 transition-all duration-300 group w-full disabled:opacity-50 h-full cursor-pointer hover:scale-105 active:scale-95"
-        style={{ touchAction: 'manipulation' }}
-      >
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-500/30 group-hover:bg-green-400/40 transition-colors mb-2">
-          {isInstalling ? (
-            <div className="w-5 h-5 border-2 border-green-300 border-t-transparent rounded-full animate-spin" />
-          ) : browserInfo.isIOS ? (
-            <Smartphone className="w-5 h-5 text-green-300 group-hover:text-green-200" />
-          ) : (
-            <Download className="w-5 h-5 text-green-300 group-hover:text-green-200" />
-          )}
-        </div>
-        <div className="text-center">
-          <div className="text-xs font-semibold text-white mb-1">
-            {isInstalling ? 'Instalando...' : browserInfo.isIOS ? 'Añadir al Inicio' : 'Instalar App'}
-          </div>
-          <div className="text-xs text-gray-400">
-            {browserInfo.isIOS ? 'Ver instrucciones' : 'Acceso rápido'}
-          </div>
-        </div>
-      </button>
-    );
-  };
 
   // Widget de Rutinas
   const RutinasWidget = () => {
@@ -178,7 +119,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
       <button
         onClick={(e) => handleButtonClick(e, 'rutinas')}
         data-action="rutinas"
-        className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-orange-500/20 hover:border-orange-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
+        className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-orange-500/20 hover:border-orange-400/40 transition-all duration-300 group w-full  min-h-[180px] cursor-pointer "
         style={{ touchAction: 'manipulation' }}
       >
         <div className="flex items-center justify-center w-12 h-12 rounded-full bg-orange-500/30 mb-2 group-hover:bg-orange-400/40 transition-colors">
@@ -202,15 +143,13 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
         <button
           onClick={(e) => handleButtonClick(e, 'catalogo')}
           data-action="catalogo"
-          className="rounded-2xl p-6 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
+          className="rounded-2xl p-6 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full cursor-pointer min-h-[180px]"
           style={{ touchAction: 'manipulation' }}
         >
           <div className="flex items-center justify-center w-14 h-14 rounded-full bg-purple-500/30 mb-3 group-hover:bg-purple-400/40 transition-colors">
             <BookOpen className="w-7 h-7 text-purple-300 group-hover:text-purple-200" />
           </div>
-          <div className="text-base font-semibold text-white mb-1">
-            Ver Catálogo
-          </div>
+     
           <div className="text-sm text-gray-400 text-center">
             Descubre nuestros cursos
           </div>
@@ -223,7 +162,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
       <button
         onClick={(e) => handleButtonClick(e, 'mis-cursos')}
         data-action="mis-cursos"
-        className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
+        className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 group w-full cursor-pointer min-h-[180px]"
         style={{ touchAction: 'manipulation' }}
       >
         <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-500/30 mb-2 group-hover:bg-purple-400/40 transition-colors">
@@ -234,35 +173,6 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
         </div>
         <div className="text-xs text-gray-400 text-center">
           {rol === 'admin' ? 'Panel admin' : 'Tus cursos asignados'}
-        </div>
-      </button>
-    );
-  };
-
-  // Widget de Catálogo (solo para alumnos)
-  const CatalogoWidget = () => {
-    // Solo mostrar para alumnos autenticados
-    if (!user || rol !== 'alumno') {
-      return null;
-    }
-
-    return (
-      <button
-        onClick={(e) => handleButtonClick(e, 'catalogo')}
-        data-action="catalogo"
-        className="rounded-2xl p-4 flex items-center gap-3 backdrop-blur-sm border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 group w-full cursor-pointer hover:scale-105 active:scale-95"
-        style={{ touchAction: 'manipulation' }}
-      >
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/30 group-hover:bg-blue-400/40 transition-colors">
-          <Play className="w-5 h-5 text-blue-300 group-hover:text-blue-200" />
-        </div>
-        <div className="flex-1 text-left">
-          <div className="text-sm font-semibold text-white">
-            Explorar Catálogo
-          </div>
-          <div className="text-xs text-gray-400">
-            Todos los cursos disponibles
-          </div>
         </div>
       </button>
     );
@@ -281,7 +191,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
         <>
           {/* Overlay con blur */}
           <motion.div
-            className="fixed inset-0 bg-black/40 z-overlay"
+            className="fixed inset-0 bg-black z-overlay"
             variants={overlayVariants}
             initial="closed"
             animate={currentVariant}
@@ -306,13 +216,12 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
               touchAction: 'pan-y manipulation' // Permitir scroll vertical y optimizar toques
             }}
           >
-            {/* Indicador de arrastre */}
-            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 w-1 h-12 bg-white/20 rounded-full" />
+            
 
             {/* Contenido principal */}
             <div className="h-full pt-20 flex items-center justify-center">
-              <div className="w-full max-w-md px-4 py-8">
-                <div className="grid grid-cols-2 gap-3 auto-rows-min">
+              <div className="w-full max-w-md px-4 py-8 ">
+                <div className="grid grid-cols-2 gap-3 auto-rows-min ">
            
                   
                   {/* Rutinas */}
@@ -325,10 +234,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
                     <CursosWidget />
                   </div>
 
-               
-
-                  {/* Espaciado final */}
-                  <div className="col-span-2 h-4" />
+                   
                 </div>
               </div>
             </div>

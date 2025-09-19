@@ -1,9 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { FaUsers, FaClipboardList, FaDumbbell } from "react-icons/fa";
+import { Users } from 'lucide-react';
 import { motion } from "framer-motion";
 
 const NAV = [
   { path: "/admin/alumnos", title: "Alumnos", icon: <FaUsers /> },
+  { path: "/admin/grupos", title: "Grupos", icon: <Users /> },
   { path: "/admin/rutinas", title: "Rutinas", icon: <FaClipboardList /> },
   { path: "/admin/ejercicios", title: "Ejercicios", icon: <FaDumbbell /> },
 ];

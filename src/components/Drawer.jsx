@@ -193,7 +193,7 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                         className={`
                             drawer-safe-positioning
                             ${responsiveHeight}
-                            w-full md:w-[95%] lg:w-[95%] mx-auto
+                            w-full mx-auto
                             bg-gray-900/98
                             text-white 
                             shadow-2xl 
@@ -207,7 +207,6 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                         style={{
                             paddingTop: 'env(safe-area-inset-top)',
                             zIndex: 99999,
-                            boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.3)',
                             WebkitBackdropFilter: 'blur(20px) saturate(150%)',
                             backdropFilter: 'blur(20px) saturate(150%)',
                             opacity: swipeProgress > 0 ? 1 - (swipeProgress * 0.3) : 1 // Fade out durante swipe

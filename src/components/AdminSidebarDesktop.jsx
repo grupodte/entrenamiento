@@ -9,6 +9,7 @@ import {
     FaSignOutAlt,
     FaBook,
 } from "react-icons/fa";
+import { Users } from 'lucide-react';
 import { useAuth } from "../context/AuthContext";
 import { useSidebar } from "../hooks/useSidebar";
 
@@ -18,12 +19,13 @@ const BRAND_GRADIENT = "from-orange-500 via-pink-500 to-red-600";
 // 🧭 Navegación (Sesiones con hijos)
 const NAV = [
     { path: "/admin/alumnos", label: "Alumnos", icon: <FaUsers /> },
+    { path: "/admin/grupos", label: "Grupos", icon: <Users /> },
     {
         path: "/admin/rutinas",
         label: "Rutinas",
         icon: <FaClipboardList />,
         children: [
-            { path: "/admin/rutinas", label: "Listado" },
+            { path: "/admin/rutinas", label: "Listado sesion" },
             { path: "/admin/rutinas/crear", label: "Crear sesion" },
             { path: "/admin/rutinas/rutina", label: "Crear rutina" },
             { path: "/admin/rutinas-reales", label: "Listado Rutinas" },

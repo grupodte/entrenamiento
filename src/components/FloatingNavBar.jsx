@@ -748,16 +748,7 @@ const FloatingNavBar = ({
         </AnimatePresence>
       </motion.div>
 
-      {/* Sombra dinámica */}
-      <div
-        className="absolute top-1.5 left-1/2 transform -translate-x-1/2 w-24 h-6 bg-black/10 blur-xl rounded-full -z-10"
-        style={{
-          opacity: isDragging ? 0.6 : 0.3,
-          transform: `translateX(-50%) scale(${isDragging ? 1.1 : 1})`,
-          width: isExpanded ? '200px' : '96px',
-          transition: 'all 0.25s ease-in-out',
-        }}
-      />
+    
 
     
     </nav>
