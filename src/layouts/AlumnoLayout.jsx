@@ -32,7 +32,7 @@ const AlumnoLayoutContent = () => {
   const location = useLocation();
   const [isPerfilDrawerOpen, setIsPerfilDrawerOpen] = useState(false);
   const [isEditPerfilDrawerOpen, setIsEditPerfilDrawerOpen] = useState(false);
-  const [isSwipeWidgetOpen, setIsSwipeWidgetOpen] = useState(false);
+  const [isSwipeWidgetOpen, setIsSwipeWidgetOpen] = useState(true);
   
   // Usar el contexto de ProgressDock y BackNavigation
   const { showProgressDock, toggleProgressDock, progressGlobal } = useProgressDock();

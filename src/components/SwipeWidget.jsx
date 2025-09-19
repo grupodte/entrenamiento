@@ -313,15 +313,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             <div className="h-full pt-20 flex items-center justify-center">
               <div className="w-full max-w-md px-4 py-8">
                 <div className="grid grid-cols-2 gap-3 auto-rows-min">
-                  {/* Tiempo */}
-                  <div className="col-span-1">
-                    <TimeWidget />
-                  </div>
-                  
-                  {/* PWA Install */}
-                  <div className="col-span-1">
-                    <PWAInstallWidget />
-                  </div>
+           
                   
                   {/* Rutinas */}
                   <div className="col-span-1">
@@ -333,10 +325,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
                     <CursosWidget />
                   </div>
 
-                  {/* Catálogo - Fila separada */}
-                  <div className="col-span-2">
-                    <CatalogoWidget />
-                  </div>
+               
 
                   {/* Espaciado final */}
                   <div className="col-span-2 h-4" />
