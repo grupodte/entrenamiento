@@ -64,7 +64,7 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
 
                 {/* Sets individuales */}
                 <div className="space-y-2">
-                    {sbe.series?.map(serie => {
+                    {sbe.series?.sort((a, b) => a.nro_set - b.nro_set).map(serie => {
                         const serieId = generarIdSerieSimple(subbloqueId, sbe.id, serie.nro_set);
                         const isCompletada = !!props.elementosCompletados[serieId];
                         const isActive = props.elementoActivoId === serieId;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Play, Download, Smartphone, Dumbbell } from 'lucide-react';
+import { BookOpen, Play, Download, Smartphone, Dumbbell, Utensils } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import usePWAInstall from '../hooks/usePWAInstall';
@@ -42,6 +42,10 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
         case 'rutinas':
           const rutinaDestination = rol === 'admin' ? '/admin/rutinas' : '/dashboard';
           navigate(rutinaDestination);
+          break;
+        case 'dietas':
+          const dietaDestination = rol === 'admin' ? '/admin/dietas' : '/mis-dietas';
+          navigate(dietaDestination);
           break;
         default:
           // Unknown action - do nothing
@@ -178,6 +182,33 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     );
   };
 
+  // Widget de Dietas
+  const DietasWidget = () => {
+    // Solo mostrar para usuarios autenticados
+    if (!user || (rol !== 'admin' && rol !== 'alumno')) {
+      return null;
+    }
+
+    return (
+      <button
+        onClick={(e) => handleButtonClick(e, 'dietas')}
+        data-action="dietas"
+        className="rounded-2xl p-4 flex flex-col justify-center items-center backdrop-blur-sm border border-green-500/20 hover:border-green-400/40 transition-all duration-300 group w-full cursor-pointer min-h-[180px]"
+        style={{ touchAction: 'manipulation' }}
+      >
+        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-500/30 mb-2 group-hover:bg-green-400/40 transition-colors">
+          <Utensils className="w-6 h-6 text-green-300 group-hover:text-green-200" />
+        </div>
+        <div className="text-sm font-semibold text-white mb-1">
+          {rol === 'admin' ? 'Gestionar Dietas' : 'Mis Dietas'}
+        </div>
+        <div className="text-xs text-gray-400 text-center">
+          {rol === 'admin' ? 'Panel de dietas' : 'Tus planes nutricionales'}
+        </div>
+      </button>
+    );
+  };
+
   // Handler para overlay click
   const handleOverlayClick = useCallback((e) => {
     if (e.target === e.currentTarget) {
@@ -232,6 +263,11 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
                   {/* Cursos */}
                   <div className="col-span-1">
                     <CursosWidget />
+                  </div>
+
+                  {/* Dietas */}
+                  <div className="col-span-2">
+                    <DietasWidget />
                   </div>
 
                    

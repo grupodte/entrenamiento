@@ -8,6 +8,7 @@ import {
     FaChevronDown,
     FaSignOutAlt,
     FaBook,
+    FaHeart,
 } from "react-icons/fa";
 import { Users } from 'lucide-react';
 import { useAuth } from "../context/AuthContext";
@@ -33,6 +34,7 @@ const NAV = [
     },
     { path: "/admin/ejercicios", label: "Ejercicios", icon: <FaDumbbell /> },
     { path: "/admin/cursos", label: "Cursos", icon: <FaBook /> },
+    { path: "/admin/dietas", label: "Dietas", icon: <FaHeart /> },
 ];
 
 export default function AdminSidebarDesktop() {

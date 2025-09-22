@@ -33,6 +33,7 @@ const SpotifyCallback = React.lazy(() => import('./pages/SpotifyCallback'));
 const DashboardAlumno = React.lazy(() => import('./pages/Alumno/Dashboard'));
 const RutinaDetalle = React.lazy(() => import('./pages/Alumno/RutinaDetalle'));
 const MisCursos = React.lazy(() => import('./pages/Alumno/MisCursos'));
+const DietasAlumno = React.lazy(() => import('./pages/Alumno/DietasAlumno'));
 const Onboarding = React.lazy(() => import('./pages/Onboarding'));
 
 // Páginas de admin
@@ -56,6 +57,7 @@ const CrearCurso = React.lazy(() => import('./pages/Admin/CrearCurso'));
 const AsignarCurso = React.lazy(() => import('./pages/Admin/AsignarCurso'));
 const AdminGrupos = React.lazy(() => import('./pages/Admin/AdminGrupos'));
 const GrupoDetalleAdmin = React.lazy(() => import('./pages/Admin/GrupoDetalleAdmin'));
+const AdminDietas = React.lazy(() => import('./pages/Admin/AdminDietas'));
 
 // Componente simplificado para páginas públicas
 const PublicLayout = () => (
@@ -117,6 +119,7 @@ const AppContent = () => {
         <Route path="/dashboard" element={<DashboardAlumno />} />
         <Route path="/rutina/:id" element={<RutinaDetalle />} />
         <Route path="/mis-cursos" element={<MisCursos />} />
+        <Route path="/mis-dietas" element={<DietasAlumno />} />
         <Route path="/curso/:cursoId" element={<VisualizarCurso />} />
       </Route>
 
@@ -151,6 +154,7 @@ const AppContent = () => {
         <Route path="cursos/crear" element={<CrearCurso />} />
         <Route path="cursos/editar/:cursoId" element={<CrearCurso />} />
         <Route path="cursos/asignar/:cursoId" element={<AsignarCurso />} />
+        <Route path="dietas" element={<AdminDietas />} />
       </Route>
 
       {/* --- RUTAS PÚBLICAS --- */}

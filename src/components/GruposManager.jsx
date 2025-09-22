@@ -16,6 +16,7 @@ import {
     BookOpen,
     Dumbbell
 } from 'lucide-react';
+import { limpiarDietasGrupo } from '../utils/dietasCleanup';
 
 const INPUT_CLASS = "w-full rounded-xl bg-white/10 pl-12 pr-4 py-3 text-white placeholder-white/50 focus:ring-2 focus:ring-pink-500 border border-transparent focus:border-pink-400 transition-all outline-none shadow-inner";
 
@@ -165,21 +166,138 @@ const GruposManager = () => {
     };
 
     const eliminarGrupo = async (grupoId, nombreGrupo) => {
-        if (!confirm(`¿Estás seguro de eliminar el grupo "${nombreGrupo}"? Esta acción no se puede deshacer.`)) {
+        if (!confirm(`¿Estás seguro de eliminar el grupo "${nombreGrupo}"? Esta acción eliminará también todas las asignaciones de rutinas, cursos y dietas de este grupo y no se puede deshacer.`)) {
             return;
         }
 
         try {
-            const { error } = await supabase
+            toast.loading('Eliminando grupo y limpiando asignaciones...');
+            
+            // 1. Obtener todas las asignaciones de contenido del grupo antes de eliminarlas
+            const { data: asignacionesContenido, error: asignacionesError } = await supabase
+                .from('asignaciones_grupos_contenido')
+                .select(`
+                    *,
+                    rutinas_base(nombre),
+                    rutinas_de_verdad(nombre),
+                    cursos(titulo)
+                `)
+                .eq('grupo_id', grupoId)
+                .eq('activo', true);
+
+            if (asignacionesError) {
+                console.warn('Error al obtener asignaciones de contenido:', asignacionesError);
+            }
+
+            // 1.1. Obtener todas las asignaciones de dietas del grupo
+            const { data: asignacionesDietas, error: dietasError } = await supabase
+                .from('asignaciones_dietas_grupos')
+                .select(`
+                    *,
+                    dietas(nombre)
+                `)
+                .eq('grupo_id', grupoId)
+                .eq('activo', true);
+
+            if (dietasError) {
+                console.warn('Error al obtener asignaciones de dietas:', dietasError);
+            }
+
+            // 2. Obtener todos los miembros del grupo para limpiar sus asignaciones individuales
+            const { data: miembrosGrupo, error: miembrosError } = await supabase
+                .from('asignaciones_grupos_alumnos')
+                .select('alumno_id')
+                .eq('grupo_id', grupoId)
+                .eq('activo', true);
+
+            if (miembrosError) {
+                console.warn('Error al obtener miembros del grupo:', miembrosError);
+            }
+
+            const alumnosIds = (miembrosGrupo || []).map(m => m.alumno_id);
+
+            // 3. Limpiar asignaciones individuales de contenido para cada miembro
+            if (alumnosIds.length > 0 && asignacionesContenido?.length > 0) {
+                for (const asignacion of asignacionesContenido) {
+                    if (asignacion.tipo === 'curso') {
+                        // Eliminar accesos a cursos asignados vía este grupo
+                        await supabase
+                            .from('acceso_cursos')
+                            .delete()
+                            .eq('curso_id', asignacion.curso_id)
+                            .in('usuario_id', alumnosIds)
+                            .ilike('notas', `%${nombreGrupo}%`);
+                    } else if (asignacion.tipo === 'rutina_completa') {
+                        // Eliminar asignaciones de rutina completa para todos los miembros
+                        for (const alumnoId of alumnosIds) {
+                            await supabase
+                                .from('asignaciones')
+                                .delete()
+                                .eq('alumno_id', alumnoId)
+                                .in('dia_semana', [0, 1, 2, 3, 4, 5, 6]);
+                        }
+                    }
+                    // Para rutinas individuales no eliminamos automáticamente porque pueden haber sido asignadas manualmente
+                }
+            }
+
+            // 3.1. Limpiar asignaciones individuales de dietas para cada miembro
+            if (asignacionesDietas?.length > 0) {
+                try {
+                    await limpiarDietasGrupo(grupoId);
+                } catch (dietaCleanupError) {
+                    console.warn('Error al limpiar dietas del grupo:', dietaCleanupError);
+                }
+            }
+
+            // 4. Eliminar asignaciones de contenido del grupo
+            const { error: contenidoError } = await supabase
+                .from('asignaciones_grupos_contenido')
+                .update({ activo: false })
+                .eq('grupo_id', grupoId);
+
+            if (contenidoError) {
+                console.warn('Error al desactivar asignaciones de contenido:', contenidoError);
+            }
+
+            // 4.1. Las asignaciones de dietas del grupo ya fueron limpiadas en el paso 3.1
+
+            // 5. Eliminar asignaciones de alumnos al grupo
+            const { error: alumnosGrupoError } = await supabase
+                .from('asignaciones_grupos_alumnos')
+                .update({ 
+                    activo: false, 
+                    fecha_desasignacion: new Date().toISOString() 
+                })
+                .eq('grupo_id', grupoId);
+
+            if (alumnosGrupoError) {
+                console.warn('Error al desactivar asignaciones de alumnos:', alumnosGrupoError);
+            }
+
+            // 6. Finalmente, desactivar el grupo
+            const { error: grupoError } = await supabase
                 .from('grupos_alumnos')
                 .update({ activo: false })
                 .eq('id', grupoId);
 
-            if (error) throw error;
+            if (grupoError) throw grupoError;
 
-            toast.success('Grupo eliminado correctamente');
+            toast.dismiss();
+            const contenidoLimpiado = asignacionesContenido?.length || 0;
+            const dietasLimpiadas = asignacionesDietas?.length || 0;
+            const alumnosAfectados = alumnosIds.length;
+            
+            toast.success(
+                `Grupo "${nombreGrupo}" eliminado correctamente` +
+                (contenidoLimpiado > 0 ? `, se limpiaron ${contenidoLimpiado} asignación${contenidoLimpiado > 1 ? 'es' : ''} de contenido` : '') +
+                (dietasLimpiadas > 0 ? `, ${dietasLimpiadas} dieta${dietasLimpiadas > 1 ? 's' : ''}` : '') +
+                (alumnosAfectados > 0 ? ` y se removieron ${alumnosAfectados} alumno${alumnosAfectados > 1 ? 's' : ''}` : '')
+            );
+            
             await cargarGrupos();
         } catch (error) {
+            toast.dismiss();
             console.error('Error al eliminar grupo:', error);
             toast.error('Error al eliminar el grupo');
         }

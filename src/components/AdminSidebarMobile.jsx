@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { FaUsers, FaClipboardList, FaDumbbell } from "react-icons/fa";
+import { FaUsers, FaClipboardList, FaDumbbell, FaBook, FaHeart } from "react-icons/fa";
 import { Users } from 'lucide-react';
 import { motion } from "framer-motion";
 
@@ -8,6 +8,8 @@ const NAV = [
   { path: "/admin/grupos", title: "Grupos", icon: <Users /> },
   { path: "/admin/rutinas", title: "Rutinas", icon: <FaClipboardList /> },
   { path: "/admin/ejercicios", title: "Ejercicios", icon: <FaDumbbell /> },
+  { path: "/admin/cursos", title: "Cursos", icon: <FaBook /> },
+  { path: "/admin/dietas", title: "Dietas", icon: <FaHeart /> },
 ];
 
 export default function AdminSidebarMobile() {
