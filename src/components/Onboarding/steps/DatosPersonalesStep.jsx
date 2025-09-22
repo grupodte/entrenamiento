@@ -1,10 +1,43 @@
-import React from 'react';
-import { FaUser, FaEnvelope, FaPhone, FaBirthdayCake, FaVenusMars } from 'react-icons/fa';
+import React, { useState, useRef } from 'react';
+import { FaUser, FaEnvelope, FaPhone, FaBirthdayCake, FaVenusMars, FaGlobe, FaCamera, FaEdit } from 'react-icons/fa';
 import CustomSelect from '../CustomSelect';
 
 const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
+    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+    const fileInputRef = useRef(null);
+    
     const handleInputChange = (field, value) => {
         onChange(field, value);
+    };
+    
+    const handlePhotoUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Validar tipo de archivo
+        if (!file.type.startsWith('image/')) {
+            alert('Por favor selecciona un archivo de imagen válido');
+            return;
+        }
+        
+        // Validar tamaño (máx 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('La imagen no puede superar los 5MB');
+            return;
+        }
+        
+        setIsUploadingPhoto(true);
+        try {
+            // Aquí implementarías la subida a tu servicio de almacenamiento
+            // Por ahora, solo creamos una URL temporal para preview
+            const photoUrl = URL.createObjectURL(file);
+            onChange('avatar_url', photoUrl);
+        } catch (error) {
+            console.error('Error subiendo foto:', error);
+            alert('Error al subir la imagen. Inténtalo de nuevo.');
+        } finally {
+            setIsUploadingPhoto(false);
+        }
     };
 
     const campos = [
@@ -52,6 +85,22 @@ const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
             required: false
         }
     ];
+    
+    const opcionesPaises = [
+        { value: 'AR', label: 'Argentina' },
+        { value: 'MX', label: 'México' },
+        { value: 'ES', label: 'España' },
+        { value: 'CO', label: 'Colombia' },
+        { value: 'CL', label: 'Chile' },
+        { value: 'PE', label: 'Perú' },
+        { value: 'UY', label: 'Uruguay' },
+        { value: 'PY', label: 'Paraguay' },
+        { value: 'BO', label: 'Bolivia' },
+        { value: 'EC', label: 'Ecuador' },
+        { value: 'VE', label: 'Venezuela' },
+        { value: 'US', label: 'Estados Unidos' },
+        { value: 'OTHER', label: 'Otro' }
+    ];
 
     const opcionesGenero = [
         { value: 'masculino', label: 'Masculino' },
@@ -66,6 +115,53 @@ const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
                     <strong className="text-cyan-400">¡Bienvenido!</strong> Para personalizar tu experiencia, 
                     necesitamos algunos datos básicos. Los campos marcados con un asterisco (*) son obligatorios.
                 </p>
+            </div>
+            
+            {/* Foto de perfil */}
+            <div className="flex flex-col items-center space-y-4 p-6 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-md">
+                <div className="relative">
+                    <div className="w-24 h-24 rounded-full overflow-hidden bg-white/10 border-2 border-white/20 flex items-center justify-center">
+                        {values.avatar_url ? (
+                            <img 
+                                src={values.avatar_url} 
+                                alt="Foto de perfil" 
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <FaUser className="w-8 h-8 text-white/40" />
+                        )}
+                    </div>
+                    
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploadingPhoto}
+                        className="absolute -bottom-2 -right-2 w-8 h-8 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 rounded-full flex items-center justify-center transition-colors shadow-lg"
+                    >
+                        {isUploadingPhoto ? (
+                            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <FaCamera className="w-3 h-3 text-white" />
+                        )}
+                    </button>
+                </div>
+                
+                <div className="text-center">
+                    <p className="text-sm text-white/80">
+                        Foto de perfil {values.avatar_url ? '(Personalizada)' : '(Usando foto de Google)'}
+                    </p>
+                    <p className="text-xs text-white/60 mt-1">
+                        Toca el ícono para cambiar tu foto
+                    </p>
+                </div>
+                
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handlePhotoUpload}
+                    accept="image/*"
+                    className="hidden"
+                />
             </div>
 
             <div className="space-y-4">
@@ -118,6 +214,27 @@ const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
                     
                     {errors.genero && (
                         <p className="text-red-400/90 text-sm mt-2 px-2">{errors.genero}</p>
+                    )}
+                </div>
+                
+                {/* Campo de país como select */}
+                <div className="space-y-2">
+                    <label className="flex items-center text-white/90 font-medium text-sm mb-2">
+                        <FaGlobe className="w-4 h-4 mr-2 text-cyan-400" />
+                        País
+                        <span className="text-red-400 ml-1">*</span>
+                    </label>
+                    
+                    <CustomSelect
+                        options={opcionesPaises}
+                        value={values.pais}
+                        onChange={(value) => handleInputChange('pais', value)}
+                        placeholder="Selecciona tu país"
+                        error={!!errors.pais}
+                    />
+                    
+                    {errors.pais && (
+                        <p className="text-red-400/90 text-sm mt-2 px-2">{errors.pais}</p>
                     )}
                 </div>
             </div>

@@ -20,58 +20,60 @@ const AlumnosManager = () => {
     const [modoSeleccion, setModoSeleccion] = useState(false);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const verificarRolYAlumnos = async () => {
-            setCargando(true);
-            const { data: { user } } = await supabase.auth.getUser();
-            const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user?.id).single();
+    const verificarRolYAlumnos = async () => {
+        setCargando(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user?.id).single();
 
-            const isAdmin = perfil?.rol === 'admin';
-            setEsAdmin(isAdmin);
+        const isAdmin = perfil?.rol === 'admin';
+        setEsAdmin(isAdmin);
 
-            if (isAdmin) {
-                const [alumnosResult, gruposResult] = await Promise.all([
-                    supabase.from('perfiles')
-                        .select('id, nombre, apellido, email, avatar_url')
-                        .eq('rol', 'alumno'),
-                    supabase.from('grupos_alumnos')
-                        .select('id, nombre, color')
-                        .eq('activo', true)
-                        .order('nombre')
-                ]);
+        if (isAdmin) {
+            const [alumnosResult, gruposResult] = await Promise.all([
+                supabase.from('perfiles')
+                    .select('id, nombre, apellido, email, avatar_url')
+                    .eq('rol', 'alumno'),
+                supabase.from('grupos_alumnos')
+                    .select('id, nombre, color')
+                    .eq('activo', true)
+                    .order('nombre')
+            ]);
+            
+            if (!alumnosResult.error && !gruposResult.error) {
+                const alumnosData = alumnosResult.data || [];
+                const gruposData = gruposResult.data || [];
                 
-                if (!alumnosResult.error && !gruposResult.error) {
-                    const alumnosData = alumnosResult.data || [];
-                    const gruposData = gruposResult.data || [];
+                // Cargar asignaciones de grupos - SOLO grupos activos y asignaciones activas
+                const { data: asignacionesData } = await supabase
+                    .from('asignaciones_grupos_alumnos')
+                    .select(`
+                        alumno_id,
+                        grupo_id,
+                        grupos_alumnos!inner(id, nombre, color)
+                    `)
+                    .eq('activo', true)
+                    .eq('grupos_alumnos.activo', true);
+                
+                // Procesar alumnos con sus grupos
+                const alumnosConGrupos = alumnosData.map(alumno => {
+                    const gruposAlumno = (asignacionesData || [])
+                        .filter(asig => asig.alumno_id === alumno.id)
+                        .map(asig => asig.grupos_alumnos);
                     
-                    // Cargar asignaciones de grupos
-                    const { data: asignacionesData } = await supabase
-                        .from('asignaciones_grupos_alumnos')
-                        .select(`
-                            alumno_id,
-                            grupo_id,
-                            grupos_alumnos!inner(id, nombre, color)
-                        `)
-                        .eq('activo', true);
-                    
-                    // Procesar alumnos con sus grupos
-                    const alumnosConGrupos = alumnosData.map(alumno => {
-                        const gruposAlumno = (asignacionesData || [])
-                            .filter(asig => asig.alumno_id === alumno.id)
-                            .map(asig => asig.grupos_alumnos);
-                        
-                        return {
-                            ...alumno,
-                            grupos: gruposAlumno
-                        };
-                    });
-                    
-                    setAlumnos(alumnosConGrupos);
-                    setGrupos(gruposData);
-                }
+                    return {
+                        ...alumno,
+                        grupos: gruposAlumno
+                    };
+                });
+                
+                setAlumnos(alumnosConGrupos);
+                setGrupos(gruposData);
             }
-            setCargando(false);
-        };
+        }
+        setCargando(false);
+    };
+
+    useEffect(() => {
         verificarRolYAlumnos();
     }, []);
 
@@ -121,7 +123,7 @@ const AlumnosManager = () => {
             setModoSeleccion(false);
             
             // Recargar alumnos para mostrar los nuevos grupos
-            verificarRolYAlumnos();
+            await verificarRolYAlumnos();
         } catch (error) {
             console.error('Error al asignar alumnos a grupo:', error);
             toast.error('Error al asignar alumnos al grupo');

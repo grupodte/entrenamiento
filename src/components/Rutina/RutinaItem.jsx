@@ -34,6 +34,7 @@ const RutinaItem = ({ rutina }) => {
             style={combinedStyle}   
             {...listeners}
             {...attributes}
+            title={`Tipo: ${rutina.tipo}\n\n${rutina.descripcion}`}
             className={`cursor-grab active:cursor-grabbing p-3 rounded-md border transition-colors ${draggingClass}`}>
             <span className="font-medium text-sm">{rutina.nombre}</span>
         </li>

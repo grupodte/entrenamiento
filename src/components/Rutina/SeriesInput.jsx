@@ -72,6 +72,12 @@ const SeriesInput = ({ serie, index, onChange }) => {
                         onChange={(e) => onChange(index, { ...serie, reps: e.target.value })}
                         placeholder="Reps"
                         type="number"
+                        onWheel={(e) => e.target.blur()}
+                        onKeyDown={(e) => {
+                            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                e.preventDefault();
+                            }
+                        }}
                         className="rounded bg-white/10 px-2 py-1 placeholder-white/50"
                     />
                 )}
@@ -86,6 +92,12 @@ const SeriesInput = ({ serie, index, onChange }) => {
                         }}
                         placeholder="Minutos"
                         type="number"
+                        onWheel={(e) => e.target.blur()}
+                        onKeyDown={(e) => {
+                            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                e.preventDefault();
+                            }
+                        }}
                         className="rounded bg-blue-900/20 border border-blue-600/30 px-2 py-1 placeholder-blue-300/50 text-blue-100"
                     />
                 )}
@@ -110,6 +122,12 @@ const SeriesInput = ({ serie, index, onChange }) => {
                     onChange={(e) => onChange(index, { ...serie, pausa: e.target.value })}
                     placeholder="Pausa"
                     type="number"
+                    onWheel={(e) => e.target.blur()}
+                    onKeyDown={(e) => {
+                        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                            e.preventDefault();
+                        }
+                    }}
                     className="rounded bg-white/10 px-2 py-1 placeholder-white/50"
                 />
                 

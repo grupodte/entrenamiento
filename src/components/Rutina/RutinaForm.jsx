@@ -25,7 +25,8 @@ const RutinaForm = ({
     alumnoIdParaPersonalizar = null,
     asignacionIdParaPersonalizar = null,
     idRutinaOriginal = null,
-    tipoEntidadOriginal = 'base'
+    tipoEntidadOriginal = 'base',
+    isDuplicating = false
 }) => {
     const [nombre, setNombre] = useState('');
     const [tipo, setTipo] = useState('');
@@ -36,7 +37,7 @@ const RutinaForm = ({
     const { perfil: perfilEntrenador } = useAuthUser();
 
     useEffect(() => {
-        if (modo === "editar" && rutinaInicial) {
+        if ((modo === "editar" || (modo === "crear" && isDuplicating)) && rutinaInicial) {
             setNombre(rutinaInicial.nombre || '');
             setTipo(rutinaInicial.tipo || '');
             setDescripcion(rutinaInicial.descripcion || '');
@@ -266,7 +267,7 @@ const RutinaForm = ({
                         {bloques.length > 0 && 
                             <motion.button whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }} onClick={handleSubmit} disabled={isSaving} className={`w-full flex items-center justify-center gap-2 text-white font-bold rounded-xl px-4 py-3 transition-all bg-gradient-to-r ${BRAND_GRADIENT} shadow-[0_8px_20px_rgba(236,72,153,0.3)] disabled:opacity-50 disabled:cursor-not-allowed`}>
                                 {isSaving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-                                {isSaving ? 'Guardando...' : (modo === 'crear' ? 'Guardar' : 'Actualizar ')}
+                                {isSaving ? 'Guardando...' : (modo === 'crear' ? (isDuplicating ? 'Guardar como Nueva' : 'Guardar') : 'Actualizar ')}
                             </motion.button>
                         }
                     </div>

@@ -255,7 +255,7 @@ const DietasAlumno = () => {
 
     if (loading) {
         return (
-            <div className="min-h-svh bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white flex items-center justify-center">
+            <div className="min-h-svh text-white flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <FaSpinner className="w-8 h-8 animate-spin text-cyan-500" />
                     <p className="text-white/60">Cargando tus dietas...</p>
@@ -265,7 +265,7 @@ const DietasAlumno = () => {
     }
 
     return (
-        <div className="min-h-svh bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+        <div className="min-h-svh text-white">
             <main className="max-w-screen-md mx-auto px-4 py-6 pb-[env(safe-area-inset-bottom)] space-y-6">
                 {/* Header */}
                 <div className="text-center space-y-2">

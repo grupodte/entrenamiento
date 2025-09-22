@@ -63,7 +63,8 @@ const createDefaultSetsConfig = (numSets, reps = '', carga = '', tipoEjecucion =
         carga, 
         tipo_ejecucion: tipoEjecucion,
         duracion_segundos: null,
-        unidad_tiempo: TIME_UNITS.MINUTES
+        unidad_tiempo: TIME_UNITS.MINUTES,
+        nota: ''
     }));
 
 const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles }) => {
@@ -83,7 +84,8 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
                 // Preservar el tipo_ejecucion, con fallback a STANDARD solo si no existe
                 tipo_ejecucion: s.tipo_ejecucion || EXECUTION_TYPES.STANDARD,
                 duracion_segundos: s.duracion_segundos || null,
-                unidad_tiempo: s.unidad_tiempo || TIME_UNITS.MINUTES
+                unidad_tiempo: s.unidad_tiempo || TIME_UNITS.MINUTES,
+                nota: s.nota || ''
             })) || []);
             
             // Devolver el ejercicio EXACTAMENTE como vino, sin modificaciones
@@ -113,7 +115,8 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
                         carga_sugerida: '',
                         tipo_ejecucion: EXECUTION_TYPES.STANDARD,
                         duracion_segundos: '',
-                        unidad_tiempo: TIME_UNITS.MINUTES
+                        unidad_tiempo: TIME_UNITS.MINUTES,
+                        nota: ''
                     }],
                     sets_config: undefined,
                 }));
@@ -143,6 +146,7 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
                 tipo_ejecucion: setsExistentes[i]?.tipo_ejecucion || EXECUTION_TYPES.STANDARD,
                 duracion_segundos: setsExistentes[i]?.duracion_segundos || null,
                 unidad_tiempo: setsExistentes[i]?.unidad_tiempo || TIME_UNITS.MINUTES,
+                nota: setsExistentes[i]?.nota || '',
             }));
 
             return {
@@ -175,7 +179,8 @@ const SubbloqueEditor = ({ subbloque, onChange, onRemove, ejerciciosDisponibles 
                 carga_sugerida: '',
                 tipo_ejecucion: EXECUTION_TYPES.STANDARD,
                 duracion_segundos: '',
-                unidad_tiempo: TIME_UNITS.MINUTES
+                unidad_tiempo: TIME_UNITS.MINUTES,
+                nota: ''
             }];
         }
 

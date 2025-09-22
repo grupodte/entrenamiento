@@ -41,6 +41,7 @@ const AdminPanel = React.lazy(() => import('./pages/Admin/AdminPanel'));
 const AlumnoPerfil = React.lazy(() => import('./pages/Admin/AlumnoPerfil'));
 const CrearRutina = React.lazy(() => import('./pages/Admin/CrearRutina'));
 const EditarRutina = React.lazy(() => import('./pages/Admin/EditarRutina'));
+const DuplicarRutina = React.lazy(() => import('./pages/Admin/DuplicarRutina'));
 const VerRutina = React.lazy(() => import('./pages/Admin/VerRutina'));
 const SeleccionarEjercicios = React.lazy(() => import('./pages/Admin/SeleccionarEjercicios'));
 const AdminRutinas = React.lazy(() => import('./pages/Admin/AdminRutinas'));
@@ -141,6 +142,7 @@ const AppContent = () => {
         <Route path="rutinas/crear" element={<CrearRutina />} />
         <Route path="rutinas/rutina" element={<CrearRutinaReal />} />
         <Route path="rutinas/editar/:id" element={<EditarRutina />} />
+        <Route path="rutinas/duplicar/:id" element={<DuplicarRutina />} />
         <Route path="rutinas/ver/:id" element={<VerRutina />} />
         <Route path="rutinas-reales" element={<AdminRutinasReales />} />
         <Route path="rutinas-reales/ver/:id" element={<VerRutinaReal />} />

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { FaTrashAlt, FaEye, FaEdit } from 'react-icons/fa';
+import { FaTrashAlt, FaEye, FaEdit, FaCopy } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
 // 🎨 Reutilizamos el gradiente de marca
@@ -109,7 +109,7 @@ const RutinasManager = () => {
                 <p className="text-xs text-white/50 font-mono">{rutina.tipo || 'General'}</p>
               </div>
 
-              <div className="mt-6 flex gap-3 border-t border-white/10 pt-4">
+              <div className="mt-6 flex gap-2 border-t border-white/10 pt-4">
                 <button
                   onClick={() => navigate(`/admin/rutinas/ver/${rutina.id}`)}
                   className="flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition"
@@ -121,6 +121,12 @@ const RutinasManager = () => {
                   className="flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 transition"
                 >
                   <FaEdit /> Editar
+                </button>
+                <button
+                  onClick={() => navigate(`/admin/rutinas/duplicar/${rutina.id}`)}
+                  className="flex items-center gap-2 text-sm text-green-400 hover:text-green-300 transition"
+                >
+                  <FaCopy /> Duplicar
                 </button>
               </div>
             </div>

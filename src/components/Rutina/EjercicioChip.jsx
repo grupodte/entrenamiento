@@ -159,6 +159,12 @@ const EjercicioChip = ({
                                                 placeholder="Reps"
                                                 value={setConfig.reps || ''}
                                                 onChange={(e) => updateSetConfig(i, 'reps', e.target.value)}
+                                                onWheel={(e) => e.target.blur()}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
                                                 className="w-full bg-white/10 text-white text-xs rounded px-2 py-1 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                             />
                                         )}
@@ -174,6 +180,12 @@ const EjercicioChip = ({
                                                         const unidad = setConfig.unidad_tiempo || TIME_UNITS.MINUTES;
                                                         const segundos = convertToSeconds(valor, unidad);
                                                         updateSetConfig(i, 'duracion_segundos', segundos);
+                                                    }}
+                                                    onWheel={(e) => e.target.blur()}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                                            e.preventDefault();
+                                                        }
                                                     }}
                                                     className="w-full bg-white/10 text-white text-xs rounded px-2 py-1 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                                 />
@@ -202,6 +214,17 @@ const EjercicioChip = ({
                                             value={setConfig.carga || ''}
                                             onChange={(e) => updateSetConfig(i, 'carga', e.target.value)}
                                             className="w-full bg-white/10 text-white text-xs rounded px-2 py-1 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                        />
+                                    </div>
+                                    
+                                    {/* Campo de notas para superset */}
+                                    <div className="mt-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Añadir nota..."
+                                            value={setConfig.nota || ''}
+                                            onChange={(e) => updateSetConfig(i, 'nota', e.target.value)}
+                                            className="w-full bg-white/10 text-white/70 text-xs rounded px-2 py-1 focus:ring-1 focus:ring-cyan-500 focus:outline-none"
                                         />
                                     </div>
                                 </td>
@@ -238,6 +261,12 @@ const EjercicioChip = ({
                                         unidad_tiempo: ejercicio.series?.[i]?.unidad_tiempo || TIME_UNITS.MINUTES,
                                     }));
                                     onChange({ ...ejercicio, series: nuevasSeries });
+                                }
+                            }}
+                            onWheel={(e) => e.target.blur()}
+                            onKeyDown={(e) => {
+                                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                    e.preventDefault();
                                 }
                             }}
                             className="w-1/2 bg-white/10 text-white text-xs rounded px-2 py-1"
@@ -280,6 +309,12 @@ const EjercicioChip = ({
                                                 placeholder="Reps"
                                                 value={serie.reps || ''}
                                                 onChange={(e) => updateSerieCampo(i, 'reps', e.target.value)}
+                                                onWheel={(e) => e.target.blur()}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
                                                 className="w-full bg-white/10 text-white text-xs rounded px-2 py-1 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                             />
                                         )}
@@ -295,6 +330,12 @@ const EjercicioChip = ({
                                                         const unidad = serie.unidad_tiempo || TIME_UNITS.MINUTES;
                                                         const segundos = convertToSeconds(valor, unidad);
                                                         updateSerieCampo(i, 'duracion_segundos', segundos);
+                                                    }}
+                                                    onWheel={(e) => e.target.blur()}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                                            e.preventDefault();
+                                                        }
                                                     }}
                                                     className="w-full bg-white/10 text-white text-xs rounded px-2 py-1 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                                 />

@@ -10,11 +10,9 @@ import StepContainer from '../components/Onboarding/StepContainer';
 
 // Pasos
 import DatosPersonalesStep from '../components/Onboarding/steps/DatosPersonalesStep';
-import ObjetivoStep from '../components/Onboarding/steps/ObjetivoStep';
-import ExperienciaStep from '../components/Onboarding/steps/ExperienciaStep';
-import BiometriaStep from '../components/Onboarding/steps/BiometriaStep';
-import PreferenciasStep from '../components/Onboarding/steps/PreferenciasStep';
-import ResumenStep from '../components/Onboarding/steps/ResumenStep';
+import DatosFisicosYObjetivosStep from '../components/Onboarding/steps/DatosFisicosYObjetivosStep';
+import FrecuenciaEntrenamientoStep from '../components/Onboarding/steps/FrecuenciaEntrenamientoStep';
+import FrecuenciaDietaStep from '../components/Onboarding/steps/FrecuenciaDietaStep';
 
 const Onboarding = () => {
     const { user, updateOnboardingStatus } = useAuth();
@@ -33,17 +31,25 @@ const Onboarding = () => {
         edad: '',
         telefono: '',
         genero: '',
-        // Resto de pasos
+        pais: '',
+        avatar_url: '',
+        // Datos físicos y objetivos (paso 2)
         objetivo: '',
-        experiencia: '',
         altura: '',
         peso: '',
         porcentaje_grasa: '',
         cintura_cm: '',
-        preferencia_inicio: ''
+        // Campos de objetivos
+        meta_peso: '',
+        meta_grasa: '',
+        meta_cintura: '',
+        // Frecuencia de entrenamiento (paso 3)
+        frecuencia_entrenamiento: '',
+        // Frecuencia de dieta (paso 4 - en pausa)
+        frecuencia_dieta: ''
     });
 
-    const totalSteps = 6;
+    const totalSteps = 4;
 
     // Cargar datos existentes al montar el componente
     useEffect(() => {
@@ -90,7 +96,7 @@ const Onboarding = () => {
         try {
             const { data, error } = await supabase
                 .from('perfiles')
-                .select('nombre, apellido, email, edad, telefono, genero, objetivo, experiencia, altura, peso, porcentaje_grasa, cintura_cm, preferencia_inicio')
+                .select('nombre, apellido, email, edad, telefono, genero, pais, avatar_url, objetivo, altura, peso, porcentaje_grasa, cintura_cm, meta_peso, meta_grasa, meta_cintura, frecuencia_entrenamiento, frecuencia_dieta')
                 .eq('id', user.id)
                 .single();
 
@@ -153,25 +159,19 @@ const Onboarding = () => {
                 if (!onboardingData.genero) {
                     newErrors.genero = 'Debes seleccionar tu género';
                 }
+                if (!onboardingData.pais) {
+                    newErrors.pais = 'Debes seleccionar tu país';
+                }
                 // Validación opcional de teléfono si se proporciona
                 if (onboardingData.telefono && onboardingData.telefono.length < 10) {
                     newErrors.telefono = 'El número de teléfono debe tener al menos 10 dígitos';
                 }
                 break;
                 
-            case 2: // Objetivo
+            case 2: // Datos físicos y objetivos
                 if (!onboardingData.objetivo) {
                     newErrors.objetivo = 'Debes seleccionar un objetivo';
                 }
-                break;
-                
-            case 3: // Experiencia
-                if (!onboardingData.experiencia) {
-                    newErrors.experiencia = 'Debes seleccionar tu nivel de experiencia';
-                }
-                break;
-                
-            case 4: // Biometría
                 if (!onboardingData.altura) {
                     newErrors.altura = 'La altura es requerida';
                 } else if (onboardingData.altura < 100 || onboardingData.altura > 250) {
@@ -194,13 +194,14 @@ const Onboarding = () => {
                 }
                 break;
                 
-            case 5: // Preferencias
-                if (!onboardingData.preferencia_inicio) {
-                    newErrors.preferencia_inicio = 'Debes seleccionar una preferencia';
+            case 3: // Frecuencia de entrenamiento
+                if (!onboardingData.frecuencia_entrenamiento) {
+                    newErrors.frecuencia_entrenamiento = 'Debes seleccionar la frecuencia de entrenamiento';
                 }
                 break;
                 
-            case 6: // Resumen - no hay validaciones adicionales
+            case 4: // Frecuencia de dieta (en pausa)
+                // Sin validaciones por ahora, ya que está en pausa
                 break;
         }
 
@@ -265,20 +266,8 @@ const Onboarding = () => {
 
             console.log('[Onboarding] Onboarding completado');
 
-            // Redirigir según la preferencia
-            const { preferencia_inicio } = onboardingData;
-            switch (preferencia_inicio) {
-                case 'rutina':
-                    navigate('/dashboard', { replace: true });
-                    break;
-                case 'cursos':
-                    navigate('/cursos', { replace: true });
-                    break;
-                case 'explorar':
-                default:
-                    navigate('/dashboard', { replace: true });
-                    break;
-            }
+            // Redirigir al dashboard
+            navigate('/dashboard', { replace: true });
         } catch (error) {
             console.error('[Onboarding] Error finalizando onboarding:', error);
             setErrors(prev => ({
@@ -314,18 +303,14 @@ const Onboarding = () => {
     // Verificar si se puede continuar desde el paso actual
     const canContinue = () => {
         switch (currentStep) {
-            case 1:
-                return !!onboardingData.nombre && !!onboardingData.apellido && !!onboardingData.email && !!onboardingData.edad && !!onboardingData.genero;
-            case 2:
-                return !!onboardingData.objetivo;
-            case 3:
-                return !!onboardingData.experiencia;
-            case 4:
-                return !!onboardingData.altura && !!onboardingData.peso;
-            case 5:
-                return !!onboardingData.preferencia_inicio;
-            case 6:
-                return true;
+            case 1: // Datos personales
+                return !!onboardingData.nombre && !!onboardingData.apellido && !!onboardingData.email && !!onboardingData.edad && !!onboardingData.genero && !!onboardingData.pais;
+            case 2: // Datos físicos y objetivos
+                return !!onboardingData.objetivo && !!onboardingData.altura && !!onboardingData.peso;
+            case 3: // Frecuencia de entrenamiento
+                return !!onboardingData.frecuencia_entrenamiento;
+            case 4: // Frecuencia de dieta (en pausa)
+                return true; // No requerimos nada por ahora
             default:
                 return false;
         }
@@ -345,50 +330,35 @@ const Onboarding = () => {
             )
         },
         2: {
-            title: "¿Cuál es tu objetivo principal?",
-            description: "Esto nos ayudará a personalizar tu experiencia",
+            title: "Datos físicos y objetivos",
+            description: "Definamos tu objetivo y conozcamos mejor tu estado físico",
             component: (
-                <ObjetivoStep
-                    value={onboardingData.objetivo}
-                    onChange={(value) => updateStepData('objetivo', value)}
-                />
-            )
-        },
-        3: {
-            title: "¿Cuál es tu nivel de experiencia?",
-            description: "Queremos adaptar el contenido a tu nivel",
-            component: (
-                <ExperienciaStep
-                    value={onboardingData.experiencia}
-                    onChange={(value) => updateStepData('experiencia', value)}
-                />
-            )
-        },
-        4: {
-            title: "Datos físicos",
-            description: "Estos datos nos ayudan a personalizar mejor tu plan",
-            component: (
-                <BiometriaStep
+                <DatosFisicosYObjetivosStep
                     values={onboardingData}
-                    onChange={updateBiometriaData}
+                    onChange={updateStepData}
                     errors={errors}
                 />
             )
         },
-        5: {
-            title: "¿Cómo prefieres comenzar?",
-            description: "Elige la opción que más te interese",
+        3: {
+            title: "Frecuencia de entrenamiento",
+            description: "¿Con qué frecuencia quieres entrenar?",
             component: (
-                <PreferenciasStep
-                    value={onboardingData.preferencia_inicio}
-                    onChange={(value) => updateStepData('preferencia_inicio', value)}
+                <FrecuenciaEntrenamientoStep
+                    value={onboardingData.frecuencia_entrenamiento}
+                    onChange={(value) => updateStepData('frecuencia_entrenamiento', value)}
                 />
             )
         },
-        6: {
-            title: "¡Todo listo!",
-            description: "Revisa tu información antes de continuar",
-            component: <ResumenStep data={onboardingData} />
+        4: {
+            title: "Seguimiento nutricional",
+            description: "Herramientas para optimizar tu alimentación",
+            component: (
+                <FrecuenciaDietaStep
+                    value={onboardingData.frecuencia_dieta}
+                    onChange={(value) => updateStepData('frecuencia_dieta', value)}
+                />
+            )
         }
     };
 
