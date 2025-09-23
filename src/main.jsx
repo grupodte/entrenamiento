@@ -6,7 +6,6 @@ import { registerSW } from 'virtual:pwa-register';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { HelmetProvider } from 'react-helmet-async';
-import { preventSwipeNavigation } from './utils/preventSwipeNavigation';
 
 import { BrowserRouter as Router } from 'react-router-dom';
 
@@ -24,32 +23,7 @@ const updateSW = registerSW({
   },
 });
 
-// Inicializar prevención de navegación por gestos de manera global
-// Esto proporciona una capa base de protección que se complementa con los hooks específicos
-let globalNavigationCleanup;
-if (typeof window !== 'undefined') {
-  // Ejecutar después de que el DOM esté listo
-  document.addEventListener('DOMContentLoaded', () => {
-    globalNavigationCleanup = preventSwipeNavigation();
-  });
-  
-  // Si el DOM ya está listo, ejecutar inmediatamente
-  if (document.readyState === 'loading') {
-    // DOM aún está cargando, usar el event listener
-  } else {
-    // DOM ya está listo
-    globalNavigationCleanup = preventSwipeNavigation();
-  }
-  
-  // Cleanup cuando la aplicación se cierre
-  window.addEventListener('beforeunload', () => {
-    if (globalNavigationCleanup) {
-      globalNavigationCleanup();
-    }
-  });
-}
-
-import  SpotifyProvider from './context/SpotifyContext.jsx'
+import SpotifyProvider from './context/SpotifyContext.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
