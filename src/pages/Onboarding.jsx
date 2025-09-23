@@ -7,8 +7,7 @@ import { supabase } from '../lib/supabaseClient';
 import ProgressBar from '../components/Onboarding/ProgressBar';
 import StepContainer from '../components/Onboarding/StepContainer';
 
-// 🔹 Nuevo slide genérico para el tour
-import TourStep from '../components/Onboarding/steps/TourStep';
+import FeatureCard from '../components/Onboarding/steps/FeatureCard';
 
 // Pasos existentes de datos
 import DatosPersonalesStep from '../components/Onboarding/steps/DatosPersonalesStep';
@@ -252,75 +251,68 @@ const Onboarding = () => {
     // 🔹 Config de pasos (1–5 = TOUR) (6–9 = TUS DATOS)
     const stepConfig = {
         1: {
-            title: "¡Bienvenido/a a FitApp!",
-            description: "Tu lugar para entrenar de forma organizada y con seguimiento de tu entrenador.",
+            isFeature: true, // Flag for new design
             component: (
-                <TourStep
-                    icon="💪"
-                    title="¡Bienvenido/a a FitApp!"
-                    description='Tu lugar para entrenar de forma organizada y con seguimiento de tu entrenador.'
+                <FeatureCard
+                    icon="✨"
+                    title="¡Bienvenido/a al Desafío de Transformación!"
+                    description="Has dado el paso más importante: decidir empezar. Estamos aquí para guiarte en cada etapa de tu camino hacia una vida más saludable."
                 />
             )
         },
         2: {
-            title: "¿Cómo funciona?",
-            description: "",
+            isFeature: true,
             component: (
-                <TourStep
-                    icon="🏋️"
-                    title="¿Cómo funciona?"
+                <FeatureCard
+                    icon="💪"
+                    title="Entrenamiento a Tu Medida"
                     bullets={[
-                        "Tu entrenador te asigna rutinas personalizadas.",
-                        "Podés verlas cada día en tu Dashboard.",
-                        "Registrás tu progreso y recibís feedback."
+                        "Rutinas adaptadas a ti.",
+                        "Ejercicios en video para una técnica perfecta.",
+                        "Progresión semanal para que no te estanques."
                     ]}
                 />
             )
         },
         3: {
-            title: "Tu objetivo importa",
-            description: 'Entrenar para estar más fuerte, saludable y motivado. Queremos acompañarte en ese camino.',
+            isFeature: true,
             component: (
-                <TourStep
-                    icon="🎯"
-                    title="Tu objetivo importa"
-                    description='Entrenar para estar más fuerte, saludable y motivado. Queremos acompañarte en ese camino.'
-                    note="Luego vas a poder elegir tu objetivo (fuerza, bajar de peso, tonificación)."
+                <FeatureCard
+                    icon="🍎"
+                    title="Nutrición Inteligente, Sin Sacrificios"
+                    description="Aprende a comer de forma saludable con nuestro plan de dieta. No se trata de restringir, sino de construir hábitos que te nutran."
                 />
             )
         },
         4: {
-            title: "¿Qué vas a ver ahora?",
-            description: "",
+            isFeature: true,
             component: (
-                <TourStep
-                    icon="📲"
-                    title="¿Qué vas a ver ahora?"
+                <FeatureCard
+                    icon="💡"
+                    title="Aprendizaje y Motivación Semanal"
                     bullets={[
-                        "Si ya tenés una rutina asignada → te mostramos tu entrenamiento de hoy.",
-                        "Si todavía no → te avisamos apenas tu entrenador la configure."
+                        "Videos nuevos cada semana.",
+                        "Conceptos clave sobre fitness y nutrición.",
+                        "La dosis de motivación que necesitas."
                     ]}
-                    note="Si aún no tenés rutina, la app notificará a tu entrenador automáticamente 📩."
                 />
             )
         },
         5: {
-            title: "¡Listo para empezar!",
-            description: "Recordá que podés volver a este tour desde el menú.",
+            isFeature: true,
             component: (
-                <TourStep
+                <FeatureCard
                     icon="🚀"
-                    title="¡Listo para empezar!"
-                    description="Recordá que podés volver a este tour desde el menú."
-                    note="En el siguiente paso te pediremos algunos datos para personalizar tu experiencia."
+                    title="¡Todo Listo Para Empezar!"
+                    description="Ahora, vamos a hacerte unas preguntas para personalizar tu programa. ¡Este es el inicio de tu gran cambio!"
                 />
             )
         },
 
-        // ⬇️ Tus pasos de datos (mismos componentes y textos que ya tenías, solo corren del 6 al 9)
+        // ⬇️ Pasos de recolección de datos con textos más motivacionales
         6: {
-            title: "Cuéntanos sobre ti",
-            description: "Necesitamos algunos datos básicos para personalizar tu experiencia",
+            title: "Primero, Conozcámonos Mejor",
+            description: "Estos datos básicos nos ayudan a crear tu perfil único dentro del programa.",
             component: (
                 <DatosPersonalesStep
                     values={onboardingData}
@@ -330,8 +322,8 @@ const Onboarding = () => {
             )
         },
         7: {
-            title: "Datos físicos y objetivos",
-            description: "Definamos tu objetivo y conozcamos mejor tu estado físico",
+            title: "Tu Punto de Partida y Tus Metas",
+            description: "Conocer tu estado actual es clave para personalizar tu plan y medir tu increíble progreso. ¡Sin juicios, solo datos para empezar!",
             component: (
                 <DatosFisicosYObjetivosStep
                     values={onboardingData}
@@ -341,8 +333,8 @@ const Onboarding = () => {
             )
         },
         8: {
-            title: "Frecuencia de entrenamiento",
-            description: "¿Con qué frecuencia querés entrenar?",
+            title: "Tu Compromiso Semanal",
+            description: "¿Cuántos días a la semana te comprometes a entrenar con nosotros? Sé realista para que podamos crear un plan sostenible.",
             component: (
                 <FrecuenciaEntrenamientoStep
                     value={onboardingData.frecuencia_entrenamiento}
@@ -351,8 +343,8 @@ const Onboarding = () => {
             )
         },
         9: {
-            title: "Seguimiento nutricional",
-            description: "Herramientas para optimizar tu alimentación",
+            title: "Tu Plan de Alimentación",
+            description: "Elige cómo quieres que te acompañemos con tu nutrición para alcanzar tus metas de forma integral.",
             component: (
                 <FrecuenciaDietaStep
                     value={onboardingData.frecuencia_dieta}
@@ -365,31 +357,37 @@ const Onboarding = () => {
     const currentStepConfig = stepConfig[currentStep];
 
     return (
-        <div className="min-h-screen flex flex-col">
-            <div className="flex-1 container mx-auto px-4 py-8 max-w-2xl">
-                <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />
+        <div 
+            className="min-h-screen flex flex-col bg-cover bg-center" 
+            style={{ backgroundImage: `url('/backgrounds/admin-blur.png')` }}
+        >
+            <div className="min-h-screen flex flex-col bg-black/30 backdrop-blur-sm">
+                <div className="flex-1 container mx-auto px-4 py-8 max-w-2xl flex flex-col">
+                    <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />
 
-                {errors.general && (
-                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                        <p className="text-red-400 text-sm">{errors.general}</p>
-                    </div>
-                )}
+                    {errors.general && (
+                        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                            <p className="text-red-400 text-sm">{errors.general}</p>
+                        </div>
+                    )}
 
-                <AnimatePresence mode="wait">
-                    <StepContainer
-                        key={currentStep}
-                        title={currentStepConfig.title}
-                        description={currentStepConfig.description}
-                        currentStep={currentStep}
-                        onNext={handleNext}
-                        onPrevious={handlePrevious}
-                        canContinue={canContinue()}
-                        isLastStep={currentStep === totalSteps}
-                        isLoading={isLoading}
-                    >
-                        {currentStepConfig.component}
-                    </StepContainer>
-                </AnimatePresence>
+                    <AnimatePresence mode="wait">
+                        <StepContainer
+                            key={currentStep}
+                            title={currentStepConfig.title}
+                            description={currentStepConfig.description}
+                            isFeatureStep={!!currentStepConfig.isFeature} // Pass flag to container
+                            currentStep={currentStep}
+                            onNext={handleNext}
+                            onPrevious={handlePrevious}
+                            canContinue={canContinue()}
+                            isLastStep={currentStep === totalSteps}
+                            isLoading={isLoading}
+                        >
+                            {currentStepConfig.component}
+                        </StepContainer>
+                    </AnimatePresence>
+                </div>
             </div>
         </div>
     );

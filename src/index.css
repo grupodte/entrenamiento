@@ -13,6 +13,10 @@ html {
   -webkit-overscroll-behavior-y: contain !important;
   /* Prevenir también touch desde los bordes */
   touch-action: pan-y;
+  /* Prevenir pull-to-refresh adicional */
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 body {
@@ -22,6 +26,13 @@ body {
   -webkit-overscroll-behavior-y: contain !important;
   /* Prevenir touch horizontal desde cualquier punto */
   touch-action: pan-y;
+  /* Configuraciones adicionales para prevenir gestos */
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  /* Prevenir zoom accidental */
+  -ms-content-zooming: none;
+  -ms-user-select: none;
 }
 
 /* Para drawers y modales activos - Prevenir swipe back solo cuando es necesario */
@@ -197,6 +208,80 @@ body {
     url('./assets/fonts/BlauerNue-Bold.otf') format('truetype');
   font-weight: 700;
   font-display: swap;
+}
+
+/* ====== CONFIGURACIONES ADICIONALES PWA ====== */
+/* Prevenir navegación por gestos en toda la aplicación */
+* {
+  /* Prevenir pull-to-refresh y overscroll global */
+  overscroll-behavior: none;
+  -webkit-overscroll-behavior: none;
+}
+
+/* Configuraciones específicas para elementos interactivos */
+input, textarea, select, button {
+  /* Permitir interacción normal en elementos de formulario */
+  touch-action: manipulation;
+  -webkit-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+}
+
+/* Prevenir gestos en el contenedor principal */
+#root {
+  overscroll-behavior-x: none !important;
+  overscroll-behavior-y: contain;
+  -webkit-overscroll-behavior-x: none !important;
+  -webkit-overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Estilos para navegadores específicos */
+@supports (-webkit-touch-callout: none) {
+  /* Safari iOS específico */
+  html, body {
+    -webkit-overflow-scrolling: touch;
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Configuración para prevenir gestos en pantallas táctiles */
+@media (pointer: coarse) {
+  html, body {
+    touch-action: pan-y !important;
+    overscroll-behavior-x: none !important;
+  }
+  
+  /* Prevenir swipe-to-navigate en bordes */
+  body::before,
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    z-index: 9999;
+    pointer-events: none;
+  }
+  
+  body::before {
+    left: 0;
+  }
+  
+  body::after {
+    right: 0;
+  }
+}
+
+/* Configuraciones para modo standalone (PWA instalada) */
+@media (display-mode: standalone) {
+  html, body {
+    overscroll-behavior: none !important;
+    -webkit-overscroll-behavior: none !important;
+  }
 }
 
 /* ====== LAYOUT PRINCIPAL ====== */
