@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
@@ -94,6 +94,44 @@ const AppContent = () => {
       'button[data-action]' // Botones del SwipeWidget
     ]
   });
+
+useEffect(() => {
+    const handleTouchStart = (evt) => {
+      const firstTouch = (evt.touches || evt.originalEvent.touches)[0];
+      xDown = firstTouch.clientX;
+      yDown = firstTouch.clientY;
+    };
+    
+    const handleTouchMove = (evt) => {
+      if (!xDown || !yDown) {
+          return;
+      }
+  
+      const xUp = evt.touches[0].clientX;
+      const yUp = evt.touches[0].clientY;
+  
+      const xDiff = xDown - xUp;
+      const yDiff = yDown - yUp;
+  
+      if (Math.abs(xDiff) > Math.abs(yDiff) && xDiff > 0) {
+          evt.preventDefault();
+      }
+  
+      xDown = null;
+      yDown = null;
+    };
+
+    let xDown = null;
+    let yDown = null;
+
+    document.addEventListener('touchstart', handleTouchStart, false);
+    document.addEventListener('touchmove', handleTouchMove, false);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart, false);
+      document.removeEventListener('touchmove', handleTouchMove, false);
+    };
+  }, []);
 
   return (
     <WidgetGuideProvider>
