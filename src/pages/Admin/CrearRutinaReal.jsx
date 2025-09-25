@@ -6,7 +6,7 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 import { supabase } from "../../lib/supabaseClient";
-import { AnimatedLayout, AnimatedList, AnimatedListItem, AnimatedDragOverlay } from "../../components/animations";
+// Componentes de animación eliminados - usando motion directamente
 
 // Reutilizamos el sidebar y la tarjeta de item (lo que ya usás para drag de sesiones)
 import RutinasSidebar from "../../components/Rutina/RutinasSidebar";
@@ -185,7 +185,12 @@ export default function CrearRutinaReal() {
     };
 
     return (
-        <AnimatedLayout className="min-h-[calc(100dvh-4rem)] pb-[90px] py-6 text-white">
+        <motion.div 
+            className="min-h-[calc(100dvh-4rem)] pb-[90px] py-6 text-white"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+        >
             <DndContext
                 sensors={sensors}
                 onDragStart={(e) => { setActiveId(e.active.id); setIsDragging(true); }}
@@ -241,18 +246,23 @@ export default function CrearRutinaReal() {
 
                     {/* ZONA CENTRAL: 7 días con dropzones */}
                     <section className="md:col-span-3 space-y-6">
-                        <AnimatedList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {DIAS.map((dia, idx) => (
-                                <AnimatedListItem key={idx}>
+                                <motion.div 
+                                    key={idx}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                >
                                     <DropDayCard
                                         id={`dia-${idx}`}
                                         titulo={dia}
                                         sesiones={sesionesPorDia[idx]}
                                         onRemove={(sesionId) => handleRemoveFromDay(idx, sesionId)}
                                     />
-                                </AnimatedListItem>
+                                </motion.div>
                             ))}
-                        </AnimatedList>
+                        </div>
 
                         <div className="flex justify-end">
                             <button
@@ -269,13 +279,17 @@ export default function CrearRutinaReal() {
 
                 <DragOverlay>
                     {activeId?.startsWith("rutina-") ? (
-                        <AnimatedDragOverlay>
+                        <motion.div
+                            initial={{ scale: 1.1, opacity: 0.8 }}
+                            animate={{ scale: 1.1, opacity: 0.8 }}
+                            style={{ transform: 'rotate(5deg)' }}
+                        >
                             <RutinaItem rutina={rutinasBase.find((r) => `rutina-${r.id}` === activeId)} />
-                        </AnimatedDragOverlay>
+                        </motion.div>
                     ) : null}
                 </DragOverlay>
             </DndContext>
-        </AnimatedLayout>
+        </motion.div>
     );
 }
 

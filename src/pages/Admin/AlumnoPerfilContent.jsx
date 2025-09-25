@@ -5,7 +5,7 @@ import RutinasSidebar from '../../components/Rutina/RutinasSidebar';
 import RutinaItem from '../../components/Rutina/RutinaItem';
 import ComboboxRutinas from '../../components/Rutina/ComboboxRutinas';
 import { toast } from 'react-hot-toast';
-import { AnimatedLayout, AnimatedList, AnimatedListItem, AnimatedDragOverlay } from '../../components/animations';
+// Componentes de animación eliminados - usando motion directamente
 import { motion } from 'framer-motion';
 import {
     DndContext,
@@ -87,9 +87,14 @@ const AlumnoPerfilContent = ({
                         Rutinas de {alumno?.nombre} {alumno?.apellido}
                     </h1>
 
-                    <AnimatedList className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {diasSemana.map((dia, i) => (
-                            <AnimatedListItem key={i}>
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                            >
                                 <DiaCard
                                     index={i}
                                     id={`dia-${i}`}
@@ -99,17 +104,21 @@ const AlumnoPerfilContent = ({
                                     onAsignacionEliminada={() => fetchData(true)}
                                     onRutinaPersonalizada={() => fetchData(true)}
                                 />
-                            </AnimatedListItem>
+                            </motion.div>
                         ))}
-                    </AnimatedList>
+                    </div>
                 </div>
             </div>
 
             <DragOverlay>
                 {activeId?.startsWith('rutina-') ? (
-                    <AnimatedDragOverlay>
+                    <motion.div
+                        initial={{ scale: 1.1, opacity: 0.8 }}
+                        animate={{ scale: 1.1, opacity: 0.8 }}
+                        style={{ transform: 'rotate(5deg)' }}
+                    >
                         <RutinaItem rutina={rutinasBase.find(r => `rutina-${r.id}` === activeId)} />
-                    </AnimatedDragOverlay>
+                    </motion.div>
                 ) : null}
             </DragOverlay>
         </DndContext>

@@ -1,5 +1,5 @@
 import EjerciciosManager from '../../components/AgregarEjercicio';
-import { AnimatedLayout } from '../../components/animations';
+// Componentes de animación eliminados - usando motion directamente
 
 /**
  * @file AdminEjercicios.jsx

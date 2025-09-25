@@ -6,7 +6,7 @@ import { MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useDragState } from '../../context/DragStateContext';
 import { FaArrowLeft, FaUser, FaDumbbell, FaChartLine } from 'react-icons/fa';
 import { BookOpen, Users, Plus, X, Calendar, Gift, Heart, Download, Trash2 } from 'lucide-react';
-import { AnimatedLayout } from '../../components/animations';
+// Componentes de animación eliminados - usando motion directamente
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Importar las secciones

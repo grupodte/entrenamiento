@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import RutinaForm from '../../components/Rutina/RutinaForm';
-import { AnimatedLayout } from '../../components/animations';
+// Componentes de animación eliminados - usando motion directamente
 import { motion } from 'framer-motion';
 import { Plus, Dumbbell } from 'lucide-react';
 

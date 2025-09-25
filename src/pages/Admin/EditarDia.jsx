@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
-import { AnimatedLayout, AnimatedButton, AnimatedList, AnimatedListItem, useFeedback } from '../../components/animations';
+// Componentes de animación eliminados - usando toast directamente
+import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Save, Calendar, Dumbbell } from 'lucide-react';
 
@@ -13,7 +14,9 @@ const EditarDia = () => {
     const [searchParams] = useSearchParams();
     const dia = parseInt(searchParams.get('dia'), 10);
     const navigate = useNavigate();
-    const { showSuccess, showError } = useFeedback();
+    // Reemplazamos useFeedback con toast directamente
+    const showSuccess = (message) => toast.success(message);
+    const showError = (message) => toast.error(message);
 
     const [ejercicios, setEjercicios] = useState([]);
     const [asignacionOriginal, setAsignacionOriginal] = useState(null);
@@ -233,7 +236,12 @@ showSuccess("Cambios guardados correctamente ✅");
 
     if (loading) {
         return (
-            <AnimatedLayout className="max-w-4xl mx-auto p-4">
+            <motion.div 
+                className="max-w-4xl mx-auto p-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4 }}
+            >
                 <div className="text-center mt-10">
                     <motion.div
                         className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
@@ -242,12 +250,17 @@ showSuccess("Cambios guardados correctamente ✅");
                     />
                     <p className="text-white">Cargando rutina...</p>
                 </div>
-            </AnimatedLayout>
+            </motion.div>
         );
     }
 
     return (
-        <AnimatedLayout className="max-w-4xl mx-auto p-4 pb-safe">
+        <motion.div 
+            className="max-w-4xl mx-auto p-4 pb-safe"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+        >
             {/* Encabezado animado */}
             <motion.div 
                 className="flex items-center gap-3 mb-6"
@@ -262,9 +275,8 @@ showSuccess("Cambios guardados correctamente ✅");
             </motion.div>
 
             {/* Lista de ejercicios animada */}
-            <AnimatedList className="space-y-4 mb-6" staggerDelay={0.1}>
+            <div className="space-y-4 mb-6">
                 {ejercicios.map((ej, indexEj) => (
-                    <AnimatedListItem key={indexEj}>
                         <motion.div 
                             className="p-4 bg-white/10 backdrop-blur rounded-xl shadow-md text-white"
                             whileHover={{ scale: 1.02 }}
@@ -275,14 +287,15 @@ showSuccess("Cambios guardados correctamente ✅");
                                     <Dumbbell className="text-blue-400" size={18} />
                                     {ej.nombre}
                                 </h3>
-                                <AnimatedButton
-                                    variant="destructive"
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
                                     onClick={() => setEjercicios(prev => prev.filter((_, i) => i !== indexEj))}
-                                    className="text-sm"
+                                    className="text-sm px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center gap-1"
                                 >
                                     <Trash2 size={16} />
                                     Eliminar
-                                </AnimatedButton>
+                                </motion.button>
                             </div>
                             
                             {/* Series */}
@@ -318,29 +331,30 @@ showSuccess("Cambios guardados correctamente ✅");
                                             onChange={e => actualizarSerie(indexEj, indexSer, 'carga', parseFloat(e.target.value))}
                                             placeholder="Carga"
                                         />
-                                        <AnimatedButton
-                                            variant="icon"
+                                        <motion.button
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
                                             onClick={() => eliminarSerie(indexEj, indexSer)}
-                                            className="text-red-400 hover:text-red-300"
+                                            className="text-red-400 hover:text-red-300 p-1 rounded"
                                         >
                                             <Trash2 size={14} />
-                                        </AnimatedButton>
+                                        </motion.button>
                                     </motion.div>
                                 ))}
                             </div>
 
-                            <AnimatedButton
-                                variant="secondary"
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
                                 onClick={() => agregarSet(indexEj)}
-                                className="text-sm w-full"
+                                className="text-sm w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2"
                             >
                                 <Plus size={16} />
                                 Agregar set
-                            </AnimatedButton>
+                            </motion.button>
                         </motion.div>
-                    </AnimatedListItem>
                 ))}
-            </AnimatedList>
+            </div>
 
             {/* Selector de ejercicios */}
             <AnimatePresence>
@@ -356,25 +370,24 @@ showSuccess("Cambios guardados correctamente ✅");
                             <Plus className="text-green-400" />
                             Seleccionar ejercicio
                         </h2>
-                        <AnimatedList className="space-y-2" staggerDelay={0.05}>
+                        <div className="space-y-2">
                             {ejerciciosDisponibles.map(ej => (
-                                <AnimatedListItem key={ej.id}>
                                     <motion.div 
                                         className="flex justify-between items-center p-2 bg-white/5 rounded-lg"
                                         whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
                                     >
                                         <span className="text-white">{ej.nombre}</span>
-                                        <AnimatedButton
-                                            variant="primary"
+                                        <motion.button
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
                                             onClick={() => agregarEjercicio(ej)}
-                                            className="text-sm"
+                                            className="text-sm px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded"
                                         >
                                             Agregar
-                                        </AnimatedButton>
+                                        </motion.button>
                                     </motion.div>
-                                </AnimatedListItem>
                             ))}
-                        </AnimatedList>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -386,25 +399,27 @@ showSuccess("Cambios guardados correctamente ✅");
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.4 }}
             >
-                <AnimatedButton
-                    variant="secondary"
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={cargarEjerciciosDisponibles}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg"
                 >
                     <Plus size={16} />
                     Agregar ejercicio
-                </AnimatedButton>
+                </motion.button>
                 
-                <AnimatedButton
-                    variant="primary"
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={handleGuardar}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
                 >
                     <Save size={16} />
                     Guardar cambios
-                </AnimatedButton>
+                </motion.button>
             </motion.div>
-        </AnimatedLayout>
+        </motion.div>
     );
 };
 

@@ -1,13 +1,6 @@
 // Exportaciones principales
 export { default as AnimatedLayout } from './AnimatedLayout';
-export { default as AnimatedButton } from './AnimatedButton';
-export { AnimatedList, AnimatedListItem } from './AnimatedList';
-export { default as AnimatedFeedback, useFeedback } from './AnimatedFeedback';
-export { 
-  AnimatedDraggable, 
-  AnimatedDropZone, 
-  AnimatedDragOverlay 
-} from './AnimatedDragDrop';
+export { default as AnimatedLoadingText } from './AnimatedLoadingText';
 
 // Constantes y utilidades comunes para animaciones
 export const animationConfig = {
