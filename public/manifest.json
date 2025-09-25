@@ -131,17 +131,7 @@
     "launch_handler": {
         "client_mode": "navigate-existing"
     },
-    "navigation_override": {
-        "enabled": true,
-        "prevent_back_gesture": true,
-        "prevent_swipe_navigation": true,
-        "capture_links": "existing-client-navigate"
-    },
     "edge_side_panel": {
         "preferred_width": 400
-    },
-    "handle_links": "preferred",
-    "capture_links": "existing-client-navigate",
-    "protocol_handlers": [],
-    "file_handlers": []
+    }
 }

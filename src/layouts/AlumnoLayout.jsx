@@ -9,8 +9,7 @@ import GradualBlur from '../components/GradualBlur';
 import { ProgressDockProvider, useProgressDock } from '../context/ProgressDockContext';
 import { BackNavigationProvider, useBackNavigation } from '../context/BackNavigationContext';
 import { useViewportHeight } from '../hooks/useViewportHeight';
-import { useSwipeGesture } from '../hooks/useSwipeGesture';
-import { useSwipeBackContext } from '../hooks/useSwipeBackContext';
+// Hooks de swipe removidos para simplificar
 
 // Variantes de animación optimizadas
 const pageVariants = {
@@ -62,38 +61,11 @@ const AlumnoLayoutContent = () => {
   const handleCloseSwipeWidget = useCallback(() => setIsSwipeWidgetOpen(false), []);
   const handleOpenSwipeWidget = useCallback(() => setIsSwipeWidgetOpen(prev => !prev), []);
 
-  // Configurar gestos de swipe simplificados
-  const { containerRef, swipeProgress, closeProgress, isEdgeSwipe } = useSwipeGesture({
-    onSwipeFromEdge: (distance) => {
-      console.log('AlumnoLayout: onSwipeFromEdge called with distance:', distance);
-      if (distance > 30) {
-        console.log('AlumnoLayout: Opening SwipeWidget from edge');
-        setIsSwipeWidgetOpen(true);
-      }
-    },
-    onSwipeToClose: (distance) => {
-      if (distance > 40) {
-        console.log('AlumnoLayout: Closing SwipeWidget');
-        setIsSwipeWidgetOpen(false);
-      }
-    },
-    edgeThreshold: 50,
-    threshold: 20,
-    isWidgetOpen: isSwipeWidgetOpen
-  });
-
-  // Configurar contexto de swipe back
-  const { currentContext } = useSwipeBackContext({
-    isDrawerOpen: isPerfilDrawerOpen || isEditPerfilDrawerOpen,
-    isWidgetOpen: isSwipeWidgetOpen,
-    onDrawerClose: () => {
-      if (isEditPerfilDrawerOpen) handleCloseEditPerfil();
-      else if (isPerfilDrawerOpen) handleClosePerfil();
-    },
-    onWidgetClose: handleCloseSwipeWidget,
-    preventGlobalSwipeBack: true,
-    swipeThreshold: 80
-  });
+  // Configuración simplificada sin gestos de swipe complejos
+  const containerRef = React.useRef(null);
+  const swipeProgress = 0;
+  const closeProgress = 0;
+  const isEdgeSwipe = false;
 
   return (
     <div className="min-h-screen flex flex-col overflow-clip" ref={containerRef}>

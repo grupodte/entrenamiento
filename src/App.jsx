@@ -5,13 +5,8 @@ import { useAuth } from './context/AuthContext';
 // --- IMPORTACIONES INMEDIATAS (CRÍTICAS) ---
 import RutaProtegida from './components/RutaProtegida';
 import useSmoothScroll from './hooks/useSmoothScroll';
-import useUnifiedSwipeBackPrevention from './hooks/useUnifiedSwipeBackPrevention';
-import useNoBack from './hooks/useNoBack';
 import { useLocation } from 'react-router-dom';
 import { WidgetGuideProvider } from './context/WidgetGuideContext';
-
-// --- BLOQUEO ABSOLUTO ULTRA-AGRESIVO ---
-import './utils/absoluteSwipeBackBlocker'; // Se ejecuta inmediatamente al importar
 
 // --- LAZY LOADING DE COMPONENTES GRANDES ---
 // Layouts
@@ -75,24 +70,7 @@ const AppContent = () => {
   const { user, rol } = useAuth();
   const location = useLocation();
   
-  // No aplicar prevención global en RutinaDetalle (tiene su propio control)
-  const isInRutinaDetalle = location.pathname.includes('/rutina/');
-  
-  // Sistema de prevención de navegación - Versión simplificada
-  
-  // 1. Prevenir historial (botones de navegación del navegador)
-  useNoBack(!isInRutinaDetalle);
-  
-  // 2. BLOQUEO ABSOLUTO de swipe back - SIN EXCEPCIONES
-  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  
-  useUnifiedSwipeBackPrevention({ 
-    enabled: isTouchDevice // Activo en todos los dispositivos táctiles, incluso RutinaDetalle
-    // SIN parámetros de threshold ni excepciones - BLOQUEO TOTAL
-  });
-
-// Touch events ahora manejados por hooks especializados
-  // Eliminada implementación manual duplicada
+  // App limpia sin prevención de navegación
 
   return (
     <WidgetGuideProvider>
