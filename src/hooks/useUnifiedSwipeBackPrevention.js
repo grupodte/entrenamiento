@@ -113,9 +113,9 @@ const useUnifiedSwipeBackPrevention = ({
     document.addEventListener('touchcancel', handleTouchEnd, passiveOptions);
     
     // También agregar listeners para otros eventos relacionados
-    document.addEventListener('gesturestart', (e) => { e.preventDefault(); return false; }, aggressiveOptions);
-    document.addEventListener('gesturechange', (e) => { e.preventDefault(); return false; }, aggressiveOptions);
-    document.addEventListener('gestureend', (e) => { e.preventDefault(); return false; }, aggressiveOptions);
+    document.addEventListener('gesturestart', (e) => { e.preventDefault(); return false; }, activeOptions);
+    document.addEventListener('gesturechange', (e) => { e.preventDefault(); return false; }, activeOptions);
+    document.addEventListener('gestureend', (e) => { e.preventDefault(); return false; }, activeOptions);
     
     console.log('[ABSOLUTE_SWIPE_BLOCK] Ultra-aggressive prevention ACTIVE');
     
