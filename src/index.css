@@ -4,22 +4,40 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ✅ PREVENCIÓN UNIFICADA DE SWIPE BACK - iOS y Android */
-/* Configuración optimizada para ambas plataformas */
+/* ✅ PREVENCIÓN ABSOLUTA DE SWIPE BACK - CONFIGURACIÓN ULTRA-AGRESIVA */
+/* Bloqueo completo de navegación por gestos para iOS y Android */
 html {
+  overscroll-behavior: none !important;
   overscroll-behavior-x: none !important;
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: none !important;
+  -webkit-overscroll-behavior: none !important;
   -webkit-overscroll-behavior-x: none !important;
-  -webkit-overscroll-behavior-y: contain !important;
-  touch-action: pan-y;
+  -webkit-overscroll-behavior-y: none !important;
+  touch-action: pan-y pinch-zoom !important;
+  -ms-touch-action: pan-y pinch-zoom !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
 }
 
 body {
+  overscroll-behavior: none !important;
   overscroll-behavior-x: none !important;
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: none !important;
+  -webkit-overscroll-behavior: none !important;
   -webkit-overscroll-behavior-x: none !important;
-  -webkit-overscroll-behavior-y: contain !important;
-  touch-action: pan-y;
+  -webkit-overscroll-behavior-y: none !important;
+  touch-action: pan-y pinch-zoom !important;
+  -ms-touch-action: pan-y pinch-zoom !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Bloqueo absoluto para todos los elementos */
+*, *::before, *::after {
+  overscroll-behavior-x: none !important;
+  -webkit-overscroll-behavior-x: none !important;
 }
 
 /* ====== VIDEO PANEL STYLES ====== */
@@ -478,29 +496,81 @@ body {
   display: none;
 }
 
-/* ====== CONFIGURACIÓN ESPECÍFICA POR PLATAFORMA ====== */
+/* ====== BLOQUEO ABSOLUTO POR PLATAFORMA - ULTRA-AGRESIVO ====== */
 
-/* Para aplicaciones PWA específicamente */
+/* PWA Standalone - Bloqueo total */
 @media (display-mode: standalone) {
-  body, html {
+  *, *::before, *::after {
     overscroll-behavior: none !important;
     -webkit-overscroll-behavior: none !important;
     touch-action: pan-y !important;
+    -ms-touch-action: pan-y !important;
+  }
+  
+  body, html, #root {
+    overscroll-behavior: none !important;
+    -webkit-overscroll-behavior: none !important;
+    touch-action: pan-y !important;
+    -ms-touch-action: pan-y !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
   }
 }
 
-/* Safari iOS - Configuración específica */
+/* Safari iOS - Bloqueo ultra-agresivo */
 @supports (-webkit-touch-callout: none) {
-  body, html {
-    overscroll-behavior-x: none !important;
-    -webkit-overscroll-behavior-x: none !important;
+  *, *::before, *::after {
+    overscroll-behavior: none !important;
+    -webkit-overscroll-behavior: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+  
+  body, html, #root {
+    overscroll-behavior: none !important;
+    -webkit-overscroll-behavior: none !important;
+    touch-action: pan-y !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
   }
 }
 
-/* Firefox móvil */
+/* Chrome móvil - Android - Bloqueo absoluto */
+@media screen and (max-device-width: 768px) {
+  *, *::before, *::after {
+    overscroll-behavior: none !important;
+    -webkit-overscroll-behavior: none !important;
+    touch-action: pan-y !important;
+    -ms-touch-action: pan-y !important;
+  }
+  
+  body, html, #root {
+    overscroll-behavior: none !important;
+    -webkit-overscroll-behavior: none !important;
+    touch-action: pan-y !important;
+    -ms-touch-action: pan-y !important;
+  }
+}
+
+/* Firefox móvil - Bloqueo total */
 @-moz-document url-prefix() {
-  body {
-    overscroll-behavior-x: none !important;
+  *, *::before, *::after {
+    overscroll-behavior: none !important;
+  }
+  
+  body, html, #root {
+    overscroll-behavior: none !important;
+  }
+}
+
+/* Edge móvil */
+@supports (-ms-accelerator: true) {
+  *, *::before, *::after {
+    -ms-touch-action: pan-y !important;
+    touch-action: pan-y !important;
   }
 }
 

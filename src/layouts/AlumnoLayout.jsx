@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import FloatingNavBar from '../components/FloatingNavBar'; // Componente original funcional
+import BottomNavBar from '../components/BottomNavBar'; // Nueva barra de navegación fija
 import PerfilDrawer from '../pages/Alumno/PerfilDrawer';
 import EditarPerfilDrawer from '../pages/Alumno/EditarPerfil';
 import SwipeWidget from '../components/SwipeWidget';
@@ -134,18 +134,6 @@ const AlumnoLayoutContent = () => {
       >
         <div className="content-wrapper" style={{ paddingTop: '3rem', paddingBottom: '6rem' }}>
           <Outlet />
-
-          {/* Navegación flotante original funcional */}
-          <FloatingNavBar 
-            onOpenPerfil={handleOpenPerfil}
-            isPerfilOpen={isPerfilDrawerOpen}
-            showProgressDock={showProgressDock}
-            onToggleProgressDock={toggleProgressDock}
-            progressGlobal={progressGlobal}
-            onBackClick={onBackClick}
-            onOpenSwipeWidget={handleOpenSwipeWidget}
-            isSwipeWidgetOpen={isSwipeWidgetOpen}
-          />
         </div>
       </motion.main>
 
@@ -171,6 +159,17 @@ const AlumnoLayoutContent = () => {
         onProfileUpdate={handleProfileUpdate}
       />
       
+      {/* Barra de navegación fija en el fondo */}
+      <BottomNavBar 
+        onOpenPerfil={handleOpenPerfil}
+        isPerfilOpen={isPerfilDrawerOpen}
+        showProgressDock={showProgressDock}
+        onToggleProgressDock={toggleProgressDock}
+        progressGlobal={progressGlobal}
+        onBackClick={onBackClick}
+        onOpenSwipeWidget={handleOpenSwipeWidget}
+        isSwipeWidgetOpen={isSwipeWidgetOpen}
+      />
 
     </div>
   );

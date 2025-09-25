@@ -12,20 +12,34 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
-  <!-- Prevenir gestos de navegación y swipe back -->
+  <!-- BLOQUEO ABSOLUTO DE SWIPE BACK - Meta tags ultra-agresivos -->
   <meta name="format-detection" content="telephone=no" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="application-name" content="FitApp" />
-
-  <!-- Prevenir navegación por gestos en diferentes navegadores -->
+  
+  <!-- Prevenir TODOS los gestos de navegación -->
   <meta name="msapplication-tap-highlight" content="no" />
   <meta name="apple-mobile-web-app-title" content="FitApp" />
-
-  <!-- Configuraciones adicionales para prevenir swipe back -->
   <meta name="apple-touch-fullscreen" content="yes" />
   <meta name="HandheldFriendly" content="true" />
   <meta name="MobileOptimized" content="width" />
   <meta name="apple-mobile-web-app-orientations" content="portrait" />
+  
+  <!-- Meta tags específicos para bloquear swipe back -->
+  <meta name="disable-tap-highlight" content="yes" />
+  <meta name="format-detection" content="address=no, date=no, email=no, telephone=no" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="full-screen" content="yes" />
+  <meta name="browsermode" content="application" />
+  <meta name="x5-orientation" content="portrait" />
+  <meta name="x5-fullscreen" content="true" />
+  <meta name="x5-page-mode" content="app" />
+  
+  <!-- Configuraciones de touch y gestos -->
+  <meta name="msapplication-tap-highlight" content="no" />
+  <meta name="msapplication-config" content="none" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
 
   <!-- Manifest PWA -->
   <link rel="manifest" href="/manifest.json" />

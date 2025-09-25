@@ -10,6 +10,9 @@ import useNoBack from './hooks/useNoBack';
 import { useLocation } from 'react-router-dom';
 import { WidgetGuideProvider } from './context/WidgetGuideContext';
 
+// --- BLOQUEO ABSOLUTO ULTRA-AGRESIVO ---
+import './utils/absoluteSwipeBackBlocker'; // Se ejecuta inmediatamente al importar
+
 // --- LAZY LOADING DE COMPONENTES GRANDES ---
 // Layouts
 const AdminLayout = React.lazy(() => import('./layouts/AdminLayout'));
@@ -80,19 +83,12 @@ const AppContent = () => {
   // 1. Prevenir historial (botones de navegación del navegador)
   useNoBack(!isInRutinaDetalle);
   
-  // 2. Prevención unificada de gestos táctiles (iOS y Android)
+  // 2. BLOQUEO ABSOLUTO de swipe back - SIN EXCEPCIONES
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   
   useUnifiedSwipeBackPrevention({ 
-    enabled: isTouchDevice && !isInRutinaDetalle,
-    edgeThreshold: 35, // Un poco más estricto para evitar falsos positivos
-    swipeThreshold: 25,
-    exceptions: [
-      '[data-swipe-widget]', // SwipeWidget principal
-      '.touch-interactive', 
-      '.allow-swipe-back',
-      'button[data-action]' // Botones del SwipeWidget
-    ]
+    enabled: isTouchDevice // Activo en todos los dispositivos táctiles, incluso RutinaDetalle
+    // SIN parámetros de threshold ni excepciones - BLOQUEO TOTAL
   });
 
 // Touch events ahora manejados por hooks especializados

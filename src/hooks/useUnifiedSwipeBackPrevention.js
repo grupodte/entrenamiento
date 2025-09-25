@@ -1,161 +1,166 @@
 import { useEffect, useCallback, useRef } from 'react';
 
 /**
- * Hook unificado para prevenir swipe back navigation
- * Optimizado para iOS y Android - Reemplaza múltiples implementaciones conflictivas
+ * Hook ULTRA-AGRESIVO para prevenir swipe back navigation
+ * BLOQUEO ABSOLUTO - Sin excepciones, sin tolerancia
+ * Optimizado para iOS y Android - Prevención total
  * 
  * @param {Object} options - Configuración
  * @param {boolean} options.enabled - Si está activo
- * @param {Array} options.exceptions - Selectores de elementos que permiten swipe back
- * @param {number} options.edgeThreshold - Píxeles desde el borde para detectar gesto
- * @param {number} options.swipeThreshold - Píxeles mínimos para considerar swipe
  */
 const useUnifiedSwipeBackPrevention = ({
-  enabled = true,
-  exceptions = [],
-  edgeThreshold = 50,
-  swipeThreshold = 30
+  enabled = true
 } = {}) => {
   const touchStartRef = useRef(null);
-  const isPreventingRef = useRef(false);
-
-  // Verificar si el elemento tiene excepciones
-  const hasException = useCallback((target) => {
-    if (!target) return false;
-    
-    return exceptions.some(selector => {
-      try {
-        // Para atributos data
-        if (selector.startsWith('[') && selector.endsWith(']')) {
-          const attribute = selector.slice(1, -1).split('=')[0];
-          let current = target;
-          while (current && current !== document.body) {
-            if (current.hasAttribute && current.hasAttribute(attribute)) {
-              return true;
-            }
-            current = current.parentElement;
-          }
-        } else {
-          // Para selectores CSS
-          const element = document.querySelector(selector);
-          if (element && element.contains(target)) {
-            return true;
-          }
-        }
-      } catch (e) {
-        console.warn('Invalid exception selector:', selector);
-      }
-      return false;
-    });
-  }, [exceptions]);
+  const isCurrentlyBlockingRef = useRef(false);
+  
+  // Thresholds ultra-estrictos para bloqueo absoluto
+  const EDGE_THRESHOLD = 100; // Zona más amplia desde bordes
+  const SWIPE_THRESHOLD = 10; // Threshold mínimo para activar bloqueo
 
   const handleTouchStart = useCallback((e) => {
     if (!enabled) return;
     
     const touch = e.touches[0];
-    const isNearLeftEdge = touch.clientX < edgeThreshold;
+    const isNearLeftEdge = touch.clientX < EDGE_THRESHOLD;
+    const isNearRightEdge = touch.clientX > (window.innerWidth - EDGE_THRESHOLD);
+    const isNearAnyEdge = isNearLeftEdge || isNearRightEdge;
     
     touchStartRef.current = {
       x: touch.clientX,
       y: touch.clientY,
       time: Date.now(),
-      isNearLeftEdge
+      isNearLeftEdge,
+      isNearRightEdge,
+      isNearAnyEdge
     };
     
-    // Solo aplicar prevención si es desde el borde izquierdo y no hay excepciones
-    if (isNearLeftEdge && !hasException(e.target)) {
-      isPreventingRef.current = true;
+    // BLOQUEO ABSOLUTO - Sin excepciones
+    if (isNearAnyEdge) {
+      isCurrentlyBlockingRef.current = true;
       
-      // Aplicar CSS de prevención de forma más agresiva
+      // Prevenir inmediatamente cualquier gesto desde los bordes
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      
+      // Aplicar CSS ultra-agresivo
+      document.body.style.overscrollBehavior = 'none';
       document.body.style.overscrollBehaviorX = 'none';
+      document.documentElement.style.overscrollBehavior = 'none';
       document.documentElement.style.overscrollBehaviorX = 'none';
       document.body.style.touchAction = 'pan-y';
+      document.body.style.webkitTouchCallout = 'none';
       
-      console.log('[UnifiedSwipeBackPrevention] Preventing swipe from left edge');
+      console.log('[ABSOLUTE_SWIPE_BLOCK] Blocked touch from edge:', {
+        x: touch.clientX,
+        isNearLeftEdge,
+        isNearRightEdge,
+        windowWidth: window.innerWidth
+      });
+      
+      return false;
     }
-  }, [enabled, edgeThreshold, hasException]);
+  }, [enabled]);
 
   const handleTouchMove = useCallback((e) => {
-    if (!enabled || !touchStartRef.current || !isPreventingRef.current) return;
+    if (!enabled || !touchStartRef.current) return;
     
     const touch = e.touches[0];
     const deltaX = touch.clientX - touchStartRef.current.x;
-    const deltaY = Math.abs(touch.clientY - touchStartRef.current.y);
+    const deltaY = touch.clientY - touchStartRef.current.y;
     const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
     
-    // Si es un swipe horizontal hacia la derecha desde cerca del borde izquierdo
-    if (touchStartRef.current.isNearLeftEdge && 
-        deltaX > swipeThreshold && 
-        absDeltaX > deltaY) {
-      
-      console.log('[UnifiedSwipeBackPrevention] Blocking horizontal swipe:', deltaX);
+    // BLOQUEO ABSOLUTO de cualquier movimiento horizontal desde bordes
+    if (touchStartRef.current.isNearAnyEdge) {
+      // Si hay CUALQUIER movimiento horizontal, bloquearlo inmediatamente
+      if (absDeltaX > SWIPE_THRESHOLD) {
+        console.log('[ABSOLUTE_SWIPE_BLOCK] Blocking ANY horizontal movement:', {
+          deltaX,
+          deltaY,
+          absDeltaX,
+          fromLeftEdge: touchStartRef.current.isNearLeftEdge,
+          fromRightEdge: touchStartRef.current.isNearRightEdge
+        });
+        
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+    }
+    
+    // También bloquear movimientos horizontales significativos desde cualquier parte de la pantalla
+    if (absDeltaX > absDeltaY && absDeltaX > 30) {
+      console.log('[ABSOLUTE_SWIPE_BLOCK] Blocking significant horizontal swipe from anywhere');
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
       return false;
     }
-  }, [enabled, swipeThreshold]);
+  }, [enabled]);
 
   const handleTouchEnd = useCallback(() => {
     if (!enabled) return;
     
     // Reset estado
-    const wasPreventingLeftEdge = touchStartRef.current?.isNearLeftEdge && isPreventingRef.current;
-    isPreventingRef.current = false;
     touchStartRef.current = null;
+    isCurrentlyBlockingRef.current = false;
     
-    // Restaurar comportamiento normal con delay para evitar rebotes
-    if (wasPreventingLeftEdge) {
-      setTimeout(() => {
-        document.body.style.overscrollBehaviorX = 'auto';
-        document.documentElement.style.overscrollBehaviorX = 'auto';
-        document.body.style.touchAction = 'auto';
-      }, 150);
-    }
+    // Mantener configuración agresiva - NO restaurar automáticamente
+    console.log('[ABSOLUTE_SWIPE_BLOCK] Touch ended - maintaining aggressive CSS');
   }, [enabled]);
 
-  // Setup de event listeners
+  // Setup ultra-agresivo con event listeners
   useEffect(() => {
     if (!enabled) return;
     
-    // Configuración CSS base
-    const originalBodyOverscroll = document.body.style.overscrollBehaviorX;
-    const originalHtmlOverscroll = document.documentElement.style.overscrollBehaviorX;
-    
-    // Aplicar configuración base más suave
+    // Configuración CSS PERMANENTE ultra-agresiva
+    document.body.style.overscrollBehavior = 'none';
     document.body.style.overscrollBehaviorX = 'none';
+    document.body.style.overscrollBehaviorY = 'none';
+    document.documentElement.style.overscrollBehavior = 'none';
     document.documentElement.style.overscrollBehaviorX = 'none';
+    document.documentElement.style.overscrollBehaviorY = 'none';
+    document.body.style.touchAction = 'pan-y';
+    document.body.style.webkitTouchCallout = 'none';
+    document.body.style.webkitUserSelect = 'none';
+    document.body.style.userSelect = 'none';
     
-    // Event listeners con configuración optimizada
-    const passiveOptions = { passive: true, capture: false };
-    const activeOptions = { passive: false, capture: false };
+    // Event listeners ultra-agresivos - NO PASSIVE
+    const aggressiveOptions = { passive: false, capture: true };
     
-    document.addEventListener('touchstart', handleTouchStart, passiveOptions);
-    document.addEventListener('touchmove', handleTouchMove, activeOptions);
-    document.addEventListener('touchend', handleTouchEnd, passiveOptions);
-    document.addEventListener('touchcancel', handleTouchEnd, passiveOptions);
+    document.addEventListener('touchstart', handleTouchStart, aggressiveOptions);
+    document.addEventListener('touchmove', handleTouchMove, aggressiveOptions);
+    document.addEventListener('touchend', handleTouchEnd, aggressiveOptions);
+    document.addEventListener('touchcancel', handleTouchEnd, aggressiveOptions);
     
-    console.log('[UnifiedSwipeBackPrevention] Initialized and active');
+    // También agregar listeners para otros eventos relacionados
+    document.addEventListener('gesturestart', (e) => { e.preventDefault(); return false; }, aggressiveOptions);
+    document.addEventListener('gesturechange', (e) => { e.preventDefault(); return false; }, aggressiveOptions);
+    document.addEventListener('gestureend', (e) => { e.preventDefault(); return false; }, aggressiveOptions);
+    
+    console.log('[ABSOLUTE_SWIPE_BLOCK] Ultra-aggressive prevention ACTIVE');
     
     return () => {
-      // Cleanup
-      document.removeEventListener('touchstart', handleTouchStart, passiveOptions);
-      document.removeEventListener('touchmove', handleTouchMove, activeOptions);
-      document.removeEventListener('touchend', handleTouchEnd, passiveOptions);
-      document.removeEventListener('touchcancel', handleTouchEnd, passiveOptions);
+      // Cleanup event listeners solamente
+      document.removeEventListener('touchstart', handleTouchStart, aggressiveOptions);
+      document.removeEventListener('touchmove', handleTouchMove, aggressiveOptions);
+      document.removeEventListener('touchend', handleTouchEnd, aggressiveOptions);
+      document.removeEventListener('touchcancel', handleTouchEnd, aggressiveOptions);
+      document.removeEventListener('gesturestart', (e) => { e.preventDefault(); return false; }, aggressiveOptions);
+      document.removeEventListener('gesturechange', (e) => { e.preventDefault(); return false; }, aggressiveOptions);
+      document.removeEventListener('gestureend', (e) => { e.preventDefault(); return false; }, aggressiveOptions);
       
-      // Restaurar configuración original
-      document.body.style.overscrollBehaviorX = originalBodyOverscroll || 'auto';
-      document.documentElement.style.overscrollBehaviorX = originalHtmlOverscroll || 'auto';
-      document.body.style.touchAction = 'auto';
-      
-      console.log('[UnifiedSwipeBackPrevention] Cleaned up');
+      // NO restaurar CSS - mantener bloqueo permanente
+      console.log('[ABSOLUTE_SWIPE_BLOCK] Event listeners cleaned up - CSS stays aggressive');
     };
   }, [enabled, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   return {
     isActive: enabled,
-    isCurrentlyPreventing: isPreventingRef.current
+    isCurrentlyPreventing: isCurrentlyBlockingRef.current
   };
 };
 
