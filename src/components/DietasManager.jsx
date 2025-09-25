@@ -144,7 +144,7 @@ const DietasManager = () => {
             const timestamp = Date.now();
             const randomId = Math.random().toString(36).substring(2, 15);
             const sanitizedFileName = sanitizeFileName(archivo.name);
-            const fileName = `${user.id}/${timestamp}_${randomId}_${sanitizedFileName}`;
+            let fileName = `${user.id}/${timestamp}_${randomId}_${sanitizedFileName}`;
             
             // Verificar tamaño del archivo (15MB máximo)
             const maxSize = 15 * 1024 * 1024;
@@ -158,7 +158,7 @@ const DietasManager = () => {
             }
             
             // Subir archivo
-            const { data, error } = await supabase.storage
+            let { data, error } = await supabase.storage
                 .from('dietas')
                 .upload(fileName, archivo, {
                     cacheControl: '3600',

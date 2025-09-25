@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Home, User, Target, ArrowLeft, MoreHorizontal, X, Menu, PanelLeftOpen } from 'lucide-react';
+import { Home, User, Target, ArrowLeft, MoreHorizontal, X, Menu } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -12,9 +12,7 @@ const FloatingNavBar = ({
   progressGlobal = 0,
   // Props para botón dinámico Home/Back
   onBackClick = null,
-  // Props para SwipeWidget (solo en Dashboard)
-  onOpenSwipeWidget = null,
-  isSwipeWidgetOpen = false
+  // Props para NavigationModal (no usado actualmente)
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -37,7 +35,7 @@ const FloatingNavBar = ({
   // Detectar rutas específicas
   const isInRutinaDetalle = location.pathname.includes('/rutina/');
   const shouldShowProgressButton = isInRutinaDetalle && onToggleProgressDock;
-  const shouldShowSwipeButton = !isInRutinaDetalle && onOpenSwipeWidget; // Solo en Dashboard
+  // Nota: SwipeWidget fue reemplazado por NavigationModal en BottomNavBar
   
   // Funciones para manejo de expansión
   const startAutoCloseTimer = useCallback(() => {
@@ -534,58 +532,7 @@ const FloatingNavBar = ({
                 }}
               />
               
-              {/* Botón SwipeWidget - Solo en Dashboard */}
-              {shouldShowSwipeButton && (
-                <>
-                  <motion.button
-                    onClick={() => {
-                      onOpenSwipeWidget();
-                      handleUserInteraction();
-                    }}
-                    className={navButtonClass(isSwipeWidgetOpen)}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    style={{ WebkitTapHighlightColor: 'transparent' }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                      type: "spring",
-                      stiffness: 550,
-                      damping: 26,
-                      delay: 0.06
-                    }}
-                  >
-                    <div className="relative">
-                      <PanelLeftOpen className="w-4 h-4" />
-                      
-                      {/* Dot indicator cuando está activo */}
-                      {isSwipeWidgetOpen && (
-                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-cyan-400 rounded-full" />
-                      )}
-                      
-                      {/* Tooltip */}
-                      <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
-                        Menú
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-black/80"></div>
-                      </div>
-                    </div>
-                  </motion.button>
-                  
-                  {/* Separador visual adicional */}
-                  <motion.div 
-                    className="w-px h-5 bg-white/20"
-                    initial={{ opacity: 0, scaleY: 0 }}
-                    animate={{ opacity: 1, scaleY: 1 }}
-                    transition={{ 
-                      type: "spring",
-                      stiffness: 600,
-                      damping: 28,
-                      delay: 0.07
-                    }}
-                  />
-                </>
-              )}
+              {/* Nota: NavigationModal ahora se maneja desde BottomNavBar */}
               
               {/* Botón ProgressDock - Solo en RutinaDetalle */}
               {shouldShowProgressButton && (

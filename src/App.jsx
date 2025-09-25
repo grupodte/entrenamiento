@@ -5,6 +5,8 @@ import { useAuth } from './context/AuthContext';
 // --- IMPORTACIONES INMEDIATAS (CRÍTICAS) ---
 import RutaProtegida from './components/RutaProtegida';
 import useSmoothScroll from './hooks/useSmoothScroll';
+import useScrollToTop from './hooks/useScrollToTop';
+import useSimpleSwipeBackPrevention from './hooks/useSimpleSwipeBackPrevention';
 import { useLocation } from 'react-router-dom';
 import { WidgetGuideProvider } from './context/WidgetGuideContext';
 
@@ -67,10 +69,12 @@ const PublicLayout = () => (
 
 const AppContent = () => {
   useSmoothScroll();
+  useScrollToTop(); // Hook para resetear scroll al cambiar de página
   const { user, rol } = useAuth();
   const location = useLocation();
   
-  // App limpia sin prevención de navegación
+  // Prevención simple y no intrusiva de swipe back
+  useSimpleSwipeBackPrevention(true);
 
   return (
     <WidgetGuideProvider>

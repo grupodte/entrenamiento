@@ -4,7 +4,19 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Configuración base normal */
+/* Configuración base + prevención simple de swipe back */
+html, body {
+  overscroll-behavior-x: none;
+  -webkit-overscroll-behavior-x: none;
+}
+
+/* Solo para PWA standalone */
+@media (display-mode: standalone) {
+  html, body {
+    overscroll-behavior: none;
+    -webkit-overscroll-behavior: none;
+  }
+}
 
 /* ====== VIDEO PANEL STYLES ====== */
 /* Estilos específicos para el VideoPanel con Portal */
@@ -113,7 +125,7 @@ body.video-panel-open {
   /* Altura segura para elementos fixed bottom */
 
   /* Colores del tema */
-  --bg-primary: #121212;
+  --bg-primary: #FFFFFF;
   --bg-secondary: #1f1f1f;
   --bg-card: rgba(31, 41, 55, 0.4);
   --text-primary: #ffffff;
@@ -674,6 +686,31 @@ ol::-webkit-scrollbar,
   margin-bottom: var(--content-margin-bottom);
   margin-left: var(--content-margin-horizontal);
   margin-right: var(--content-margin-horizontal);
+}
+
+/* ====== SCROLL RESET EN NAVEGACIÓN ====== */
+/* Clases para ayudar con el reseteo de scroll automático */
+.scroll-reset {
+  scroll-behavior: auto !important;
+}
+
+.scroll-reset * {
+  scroll-behavior: auto !important;
+}
+
+/* Para elementos de navegación que necesiten reseteo inmediato */
+.nav-scroll-reset {
+  scroll-behavior: auto;
+  animation: scrollReset 0.1s ease-out;
+}
+
+@keyframes scrollReset {
+  from {
+    transform: translateY(var(--scroll-position, 0));
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 /* ====== CLASES UTILITARIAS PARA VIEWPORT DINÁMICO ====== */
