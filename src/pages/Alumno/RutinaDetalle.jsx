@@ -3,7 +3,7 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext';
 import { useProgressDock } from '../../context/ProgressDockContext';
 import { useBackNavigation } from '../../context/BackNavigationContext';
-import { usePrompt } from '../../hooks/useBlocker';
+// usePrompt removido - lógica simplificada
 import useRutinaLogic from "../../hooks/useRutinaLogic";
 import useRutinaProgress from "../../hooks/useRutinaProgress";
 import RutinaHeader from "../../components/RutinaDetalle/RutinaHeader";
@@ -81,15 +81,7 @@ const RutinaDetalle = () => {
         updateProgressGlobal(progressGlobal);
     }, [progressGlobal, updateProgressGlobal]);
 
-    // Bloquear navegación y mostrar modal de confirmación
-    usePrompt(
-        !todosCompletados, // Solo bloquear si no está completado el entrenamiento
-        useCallback((transition) => {
-            // Guardar la transición pendiente y mostrar modal
-            setPendingNavigation(transition);
-            setShowExitModal(true);
-        }, [])
-    );
+    // Lógica de bloqueo de navegación simplificada (sin usePrompt)
     
     // Registrar el handler de back navigation
     useEffect(() => {
