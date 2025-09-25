@@ -356,12 +356,13 @@ export function checkAndReapplyScrollbarFix() {
   return false; // No era necesario aplicar el fix
 }
 
-// Auto-inicializar cuando se carga el DOM
+// Auto-inicialización DESACTIVADA para evitar conflictos
+// La inicialización ahora se maneja desde los hooks de React
+/*
 if (typeof document !== 'undefined') {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       initializePreventZoomAndScroll();
-      // Verificar después de un breve delay para asegurar que todo esté cargado
       setTimeout(checkAndReapplyScrollbarFix, 1000);
     });
   } else {
@@ -369,3 +370,4 @@ if (typeof document !== 'undefined') {
     setTimeout(checkAndReapplyScrollbarFix, 1000);
   }
 }
+*/

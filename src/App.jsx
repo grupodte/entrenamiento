@@ -5,7 +5,7 @@ import { useAuth } from './context/AuthContext';
 // --- IMPORTACIONES INMEDIATAS (CRÍTICAS) ---
 import RutaProtegida from './components/RutaProtegida';
 import useSmoothScroll from './hooks/useSmoothScroll';
-import usePreventSwipeBack from './hooks/usePreventSwipeBack';
+import useUnifiedSwipeBackPrevention from './hooks/useUnifiedSwipeBackPrevention';
 import useNoBack from './hooks/useNoBack';
 import { useLocation } from 'react-router-dom';
 import { WidgetGuideProvider } from './context/WidgetGuideContext';
@@ -80,13 +80,13 @@ const AppContent = () => {
   // 1. Prevenir historial (botones de navegación del navegador)
   useNoBack(!isInRutinaDetalle);
   
-  // 2. Prevenir gestos táctiles (swipe desde bordes) - Activado en dispositivos táctiles
+  // 2. Prevención unificada de gestos táctiles (iOS y Android)
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   
-  usePreventSwipeBack({ 
-    enabled: isTouchDevice && !isInRutinaDetalle, // Habilitado solo en táctiles y fuera de la rutina
-    edgeThreshold: 30,
-    swipeThreshold: 20,
+  useUnifiedSwipeBackPrevention({ 
+    enabled: isTouchDevice && !isInRutinaDetalle,
+    edgeThreshold: 35, // Un poco más estricto para evitar falsos positivos
+    swipeThreshold: 25,
     exceptions: [
       '[data-swipe-widget]', // SwipeWidget principal
       '.touch-interactive', 
@@ -95,43 +95,8 @@ const AppContent = () => {
     ]
   });
 
-useEffect(() => {
-    const handleTouchStart = (evt) => {
-      const firstTouch = (evt.touches || evt.originalEvent.touches)[0];
-      xDown = firstTouch.clientX;
-      yDown = firstTouch.clientY;
-    };
-    
-    const handleTouchMove = (evt) => {
-      if (!xDown || !yDown) {
-          return;
-      }
-  
-      const xUp = evt.touches[0].clientX;
-      const yUp = evt.touches[0].clientY;
-  
-      const xDiff = xDown - xUp;
-      const yDiff = yDown - yUp;
-  
-      if (Math.abs(xDiff) > Math.abs(yDiff) && xDiff > 0) {
-          evt.preventDefault();
-      }
-  
-      xDown = null;
-      yDown = null;
-    };
-
-    let xDown = null;
-    let yDown = null;
-
-    document.addEventListener('touchstart', handleTouchStart, false);
-    document.addEventListener('touchmove', handleTouchMove, false);
-
-    return () => {
-      document.removeEventListener('touchstart', handleTouchStart, false);
-      document.removeEventListener('touchmove', handleTouchMove, false);
-    };
-  }, []);
+// Touch events ahora manejados por hooks especializados
+  // Eliminada implementación manual duplicada
 
   return (
     <WidgetGuideProvider>

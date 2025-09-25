@@ -4,14 +4,13 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ✅ Prevención TOTAL de swipe back - Configuración robusta */
-/* Prevenir completamente el swipe back del navegador */
+/* ✅ PREVENCIÓN UNIFICADA DE SWIPE BACK - iOS y Android */
+/* Configuración optimizada para ambas plataformas */
 html {
   overscroll-behavior-x: none !important;
   overscroll-behavior-y: contain;
   -webkit-overscroll-behavior-x: none !important;
   -webkit-overscroll-behavior-y: contain !important;
-  /* Prevenir también touch desde los bordes */
   touch-action: pan-y;
 }
 
@@ -20,21 +19,7 @@ body {
   overscroll-behavior-y: contain;
   -webkit-overscroll-behavior-x: none !important;
   -webkit-overscroll-behavior-y: contain !important;
-  /* Prevenir touch horizontal desde cualquier punto */
   touch-action: pan-y;
-}
-
-/* Para drawers y modales activos - Prevenir swipe back solo cuando es necesario */
-.drawer-active,
-.widget-active {
-  overscroll-behavior-x: none !important;
-  -webkit-overscroll-behavior-x: none !important;
-}
-
-/* Contenido de drawers - permitir scroll vertical, bloquear horizontal */
-.drawer-content {
-  touch-action: pan-y;
-  overscroll-behavior-x: none;
 }
 
 /* ====== VIDEO PANEL STYLES ====== */
@@ -493,70 +478,26 @@ body {
   display: none;
 }
 
-/* ====== PREVENIR SWIPE BACK ====== */
-.prevent-swipe-back {
-  overscroll-behavior-x: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* ====== DESHABILITAR SWIPE NAVIGATION COMPLETAMENTE ====== */
-/* Prevenir swipe back en todos los navegadores móviles */
-*,
-*::before,
-*::after {
-  overscroll-behavior-x: none !important;
-  -webkit-overscroll-behavior-x: none !important;
-}
-
-/* Específico para webkit (Safari, Chrome móvil) */
-@supports (-webkit-touch-callout: none) {
-
-  body,
-  html {
-    overscroll-behavior-x: none !important;
-    -webkit-overscroll-behavior-x: none !important;
-    /* Prevenir pull-to-refresh también */
-    overscroll-behavior-y: none !important;
-    -webkit-overscroll-behavior-y: none !important;
-  }
-}
+/* ====== CONFIGURACIÓN ESPECÍFICA POR PLATAFORMA ====== */
 
 /* Para aplicaciones PWA específicamente */
 @media (display-mode: standalone) {
-
-  body,
-  html {
+  body, html {
     overscroll-behavior: none !important;
     -webkit-overscroll-behavior: none !important;
     touch-action: pan-y !important;
   }
 }
 
-/* Configuración específica para Chrome móvil */
-@media screen and (-webkit-min-device-pixel-ratio: 0) {
-
-  body,
-  html,
-  #root {
+/* Safari iOS - Configuración específica */
+@supports (-webkit-touch-callout: none) {
+  body, html {
     overscroll-behavior-x: none !important;
     -webkit-overscroll-behavior-x: none !important;
   }
 }
 
-/* Configuración para Safari móvil */
-@supports (-webkit-touch-callout: none) and (not (translate: none)) {
-
-  body,
-  html {
-    overscroll-behavior-x: none !important;
-    -webkit-overscroll-behavior-x: none !important;
-    /* Prevenir también el pull-to-refresh */
-    overscroll-behavior-y: none !important;
-    -webkit-overscroll-behavior-y: none !important;
-  }
-}
-
-/* Prevenir swipe desde los bordes en Firefox móvil */
+/* Firefox móvil */
 @-moz-document url-prefix() {
   body {
     overscroll-behavior-x: none !important;
