@@ -19,7 +19,12 @@ const ABSOLUTE_CONFIG = {
 };
 
 /**
- * Bloqueo absoluto de touchstart
+ * Variables para rastrear el estado del touch
+ */
+let touchStartData = null;
+
+/**
+ * Bloqueo inteligente de touchstart - Solo desde bordes
  */
 const blockTouchStart = (e) => {
   if (!e.touches || e.touches.length === 0) return;
@@ -28,60 +33,70 @@ const blockTouchStart = (e) => {
   const { clientX, clientY } = touch;
   const { innerWidth, innerHeight } = window;
   
-  // Determinar si está en zona de bloqueo
-  const inLeftEdge = clientX < ABSOLUTE_CONFIG.EDGE_ZONES.LEFT;
-  const inRightEdge = clientX > (innerWidth - ABSOLUTE_CONFIG.EDGE_ZONES.RIGHT);
-  const inTopEdge = clientY < ABSOLUTE_CONFIG.EDGE_ZONES.TOP;
-  const inBottomEdge = clientY > (innerHeight - ABSOLUTE_CONFIG.EDGE_ZONES.BOTTOM);
+  // Solo considerar zona peligrosa el borde izquierdo (principal fuente de swipe back)
+  const inLeftEdge = clientX < 80; // Reducido para ser más selectivo
   
-  const inDangerZone = inLeftEdge || inRightEdge || inTopEdge || inBottomEdge;
+  // Guardar datos del touch para el touchmove
+  touchStartData = {
+    x: clientX,
+    y: clientY,
+    time: Date.now(),
+    inLeftEdge
+  };
   
-  if (inDangerZone || ABSOLUTE_CONFIG.AGGRESSIVE_MODE) {
-    console.log('[ABSOLUTE_BLOCKER] Blocking touchstart in danger zone:', {
-      x: clientX,
-      y: clientY,
-      inLeftEdge,
-      inRightEdge,
-      inTopEdge,
-      inBottomEdge,
-      windowSize: { width: innerWidth, height: innerHeight }
+  // Solo aplicar CSS preventivo si está en borde izquierdo
+  // NO bloquear el evento aún - esperar al touchmove
+  if (inLeftEdge) {
+    console.log('[ABSOLUTE_BLOCKER] Touch detected near left edge - monitoring for swipe');
+    applyAggressiveCSS();
+  }
+};
+
+/**
+ * Bloqueo inteligente de touchmove - Solo swipes reales hacia la derecha
+ */
+const blockTouchMove = (e) => {
+  if (!e.touches || e.touches.length === 0 || !touchStartData) return;
+  
+  const touch = e.touches[0];
+  const deltaX = touch.clientX - touchStartData.x;
+  const deltaY = touch.clientY - touchStartData.y;
+  const absDeltaX = Math.abs(deltaX);
+  const absDeltaY = Math.abs(deltaY);
+  
+  // Solo bloquear si:
+  // 1. El touch empezó en borde izquierdo
+  // 2. Es un movimiento horizontal hacia la derecha (deltaX > 0)
+  // 3. El movimiento horizontal es mayor que el vertical
+  // 4. El movimiento es significativo (>30px para evitar clicks normales)
+  if (touchStartData.inLeftEdge && 
+      deltaX > 30 && 
+      absDeltaX > absDeltaY && 
+      absDeltaX > 30) {
+    
+    console.log('[ABSOLUTE_BLOCKER] Blocking swipe back gesture:', {
+      deltaX,
+      deltaY,
+      startX: touchStartData.x,
+      currentX: touch.clientX
     });
     
-    // BLOQUEO INMEDIATO
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
-    
-    // Aplicar CSS inmediatamente
-    applyAggressiveCSS();
-    
     return false;
   }
 };
 
 /**
- * Bloqueo absoluto de touchmove
+ * Limpiar estado en touchend
  */
-const blockTouchMove = (e) => {
-  if (!e.touches || e.touches.length === 0) return;
+const handleTouchEnd = (e) => {
+  // Limpiar el estado del touch
+  touchStartData = null;
   
-  const touch = e.touches[0];
-  
-  // Solo bloquear movimientos horizontales significativos que puedan ser navegación
-  const startX = touch.clientX;
-  const startY = touch.clientY;
-  
-  // Calcular si es un movimiento principalmente horizontal
-  const isHorizontalMovement = Math.abs(startX) > Math.abs(startY);
-  const isSignificantMovement = Math.abs(startX) > 20;
-  
-  if (isHorizontalMovement && isSignificantMovement) {
-    console.log('[ABSOLUTE_BLOCKER] Blocking horizontal movement that could be navigation');
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    return false;
-  }
+  // NO bloquear touchend - permitir que los clicks normales funcionen
+  console.log('[ABSOLUTE_BLOCKER] Touch ended - resetting state');
 };
 
 /**
@@ -165,21 +180,13 @@ export const initializeAbsoluteSwipeBackBlocker = () => {
   // Event listeners ultra-agresivos
   const captureOptions = { passive: false, capture: true };
   
-  // Touch events
-  document.addEventListener('touchstart', blockTouchStart, captureOptions);
-  document.addEventListener('touchmove', blockTouchMove, captureOptions);
-  document.addEventListener('touchend', (e) => {
-    // Solo bloquear touchend si viene de los bordes
-    if (e.changedTouches && e.changedTouches[0]) {
-      const touch = e.changedTouches[0];
-      const isNearEdge = touch.clientX < 100 || touch.clientX > window.innerWidth - 100;
-      if (isNearEdge) {
-        console.log('[ABSOLUTE_BLOCKER] Blocking touchend from edge');
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }
-  }, captureOptions);
+  // Touch events - Solo touchmove necesita ser no-passive
+  const passiveOptions = { passive: true, capture: true };
+  const activeOptions = { passive: false, capture: true };
+  
+  document.addEventListener('touchstart', blockTouchStart, passiveOptions);
+  document.addEventListener('touchmove', blockTouchMove, activeOptions);
+  document.addEventListener('touchend', handleTouchEnd, passiveOptions);
   
   // Gesture events
   const gestureEvents = ['gesturestart', 'gesturechange', 'gestureend'];
