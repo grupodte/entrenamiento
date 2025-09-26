@@ -125,20 +125,18 @@ const SwipeWidget = ({ isOpen, onClose }) => {
         backfaceVisibility: 'hidden' // Evitar flickering
       }}
     >
-      {/* Overlay para mejorar legibilidad del texto */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
       
-      <div className="relative z-10 flex items-center justify-between">
-        <div className="flex">
-          <div className="flex-1">
-            <div className="text-[#FFFFFF] text-[39px] font-normal drop-shadow-lg">
-              {title}
-            </div>
-          </div>
-        </div>
-        <div className="text-[#FFFFFF] text-[39px] drop-shadow-lg">
-          →
-        </div>
+              <div className="relative z-10 flex justify-between">
+                <div className="flex">
+                  <div className="flex-1">
+                    <div className="text-[#FFFFFF] text-[39px] font-normal ">
+                      {title}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-[#FFFFFF] text-[39px]">
+                  🡪
+                </div>
       </div>
     </button>
   ));
@@ -149,21 +147,18 @@ const SwipeWidget = ({ isOpen, onClose }) => {
       action: 'rutinas',
       icon: Dumbbell,
       title: rol === 'admin' ? 'Rutinas' : 'Mis rutinas',
-      subtitle: rol === 'admin' ? 'Panel de rutinas' : 'Mis entrenamientos',
       backgroundImage: rutinaImage,
     },
     {
       action: 'mis-cursos',
       icon: BookOpen,
       title: rol === 'admin' ? 'Cursos' : 'Mis cursos',
-      subtitle: rol === 'admin' ? 'Panel admin' : 'Tus cursos asignados',
       backgroundImage: cursoImage,
     },
     {
       action: 'dietas',
       icon: Utensils,
       title: rol === 'admin' ? 'Dietas' : 'Mi dieta',
-      subtitle: rol === 'admin' ? 'Panel de dietas' : 'Tu plan nutricional',
       backgroundImage: dietaImage,
     }
   ], [rol]);
