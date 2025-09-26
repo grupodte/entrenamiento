@@ -107,7 +107,7 @@ const SwipeWidget = ({ isOpen, onClose }) => {
     <button
       onClick={(e) => handleButtonClick(e, action)}
       data-action={action}
-      className="relative rounded-2xl p-8 flex flex-col justify-between cursor-pointer overflow-hidden group transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+      className="relative rounded-[10px] px-[24px] pb-[40px] flex flex-col justify-end overflow-hidden"
       style={{
         touchAction: 'manipulation',
         background: gradient,
@@ -119,18 +119,15 @@ const SwipeWidget = ({ isOpen, onClose }) => {
       }}
     >
       <div className="relative z-10 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Icon className="text-white w-8 h-8" />
+        <div className="flex ">
           <div className="flex-1">
-            <div className="text-white text-lg font-bold mb-1">
+            <div className="text-[#FFFFFF] text-[39px] font-normal">
               {title}
             </div>
-            <div className="text-white/80 text-sm">
-              {subtitle}
-            </div>
+        
           </div>
         </div>
-        <div className="text-white/90 group-hover:translate-x-1 transition-transform duration-200">
+        <div className="text-[#FFFFFF] text-[39px]">
           →
         </div>
       </div>
@@ -145,7 +142,6 @@ const SwipeWidget = ({ isOpen, onClose }) => {
       title: rol === 'admin' ? 'Rutinas' : 'Mis rutinas',
       subtitle: rol === 'admin' ? 'Panel de rutinas' : 'Mis entrenamientos',
       gradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-      shadow: '0 4px 20px rgba(239, 68, 68, 0.3)'
     },
     {
       action: 'mis-cursos',
@@ -153,7 +149,6 @@ const SwipeWidget = ({ isOpen, onClose }) => {
       title: rol === 'admin' ? 'Cursos' : 'Mis cursos',
       subtitle: rol === 'admin' ? 'Panel admin' : 'Tus cursos asignados',
       gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-      shadow: '0 4px 20px rgba(59, 130, 246, 0.3)'
     },
     {
       action: 'dietas',
@@ -161,7 +156,6 @@ const SwipeWidget = ({ isOpen, onClose }) => {
       title: rol === 'admin' ? 'Dietas' : 'Mi dieta',
       subtitle: rol === 'admin' ? 'Panel de dietas' : 'Tu plan nutricional',
       gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-      shadow: '0 4px 20px rgba(245, 158, 11, 0.3)'
     }
   ], [rol]);
 
