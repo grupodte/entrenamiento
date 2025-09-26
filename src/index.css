@@ -5,8 +5,13 @@
 @tailwind utilities;
 /* Configuración básica + prevención simple de swipe back */
 html, body {
+  overscroll-behavior: none;
   overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+  -webkit-overscroll-behavior: none;
   -webkit-overscroll-behavior-x: none;
+  -webkit-overscroll-behavior-y: contain;
+  
   /* Prevención de gestos de navegación para iOS PWA */
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -14,15 +19,42 @@ html, body {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  
+  /* Deshabilitar completamente el arrastre */
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+  
+  /* Touch action restrictivo */
+  touch-action: pan-y pinch-zoom;
 }
 
-/* Solo para PWA standalone */
+/* Solo para PWA standalone - Máxima restricción */
 @media (display-mode: standalone) {
   html, body {
-    overscroll-behavior: none;
-    -webkit-overscroll-behavior: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
+    overscroll-behavior: none !important;
+    overscroll-behavior-x: none !important;
+    overscroll-behavior-y: contain !important;
+    -webkit-overscroll-behavior: none !important;
+    -webkit-overscroll-behavior-x: none !important;
+    -webkit-overscroll-behavior-y: contain !important;
+    -webkit-user-select: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-drag: none !important;
+    user-drag: none !important;
+    touch-action: manipulation !important;
+  }
+  
+  /* Aplicar a todos los elementos en PWA */
+  * {
+    overscroll-behavior-x: none !important;
+    -webkit-overscroll-behavior-x: none !important;
+    -webkit-user-drag: none !important;
+    user-drag: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
   }
 }
 
@@ -675,6 +707,65 @@ body {
   .edge-gesture-overlay {
     /* En desktop, zona más pequeña ya que los gestos son menos comunes */
     max-width: 15px !important;
+  }
+}
+
+/* ====== CLASE NO-DRAG PARA DESHABILITAR ARRASTRE COMPLETAMENTE ====== */
+.no-drag {
+  /* Deshabilitar completamente cualquier tipo de arrastre */
+  -webkit-user-drag: none !important;
+  -khtml-user-drag: none !important;
+  -moz-user-drag: none !important;
+  -o-user-drag: none !important;
+  user-drag: none !important;
+  
+  /* Deshabilitar selección */
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -khtml-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  
+  /* Control total de touch */
+  touch-action: pan-y manipulation !important;
+  
+  /* Overscroll behavior restrictivo */
+  overscroll-behavior: none !important;
+  overscroll-behavior-x: none !important;
+  overscroll-behavior-y: contain !important;
+  -webkit-overscroll-behavior: none !important;
+  -webkit-overscroll-behavior-x: none !important;
+  -webkit-overscroll-behavior-y: contain !important;
+}
+
+/* Aplicar no-drag a todos los hijos también */
+.no-drag * {
+  -webkit-user-drag: none !important;
+  user-drag: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Especial para iOS PWA - Aún más restrictivo */
+@supports (-webkit-touch-callout: none) {
+  @media (display-mode: standalone) {
+    .no-drag {
+      -webkit-touch-callout: none !important;
+      -webkit-user-select: none !important;
+      -webkit-user-drag: none !important;
+      touch-action: manipulation !important;
+      overscroll-behavior-x: none !important;
+      -webkit-overscroll-behavior-x: none !important;
+    }
+    
+    .no-drag * {
+      -webkit-touch-callout: none !important;
+      -webkit-user-select: none !important;
+      -webkit-user-drag: none !important;
+      touch-action: manipulation !important;
+    }
   }
 }
 
