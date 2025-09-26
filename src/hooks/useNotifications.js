@@ -2,6 +2,8 @@ import { useCallback, useEffect } from 'react';
 import { usePushNotifications } from './usePushNotifications';
 import { useAudioNotifications } from './useAudioNotifications';
 import { useAdvancedToast } from '../components/notifications/ToastSystem';
+import { workoutScheduler } from '../utils/workoutScheduler';
+import { progressTracker } from '../utils/progressTracker';
 
 /**
  * Hook integrado que combina todas las funcionalidades de notificaciones:
@@ -73,6 +75,18 @@ export const useNotifications = () => {
       if (audioNotifications.isSupported && !audioNotifications.isAudioUnlocked) {
         // Se desbloqueará automáticamente en la primera interacción del usuario
       }
+      
+      // Inicializar recordatorios de entrenamiento programados
+      workoutScheduler.initializeReminders();
+      
+      // Configurar sistema de progreso con notificaciones
+      progressTracker.setNotificationSystem({
+        workoutCompleted: (type, stats) => notifyWorkoutCompleted(type, stats),
+        achievement: (name, description) => notifyAchievement(name, description),
+        personalRecord: (exercise, newWeight, oldWeight) => notifyPRBroken(exercise, newWeight, oldWeight),
+        streakMotivation: (days) => notifyStreakMotivation(days),
+        weightUpdate: (newWeight, difference) => notifyWeightUpdate(newWeight, difference)
+      });
       
       return true;
     } catch (error) {
@@ -233,6 +247,177 @@ export const useNotifications = () => {
     audioNotifications.playAchievement();
   }, [toast, audioNotifications]);
 
+  // === NOTIFICACIONES DE ENTRENAMIENTO ===
+
+  const notifyWorkoutReminder = useCallback((workoutType, message) => {
+    toast.workout(message || `¡Es hora de tu rutina de ${workoutType}! 💪`, {
+      title: '⏰ Recordatorio de Entrenamiento',
+      duration: 6000,
+      action: 'Empezar ahora',
+      onAction: () => {
+        // Navegar al entrenamiento o ejecutar callback personalizado
+        console.log('Iniciando entrenamiento:', workoutType);
+      }
+    });
+    
+    audioNotifications.playWorkoutStart();
+  }, [toast, audioNotifications]);
+
+  const notifyWorkoutCompleted = useCallback((workoutType, stats) => {
+    const message = stats 
+      ? `¡Excelente! Rutina de ${workoutType} completada: ${stats.exercises} ejercicios, ${stats.duration} min`
+      : `¡Excelente trabajo! Has completado tu rutina de ${workoutType}`;
+    
+    toast.achievement(message, {
+      title: '✅ Entrenamiento Completado',
+      duration: 8000
+    });
+    
+    audioNotifications.playAchievement();
+  }, [toast, audioNotifications]);
+
+  // === NOTIFICACIONES DE MOTIVACIÓN ===
+
+  const notifyDailyMotivation = useCallback((customMessage) => {
+    const messages = [
+      '¡Hoy es un gran día para entrenar! ¿Estás listo para superarte?',
+      '💪 Tu cuerpo puede hacerlo. Es tu mente la que necesita convencerse.',
+      '¡Cada día eres más fuerte que ayer! ¡No te rindas!',
+      '🏆 Los campeones se hacen cuando nadie los ve.',
+      '¡Es hora de convertir el sudor en éxito!'
+    ];
+    
+    const message = customMessage || messages[Math.floor(Math.random() * messages.length)];
+    
+    toast.custom({
+      type: 'workout',
+      title: '🔥 Motivación Diaria',
+      message,
+      duration: 7000
+    });
+    
+    audioNotifications.playSound('success');
+  }, [toast, audioNotifications]);
+
+  const notifyStreakMotivation = useCallback((days, customMessage) => {
+    const message = customMessage || `¡Increíble! Llevas ${days} días consecutivos entrenando. ¡No rompas la racha!`;
+    
+    toast.streak(days, {
+      message,
+      duration: 8000
+    });
+    
+    // Secuencia especial de sonidos para rachas largas
+    if (days >= 7) {
+      audioNotifications.playCountdownSequence(3);
+    } else {
+      audioNotifications.playAchievement();
+    }
+  }, [toast, audioNotifications]);
+
+  // === NOTIFICACIONES SOCIALES ===
+
+  const notifySocialLike = useCallback((userName, activityType) => {
+    toast.success(`A ${userName} le gustó tu ${activityType}`, {
+      title: '👍 ¡Like recibido!',
+      duration: 4000
+    });
+    
+    audioNotifications.playSound('success');
+  }, [toast, audioNotifications]);
+
+  const notifySocialComment = useCallback((userName, activityType, comment) => {
+    const message = comment 
+      ? `${userName}: "${comment.length > 50 ? comment.slice(0, 50) + '...' : comment}"`
+      : `${userName} comentó en tu ${activityType}`;
+    
+    toast.info(message, {
+      title: '💬 Nuevo comentario',
+      duration: 6000,
+      action: 'Ver comentario',
+      onAction: () => {
+        console.log('Navegando a comentarios');
+      }
+    });
+    
+    audioNotifications.playSound('notification');
+  }, [toast, audioNotifications]);
+
+  const notifyChallengeInvite = useCallback((userName, challengeType) => {
+    toast.custom({
+      type: 'achievement',
+      title: '🎯 ¡Desafío recibido!',
+      message: `${userName} te ha retado a ${challengeType || 'un desafío de fitness'}`,
+      duration: 8000,
+      action: 'Ver desafío',
+      onAction: () => {
+        console.log('Navegando a desafío');
+      }
+    });
+    
+    audioNotifications.playAchievement();
+  }, [toast, audioNotifications]);
+
+  const notifyChallengeCompleted = useCallback((challengeName, reward) => {
+    toast.achievement(
+      reward 
+        ? `¡Has completado "${challengeName}"! Recompensa: ${reward}`
+        : `¡Felicitaciones! Has completado el desafío: ${challengeName}`,
+      {
+        title: '🏆 ¡Desafío completado!',
+        duration: 10000
+      }
+    );
+    
+    audioNotifications.playCountdownSequence(2);
+  }, [toast, audioNotifications]);
+
+  // === SISTEMA DE RECORDATORIOS PROGRAMADOS ===
+
+  const scheduleWorkoutReminder = useCallback((workoutData) => {
+    const reminder = workoutScheduler.scheduleWorkoutReminder(workoutData);
+    toast.success(`Recordatorio programado: ${workoutData.workoutType} a las ${workoutData.scheduledTime}`, {
+      title: '⏰ Recordatorio creado',
+      duration: 4000
+    });
+    return reminder;
+  }, [toast]);
+
+  const getScheduledReminders = useCallback(() => {
+    return workoutScheduler.getActiveReminders();
+  }, []);
+
+  const removeWorkoutReminder = useCallback((id) => {
+    workoutScheduler.removeReminder(id);
+    toast.success('Recordatorio eliminado correctamente', {
+      duration: 3000
+    });
+  }, [toast]);
+
+  const setupDefaultReminders = useCallback(() => {
+    workoutScheduler.createDefaultReminders();
+    toast.success('Recordatorios por defecto configurados', {
+      title: '✅ Sistema configurado',
+      duration: 4000
+    });
+  }, [toast]);
+
+  // === SISTEMA DE PROGRESO ===
+
+  const recordWorkout = useCallback((workoutData) => {
+    const workout = progressTracker.recordWorkout(workoutData);
+    return workout;
+  }, []);
+
+  const recordWeightChange = useCallback((newWeight) => {
+    const entry = progressTracker.recordWeightChange(newWeight);
+    return entry;
+  }, []);
+
+  const getProgressStats = useCallback(() => {
+    return progressTracker.getStats();
+  }, []);
+
   // === NOTIFICACIONES DE ERROR/ÉXITO ===
 
   const notifyError = useCallback((message, title = 'Error') => {
@@ -312,12 +497,37 @@ export const useNotifications = () => {
   }, [audioNotifications, notifySuccess]);
 
   const testAllSystems = useCallback(async () => {
-    notifySuccess('Probando sistema de notificaciones...');
+    notifySuccess('Probando sistema completo de notificaciones...');
     
-    setTimeout(() => audioNotifications.testAudio(), 500);
-    setTimeout(() => notifyAchievement('Sistema de Prueba', 'Todas las notificaciones funcionan correctamente'), 1000);
-    setTimeout(() => notifyStreak(7, 'Esta es una prueba de racha'), 2000);
-  }, [notifySuccess, audioNotifications, notifyAchievement, notifyStreak]);
+    // Secuencia de pruebas con diferentes tipos
+    const testSequence = [
+      { delay: 500, fn: () => audioNotifications.testAudio() },
+      { delay: 1000, fn: () => notifyWorkoutReminder('piernas') },
+      { delay: 2000, fn: () => notifyDailyMotivation() },
+      { delay: 3000, fn: () => notifyAchievement('Sistema de Prueba', 'Todas las notificaciones funcionan correctamente') },
+      { delay: 4000, fn: () => notifyStreakMotivation(7) },
+      { delay: 5000, fn: () => notifyPRBroken('Press de banca', 80, 75) },
+      { delay: 6000, fn: () => notifySocialLike('Juan', 'rutina de pecho') },
+      { delay: 7000, fn: () => notifyWorkoutCompleted('pecho', { exercises: 6, duration: 45 }) },
+      { delay: 8000, fn: () => notifyChallengeInvite('Ana', 'desafío de 30 días') },
+      { delay: 9000, fn: () => notifySuccess('✅ ¡Todas las notificaciones probadas exitosamente!') }
+    ];
+    
+    testSequence.forEach(({ delay, fn }) => {
+      setTimeout(fn, delay);
+    });
+  }, [
+    notifySuccess, 
+    audioNotifications, 
+    notifyWorkoutReminder,
+    notifyDailyMotivation,
+    notifyAchievement, 
+    notifyStreakMotivation,
+    notifyPRBroken,
+    notifySocialLike,
+    notifyWorkoutCompleted,
+    notifyChallengeInvite
+  ]);
 
   // === RETURN API UNIFICADA ===
   
@@ -334,10 +544,33 @@ export const useNotifications = () => {
     countdown: startCountdown,
     restTimer: startRestTimer,
     
-    // Progreso
+    // Entrenamientos
+    workoutReminder: notifyWorkoutReminder,
+    workoutCompleted: notifyWorkoutCompleted,
+    
+    // Recordatorios programados
+    scheduleReminder: scheduleWorkoutReminder,
+    getReminders: getScheduledReminders,
+    removeReminder: removeWorkoutReminder,
+    setupDefaultReminders,
+    
+    // Motivación
+    dailyMotivation: notifyDailyMotivation,
+    streakMotivation: notifyStreakMotivation,
+    
+    // Sociales
+    socialLike: notifySocialLike,
+    socialComment: notifySocialComment,
+    challengeInvite: notifyChallengeInvite,
+    challengeCompleted: notifyChallengeCompleted,
+    
+    // Progreso y seguimiento
     progress: notifyProgressUpdate,
     weightUpdate: notifyWeightUpdate,
     personalRecord: notifyPRBroken,
+    recordWorkout,
+    recordWeightChange,
+    getStats: getProgressStats,
     
     // Básicas
     success: notifySuccess,

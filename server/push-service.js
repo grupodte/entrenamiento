@@ -259,6 +259,70 @@ app.post('/api/push/send-fitness', async (req, res) => {
           { action: 'open', title: '💪 Continuar entrenamiento' },
           { action: 'add-rest', title: '⏰ +30s más' }
         ]
+      },
+      workout_reminder: {
+        title: '💪 ¡Hora de entrenar!',
+        body: data.message || `Es hora de tu rutina de ${data.workoutType || 'entrenamiento'} 🏋️`,
+        actions: [
+          { action: 'start-workout', title: '🏃‍♂️ Empezar ahora' },
+          { action: 'snooze', title: '⏰ Recordar en 15 min' }
+        ]
+      },
+      daily_motivation: {
+        title: '🔥 ¡Motivación diaria!',
+        body: data.message || '¡Hoy es un gran día para entrenar! ¿Estás listo para superarte?',
+        actions: [
+          { action: 'open', title: '💪 ¡Vamos!' },
+          { action: 'dismiss', title: '😴 Más tarde' }
+        ]
+      },
+      streak_motivation: {
+        title: `🔥 ¡Racha de ${data.days || 1} días!`,
+        body: data.message || `¡Increíble! Llevas ${data.days || 1} días consecutivos entrenando. ¡No rompas la racha!`,
+        actions: [
+          { action: 'open', title: '🏆 Ver progreso' },
+          { action: 'share', title: '📱 Compartir logro' }
+        ]
+      },
+      personal_record: {
+        title: '🏆 ¡Nuevo récord personal!',
+        body: data.message || `¡Felicitaciones! Nuevo récord en ${data.exercise || 'ejercicio'}: ${data.newRecord || 'N/A'}`,
+        actions: [
+          { action: 'view-progress', title: '📈 Ver estadísticas' },
+          { action: 'share', title: '🎉 Celebrar' }
+        ]
+      },
+      workout_completed: {
+        title: '✅ ¡Entrenamiento completado!',
+        body: data.message || `¡Excelente trabajo! Has completado tu rutina de ${data.workoutType || 'entrenamiento'}`,
+        actions: [
+          { action: 'view-summary', title: '📊 Ver resumen' },
+          { action: 'share', title: '💪 Compartir logro' }
+        ]
+      },
+      social_like: {
+        title: '👍 ¡Alguien le gustó tu progreso!',
+        body: data.message || `A ${data.userName || 'alguien'} le gustó tu ${data.activityType || 'actividad'}`,
+        actions: [
+          { action: 'view-activity', title: '👀 Ver actividad' },
+          { action: 'open', title: '💬 Responder' }
+        ]
+      },
+      social_comment: {
+        title: '💬 Nuevo comentario',
+        body: data.message || `${data.userName || 'Alguien'} comentó en tu ${data.activityType || 'publicación'}`,
+        actions: [
+          { action: 'view-comments', title: '💬 Ver comentarios' },
+          { action: 'reply', title: '✍️ Responder' }
+        ]
+      },
+      challenge_invite: {
+        title: '🎯 ¡Desafío recibido!',
+        body: data.message || `${data.userName || 'Alguien'} te ha retado a un desafío de fitness`,
+        actions: [
+          { action: 'accept-challenge', title: '✅ Aceptar' },
+          { action: 'view-challenge', title: '👀 Ver detalles' }
+        ]
       }
     };
 
@@ -405,10 +469,31 @@ app.get('/api/push/test-panel', (req, res) => {
       <button onclick="sendTest()">📤 Enviar a Todos</button>
       
       <h3>💪 Notificaciones de Fitness</h3>
-      <button onclick="sendFitness('workout_reminder')">💪 Recordatorio de Entrenamiento</button>
-      <button onclick="sendFitness('achievement')">🏆 Logro Desbloqueado</button>
-      <button onclick="sendFitness('streak', {days: 5})">🔥 Racha de 5 días</button>
-      <button onclick="sendFitness('rest_timer', {exercise: 'Press de banca'})">⏰ Descanso Terminado</button>
+      <div style="margin: 10px 0;">
+        <h4>Entrenamientos:</h4>
+        <button onclick="sendFitness('workout_reminder', {workoutType: 'piernas'})">💪 Recordatorio de Entrenamiento</button>
+        <button onclick="sendFitness('rest_timer', {exercise: 'Press de banca'})">⏰ Descanso Terminado</button>
+        <button onclick="sendFitness('workout_completed', {workoutType: 'pecho'})">✅ Entrenamiento Completado</button>
+      </div>
+      
+      <div style="margin: 10px 0;">
+        <h4>Progreso y Logros:</h4>
+        <button onclick="sendFitness('achievement', {name: 'Primer mes'})">🏆 Logro Desbloqueado</button>
+        <button onclick="sendFitness('personal_record', {exercise: 'Press banca', newRecord: '80kg'})">🏆 Nuevo Récord</button>
+        <button onclick="sendFitness('streak_motivation', {days: 5})">🔥 Motivación Racha</button>
+      </div>
+      
+      <div style="margin: 10px 0;">
+        <h4>Motivación:</h4>
+        <button onclick="sendFitness('daily_motivation')">🔥 Motivación Diaria</button>
+      </div>
+      
+      <div style="margin: 10px 0;">
+        <h4>Sociales:</h4>
+        <button onclick="sendFitness('social_like', {userName: 'Juan', activityType: 'rutina de pecho'})">👍 Like Recibido</button>
+        <button onclick="sendFitness('social_comment', {userName: 'Ana', activityType: 'entrenamiento'})">💬 Nuevo Comentario</button>
+        <button onclick="sendFitness('challenge_invite', {userName: 'Carlos'})">🎯 Desafío Recibido</button>
+      </div>
       
       <script>
         async function sendTest() {
