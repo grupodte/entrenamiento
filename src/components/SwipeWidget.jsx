@@ -268,7 +268,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
         <>
           {/* Overlay con blur */}
           <motion.div
-            className="fixed inset-0 bg-black z-overlay"
+            className="fixed inset-0  z-overlay"
             variants={overlayVariants}
             initial={isOpen && shouldUseFadeIn ? "initial" : (isOpen ? "open" : "closed")}
             animate={currentVariant}
@@ -279,7 +279,7 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
 
           {/* Panel principal */}
           <motion.div
-            className="fixed top-0 h-full z-drawer shadow-2xl"
+            className="fixed top-0 h-full z-drawer "
             data-swipe-widget
             variants={widgetVariants}
             initial={isOpen && shouldUseFadeIn ? "initial" : (isOpen ? "open" : "closed")}
@@ -297,7 +297,8 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
 
             {/* Contenido principal */}
             <div className="h-full flex flex-col">
-              <div className="flex-1 flex flex-col justify-center mx-auto space-y-2" >
+              <div className="flex-1 flex flex-col justify-start mx-auto space-y-2
+             pt-[calc(env(safe-area-inset-top)+24px)]" >
                 
                 {/* Rutinas */}
                 <RutinasWidget />

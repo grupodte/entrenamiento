@@ -77,26 +77,23 @@ const BottomNavBar = ({
     onOpenPerfil?.();
   };
 
-  const buttonClass = 'flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 text-white/80 hover:text-white hover:bg-white/10';
+  const buttonClass = 'flex items-center justify-center w-12 h-12 ';
 
   return (
-    <motion.nav 
-      className="fixed bottom-0 left-0 h-[75px] right-0 z-floating-nav bg-[#D9D9D9] border-t border-black"
-      style={{
-        paddingBottom: `${safeAreaInsets.bottom}px`,
-      }}
+    <motion.nav
+      className="fixed bottom-0 left-0 right-0 h-[75px] z-floating-nav bg-[#D9D9D9/80] backdrop-blur-md "
+      style={{ paddingBottom: `${safeAreaInsets.bottom}px` }}
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
-      <div className="flex items-center justify-between px-6 py-3">
-        
-  
+      {/* Línea de 100px centrada */}
 
+      <div className="flex items-center justify-between px-6 py-3">
         {/* Botón de Perfil */}
         <motion.button
           onClick={handleProfileClick}
-          className="flex items-center justify-center w-8 h-8 rounded-full overflow-hidden border-2 border-gray-300 transition-all duration-200 hover:border-gray-400"
+          className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-gray-300 transition-all duration-200 hover:border-gray-400"
           whileTap={{ scale: 0.95 }}
         >
           {avatarUrl ? (
@@ -107,11 +104,11 @@ const BottomNavBar = ({
               onError={(e) => {
                 // Si falla la carga de la imagen, mostrar el icono por defecto
                 e.target.style.display = 'none';
-                e.target.parentElement.innerHTML = '<svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>';
+                e.target.parentElement.innerHTML = '<svg class="w-[40px] h-[40px] text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>';
               }}
             />
           ) : (
-            <User className="w-6 h-6 text-gray-700" />
+              <User className="w-[40px] h-[40px]" />
           )}
         </motion.button>
 
@@ -120,9 +117,8 @@ const BottomNavBar = ({
         <motion.button
           onClick={handleMenuClick}
           className={buttonClass}
-          whileTap={{ scale: 0.95 }}
         >
-          <img src={BurgerIcon} alt="Menu" className="w-6 h-6"  />
+          <img src={BurgerIcon} alt="Menu" className="w-[34.24px] h-[22.83px]"  />
         </motion.button>
       </div>
     </motion.nav>
