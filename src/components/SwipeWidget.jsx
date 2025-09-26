@@ -3,6 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Dumbbell, Utensils, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+// Import background images
+import rutinaImage from '../assets/rutina.png';
+import cursoImage from '../assets/curso.png';
+import dietaImage from '../assets/dieta.png';
 
 const SwipeWidget = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
@@ -103,14 +107,17 @@ const SwipeWidget = ({ isOpen, onClose }) => {
   }), []);
 
   // Componentes memoizados para evitar re-renders
-  const WidgetButton = React.memo(({ action, icon: Icon, title, subtitle, gradient, shadow }) => (
+  const WidgetButton = React.memo(({ action, icon: Icon, title, subtitle, backgroundImage, shadow }) => (
     <button
       onClick={(e) => handleButtonClick(e, action)}
       data-action={action}
       className="relative rounded-[10px] px-[24px] pb-[40px] flex flex-col justify-end overflow-hidden"
       style={{
         touchAction: 'manipulation',
-        background: gradient,
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         boxShadow: shadow,
         width: '380px',
         height: '222px',
@@ -118,16 +125,18 @@ const SwipeWidget = ({ isOpen, onClose }) => {
         backfaceVisibility: 'hidden' // Evitar flickering
       }}
     >
+      {/* Overlay para mejorar legibilidad del texto */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+      
       <div className="relative z-10 flex items-center justify-between">
-        <div className="flex ">
+        <div className="flex">
           <div className="flex-1">
-            <div className="text-[#FFFFFF] text-[39px] font-normal">
+            <div className="text-[#FFFFFF] text-[39px] font-normal drop-shadow-lg">
               {title}
             </div>
-        
           </div>
         </div>
-        <div className="text-[#FFFFFF] text-[39px]">
+        <div className="text-[#FFFFFF] text-[39px] drop-shadow-lg">
           →
         </div>
       </div>
@@ -141,21 +150,21 @@ const SwipeWidget = ({ isOpen, onClose }) => {
       icon: Dumbbell,
       title: rol === 'admin' ? 'Rutinas' : 'Mis rutinas',
       subtitle: rol === 'admin' ? 'Panel de rutinas' : 'Mis entrenamientos',
-      gradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+      backgroundImage: rutinaImage,
     },
     {
       action: 'mis-cursos',
       icon: BookOpen,
       title: rol === 'admin' ? 'Cursos' : 'Mis cursos',
       subtitle: rol === 'admin' ? 'Panel admin' : 'Tus cursos asignados',
-      gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+      backgroundImage: cursoImage,
     },
     {
       action: 'dietas',
       icon: Utensils,
       title: rol === 'admin' ? 'Dietas' : 'Mi dieta',
       subtitle: rol === 'admin' ? 'Panel de dietas' : 'Tu plan nutricional',
-      gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+      backgroundImage: dietaImage,
     }
   ], [rol]);
 
