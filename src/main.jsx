@@ -3,9 +3,9 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { registerSW } from 'virtual:pwa-register';
-import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { HelmetProvider } from 'react-helmet-async';
+import { ToastProvider } from './components/notifications/ToastSystem';
 
 import { BrowserRouter as Router } from 'react-router-dom';
 
@@ -31,8 +31,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Router>
         <AuthProvider>
           <SpotifyProvider>
-            <Toaster />
-            <App />
+            <ToastProvider>
+              <App />
+            </ToastProvider>
           </SpotifyProvider>
         </AuthProvider>
       </Router>

@@ -204,14 +204,76 @@ const navigationRoute = new NavigationRoute(navigationHandler, {
 
 registerRoute(navigationRoute);
 
-// === FUNCIONALIDAD DE NOTIFICACIONES (MANTENER LA EXISTENTE) ===
+// === FUNCIONALIDAD DE NOTIFICACIONES AVANZADA ===
 
 // Almacena los timers activos
 const activeTimers = new Map();
 
+// === EVENTOS PUSH DESDE SERVIDOR ===
+self.addEventListener('push', (event) => {
+  console.log('SW: Evento push recibido:', event);
+  
+  let notificationData;
+  
+  if (event.data) {
+    try {
+      notificationData = event.data.json();
+      console.log('SW: Datos push recibidos:', notificationData);
+    } catch (error) {
+      console.error('SW: Error procesando datos push:', error);
+      notificationData = {
+        title: 'Nueva notificación',
+        body: 'Tienes una nueva notificación de Fit',
+        icon: '/icons/icon-192x192.png'
+      };
+    }
+  } else {
+    notificationData = {
+      title: 'Fit - Entrenamiento',
+      body: 'Nueva notificación de tu aplicación de fitness',
+      icon: '/icons/icon-192x192.png'
+    };
+  }
+  
+  // Configuración avanzada de la notificación
+  const notificationOptions = {
+    body: notificationData.body,
+    icon: notificationData.icon || '/icons/icon-192x192.png',
+    badge: '/icons/icon-192x192.png',
+    image: notificationData.image,
+    vibrate: notificationData.vibrate || [200, 100, 200],
+    tag: notificationData.tag || 'fit-notification',
+    renotify: true,
+    requireInteraction: notificationData.requireInteraction || false,
+    actions: notificationData.actions || [
+      {
+        action: 'open',
+        title: '🏋️ Abrir App',
+        icon: '/icons/icon-72x72.png'
+      },
+      {
+        action: 'dismiss',
+        title: '❌ Descartar'
+      }
+    ],
+    data: {
+      ...notificationData.data,
+      timestamp: Date.now(),
+      url: notificationData.url || '/',
+      type: notificationData.type || 'general'
+    }
+  };
+  
+  event.waitUntil(
+    self.registration.showNotification(notificationData.title, notificationOptions)
+  );
+});
+
+// === MANEJO DE MENSAJES DEL CLIENTE ===
 self.addEventListener('message', (event) => {
   const { data } = event;
   
+  // Funcionalidad existente de timer de descanso
   if (data && data.type === 'SCHEDULE_REST_NOTIFICATION') {
     const { duration, exerciseName, endTime } = data;
     console.log(`SW: Programando notificación para ${exerciseName} en ${duration}s`);
@@ -246,7 +308,8 @@ self.addEventListener('message', (event) => {
         ],
         data: {
           type: 'rest-finished',
-          exerciseName: exerciseName
+          exerciseName: exerciseName,
+          timestamp: Date.now()
         }
       });
       
@@ -257,25 +320,116 @@ self.addEventListener('message', (event) => {
     // Guardar el timer
     activeTimers.set('rest-timer', timerId);
   }
+  
+  // Nuevo: Comunicación con el cliente para reproducir sonidos
+  if (data && data.type === 'PLAY_NOTIFICATION_SOUND') {
+    // Enviar mensaje a todas las ventanas/tabs abiertas
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(clientList => {
+        clientList.forEach(client => {
+          if (client.visibilityState === 'visible') {
+            client.postMessage({
+              type: 'PLAY_SOUND',
+              soundType: data.soundType || 'notification'
+            });
+          }
+        });
+      });
+  }
+  
+  // Nuevo: Respuesta de estado del SW
+  if (data && data.type === 'SW_STATUS') {
+    event.ports[0].postMessage({
+      status: 'active',
+      features: ['push', 'notifications', 'background-sync'],
+      timestamp: Date.now()
+    });
+  }
 });
 
-// Manejar clics en notificaciones
+// === MANEJO AVANZADO DE CLICS EN NOTIFICACIONES ===
 self.addEventListener('notificationclick', (event) => {
-  console.log('SW: Click en notificación', event.notification.data);
+  console.log('SW: Click en notificación', {
+    action: event.action,
+    data: event.notification.data,
+    tag: event.notification.tag
+  });
   
   event.notification.close();
   
-  if (event.action === 'open-app' || !event.action) {
+  const notificationData = event.notification.data || {};
+  const targetUrl = notificationData.url || '/';
+  
+  // Manejar diferentes acciones
+  if (event.action === 'dismiss') {
+    // Solo cerrar la notificación (ya se hizo arriba)
+    console.log('SW: Notificación descartada por el usuario');
+    return;
+  }
+  
+  // Para acción 'open', 'open-app' o click en el cuerpo de la notificación
+  if (event.action === 'open' || event.action === 'open-app' || !event.action) {
     event.waitUntil(
-      clients.matchAll({ type: 'window', includeUncontrolled: true })
-        .then((clientList) => {
-          for (const client of clientList) {
-            if (client.url.includes(self.registration.scope)) {
+      clients.matchAll({ 
+        type: 'window', 
+        includeUncontrolled: true 
+      }).then((clientList) => {
+        // Buscar una ventana existente que coincida con el origen
+        for (const client of clientList) {
+          const clientUrl = new URL(client.url);
+          const targetUrlObj = new URL(targetUrl, self.registration.scope);
+          
+          if (clientUrl.origin === targetUrlObj.origin) {
+            // Si ya existe una ventana, enfocarla y navegar si es necesario
+            if (client.url !== targetUrlObj.href) {
+              // Navegar a la URL específica
+              return client.navigate(targetUrlObj.href).then(() => client.focus());
+            } else {
               return client.focus();
             }
           }
-          return clients.openWindow('/');
-        })
+        }
+        
+        // Si no hay ventana existente, abrir una nueva
+        return clients.openWindow(targetUrl);
+      }).then((windowClient) => {
+        // Enviar datos adicionales al cliente si es necesario
+        if (windowClient && notificationData.type) {
+          windowClient.postMessage({
+            type: 'NOTIFICATION_CLICKED',
+            notificationType: notificationData.type,
+            data: notificationData,
+            timestamp: Date.now()
+          });
+        }
+        
+        // Reproducir sonido si la ventana está visible
+        if (windowClient && windowClient.visibilityState === 'visible') {
+          windowClient.postMessage({
+            type: 'PLAY_SOUND',
+            soundType: 'notification_click'
+          });
+        }
+      }).catch(err => {
+        console.error('SW: Error manejando click en notificación:', err);
+      })
+    );
+  }
+  
+  // Manejar acciones personalizadas específicas de fitness
+  if (event.action === 'start-workout') {
+    event.waitUntil(
+      clients.openWindow('/workout').catch(err => {
+        console.error('SW: Error abriendo workout:', err);
+      })
+    );
+  }
+  
+  if (event.action === 'view-progress') {
+    event.waitUntil(
+      clients.openWindow('/progress').catch(err => {
+        console.error('SW: Error abriendo progress:', err);
+      })
     );
   }
 });
