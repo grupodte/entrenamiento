@@ -181,9 +181,9 @@ const AppContent = () => {
       {/* Overlays para prevenir gestos de navegación desde los bordes */}
       <Suspense fallback={<div></div>}>
         <EdgeGestureOverlay 
-          enabled={true}
-          edgeWidth={40} // Más ancho para iOS
-          debug={true} // Habilitado para diagnóstico
+          enabled={false} // Deshabilitado - usando script inmediato
+          edgeWidth={40}
+          debug={false}
         />
       </Suspense>
     </WidgetGuideProvider>

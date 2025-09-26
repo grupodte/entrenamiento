@@ -42,14 +42,21 @@ const EdgeGestureOverlay = ({
 
   // Aplicar estilos adicionales si debug está habilitado
   const getOverlayStyle = useCallback((side) => {
+    // Detectar iOS PWA
+    const isIOSPWA = /iPad|iPhone|iPod/.test(navigator.userAgent) && 
+                     (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches);
+    
     const baseStyle = {
       width: `${edgeWidth}px`,
       height: '100vh',
       position: 'fixed',
       top: 0,
-      zIndex: 'var(--z-emergency)', // Máxima prioridad
-      touchAction: 'pan-y', // Solo permitir scroll vertical
+      zIndex: isIOSPWA ? '2147483647' : 'var(--z-emergency)', // Máximo para iOS PWA
+      touchAction: isIOSPWA ? 'none' : 'pan-y', // Más restrictivo en iOS PWA
       pointerEvents: enabled ? 'auto' : 'none',
+      WebkitUserSelect: 'none',
+      WebkitTouchCallout: 'none',
+      userSelect: 'none',
     };
 
     const sideSpecific = side === 'left' 

@@ -70,7 +70,7 @@ const AlumnoLayoutContent = () => {
   const containerRef = React.useRef(null);
 
   return (
-    <div className="min-h-screen flex flex-col overflow-clip" ref={containerRef}>
+    <div className="min-h-screen flex flex-col overflow-clip app-container" ref={containerRef}>
       {/* GradualBlur fijo a nivel página */}
       <GradualBlur
         target="page"

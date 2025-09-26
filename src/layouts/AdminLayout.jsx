@@ -13,7 +13,7 @@ const AdminLayoutInternal = () => {
 
     return (
         <div
-            className="relative flex text-white bg-black"
+            className="relative flex text-white bg-black app-container"
             style={{ height: 'var(--full-vh, 100vh)' }}
         >
             {/* Fondo decorativo global */}

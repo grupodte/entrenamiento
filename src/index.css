@@ -3,11 +3,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Configuración base + prevención simple de swipe back */
+/* Configuración básica + prevención simple de swipe back */
 html, body {
   overscroll-behavior-x: none;
   -webkit-overscroll-behavior-x: none;
+  /* Prevención de gestos de navegación para iOS PWA */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* Solo para PWA standalone */
@@ -221,6 +227,38 @@ body {
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+}
+
+/* Bloqueo agresivo para iOS PWA */
+@supports (-webkit-touch-callout: none) {
+  @media (display-mode: standalone) {
+    .app-container {
+      touch-action: manipulation !important;
+      -webkit-touch-callout: none !important;
+      -webkit-user-select: none !important;
+    }
+    
+    /* Bloqueo total de touch en las primeras 50px de cada lado */
+    .app-container::before,
+    .app-container::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      width: 50px;
+      height: 100%;
+      z-index: 9999999;
+      pointer-events: auto;
+      touch-action: none !important;
+    }
+    
+    .app-container::before {
+      left: 0;
+    }
+    
+    .app-container::after {
+      right: 0;
+    }
+  }
 }
 
 .main-content {
@@ -592,6 +630,35 @@ body {
       position: fixed !important;
       -webkit-transform: translateZ(0) !important;
       transform: translateZ(0) !important;
+    }
+  }
+}
+
+/* Solución alternativa: Pseudo-elementos CSS para bloquear gestos */
+@supports (-webkit-touch-callout: none) {
+  @media (display-mode: standalone) {
+    body::before,
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      width: 50px;
+      height: 100vh;
+      z-index: 2147483647;
+      pointer-events: auto;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: none;
+      background: transparent;
+    }
+    
+    body::before {
+      left: 0;
+    }
+    
+    body::after {
+      right: 0;
     }
   }
 }
