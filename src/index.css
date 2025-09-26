@@ -3,96 +3,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* Configuración básica + prevención simple de swipe back */
+/* Configuración básica */
 html, body {
-  overscroll-behavior: none;
   overscroll-behavior-x: none;
-  overscroll-behavior-y: contain;
-  -webkit-overscroll-behavior: none;
   -webkit-overscroll-behavior-x: none;
-  -webkit-overscroll-behavior-y: contain;
-  
-  /* Prevención de gestos de navegación para iOS PWA */
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  
-  /* Deshabilitar completamente el arrastre */
-  -webkit-user-drag: none;
-  -khtml-user-drag: none;
-  -moz-user-drag: none;
-  -o-user-drag: none;
-  user-drag: none;
-  
-  /* Touch action restrictivo */
-  touch-action: pan-y pinch-zoom;
 }
 
-/* Solo para PWA standalone - Máxima restricción */
+/* Solo para PWA standalone */
 @media (display-mode: standalone) {
   html, body {
-    overscroll-behavior: none !important;
-    overscroll-behavior-x: none !important;
-    overscroll-behavior-y: contain !important;
-    -webkit-overscroll-behavior: none !important;
-    -webkit-overscroll-behavior-x: none !important;
-    -webkit-overscroll-behavior-y: contain !important;
-    -webkit-user-select: none !important;
-    -webkit-touch-callout: none !important;
-    -webkit-user-drag: none !important;
-    user-drag: none !important;
-    touch-action: manipulation !important;
-    
-    /* Usar safe area insets para evitar zona de gestos */
-    padding-left: env(safe-area-inset-left) !important;
-    padding-right: env(safe-area-inset-right) !important;
-    box-sizing: border-box !important;
-  }
-  
-  /* Aplicar a todos los elementos en PWA */
-  * {
-    overscroll-behavior-x: none !important;
-    -webkit-overscroll-behavior-x: none !important;
-    -webkit-user-drag: none !important;
-    user-drag: none !important;
-    -webkit-touch-callout: none !important;
-    -webkit-user-select: none !important;
-  }
-  
-  /* Container principal con safe areas */
-  #root {
-    margin-left: env(safe-area-inset-left) !important;
-    margin-right: env(safe-area-inset-right) !important;
-    width: calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right)) !important;
+    overscroll-behavior: none;
+    -webkit-overscroll-behavior: none;
   }
 }
 
-/* Configuración específica para iOS Safari/Chrome PWA */
-@supports (-webkit-touch-callout: none) {
-  html, body {
-    -webkit-overscroll-behavior-x: none;
-    -webkit-overscroll-behavior-y: auto;
-    overscroll-behavior-x: none;
-    overscroll-behavior-y: auto;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-    touch-action: pan-y;
-  }
-  
-  /* En modo PWA en iOS, ser más agresivo */
-  @media (display-mode: standalone) {
-    html, body, #root {
-      -webkit-overscroll-behavior: none;
-      overscroll-behavior: none;
-      -webkit-user-select: none;
-      -webkit-touch-callout: none;
-      touch-action: pan-y;
-    }
-  }
-}
 
 /* ====== VIDEO PANEL STYLES ====== */
 /* Estilos específicos para el VideoPanel con Portal */
@@ -258,51 +182,8 @@ body {
 /* ====== LAYOUT PRINCIPAL ====== */
 .app-container {
   @apply h-screen flex flex-col relative;
-  /* Prevenir gestos de navegación del navegador */
-  overscroll-behavior-x: none !important;
-  overscroll-behavior-y: contain;
-  -webkit-overscroll-behavior-x: none !important;
-  -webkit-overscroll-behavior-y: contain !important;
-  -webkit-overflow-scrolling: touch;
   overflow-x: hidden;
   max-width: 100vw;
-  /* Configuración específica para prevenir swipe */
-  touch-action: pan-y;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-}
-
-/* Bloqueo agresivo para iOS PWA */
-@supports (-webkit-touch-callout: none) {
-  @media (display-mode: standalone) {
-    .app-container {
-      touch-action: manipulation !important;
-      -webkit-touch-callout: none !important;
-      -webkit-user-select: none !important;
-    }
-    
-    /* Bloqueo total de touch en las primeras 50px de cada lado */
-    .app-container::before,
-    .app-container::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      width: 50px;
-      height: 100%;
-      z-index: 9999999;
-      pointer-events: auto;
-      touch-action: none !important;
-    }
-    
-    .app-container::before {
-      left: 0;
-    }
-    
-    .app-container::after {
-      right: 0;
-    }
-  }
 }
 
 .main-content {
@@ -581,205 +462,7 @@ body {
   display: none;
 }
 
-/* ====== EDGE GESTURE OVERLAYS ====== */
-/* Estilos específicos para overlays de captura de gestos de borde */
-.edge-gesture-overlay {
-  /* Posicionamiento fijo y absoluto */
-  position: fixed !important;
-  top: 0 !important;
-  height: 100vh !important;
-  
-  /* Z-index máximo para estar por encima de todo */
-  z-index: var(--z-emergency) !important;
-  
-  /* Configuración de touch */
-  touch-action: pan-y !important; /* Solo scroll vertical */
-  -webkit-touch-callout: none !important;
-  user-select: none !important;
-  -webkit-user-select: none !important;
-  
-  /* Por defecto invisible */
-  background-color: transparent !important;
-  pointer-events: auto !important;
-  
-  /* Prevenir interferencias de CSS */
-  margin: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-  transform: none !important;
-  transition: none !important;
-  
-  /* Asegurar que capture todos los eventos táctiles */
-  -webkit-user-drag: none;
-  -khtml-user-drag: none;
-  -moz-user-drag: none;
-  -o-user-drag: none;
-  user-drag: none;
-}
 
-.edge-gesture-overlay-left {
-  left: 0 !important;
-}
-
-.edge-gesture-overlay-right {
-  right: 0 !important;
-}
-
-/* Estilos para debug mode */
-.edge-gesture-overlay.debug {
-  opacity: 0.1 !important;
-}
-
-.edge-gesture-overlay-left.debug {
-  background-color: rgba(255, 0, 0, 0.1) !important;
-  border: 1px solid red !important;
-}
-
-.edge-gesture-overlay-right.debug {
-  background-color: rgba(0, 0, 255, 0.1) !important;
-  border: 1px solid blue !important;
-}
-
-/* Prevenir interferencias con otros elementos */
-.edge-gesture-overlay * {
-  pointer-events: none !important;
-  user-select: none !important;
-  -webkit-user-select: none !important;
-}
-
-/* Estados especiales para PWA */
-@media (display-mode: standalone) {
-  .edge-gesture-overlay {
-    /* En modo PWA, asegurar máxima prioridad */
-    z-index: 999999 !important;
-  }
-}
-
-/* Configuración específica para iOS */
-@supports (-webkit-touch-callout: none) {
-  .edge-gesture-overlay {
-    /* Más agresivo en iOS */
-    -webkit-user-select: none !important;
-    -webkit-touch-callout: none !important;
-    -webkit-user-drag: none !important;
-    user-select: none !important;
-    pointer-events: auto !important;
-    touch-action: none !important; /* Más restrictivo en iOS */
-  }
-  
-  /* En PWA de iOS, configuración máxima */
-  @media (display-mode: standalone) {
-    .edge-gesture-overlay {
-      z-index: 2147483647 !important; /* Máximo z-index posible */
-      position: fixed !important;
-      -webkit-transform: translateZ(0) !important;
-      transform: translateZ(0) !important;
-    }
-  }
-}
-
-/* Solución alternativa: Pseudo-elementos CSS para bloquear gestos */
-@supports (-webkit-touch-callout: none) {
-  @media (display-mode: standalone) {
-    body::before,
-    body::after {
-      content: '';
-      position: fixed;
-      top: 0;
-      width: 50px;
-      height: 100vh;
-      z-index: 2147483647;
-      pointer-events: auto;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      user-select: none;
-      touch-action: none;
-      background: transparent;
-    }
-    
-    body::before {
-      left: 0;
-    }
-    
-    body::after {
-      right: 0;
-    }
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  .edge-gesture-overlay {
-    /* En móviles, hacer la zona un poco más ancha */
-    min-width: 20px !important;
-  }
-}
-
-@media (min-width: 1024px) {
-  .edge-gesture-overlay {
-    /* En desktop, zona más pequeña ya que los gestos son menos comunes */
-    max-width: 15px !important;
-  }
-}
-
-/* ====== CLASE NO-DRAG PARA DESHABILITAR ARRASTRE COMPLETAMENTE ====== */
-.no-drag {
-  /* Deshabilitar completamente cualquier tipo de arrastre */
-  -webkit-user-drag: none !important;
-  -khtml-user-drag: none !important;
-  -moz-user-drag: none !important;
-  -o-user-drag: none !important;
-  user-drag: none !important;
-  
-  /* Deshabilitar selección */
-  -webkit-user-select: none !important;
-  -webkit-touch-callout: none !important;
-  -khtml-user-select: none !important;
-  -moz-user-select: none !important;
-  -ms-user-select: none !important;
-  user-select: none !important;
-  
-  /* Control total de touch */
-  touch-action: pan-y manipulation !important;
-  
-  /* Overscroll behavior restrictivo */
-  overscroll-behavior: none !important;
-  overscroll-behavior-x: none !important;
-  overscroll-behavior-y: contain !important;
-  -webkit-overscroll-behavior: none !important;
-  -webkit-overscroll-behavior-x: none !important;
-  -webkit-overscroll-behavior-y: contain !important;
-}
-
-/* Aplicar no-drag a todos los hijos también */
-.no-drag * {
-  -webkit-user-drag: none !important;
-  user-drag: none !important;
-  -webkit-touch-callout: none !important;
-  -webkit-user-select: none !important;
-  user-select: none !important;
-}
-
-/* Especial para iOS PWA - Aún más restrictivo */
-@supports (-webkit-touch-callout: none) {
-  @media (display-mode: standalone) {
-    .no-drag {
-      -webkit-touch-callout: none !important;
-      -webkit-user-select: none !important;
-      -webkit-user-drag: none !important;
-      touch-action: manipulation !important;
-      overscroll-behavior-x: none !important;
-      -webkit-overscroll-behavior-x: none !important;
-    }
-    
-    .no-drag * {
-      -webkit-touch-callout: none !important;
-      -webkit-user-select: none !important;
-      -webkit-user-drag: none !important;
-      touch-action: manipulation !important;
-    }
-  }
-}
 
 /* ====== CONFIGURACIÓN RESPONSIVA NORMAL ====== */
 

@@ -7,7 +7,6 @@ import RutaProtegida from './components/RutaProtegida';
 import useSmoothScroll from './hooks/useSmoothScroll';
 import useScrollToTop from './hooks/useScrollToTop';
 import useSimpleSwipeBackPrevention from './hooks/useSimpleSwipeBackPrevention';
-import useHistoryLock from './hooks/useHistoryLock';
 import { useLocation } from 'react-router-dom';
 import { WidgetGuideProvider } from './context/WidgetGuideContext';
 
@@ -19,8 +18,6 @@ const AlumnoLayout = React.lazy(() => import('./layouts/AlumnoLayout'));
 // Widget Guide
 const WidgetGuideOverlay = React.lazy(() => import('./components/WidgetGuide/WidgetGuideOverlay'));
 
-// Edge Gesture Prevention
-const EdgeGestureOverlay = React.lazy(() => import('./components/EdgeGestureOverlay'));
 
 // Páginas públicas
 const LandingPage = React.lazy(() => import('./pages/LandingPage'));
@@ -79,9 +76,6 @@ const AppContent = () => {
   
   // Prevención simple y no intrusiva de swipe back
   useSimpleSwipeBackPrevention(true);
-  
-  // Bloqueo de historial para iOS PWA
-  useHistoryLock(true);
 
   return (
     <WidgetGuideProvider>
@@ -182,14 +176,6 @@ const AppContent = () => {
         <WidgetGuideOverlay />
       </Suspense>
       
-      {/* Overlays para prevenir gestos de navegación desde los bordes */}
-      <Suspense fallback={<div></div>}>
-        <EdgeGestureOverlay 
-          enabled={false} // Deshabilitado - usando script inmediato
-          edgeWidth={40}
-          debug={false}
-        />
-      </Suspense>
     </WidgetGuideProvider>
   );
 };

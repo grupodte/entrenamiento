@@ -6,6 +6,7 @@ import { useBackNavigation } from '../../context/BackNavigationContext';
 // usePrompt removido - lógica simplificada
 import useRutinaLogic from "../../hooks/useRutinaLogic";
 import useRutinaProgress from "../../hooks/useRutinaProgress";
+import useIOSBackSwipeBlock from "../../hooks/useSimpleSwipeBackPrevention"; // Enhanced iOS swipe prevention
 import RutinaHeader from "../../components/RutinaDetalle/RutinaHeader";
 import RutinaContent from "../../components/RutinaDetalle/RutinaContent";
 import RutinaTimersDisplay from "../../components/RutinaDetalle/RutinaTimersDisplay";
@@ -14,6 +15,7 @@ import ProgressDock from "../../components/RutinaDetalle/ProgressDock";
 import Drawer from "../../components/Drawer";
 import VideoPanel from "../../components/VideoPanel"; // Importar VideoPanel
 import { motion } from 'framer-motion'; // <-- 2. IMPORTAR MOTION
+import { shouldEnableIOSSwipeBlock, getFeatureSettings } from '../../config/features';
 
 const RutinaDetalle = () => {
     // ... (hooks iniciales sin cambios)
@@ -63,6 +65,27 @@ const RutinaDetalle = () => {
     } = useRutinaProgress(rutina, elementosCompletados);
 
     const isReady = !loading && !!rutina;
+    
+    // iOS swipe gesture prevention for full-screen workout experience
+    const shouldBlockSwipes = shouldEnableIOSSwipeBlock(location.pathname);
+    const iosSwipeSettings = getFeatureSettings('IOS_SWIPE_BLOCK');
+    
+    const swipeBlockStatus = useIOSBackSwipeBlock({
+        enabled: shouldBlockSwipes && isReady, // Only enable when workout is loaded
+        edgeThreshold: iosSwipeSettings.edgeThreshold || 0.1,
+        debugLog: iosSwipeSettings.debugLog || false
+    });
+    
+    // Log iOS swipe block status in development
+    useEffect(() => {
+        if (iosSwipeSettings.debugLog && swipeBlockStatus.isActive) {
+            console.log('[RutinaDetalle] iOS swipe blocking active', {
+                route: location.pathname,
+                isIOSDetected: swipeBlockStatus.isIOSDetected,
+                stats: swipeBlockStatus.stats
+            });
+        }
+    }, [swipeBlockStatus, location.pathname, iosSwipeSettings.debugLog]);
     
     // Estado del bloqueo listo
 
