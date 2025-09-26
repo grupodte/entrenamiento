@@ -4,7 +4,7 @@ import { Dumbbell, Utensils, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) => {
+const SwipeWidget = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const { user, rol } = useAuth();
 
@@ -39,32 +39,26 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     executeAction(action);
   }, [executeAction]);
 
-  // Memoizar cálculos de progreso para evitar recálculos innecesarios
-  const progressValues = useMemo(() => ({
-    openProgress: Math.min(swipeProgress / 200, 1),
-    closeProgressNormalized: Math.min(closeProgress / 150, 1)
-  }), [swipeProgress, closeProgress]);
+  // Sin cálculos de progreso ya que no hay swipe
 
   // Estado para fade-in optimizado
   const [shouldUseFadeIn, setShouldUseFadeIn] = useState(false);
 
   useEffect(() => {
-    if (isOpen && swipeProgress === 0 && closeProgress === 0) {
+    if (isOpen) {
       setShouldUseFadeIn(true);
-      const timer = setTimeout(() => setShouldUseFadeIn(false), 300); // Reducido
+      const timer = setTimeout(() => setShouldUseFadeIn(false), 300);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, swipeProgress, closeProgress]);
+  }, [isOpen]);
 
   // Memoizar la variante actual
   const currentVariant = useMemo(() => {
-    if (closeProgress > 0) return 'closing';
-    if (swipeProgress > 0) return 'dragging';
     if (isOpen) return shouldUseFadeIn ? 'fadeIn' : 'open';
     return 'closed';
-  }, [closeProgress, swipeProgress, isOpen, shouldUseFadeIn]);
+  }, [isOpen, shouldUseFadeIn]);
 
-  // Variantes optimizadas con hardware acceleration
+  // Variantes simplificadas sin swipe
   const widgetVariants = useMemo(() => ({
     closed: {
       x: '-100%',
@@ -86,30 +80,15 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
         mass: 0.8
       }
     },
-    dragging: {
-      x: `${-100 + progressValues.openProgress * 100}%`,
-      opacity: Math.max(0.4, progressValues.openProgress),
-      transition: { type: 'tween', duration: 0, ease: 'linear' }
-    },
-    closing: {
-      x: `${0 - progressValues.closeProgressNormalized * 100}%`,
-      opacity: 1 - progressValues.closeProgressNormalized * 0.6,
-      transition: { type: 'tween', duration: 0, ease: 'linear' }
-    },
-    initial: {
-      x: '0%',
-      opacity: 0,
-      transition: { duration: 0 }
-    },
     fadeIn: {
       x: '0%',
       opacity: 1,
       transition: {
-        opacity: { duration: 0.4, ease: [0.4, 0, 0.2, 1] }, // easeOut custom
+        opacity: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
         x: { duration: 0 }
       }
     }
-  }), [progressValues]);
+  }), []);
 
   const overlayVariants = useMemo(() => ({
     closed: { opacity: 0 },
@@ -117,20 +96,11 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
       opacity: 0.5,
       transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] }
     },
-    dragging: {
-      opacity: progressValues.openProgress * 0.5,
-      transition: { duration: 0 }
-    },
-    closing: {
-      opacity: (1 - progressValues.closeProgressNormalized) * 0.5,
-      transition: { duration: 0 }
-    },
-    initial: { opacity: 0 },
     fadeIn: {
       opacity: 0.5,
       transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] }
     }
-  }), [progressValues]);
+  }), []);
 
   // Componentes memoizados para evitar re-renders
   const WidgetButton = React.memo(({ action, icon: Icon, title, subtitle, gradient, shadow }) => (
@@ -201,33 +171,17 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     }
   }, [onClose]);
 
-  // Indicador de progreso memoizado
-  const ProgressIndicator = React.memo(() => {
-    if (swipeProgress === 0 && closeProgress === 0) return null;
-
-    return (
-      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-        <div
-          className="w-1 bg-cyan-400/60 rounded-full transition-opacity duration-200"
-          style={{
-            height: '64px',
-            opacity: Math.max(progressValues.openProgress, progressValues.closeProgressNormalized),
-            willChange: 'opacity'
-          }}
-        />
-      </div>
-    );
-  });
+  // Sin indicador de progreso ya que no hay swipe
 
   return (
     <AnimatePresence mode="wait">
-      {(isOpen || swipeProgress > 0 || closeProgress > 0) && (
+      {isOpen && (
         <>
           {/* Overlay optimizado */}
           <motion.div
             className="fixed inset-0 z-overlay"
             variants={overlayVariants}
-            initial={isOpen && shouldUseFadeIn ? "initial" : (isOpen ? "open" : "closed")}
+            initial={shouldUseFadeIn ? "fadeIn" : "open"}
             animate={currentVariant}
             exit="closed"
             onClick={handleOverlayClick}
@@ -241,9 +195,9 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
           {/* Panel principal optimizado */}
           <motion.div
             className="fixed top-0 h-full z-drawer"
-            data-swipe-widget
+            data-widget-panel
             variants={widgetVariants}
-            initial={isOpen && shouldUseFadeIn ? "initial" : (isOpen ? "open" : "closed")}
+            initial={shouldUseFadeIn ? "fadeIn" : "open"}
             animate={currentVariant}
             exit="closed"
             style={{
@@ -259,13 +213,11 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             {/* Contenido principal */}
             <div className="h-full flex flex-col">
               <div className="flex-1 flex flex-col justify-start mx-auto space-y-2 pt-[calc(env(safe-area-inset-top)+24px)]">
-                {widgetConfigs.map((config, index) => (
+                {widgetConfigs.map((config) => (
                   <WidgetButton key={config.action} {...config} />
                 ))}
               </div>
             </div>
-
-            <ProgressIndicator />
           </motion.div>
         </>
       )}

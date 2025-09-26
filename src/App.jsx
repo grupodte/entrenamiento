@@ -182,8 +182,8 @@ const AppContent = () => {
       <Suspense fallback={<div></div>}>
         <EdgeGestureOverlay 
           enabled={true}
-          edgeWidth={25}
-          debug={false} // Cambiar a true para ver los overlays y debug info
+          edgeWidth={40} // Más ancho para iOS
+          debug={true} // Habilitado para diagnóstico
         />
       </Suspense>
     </WidgetGuideProvider>

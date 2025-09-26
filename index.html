@@ -10,7 +10,12 @@
   <!-- Manifest PWA -->
   <!-- Responsive & PWA optimizado - Sin zoom ni gestos de navegación -->
   <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
+  
+  <!-- Prevención específica de gestos para iOS -->
+  <meta name="apple-touch-fullscreen" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
 
   <!-- Meta tags básicos para PWA -->
   <meta name="format-detection" content="telephone=no" />
@@ -28,6 +33,12 @@
 
   <!-- Theme Color for browser UI -->
   <meta name="theme-color" content="#121212" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121212" />
+  
+  <!-- Configuración adicional para PWA en iOS -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-touch-fullscreen" content="yes" />
+  <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
 
   <!-- iOS-specific PWA settings -->
   <meta name="apple-mobile-web-app-capable" content="yes" />

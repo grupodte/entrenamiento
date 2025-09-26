@@ -3,13 +3,13 @@ import useEdgeGestureCapture from '../hooks/useEdgeGestureCapture';
 
 /**
  * Componente que renderiza overlays invisibles en los bordes de la pantalla
- * para capturar y prevenir gestos de navegación del navegador
+ * para capturar y prevenir gestos de navegación del navegador.
  */
 const EdgeGestureOverlay = ({ 
   enabled = true, 
   edgeWidth = 25,
   debug = false,
-  className = '' 
+  className = ''
 }) => {
   const leftOverlayRef = useRef(null);
   const rightOverlayRef = useRef(null);

@@ -15,6 +15,32 @@ html, body {
   html, body {
     overscroll-behavior: none;
     -webkit-overscroll-behavior: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+}
+
+/* Configuración específica para iOS Safari/Chrome PWA */
+@supports (-webkit-touch-callout: none) {
+  html, body {
+    -webkit-overscroll-behavior-x: none;
+    -webkit-overscroll-behavior-y: auto;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: auto;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: pan-y;
+  }
+  
+  /* En modo PWA en iOS, ser más agresivo */
+  @media (display-mode: standalone) {
+    html, body, #root {
+      -webkit-overscroll-behavior: none;
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: pan-y;
+    }
   }
 }
 
@@ -544,6 +570,29 @@ body {
   .edge-gesture-overlay {
     /* En modo PWA, asegurar máxima prioridad */
     z-index: 999999 !important;
+  }
+}
+
+/* Configuración específica para iOS */
+@supports (-webkit-touch-callout: none) {
+  .edge-gesture-overlay {
+    /* Más agresivo en iOS */
+    -webkit-user-select: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-drag: none !important;
+    user-select: none !important;
+    pointer-events: auto !important;
+    touch-action: none !important; /* Más restrictivo en iOS */
+  }
+  
+  /* En PWA de iOS, configuración máxima */
+  @media (display-mode: standalone) {
+    .edge-gesture-overlay {
+      z-index: 2147483647 !important; /* Máximo z-index posible */
+      position: fixed !important;
+      -webkit-transform: translateZ(0) !important;
+      transform: translateZ(0) !important;
+    }
   }
 }
 
