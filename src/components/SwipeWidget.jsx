@@ -296,8 +296,8 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             
 
             {/* Contenido principal */}
-            <div className="h-full pt-16 pb-8 px-6 flex flex-col">
-              <div className="flex-1 flex flex-col justify-center mx-auto space-y-4" style={{ width: '380px' }}>
+            <div className="h-full flex flex-col">
+              <div className="flex-1 flex flex-col justify-center mx-auto space-y-2" >
                 
                 {/* Rutinas */}
                 <RutinasWidget />
