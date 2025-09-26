@@ -250,6 +250,15 @@ app.post('/api/push/send-fitness', async (req, res) => {
         actions: [
           { action: 'view-progress', title: '📈 Ver resumen' }
         ]
+      },
+      rest_timer: {
+        title: '⏰ ¡Descanso terminado!',
+        body: data.message || `¡Es hora de continuar: ${data.exercise || 'el siguiente ejercicio'}! 💪`,
+        vibrate: [300, 100, 300, 100, 300],
+        actions: [
+          { action: 'open', title: '💪 Continuar entrenamiento' },
+          { action: 'add-rest', title: '⏰ +30s más' }
+        ]
       }
     };
 
@@ -399,6 +408,7 @@ app.get('/api/push/test-panel', (req, res) => {
       <button onclick="sendFitness('workout_reminder')">💪 Recordatorio de Entrenamiento</button>
       <button onclick="sendFitness('achievement')">🏆 Logro Desbloqueado</button>
       <button onclick="sendFitness('streak', {days: 5})">🔥 Racha de 5 días</button>
+      <button onclick="sendFitness('rest_timer', {exercise: 'Press de banca'})">⏰ Descanso Terminado</button>
       
       <script>
         async function sendTest() {

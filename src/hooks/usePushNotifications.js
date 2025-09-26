@@ -111,6 +111,39 @@ export const usePushNotifications = () => {
       // Manejar reproducción de sonido
       playNotificationSound(data.soundType);
     }
+    
+    // Nuevo: Manejar finalización de descanso
+    if (data && data.type === 'REST_COMPLETED') {
+      console.log('🔔 Descanso completado:', data.exerciseName);
+      
+      // Reproducir sonido si está habilitado
+      if (data.playSound) {
+        playNotificationSound('rest_complete');
+      }
+      
+      // Disparar evento personalizado para que otros hooks lo escuchen
+      window.dispatchEvent(new CustomEvent('restCompleted', {
+        detail: {
+          exerciseName: data.exerciseName,
+          timestamp: data.timestamp,
+          showToast: data.showToast
+        }
+      }));
+    }
+    
+    // Nuevo: Manejar agregar tiempo de descanso
+    if (data && data.type === 'ADD_REST_TIME') {
+      console.log(`⏰ Agregando ${data.additionalSeconds}s de descanso:`, data.exerciseName);
+      
+      // Disparar evento personalizado
+      window.dispatchEvent(new CustomEvent('addRestTime', {
+        detail: {
+          additionalSeconds: data.additionalSeconds,
+          exerciseName: data.exerciseName,
+          timestamp: data.timestamp
+        }
+      }));
+    }
   }, []);
 
   // Solicitar permiso de notificaciones

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { usePushNotifications } from './usePushNotifications';
 import { useAudioNotifications } from './useAudioNotifications';
 import { useAdvancedToast } from '../components/notifications/ToastSystem';
@@ -16,6 +16,49 @@ export const useNotifications = () => {
   const pushNotifications = usePushNotifications();
   const audioNotifications = useAudioNotifications();
   const toast = useAdvancedToast();
+
+  // === LISTENERS AUTOMÁTICOS DE EVENTOS ===
+  
+  useEffect(() => {
+    // Escuchar evento de descanso completado
+    const handleRestCompleted = (event) => {
+      const { exerciseName, showToast } = event.detail;
+      
+      if (showToast) {
+        toast.workout(`¡Descanso terminado! Es hora de: ${exerciseName}`, {
+          title: '⏰ Tiempo cumplido',
+          duration: 5000
+        });
+      }
+      
+      console.log(`💪 Descanso completado automáticamente: ${exerciseName}`);
+    };
+    
+    // Escuchar evento de agregar tiempo de descanso
+    const handleAddRestTime = (event) => {
+      const { additionalSeconds, exerciseName } = event.detail;
+      
+      toast.info(`Se agregaron ${additionalSeconds}s más de descanso para ${exerciseName}`, {
+        title: '⏰ Descanso extendido',
+        duration: 3000
+      });
+      
+      // Reproducir sonido de confirmación
+      audioNotifications.playSound('success');
+      
+      console.log(`⏰ Tiempo de descanso extendido: +${additionalSeconds}s para ${exerciseName}`);
+    };
+    
+    // Añadir event listeners
+    window.addEventListener('restCompleted', handleRestCompleted);
+    window.addEventListener('addRestTime', handleAddRestTime);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('restCompleted', handleRestCompleted);
+      window.removeEventListener('addRestTime', handleAddRestTime);
+    };
+  }, [toast, audioNotifications]);
 
   // === CONFIGURACIÓN INICIAL ===
   
@@ -121,13 +164,24 @@ export const useNotifications = () => {
   }, [toast, audioNotifications]);
 
   /**
-   * Timer visual para descansos con sonido
+   * Timer visual para descansos con sonido y notificación push
    */
-  const startRestTimer = useCallback((exerciseName, seconds, onSkip) => {
-    // Toast con barra de progreso y botón para saltar
-    const toastId = toast.restTimer(exerciseName, seconds, onSkip);
+  const startRestTimer = useCallback((exerciseName, seconds, onSkip, onComplete) => {
+    console.log(`⏰ Iniciando timer de descanso: ${exerciseName} - ${seconds}s`);
     
-    // Programar sonido cuando termine (a través del Service Worker si es posible)
+    // Toast con barra de progreso y botón para saltar
+    const toastId = toast.restTimer(exerciseName, seconds, () => {
+      // Callback cuando el usuario salta el descanso
+      if (onSkip) {
+        onSkip();
+      }
+      toast.success('Descanso saltado - ¡A entrenar!', {
+        duration: 2000
+      });
+      audioNotifications.playWorkoutStart();
+    });
+    
+    // Programar notificación push y sonido cuando termine (a través del Service Worker)
     if (pushNotifications.sendMessageToSW) {
       pushNotifications.sendMessageToSW({
         type: 'SCHEDULE_REST_NOTIFICATION',
@@ -137,8 +191,23 @@ export const useNotifications = () => {
       });
     }
     
-    return toastId;
-  }, [toast, pushNotifications]);
+    // Timer local como backup (en caso de que el SW falle)
+    const backupTimer = setTimeout(() => {
+      console.log('Timer local completado como backup');
+      if (onComplete) {
+        onComplete();
+      }
+    }, seconds * 1000);
+    
+    return {
+      toastId,
+      timerId: backupTimer,
+      cancel: () => {
+        clearTimeout(backupTimer);
+        toast.dismiss(toastId);
+      }
+    };
+  }, [toast, pushNotifications, audioNotifications]);
 
   // === NOTIFICACIONES DE PROGRESO ===
 

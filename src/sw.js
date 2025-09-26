@@ -292,6 +292,7 @@ self.addEventListener('message', (event) => {
     const timerId = setTimeout(() => {
       console.log('SW: Mostrando notificación de descanso terminado');
       
+      // Mostrar la notificación push
       self.registration.showNotification('¡Descanso terminado!', {
         body: `¡Es hora de continuar: ${exerciseName}! 💪`,
         icon: '/icons/icon-192x192.png',
@@ -303,15 +304,38 @@ self.addEventListener('message', (event) => {
         actions: [
           {
             action: 'open-app',
-            title: 'Abrir App'
+            title: '💪 Continuar entrenamiento'
+          },
+          {
+            action: 'add-rest',
+            title: '⏰ +30s más'
           }
         ],
         data: {
           type: 'rest-finished',
           exerciseName: exerciseName,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          url: '/dashboard' // Llevar al dashboard cuando haga clic
         }
       });
+      
+      // Reproducir sonido automáticamente si la app está abierta
+      clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then(clientList => {
+          clientList.forEach(client => {
+            // Enviar mensaje para reproducir sonido y mostrar toast
+            client.postMessage({
+              type: 'REST_COMPLETED',
+              exerciseName: exerciseName,
+              timestamp: Date.now(),
+              playSound: true,
+              showToast: true
+            });
+          });
+        })
+        .catch(error => {
+          console.log('SW: No se pudieron contactar los clientes:', error);
+        });
       
       // Limpiar el timer del mapa
       activeTimers.delete('rest-timer');
@@ -430,6 +454,31 @@ self.addEventListener('notificationclick', (event) => {
       clients.openWindow('/progress').catch(err => {
         console.error('SW: Error abriendo progress:', err);
       })
+    );
+  }
+  
+  // Manejar acción de agregar 30s más de descanso
+  if (event.action === 'add-rest') {
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then(clientList => {
+          clientList.forEach(client => {
+            client.postMessage({
+              type: 'ADD_REST_TIME',
+              additionalSeconds: 30,
+              exerciseName: notificationData.exerciseName,
+              timestamp: Date.now()
+            });
+          });
+          
+          // Si no hay ventanas abiertas, abrir la app
+          if (clientList.length === 0) {
+            return clients.openWindow('/dashboard');
+          }
+        })
+        .catch(err => {
+          console.error('SW: Error manejando add-rest:', err);
+        })
     );
   }
 });

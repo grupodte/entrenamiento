@@ -245,36 +245,49 @@ function SettingsComponent() {
 
 ## 💻 Ejemplos Prácticos
 
-### 1. Sistema de Descanso Completo
+### 1. Sistema de Descanso Completo con Notificación Push y Sonido
 
 ```jsx
 function RestTimerExample() {
   const notifications = useNotifications();
   
   const startRest = (exercise, seconds) => {
-    // Iniciar timer visual con sonido al finalizar
-    notifications.restTimer(
+    // Iniciar timer visual con notificación push y sonido automáticos
+    const timer = notifications.restTimer(
       exercise, 
       seconds, 
+      // onSkip - cuando el usuario salta el descanso
       () => {
-        // Callback si el usuario quiere saltar
-        notifications.success('Descanso saltado');
+        notifications.success('Descanso saltado - ¡A entrenar!');
+      },
+      // onComplete - cuando termina automáticamente
+      () => {
+        console.log('Descanso completado automáticamente');
       }
     );
     
-    // Cuando termine el tiempo automáticamente
-    setTimeout(() => {
-      notifications.restComplete(exercise);
-    }, seconds * 1000);
+    // El timer ahora incluye:
+    // ✅ Notificación push cuando termine (funciona con app cerrada)
+    // ✅ Sonido automático de alerta
+    // ✅ Toast visual con barra de progreso
+    // ✅ Botón "+30s más" en la notificación push
+    // ✅ Vibración en móviles
   };
   
   return (
     <button onClick={() => startRest('Press de banca', 90)}>
-      Descanso 90s
+      Descanso 90s (Push + Sonido)
     </button>
   );
 }
 ```
+
+**Nuevas funcionalidades del sistema de descanso:**
+- 🔔 **Notificación push automática** cuando termina el descanso
+- 🔊 **Sonido de alerta** que respeta políticas del navegador
+- ⏰ **Botón "+30s más"** directamente en la notificación
+- 📱 **Funciona con la app cerrada** - PWA real
+- 🎯 **Navegación inteligente** al hacer clic en la notificación
 
 ### 2. Sistema de Logros
 

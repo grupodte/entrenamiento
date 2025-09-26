@@ -37,6 +37,7 @@ const MisCursos = React.lazy(() => import('./pages/Alumno/MisCursos'));
 const DietasAlumno = React.lazy(() => import('./pages/Alumno/DietasAlumno'));
 const Onboarding = React.lazy(() => import('./pages/Onboarding'));
 const NotificationSettings = React.lazy(() => import('./pages/NotificationSettings'));
+const RestTimerExample = React.lazy(() => import('./components/examples/RestTimerExample'));
 
 // Páginas de admin
 const AdminPanel = React.lazy(() => import('./pages/Admin/AdminPanel'));
@@ -105,6 +106,7 @@ const AppContent = () => {
         <Route path="/mis-cursos" element={<MisCursos />} />
         <Route path="/mis-dietas" element={<DietasAlumno />} />
         <Route path="/notificaciones" element={<NotificationSettings />} />
+        <Route path="/ejemplo-descanso" element={<RestTimerExample />} />
         <Route path="/curso/:cursoId" element={<VisualizarCurso />} />
       </Route>
 
