@@ -16,28 +16,20 @@ const useEdgeSwipe = ({
   const startPosRef = useRef({ x: 0, y: 0 });
   const isSwipingRef = useRef(false);
   const swipeTypeRef = useRef(null);
-  const lastProgressRef = useRef(0); // Para evitar updates innecesarios
-  const velocityRef = useRef({ x: 0, timestamp: 0 }); // Para calcular velocidad
-  const animationFrameRef = useRef(null);
+  const rafRef = useRef(null);
 
-  // Función throttled para updates de progreso usando RAF
+  // Función para actualizar progreso con RAF para mejor performance
   const updateProgress = useCallback((progress, type) => {
-    if (animationFrameRef.current) return; // Ya hay un update pendiente
+    if (rafRef.current) return;
 
-    animationFrameRef.current = requestAnimationFrame(() => {
-      animationFrameRef.current = null;
-
-      // Solo actualizar si hay cambio significativo (>1px)
-      if (Math.abs(progress - lastProgressRef.current) > 1) {
-        lastProgressRef.current = progress;
-
-        if (type === 'open') {
-          setSwipeProgress(progress);
-        } else {
-          setCloseProgress(progress);
-        }
-        onSwipeProgress?.(progress, type);
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (type === 'open') {
+        setSwipeProgress(progress);
+      } else {
+        setCloseProgress(progress);
       }
+      onSwipeProgress?.(progress, type);
     });
   }, [onSwipeProgress]);
 
@@ -45,20 +37,11 @@ const useEdgeSwipe = ({
     const touch = e.touches[0];
     const startX = touch.clientX;
     const startY = touch.clientY;
-    const timestamp = performance.now();
 
     startPosRef.current = { x: startX, y: startY };
     isSwipingRef.current = false;
-    lastProgressRef.current = 0;
-    velocityRef.current = { x: 0, timestamp };
 
-    // Cancelar cualquier animación pendiente
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-
-    // Reset progreso de manera síncrona para mejor responsividad
+    // Reset progreso
     setSwipeProgress(0);
     setCloseProgress(0);
 
@@ -83,29 +66,12 @@ const useEdgeSwipe = ({
     const currentY = touch.clientY;
     const deltaX = currentX - startPosRef.current.x;
     const deltaY = currentY - startPosRef.current.y;
-    const timestamp = performance.now();
 
-    // Calcular velocidad para gestos más naturales
-    const timeDelta = timestamp - velocityRef.current.timestamp;
-    if (timeDelta > 0) {
-      velocityRef.current = {
-        x: deltaX / timeDelta,
-        timestamp
-      };
-    }
-
-    // Umbral más estricto para direccionalidad al inicio
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    if (distance < 10) return; // Esperar un poco más de movimiento
-
-    // Verificar direccionalidad solo una vez al inicio del gesto
-    if (!isSwipingRef.current) {
-      // Ratio más estricto para evitar activación accidental
-      if (Math.abs(deltaX) < Math.abs(deltaY) * 0.75) return;
-    }
+    // Verificar que sea más horizontal que vertical
+    if (Math.abs(deltaX) < Math.abs(deltaY) * 0.7) return;
 
     if (swipeTypeRef.current === 'open') {
-      if (deltaX > 5) { // Umbral más pequeño una vez iniciado
+      if (deltaX > 5) {
         isSwipingRef.current = true;
         const progress = Math.min(Math.max(deltaX, 0) / maxSwipeDistance, 1);
         updateProgress(progress * maxSwipeDistance, 'open');
@@ -122,10 +88,9 @@ const useEdgeSwipe = ({
   }, [isEdgeSwipe, maxSwipeDistance, updateProgress]);
 
   const handleTouchEnd = useCallback((e) => {
-    // Cancelar cualquier animación pendiente
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
     }
 
     if (!isSwipingRef.current) {
@@ -138,70 +103,45 @@ const useEdgeSwipe = ({
 
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - startPosRef.current.x;
-    const velocity = Math.abs(velocityRef.current.x);
 
     let shouldTrigger = false;
 
     if (swipeTypeRef.current === 'open') {
-      // Considerar tanto distancia como velocidad
-      const distanceThreshold = deltaX > swipeThreshold;
-      const velocityThreshold = velocity > 0.3 && deltaX > swipeThreshold * 0.6;
-      shouldTrigger = distanceThreshold || velocityThreshold;
+      shouldTrigger = deltaX > swipeThreshold;
     } else if (swipeTypeRef.current === 'close') {
-      const distanceThreshold = Math.abs(deltaX) > swipeThreshold && deltaX < 0;
-      const velocityThreshold = velocity > 0.3 && Math.abs(deltaX) > swipeThreshold * 0.6 && deltaX < 0;
-      shouldTrigger = distanceThreshold || velocityThreshold;
+      shouldTrigger = Math.abs(deltaX) > swipeThreshold && deltaX < 0;
     }
 
     onSwipeEnd?.(shouldTrigger, swipeTypeRef.current);
 
-    // Reset state
+    // Reset
     setIsEdgeSwipe(false);
     setSwipeProgress(0);
     setCloseProgress(0);
     isSwipingRef.current = false;
     swipeTypeRef.current = null;
-    lastProgressRef.current = 0;
   }, [swipeThreshold, onSwipeEnd]);
 
   const startCloseSwipe = useCallback((startX, startY) => {
     startPosRef.current = { x: startX, y: startY };
     swipeTypeRef.current = 'close';
-    velocityRef.current = { x: 0, timestamp: performance.now() };
   }, []);
 
-  // Event listeners con mejor manejo de passive
+  // Event listeners más simples
   useEffect(() => {
-    const handleTouchStartPassive = (e) => {
-      // Solo preventDefault si es necesario
-      const touch = e.touches[0];
-      const startX = touch.clientX;
-
-      if ((isWidgetOpen) || (startX <= edgeThreshold)) {
-        handleTouchStart(e);
-      }
-    };
-
-    const handleTouchMovePassive = (e) => {
-      if (swipeTypeRef.current && isSwipingRef.current) {
-        handleTouchMove(e);
-      }
-    };
-
-    // Usar passive: true para start, false para move/end cuando sea necesario
-    document.addEventListener('touchstart', handleTouchStartPassive, { passive: true });
-    document.addEventListener('touchmove', handleTouchMovePassive, { passive: false });
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
     document.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
       }
-      document.removeEventListener('touchstart', handleTouchStartPassive);
-      document.removeEventListener('touchmove', handleTouchMovePassive);
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [handleTouchStart, handleTouchMove, handleTouchEnd, edgeThreshold, isWidgetOpen]);
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   return {
     isEdgeSwipe,
