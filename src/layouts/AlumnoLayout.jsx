@@ -9,7 +9,7 @@ import GradualBlur from '../components/GradualBlur';
 import { ProgressDockProvider, useProgressDock } from '../context/ProgressDockContext';
 import { BackNavigationProvider, useBackNavigation } from '../context/BackNavigationContext';
 import { useViewportHeight } from '../hooks/useViewportHeight';
-// Hooks de swipe removidos para simplificar
+import useEdgeSwipe from '../hooks/useEdgeSwipe';
 
 // Variantes de animación optimizadas
 const pageVariants = {
@@ -31,7 +31,7 @@ const AlumnoLayoutContent = () => {
   const location = useLocation();
   const [isPerfilDrawerOpen, setIsPerfilDrawerOpen] = useState(false);
   const [isEditPerfilDrawerOpen, setIsEditPerfilDrawerOpen] = useState(false);
-  const [isSwipeWidgetOpen, setIsSwipeWidgetOpen] = useState(true);
+  const [isSwipeWidgetOpen, setIsSwipeWidgetOpen] = useState(true); // Inicia abierto pero mantiene funcionalidad de swipe
   
   // Usar el contexto de ProgressDock y BackNavigation
   const { showProgressDock, toggleProgressDock, progressGlobal } = useProgressDock();
@@ -39,6 +39,37 @@ const AlumnoLayoutContent = () => {
 
   useViewportHeight();
 
+  // Handlers para el SwipeWidget
+  const handleSwipeStart = useCallback(() => {
+    // Opcional: agregar feedback visual cuando inicia el swipe
+    console.log('Swipe detectado:', isSwipeWidgetOpen ? 'cerrar widget' : 'abrir widget');
+  }, [isSwipeWidgetOpen]);
+
+  const handleSwipeProgress = useCallback((progress, type) => {
+    // El progreso se maneja internamente en useEdgeSwipe
+    // Aquí podrías agregar feedback adicional si es necesario
+  }, []);
+
+  const handleSwipeEnd = useCallback((shouldTrigger, swipeType) => {
+    if (shouldTrigger) {
+      if (swipeType === 'open') {
+        setIsSwipeWidgetOpen(true);
+      } else if (swipeType === 'close') {
+        setIsSwipeWidgetOpen(false);
+      }
+    }
+  }, []);
+
+  // Hook de edge swipe
+  const { isEdgeSwipe, swipeProgress, closeProgress } = useEdgeSwipe({
+    onSwipeStart: handleSwipeStart,
+    onSwipeProgress: handleSwipeProgress,
+    onSwipeEnd: handleSwipeEnd,
+    isWidgetOpen: isSwipeWidgetOpen, // Pasar el estado del widget
+    edgeThreshold: 30,
+    swipeThreshold: 100,
+    maxSwipeDistance: 250
+  });
 
   // Handlers memorizados - definir ANTES de los hooks que los usan
   const handleOpenPerfil = useCallback(() => setIsPerfilDrawerOpen(true), []);
@@ -58,14 +89,16 @@ const AlumnoLayoutContent = () => {
 
   const handleProfileUpdate = useCallback(() => setIsEditPerfilDrawerOpen(false), []);
 
-  const handleCloseSwipeWidget = useCallback(() => setIsSwipeWidgetOpen(false), []);
-  const handleOpenSwipeWidget = useCallback(() => setIsSwipeWidgetOpen(prev => !prev), []);
+  const handleCloseSwipeWidget = useCallback(() => {
+    setIsSwipeWidgetOpen(false);
+  }, []);
+  
+  const handleOpenSwipeWidget = useCallback(() => {
+    setIsSwipeWidgetOpen(prev => !prev);
+  }, []);
 
-  // Configuración simplificada sin gestos de swipe complejos
+  // Configuración con gestos de swipe activos
   const containerRef = React.useRef(null);
-  const swipeProgress = 0;
-  const closeProgress = 0;
-  const isEdgeSwipe = false;
 
   return (
     <div className="min-h-screen flex flex-col overflow-clip" ref={containerRef}>

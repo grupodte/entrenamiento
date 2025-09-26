@@ -1,127 +1,100 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Play, Download, Smartphone, Dumbbell, Utensils } from 'lucide-react';
+import { Dumbbell, Utensils, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import usePWAInstall from '../hooks/usePWAInstall';
 
 const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) => {
-  const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
   const { user, rol } = useAuth();
-  
-  // Hook PWA con API real
-  const { 
-    installPWA, 
-    isInstalling,
-    isInstalled,
-    shouldShowWidget,
-    getBrowserInfo
-  } = usePWAInstall();
-  
-  // Información de browser/plataforma
-  const browserInfo = getBrowserInfo();
-  
-  // Sistema de acciones simplificado
+
+  // Memoizar las acciones para evitar recrear funciones
   const executeAction = useCallback((action) => {
     onClose();
-    
-    // Navegación inmediata sin delay innecesario
-    setTimeout(() => {
-      switch(action) {
-        case 'install':
-          navigate('/instalar');
-          break;
+
+    // Usar requestAnimationFrame para mejor timing
+    requestAnimationFrame(() => {
+      switch (action) {
         case 'mis-cursos':
-          const destination = rol === 'admin' ? '/admin/cursos' : '/mis-cursos';
-          navigate(destination);
+          navigate(rol === 'admin' ? '/admin/cursos' : '/mis-cursos');
           break;
         case 'catalogo':
           navigate('/cursos');
           break;
         case 'rutinas':
-          const rutinaDestination = rol === 'admin' ? '/admin/rutinas' : '/dashboard';
-          navigate(rutinaDestination);
+          navigate(rol === 'admin' ? '/admin/rutinas' : '/dashboard');
           break;
         case 'dietas':
-          const dietaDestination = rol === 'admin' ? '/admin/dietas' : '/mis-dietas';
-          navigate(dietaDestination);
+          navigate(rol === 'admin' ? '/admin/dietas' : '/mis-dietas');
           break;
         default:
-          // Unknown action - do nothing
           break;
       }
-    }, 50);
+    });
   }, [onClose, navigate, rol]);
-  
-  // Event handler limpio para botones
+
   const handleButtonClick = useCallback((e, action) => {
     e.preventDefault();
     e.stopPropagation();
-    
     executeAction(action);
   }, [executeAction]);
 
-  // Timer para reloj
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
-    return () => clearInterval(timer);
-  }, []);
+  // Memoizar cálculos de progreso para evitar recálculos innecesarios
+  const progressValues = useMemo(() => ({
+    openProgress: Math.min(swipeProgress / 200, 1),
+    closeProgressNormalized: Math.min(closeProgress / 150, 1)
+  }), [swipeProgress, closeProgress]);
 
-  // Cálculo de progreso normalizado
-  const openProgress = Math.min(swipeProgress / 200, 1);
-  const closeProgressNormalized = Math.min(closeProgress / 150, 1);
-
-  // Estado para controlar animación fade-in cada vez que se abre
+  // Estado para fade-in optimizado
   const [shouldUseFadeIn, setShouldUseFadeIn] = useState(false);
-  
-  // Effect para activar fade-in cada vez que se abre desde cerrado
+
   useEffect(() => {
     if (isOpen && swipeProgress === 0 && closeProgress === 0) {
-      // Solo usar fadeIn si se abre sin gesto de swipe
       setShouldUseFadeIn(true);
-      const timer = setTimeout(() => setShouldUseFadeIn(false), 800);
+      const timer = setTimeout(() => setShouldUseFadeIn(false), 300); // Reducido
       return () => clearTimeout(timer);
     }
   }, [isOpen, swipeProgress, closeProgress]);
 
-  // Determinar variante de animación
-  let currentVariant = 'closed';
-  if (closeProgress > 0) {
-    currentVariant = 'closing';
-  } else if (swipeProgress > 0) {
-    currentVariant = 'dragging';
-  } else if (isOpen) {
-    // Usar fadeIn cada vez que shouldUseFadeIn esté activo
-    currentVariant = shouldUseFadeIn ? 'fadeIn' : 'open';
-  }
+  // Memoizar la variante actual
+  const currentVariant = useMemo(() => {
+    if (closeProgress > 0) return 'closing';
+    if (swipeProgress > 0) return 'dragging';
+    if (isOpen) return shouldUseFadeIn ? 'fadeIn' : 'open';
+    return 'closed';
+  }, [closeProgress, swipeProgress, isOpen, shouldUseFadeIn]);
 
-  // Variantes optimizadas de Framer Motion con fade-in
-  const widgetVariants = {
+  // Variantes optimizadas con hardware acceleration
+  const widgetVariants = useMemo(() => ({
     closed: {
       x: '-100%',
       opacity: 0,
-      transition: { type: 'spring', stiffness: 400, damping: 40 }
+      transition: {
+        type: 'spring',
+        stiffness: 500,
+        damping: 45,
+        mass: 0.8
+      }
     },
     open: {
       x: '0%',
       opacity: 1,
-      transition: { 
-        type: 'spring', 
-        stiffness: 400, 
-        damping: 40,
-        opacity: { duration: 0.6, ease: 'easeOut' }
+      transition: {
+        type: 'spring',
+        stiffness: 500,
+        damping: 45,
+        mass: 0.8
       }
     },
     dragging: {
-      x: `${-100 + openProgress * 100}%`,
-      opacity: Math.max(0.3, openProgress),
-      transition: { type: 'tween', duration: 0 }
+      x: `${-100 + progressValues.openProgress * 100}%`,
+      opacity: Math.max(0.4, progressValues.openProgress),
+      transition: { type: 'tween', duration: 0, ease: 'linear' }
     },
     closing: {
-      x: `${0 - closeProgressNormalized * 100}%`,
-      opacity: 1 - closeProgressNormalized * 0.7,
-      transition: { type: 'tween', duration: 0 }
+      x: `${0 - progressValues.closeProgressNormalized * 100}%`,
+      opacity: 1 - progressValues.closeProgressNormalized * 0.6,
+      transition: { type: 'tween', duration: 0, ease: 'linear' }
     },
     initial: {
       x: '0%',
@@ -131,155 +104,143 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
     fadeIn: {
       x: '0%',
       opacity: 1,
-      transition: { 
-        opacity: { duration: 0.8, ease: 'easeOut' },
+      transition: {
+        opacity: { duration: 0.4, ease: [0.4, 0, 0.2, 1] }, // easeOut custom
         x: { duration: 0 }
       }
     }
-  };
+  }), [progressValues]);
 
-  const overlayVariants = {
+  const overlayVariants = useMemo(() => ({
     closed: { opacity: 0 },
-    open: { 
-      opacity: 0.6,
-      transition: { duration: 0.6, ease: 'easeOut' }
+    open: {
+      opacity: 0.5,
+      transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] }
     },
-    dragging: { opacity: openProgress * 0.6 },
-    closing: { opacity: (1 - closeProgressNormalized) * 0.6 },
+    dragging: {
+      opacity: progressValues.openProgress * 0.5,
+      transition: { duration: 0 }
+    },
+    closing: {
+      opacity: (1 - progressValues.closeProgressNormalized) * 0.5,
+      transition: { duration: 0 }
+    },
     initial: { opacity: 0 },
-    fadeIn: { 
-      opacity: 0.6,
-      transition: { duration: 0.8, ease: 'easeOut' }
+    fadeIn: {
+      opacity: 0.5,
+      transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] }
     }
-  };
+  }), [progressValues]);
 
-
-
-
-  // Widget de Rutinas
-  const RutinasWidget = () => {
-    return (
-      <button
-        onClick={(e) => handleButtonClick(e, 'rutinas')}
-        data-action="rutinas"
-        className="relative rounded-2xl p-8 flex flex-col justify-between cursor-pointer overflow-hidden group transition-all duration-300 hover:scale-[1.02]"
-        style={{ 
-          touchAction: 'manipulation',
-          background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-          boxShadow: '0 4px 20px rgba(239, 68, 68, 0.3)',
-          width: '380px',
-          height: '222px'
-        }}
-      >
-        {/* Contenido */}
-        <div className="relative z-10 flex items-center justify-between">
+  // Componentes memoizados para evitar re-renders
+  const WidgetButton = React.memo(({ action, icon: Icon, title, subtitle, gradient, shadow }) => (
+    <button
+      onClick={(e) => handleButtonClick(e, action)}
+      data-action={action}
+      className="relative rounded-2xl p-8 flex flex-col justify-between cursor-pointer overflow-hidden group transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+      style={{
+        touchAction: 'manipulation',
+        background: gradient,
+        boxShadow: shadow,
+        width: '380px',
+        height: '222px',
+        willChange: 'transform', // Hint para GPU
+        backfaceVisibility: 'hidden' // Evitar flickering
+      }}
+    >
+      <div className="relative z-10 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <Icon className="text-white w-8 h-8" />
           <div className="flex-1">
             <div className="text-white text-lg font-bold mb-1">
-              {rol === 'admin' ? 'Rutinas' : 'Mis rutinas'}
+              {title}
             </div>
             <div className="text-white/80 text-sm">
-              {rol === 'admin' ? 'Panel de rutinas' : 'Mis entrenamientos'}
+              {subtitle}
             </div>
-          </div>
-          <div className="text-white/90 group-hover:translate-x-1 transition-transform duration-200">
-            →
           </div>
         </div>
-      </button>
-    );
-  };
-
-  // Widget de Cursos
-  const CursosWidget = () => {
-    return (
-      <button
-        onClick={(e) => handleButtonClick(e, 'mis-cursos')}
-        data-action="mis-cursos"
-        className="relative rounded-2xl p-8 flex flex-col justify-between cursor-pointer overflow-hidden group transition-all duration-300 hover:scale-[1.02]"
-        style={{ 
-          touchAction: 'manipulation',
-          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-          boxShadow: '0 4px 20px rgba(59, 130, 246, 0.3)',
-          width: '380px',
-          height: '222px'
-        }}
-      >
-        {/* Contenido */}
-        <div className="relative z-10 flex items-center justify-between">
-          <div className="flex-1">
-            <div className="text-white text-lg font-bold mb-1">
-              {rol === 'admin' ? 'Cursos' : 'Mis cursos'}
-            </div>
-            <div className="text-white/80 text-sm">
-              {rol === 'admin' ? 'Panel admin' : 'Tus cursos asignados'}
-            </div>
-          </div>
-          <div className="text-white/90 group-hover:translate-x-1 transition-transform duration-200">
-            →
-          </div>
+        <div className="text-white/90 group-hover:translate-x-1 transition-transform duration-200">
+          →
         </div>
-      </button>
-    );
-  };
+      </div>
+    </button>
+  ));
 
-  // Widget de Dietas
-  const DietasWidget = () => {
-    return (
-      <button
-        onClick={(e) => handleButtonClick(e, 'dietas')}
-        data-action="dietas"
-        className="relative rounded-2xl p-6 flex flex-col justify-between cursor-pointer overflow-hidden group transition-all duration-300 hover:scale-[1.02]"
-        style={{ 
-          touchAction: 'manipulation',
-          background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-          boxShadow: '0 4px 20px rgba(245, 158, 11, 0.3)',
-          width: '380px',
-          height: '222px'
-        }}
-      >
-        {/* Contenido */}
-        <div className="relative z-10 flex items-center justify-between">
-          <div className="flex-1">
-            <div className="text-white text-lg font-bold mb-1">
-              {rol === 'admin' ? 'Dietas' : 'Mi dieta'}
-            </div>
-            <div className="text-white/80 text-sm">
-              {rol === 'admin' ? 'Panel de dietas' : 'Tu plan nutricional'}
-            </div>
-          </div>
-          <div className="text-white/90 group-hover:translate-x-1 transition-transform duration-200">
-            →
-          </div>
-        </div>
-      </button>
-    );
-  };
+  // Configuraciones de widgets memoizadas
+  const widgetConfigs = useMemo(() => [
+    {
+      action: 'rutinas',
+      icon: Dumbbell,
+      title: rol === 'admin' ? 'Rutinas' : 'Mis rutinas',
+      subtitle: rol === 'admin' ? 'Panel de rutinas' : 'Mis entrenamientos',
+      gradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+      shadow: '0 4px 20px rgba(239, 68, 68, 0.3)'
+    },
+    {
+      action: 'mis-cursos',
+      icon: BookOpen,
+      title: rol === 'admin' ? 'Cursos' : 'Mis cursos',
+      subtitle: rol === 'admin' ? 'Panel admin' : 'Tus cursos asignados',
+      gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+      shadow: '0 4px 20px rgba(59, 130, 246, 0.3)'
+    },
+    {
+      action: 'dietas',
+      icon: Utensils,
+      title: rol === 'admin' ? 'Dietas' : 'Mi dieta',
+      subtitle: rol === 'admin' ? 'Panel de dietas' : 'Tu plan nutricional',
+      gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+      shadow: '0 4px 20px rgba(245, 158, 11, 0.3)'
+    }
+  ], [rol]);
 
-  // Handler para overlay click
   const handleOverlayClick = useCallback((e) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
   }, [onClose]);
 
+  // Indicador de progreso memoizado
+  const ProgressIndicator = React.memo(() => {
+    if (swipeProgress === 0 && closeProgress === 0) return null;
+
+    return (
+      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+        <div
+          className="w-1 bg-cyan-400/60 rounded-full transition-opacity duration-200"
+          style={{
+            height: '64px',
+            opacity: Math.max(progressValues.openProgress, progressValues.closeProgressNormalized),
+            willChange: 'opacity'
+          }}
+        />
+      </div>
+    );
+  });
+
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {(isOpen || swipeProgress > 0 || closeProgress > 0) && (
         <>
-          {/* Overlay con blur */}
+          {/* Overlay optimizado */}
           <motion.div
-            className="fixed inset-0  z-overlay"
+            className="fixed inset-0 z-overlay"
             variants={overlayVariants}
             initial={isOpen && shouldUseFadeIn ? "initial" : (isOpen ? "open" : "closed")}
             animate={currentVariant}
             exit="closed"
             onClick={handleOverlayClick}
-            style={{ backdropFilter: 'blur(8px)' }}
+            style={{
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)', // Safari
+              willChange: 'opacity'
+            }}
           />
 
-          {/* Panel principal */}
+          {/* Panel principal optimizado */}
           <motion.div
-            className="fixed top-0 h-full z-drawer "
+            className="fixed top-0 h-full z-drawer"
             data-swipe-widget
             variants={widgetVariants}
             initial={isOpen && shouldUseFadeIn ? "initial" : (isOpen ? "open" : "closed")}
@@ -288,36 +249,23 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
             style={{
               width: '100vw',
               left: '0',
-              backdropFilter: 'blur(5px)',
               backgroundColor: '#FFFFFF',
-              touchAction: 'pan-y manipulation' // Permitir scroll vertical y optimizar toques
+              touchAction: 'pan-y manipulation',
+              willChange: 'transform, opacity',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden'
             }}
           >
-            
-
             {/* Contenido principal */}
             <div className="h-full flex flex-col">
-              <div className="flex-1 flex flex-col justify-start mx-auto space-y-2
-             pt-[calc(env(safe-area-inset-top)+24px)]" >
-                
-                {/* Rutinas */}
-                <RutinasWidget />
-                
-                {/* Cursos */}
-                <CursosWidget />
-
-                {/* Dietas */}
-                <DietasWidget />
-
+              <div className="flex-1 flex flex-col justify-start mx-auto space-y-2 pt-[calc(env(safe-area-inset-top)+24px)]">
+                {widgetConfigs.map((config, index) => (
+                  <WidgetButton key={config.action} {...config} />
+                ))}
               </div>
             </div>
 
-            {/* Indicador de gesto activo */}
-            {(swipeProgress > 0 || closeProgress > 0) && (
-              <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                <div className="w-1 h-16 bg-cyan-400/60 rounded-full animate-pulse" />
-              </div>
-            )}
+            <ProgressIndicator />
           </motion.div>
         </>
       )}
@@ -325,4 +273,4 @@ const SwipeWidget = ({ isOpen, onClose, swipeProgress = 0, closeProgress = 0 }) 
   );
 };
 
-export default SwipeWidget;
+export default React.memo(SwipeWidget);
