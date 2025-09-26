@@ -18,6 +18,9 @@ const AlumnoLayout = React.lazy(() => import('./layouts/AlumnoLayout'));
 // Widget Guide
 const WidgetGuideOverlay = React.lazy(() => import('./components/WidgetGuide/WidgetGuideOverlay'));
 
+// Edge Gesture Prevention
+const EdgeGestureOverlay = React.lazy(() => import('./components/EdgeGestureOverlay'));
+
 // Páginas públicas
 const LandingPage = React.lazy(() => import('./pages/LandingPage'));
 const CatalogoCursos = React.lazy(() => import('./pages/CatalogoCursos'));
@@ -173,6 +176,15 @@ const AppContent = () => {
       {/* Componentes de Widget Guide */}
       <Suspense fallback={<div></div>}>
         <WidgetGuideOverlay />
+      </Suspense>
+      
+      {/* Overlays para prevenir gestos de navegación desde los bordes */}
+      <Suspense fallback={<div></div>}>
+        <EdgeGestureOverlay 
+          enabled={true}
+          edgeWidth={25}
+          debug={false} // Cambiar a true para ver los overlays y debug info
+        />
       </Suspense>
     </WidgetGuideProvider>
   );

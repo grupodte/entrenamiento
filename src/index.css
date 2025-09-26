@@ -473,6 +473,95 @@ body {
   display: none;
 }
 
+/* ====== EDGE GESTURE OVERLAYS ====== */
+/* Estilos específicos para overlays de captura de gestos de borde */
+.edge-gesture-overlay {
+  /* Posicionamiento fijo y absoluto */
+  position: fixed !important;
+  top: 0 !important;
+  height: 100vh !important;
+  
+  /* Z-index máximo para estar por encima de todo */
+  z-index: var(--z-emergency) !important;
+  
+  /* Configuración de touch */
+  touch-action: pan-y !important; /* Solo scroll vertical */
+  -webkit-touch-callout: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  
+  /* Por defecto invisible */
+  background-color: transparent !important;
+  pointer-events: auto !important;
+  
+  /* Prevenir interferencias de CSS */
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  transform: none !important;
+  transition: none !important;
+  
+  /* Asegurar que capture todos los eventos táctiles */
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+
+.edge-gesture-overlay-left {
+  left: 0 !important;
+}
+
+.edge-gesture-overlay-right {
+  right: 0 !important;
+}
+
+/* Estilos para debug mode */
+.edge-gesture-overlay.debug {
+  opacity: 0.1 !important;
+}
+
+.edge-gesture-overlay-left.debug {
+  background-color: rgba(255, 0, 0, 0.1) !important;
+  border: 1px solid red !important;
+}
+
+.edge-gesture-overlay-right.debug {
+  background-color: rgba(0, 0, 255, 0.1) !important;
+  border: 1px solid blue !important;
+}
+
+/* Prevenir interferencias con otros elementos */
+.edge-gesture-overlay * {
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* Estados especiales para PWA */
+@media (display-mode: standalone) {
+  .edge-gesture-overlay {
+    /* En modo PWA, asegurar máxima prioridad */
+    z-index: 999999 !important;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .edge-gesture-overlay {
+    /* En móviles, hacer la zona un poco más ancha */
+    min-width: 20px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .edge-gesture-overlay {
+    /* En desktop, zona más pequeña ya que los gestos son menos comunes */
+    max-width: 15px !important;
+  }
+}
+
 /* ====== CONFIGURACIÓN RESPONSIVA NORMAL ====== */
 
 /* ====== RESPONSIVE ====== */
