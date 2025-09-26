@@ -7,6 +7,7 @@ import RutaProtegida from './components/RutaProtegida';
 import useSmoothScroll from './hooks/useSmoothScroll';
 import useScrollToTop from './hooks/useScrollToTop';
 import useSimpleSwipeBackPrevention from './hooks/useSimpleSwipeBackPrevention';
+import useHistoryLock from './hooks/useHistoryLock';
 import { useLocation } from 'react-router-dom';
 import { WidgetGuideProvider } from './context/WidgetGuideContext';
 
@@ -78,6 +79,9 @@ const AppContent = () => {
   
   // Prevención simple y no intrusiva de swipe back
   useSimpleSwipeBackPrevention(true);
+  
+  // Bloqueo de historial para iOS PWA
+  useHistoryLock(true);
 
   return (
     <WidgetGuideProvider>

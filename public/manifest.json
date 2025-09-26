@@ -4,7 +4,7 @@
     "description": "Entrena inteligente con rutinas personalizadas, seguimiento de progreso y ejercicios en video HD. Tu entrenador personal en el bolsillo.",
     "start_url": "/",
     "scope": "/",
-    "display": "standalone",
+    "display": "fullscreen",
     "orientation": "portrait-primary",
     "theme_color": "#6366f1",
     "background_color": "#121212",
@@ -134,6 +134,6 @@
     "edge_side_panel": {
         "preferred_width": 400
     },
-    "display_override": ["window-controls-overlay", "standalone"],
+    "display_override": ["fullscreen", "standalone", "minimal-ui"],
     "handle_links": "preferred"
 }
