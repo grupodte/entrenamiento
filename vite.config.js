@@ -10,6 +10,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       includeAssets: [
         'favicon.svg',
         'favicon.ico', 
@@ -17,78 +20,9 @@ export default defineConfig({
         'backgrounds/admin-blur.png'
       ],
       manifest: false, // Usar el manifest.json del directorio public
-      workbox: {
-        // Página offline personalizada
-        navigateFallback: null, // Desactivamos el fallback automático
-        navigateFallbackDenylist: [/^\/_/, /\/api\//],
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-        runtimeCaching: [
-          {
-            // APIs críticas de Spotify - NetworkFirst para datos frescos
-            urlPattern: /^https:\/\/api\.spotify\.com\//,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'spotify-api-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 5 * 60 // 5 minutos
-              }
-            }
-          },
-          {
-            // APIs de Supabase - StaleWhileRevalidate para balance velocidad/frescura
-            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\//,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'supabase-api-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 15 * 60 // 15 minutos
-              },
-              cacheKeyWillBeUsed: async ({request}) => {
-                // Personalizar clave de caché para incluir auth
-                const url = new URL(request.url);
-                return `${url.pathname}${url.search}`;
-              }
-            }
-          },
-          {
-            // Imágenes y activos estáticos - CacheFirst con fallback
-            urlPattern: /\.(png|jpg|jpeg|svg|gif|webp|ico)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images-cache',
-              expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 días
-              }
-            }
-          },
-          {
-            // Fuentes - CacheFirst para rendimiento
-            urlPattern: /\.(woff|woff2|ttf|otf|eot)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'fonts-cache',
-              expiration: {
-                maxEntries: 30,
-                maxAgeSeconds: 365 * 24 * 60 * 60 // 1 año
-              }
-            }
-          },
-          {
-            // CDN de videos/assets externos - StaleWhileRevalidate
-            urlPattern: /^https:\/\/(?:.*\.)?(?:vimeo|youtube|amazonaws)\.com\//,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'external-assets-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 24 * 60 * 60 // 1 día
-              }
-            }
-          }
-        ]
+        // El runtime caching se maneja en el SW personalizado
       }
     }),
     // Bundle analyzer (solo en análisis)
