@@ -218,9 +218,9 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                     >
                         {/* Handle mejorado con animaciones suaves */}
                         <motion.div 
-                            className="w-full flex justify-center py-4 cursor-grab active:cursor-grabbing relative"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                            className="w-full flex justify-center cursor-grab active:cursor-grabbing relative"
+                            
+                            
                             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                         >
                             <motion.div
