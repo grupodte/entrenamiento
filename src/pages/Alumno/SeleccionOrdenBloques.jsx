@@ -1,18 +1,15 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaCalendarAlt, FaExclamationTriangle } from 'react-icons/fa';
 import { ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Drawer from '../../components/Drawer';
-import DrawerLoader from '../../components/DrawerLoader';
 import { useRutinaCache } from '../../hooks/useRutinaCache';
 
 const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
     const navigate = useNavigate();
-    const { fetchRutinaData, loading: cacheLoading, error: cacheError } = useRutinaCache();
+    const { fetchRutinaData, loading: cacheLoading } = useRutinaCache();
     const [rutinaData, setRutinaData] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
 
     // Usar useMemo para evitar recálculos innecesarios
     const shouldFetch = useMemo(() => {
@@ -24,23 +21,14 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
         if (!shouldFetch) return;
 
         setLoading(true);
-        setError(null);
 
-        try {
-            const data = await fetchRutinaData(rutinaId, tipo);
-            setRutinaData(data);
-        } catch (err) {
-            setError(err.message || 'Error al cargar los datos de la rutina');
-            setRutinaData(null);
-        } finally {
-            setLoading(false);
-        }
+        const data = await fetchRutinaData(rutinaId, tipo);
+        setRutinaData(data);
+        setLoading(false);
     }, [shouldFetch, fetchRutinaData, rutinaId, tipo]);
 
     useEffect(() => {
         if (!rutinaId || !tipo) {
-            setError("No se proporcionó ID de rutina o tipo.");
-            setLoading(false);
             return;
         }
 
@@ -67,28 +55,10 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
 
     // Mostrar el loader mientras se cargan los datos
     const isLoading = loading || cacheLoading;
-    const currentError = error || cacheError;
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose} height="h-[100vh]">
-            {currentError ? (
-                <div className=" text-[#121212]]">
-                    <div className="mb-4">
-                        <h1 className="text-xl font-bold text-[#121212]">Error</h1>
-                        <p className="text-sm text-gray-400">Problema al cargar la rutina</p>
-                    </div>
-                    <div className="text-center p-6 bg-red-900/50 rounded-lg">
-                        <FaExclamationTriangle className="mx-auto mb-3 text-3xl text-red-400" />
-                        <p className="text-red-300 mb-4">{currentError}</p>
-                        <button
-                            onClick={loadRutinaData}
-                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                        >
-                            Reintentar
-                        </button>
-                    </div>
-                </div>
-            ) : rutinaData ? (
+        <Drawer isOpen={isOpen} onClose={onClose} height="h-[95vh]">
+            {rutinaData ? (
                     <div className=" text-[#121212] max-w-full mx-auto leading-none flex flex-item flex-col  ">
                     <div className="mb-4">
                             <h1 className="text-[27px] font-bold text-[#121212]">{rutinaData.rutina.nombre}</h1>

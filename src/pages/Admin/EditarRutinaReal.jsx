@@ -5,7 +5,7 @@ import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { supabase } from "../../lib/supabaseClient";
-// Componentes de animación eliminados - usando motion directamente
+import { AnimatedLayout } from '../../components/animations';
 import RutinasSidebar from "../../components/Rutina/RutinasSidebar";
 import RutinaItem from "../../components/Rutina/RutinaItem";
 import { Loader2, Save, Trash2 } from "lucide-react";
