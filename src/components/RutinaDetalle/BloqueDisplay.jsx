@@ -82,12 +82,12 @@ const BloqueDisplay = (props) => {
                 return (
                     <div 
                         key={nombre} 
-                        className={`rounded-xl backdrop-blur-sm border transition-all duration-300 p-1  ${
-                            isAGroupWithTitle ? `${theme.bg} ${theme.border}` : 'bg-gray-900/10 border-gray-700/20'
+                        className={`rounded-xl bg-[#D8D8D8]  ${
+                            isAGroupWithTitle ? `${theme.bg} ${theme.border}` : ' '
                         }`}
                     >
                         {isAGroupWithTitle && (
-                            <div className="flex items-center justify-center gap-2 pb-2">
+                            <div className="flex items-center justify-center gap-2">
                                 <div className={`rounded-full bg-gradient-to-b from-${theme.accentColor}-400 to-${theme.accentColor}-600`} />
                                 <ShinyText
                                     text={nombre.toUpperCase()}

@@ -43,8 +43,8 @@ const SubBloqueDisplay = (props) => {
             return (
                 base +
                 ' border-[#7C3AED80] ' +
-                'shadow-[inset_0_0_0_1px_rgba(168,85,247,0.32),0_0_22px_rgba(124,58,237,0.28)] ' +
-                'from-[#120E1C] to-[#0A0912]'
+           'bg-black'
+             
             );
         }
 
@@ -90,33 +90,16 @@ const SubBloqueDisplay = (props) => {
         <section
             role="group"
             aria-label={`${typeLabel} ${subbloque?.nombre ?? ''}`}
-            className={`relative rounded-lg backdrop-blur-md border transition-all duration-300 ${getContainerStyles()}`}
+            className={`relative ${getContainerStyles()}`}
         >
-            {/* Banda lateral sutil */}
-            <div className={`absolute left-0 top-0 bottom-0 w-0.5 rounded-l-lg ${getSidebarStyles()}`} />
             
             {/* Encabezado Clickeable - Optimizado para móvil */}
             <button
                 onClick={handleToggleCollapse}
-                className="w-full flex items-center gap-2 px-3 py-2.5 text-left min-h-[52px] touch-manipulation"
+                className="w-full flex items-center  flex   touch-manipulation"
                 aria-expanded={!isCollapsed}
             >
-                <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0 transition-all duration-300 ${
-                    isCompleted 
-                        ? 'bg-green-600/20 border border-green-500/40' 
-                        : isSuperset 
-                            ? 'bg-violet-600/20 border border-violet-500/40'
-                            : 'bg-cyan-600/20 border border-cyan-500/40'
-                }`}>
-                    {isCompleted ? (
-                        <FaCheckCircle className="text-sm text-green-400" />
-                    ) : (
-                        <Icon className={`text-sm ${
-                            isSuperset ? 'text-violet-400' : 'text-cyan-400'
-                        }`} aria-hidden />
-                    )}
-                </span>
-
+             
                 <div className="flex-1 min-w-0 mr-2">
                     {!hideTitle && (
                         <div className="flex items-center gap-1.5 flex-wrap">

@@ -123,10 +123,6 @@ const AlumnoLayoutContent = () => {
       <BottomNavBar 
         onOpenPerfil={handleOpenPerfil}
         isPerfilOpen={isPerfilDrawerOpen}
-        showProgressDock={showProgressDock}
-        onToggleProgressDock={toggleProgressDock}
-        progressGlobal={progressGlobal}
-        onBackClick={onBackClick}
         onOpenSwipeWidget={handleOpenSwipeWidget}
         isSwipeWidgetOpen={isSwipeWidgetOpen}
       />
