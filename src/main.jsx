@@ -12,14 +12,18 @@ import { BrowserRouter as Router } from 'react-router-dom';
 // Configuración del Service Worker
 const updateSW = registerSW({
   onNeedRefresh() {
-    // Lógica para cuando hay una nueva versión del SW (opcional)
-    if (confirm('Hay una nueva actualización disponible. ¿Recargar la página?')) {
-      updateSW(true);
-    }
+    // Actualización automática sin popup molesto
+    console.log('Nueva versión disponible, actualizando automáticamente...');
+    updateSW(true);
   },
   onOfflineReady() {
-    // Lógica para cuando la app está lista para funcionar offline (opcional)
-    // App ready for offline use
+    console.log('App lista para uso offline');
+  },
+  onRegistered() {
+    console.log('Service Worker registrado exitosamente');
+  },
+  onRegisterError() {
+    console.log('Error registrando Service Worker');
   },
 });
 

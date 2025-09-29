@@ -57,7 +57,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
     const isLoading = loading || cacheLoading;
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose} height="h-[95vh]">
+        <Drawer isOpen={isOpen} onClose={onClose} height="h-[100vh]">
             {rutinaData ? (
                     <div className=" text-[#121212] max-w-full mx-auto leading-none flex flex-item flex-col  ">
                     <div className="mb-4">
