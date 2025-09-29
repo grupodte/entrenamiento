@@ -27,11 +27,14 @@ const AdminLayoutInternal = () => {
             </div>
 
             {/* Layout principal */}
-            <AdminSidebarDesktop />
-            <div className="flex-1 flex flex-col min-h-0">
+            
+            <div className="flex flex-col-2 min-h-0">
+                <AdminSidebarDesktop />
+
                 <div className="flex-1 overflow-y-auto scrollbar-hide">
                     <main className="min-h-full px-4 sm:px-6 lg:px-8 py-8 pl-safe pr-safe">
                         <Outlet />
+
                     </main>
                 </div>
             </div>
