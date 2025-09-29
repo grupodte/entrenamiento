@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ReactDOM from 'react-dom';
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
+import '../styles/drawer-animations.css';
 
 const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
     // Normalizar la altura para usar nuestras nuevas clases CSS
@@ -127,19 +128,26 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
         <AnimatePresence mode="wait">
             {isOpen && (
                 <>
-                    {/* Overlay optimizado */}
+                    {/* Overlay con blur gradual sin fondo oscuro */}
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{
-                            duration: 0.2,
-                            ease: "easeOut"
+                        initial={{ 
+                            backdropFilter: "blur(0px)",
+                            WebkitBackdropFilter: "blur(0px)"
                         }}
-                        className="fixed inset-0 bg-black/50 will-change-[opacity] 
-                        backdrop-blur-sm z-50"
+                        animate={{ 
+                            backdropFilter: "blur(12px)",
+                            WebkitBackdropFilter: "blur(12px)"
+                        }}
+                        exit={{ 
+                            backdropFilter: "blur(0px)",
+                            WebkitBackdropFilter: "blur(0px)"
+                        }}
+                        transition={{
+                            duration: 0.5,
+                            ease: [0.25, 0.46, 0.45, 0.94]
+                        }}
+                        className="fixed inset-0 will-change-[backdrop-filter] z-50"
                         onClick={handleOverlayClick}
-                     
                     />
 
                     {/* Drawer optimizado con swipe horizontal */}
@@ -155,36 +163,41 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                         dragMomentum={false}
                         initial={{
                             y: "100%",
-                            opacity: 0
+                            scale: 0.95 // Solo escala, sin opacity para evitar flash
                         }}
                         animate={{
                             y: 0,
-                            opacity: 1,
-                            x: swipeProgress > 0 ? `${swipeProgress * -30}%` : 0 // Ligero desplazamiento visual
+                            scale: 1,
+                            x: swipeProgress > 0 ? `${swipeProgress * -30}%` : 0
                         }}
                         exit={{
                             y: "100%",
-                            opacity: 0
+                            scale: 0.95,
+                            transition: {
+                                duration: 0.25,
+                                ease: [0.4, 0, 0.2, 1]
+                            }
                         }}
                         transition={{
-                            type: 'spring',
-                            stiffness: 350,
-                            damping: 30,
-                            mass: 0.8,
+                            // Animación de entrada suave sin opacity para evitar flash
                             y: {
-                                type: 'spring',
-                                stiffness: 400,
-                                damping: 25,
+                                type: 'tween',
+                                duration: 0.35,
+                                ease: [0.25, 0.46, 0.45, 0.94]
                             },
-                            opacity: {
-                                type: 'spring',
-                                stiffness: 400,
-                                damping: 25,
+                            scale: {
+                                type: 'tween',
+                                duration: 0.3,
+                                ease: [0.25, 0.46, 0.45, 0.94]
                             },
-                            x: swipeProgress > 0 ? { type: 'tween', duration: 0 } : {
-                                type: 'spring',
-                                stiffness: 400,
-                                damping: 25,
+                            x: swipeProgress > 0 ? { 
+                                type: 'tween', 
+                                duration: 0.1,
+                                ease: "easeOut"
+                            } : {
+                                type: 'tween',
+                                duration: 0.3,
+                                ease: [0.25, 0.46, 0.45, 0.94]
                             }
                         }}
                         className={`
@@ -192,27 +205,67 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                             ${responsiveHeight}
                             w-full mx-auto
                             text-white 
-                             bg-[#FFFFFF]
+                            bg-[#FFFFFF]
                             pb-safe
-                          
                             flex flex-col
+                            transform-gpu
+                            will-change-transform
                         `}
                         style={{
                             paddingTop: 'env(safe-area-inset-top)',
                             zIndex: 99999,
                         }}
                     >
-                        {/* Handle mejorado con indicador de swipe */}
-                        <div className="w-full flex justify-center py-4 cursor-grab active:cursor-grabbing relative">
-                            <ChevronDown className="text-gray-400" />
-                            {/* Indicador visual de swipe horizontal */}
-                            {swipeProgress > 0 && (
-                                <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
-                                    <div className="w-8 h-0.5 bg-cyan-400/60 rounded-full" 
-                                         style={{ width: `${8 + swipeProgress * 20}px` }} />
+                        {/* Handle mejorado con animaciones suaves */}
+                        <motion.div 
+                            className="w-full flex justify-center py-4 cursor-grab active:cursor-grabbing relative"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                        >
+                            <motion.div
+                                animate={{
+                                    rotate: swipeProgress > 0 ? swipeProgress * 15 : 0,
+                                    scale: 1 + (swipeProgress * 0.1)
+                                }}
+                                transition={{
+                                    type: 'spring',
+                                    stiffness: 300,
+                                    damping: 20
+                                }}
+                            >
+                                <div className="relative">
+                                    {/* handle */}
+                                    <div
+                                        className="absolute top-3 w-[25px] h-[5px] bg-[#D9D9D9] rounded-full"
+                                        aria-hidden="true"
+                                    />
+                                    {/* contenido del modal/card */}
+                                    <div className="mt-6">...</div>
                                 </div>
-                            )}
-                        </div>
+                            </motion.div>
+                            
+                            {/* Indicador visual de swipe horizontal con animación */}
+                            <AnimatePresence>
+                                {swipeProgress > 0 && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -10 }}
+                                        className="absolute left-2 top-1/2 transform -translate-y-1/2"
+                                    >
+                                        <motion.div 
+                                            className="h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full" 
+                                            animate={{
+                                                width: `${8 + swipeProgress * 20}px`,
+                                                opacity: 0.6 + (swipeProgress * 0.4)
+                                            }}
+                                            transition={{ type: 'tween', duration: 0.1 }}
+                                        />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </motion.div>
 
                         {/* Contenido con scroll optimizado */}
                         <div

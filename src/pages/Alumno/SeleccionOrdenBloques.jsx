@@ -89,11 +89,11 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                     </div>
                 </div>
             ) : rutinaData ? (
-                    <div className=" text-[#121212] max-w-full mx-auto leading-none">
+                    <div className=" text-[#121212] max-w-full mx-auto leading-none flex flex-item flex-col  ">
                     <div className="mb-4">
                             <h1 className="text-[27px] font-bold text-[#121212]">{rutinaData.rutina.nombre}</h1>
                         {rutinaData.rutina.descripcion && (
-                                <p className="text-[13px] text-[#575757] mt-1">{rutinaData.rutina.descripcion}</p>
+                                <p className="text-[13px] text-[#575757]">{rutinaData.rutina.descripcion}</p>
                         )}
                     </div>
 
@@ -112,10 +112,10 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                                 <motion.div key={bloque.id} variants={itemVariants}>
                                     <button
                                         onClick={() => handleElegirBloque(bloque.id)}
-                                        className="w-full h-[212px] flex justify-between items-center bg-[#121212] shadow-lg rounded-xl p-4 hover:border-cyan-400 hover:bg-gray-600/20 transition-all duration-300 transform hover:scale-[1.0012] active:scale-[0.98]"
+                                        className="w-full h-[212px] flex justify-between items-center bg-[#121212] shadow-lg rounded-xl p-4 "
                                     >
                                         <div className="flex items-center gap-3">
-                                            <span className="text-[27px]  text-white">
+                                            <span className="text-[27px] font-bold text-[#F84B4B]">
                                                 {bloque.nombre}
                                             </span>
                                         </div>

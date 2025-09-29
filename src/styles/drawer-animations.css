@@ -1,0 +1,72 @@
+/* Optimizaciones de animación para el Drawer */
+
+/* Optimizaciones de hardware acceleration */
+.drawer-safe-positioning {
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000px;
+    perspective: 1000px;
+}
+
+/* Mejoras de scroll suave para el contenido */
+.drawer-content {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
+/* Optimizaciones para evitar reflow durante animaciones */
+.drawer-active body {
+    position: fixed;
+    width: 100%;
+}
+
+/* Transiciones suaves para elementos interactivos */
+.drawer-handle-transition {
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Mejorar la calidad de renderizado durante animaciones */
+.drawer-safe-positioning * {
+    transform: translateZ(0);
+}
+
+/* Optimización para backdrop-filter gradual */
+@supports (backdrop-filter: blur(10px)) {
+    .drawer-blur-overlay {
+        backdrop-filter: blur(0px);
+        transition: backdrop-filter 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .drawer-blur-overlay.active {
+        backdrop-filter: blur(12px);
+    }
+}
+
+@supports not (backdrop-filter: blur(10px)) {
+    .drawer-blur-overlay {
+        background-color: rgba(255, 255, 255, 0);
+        transition: background-color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .drawer-blur-overlay.active {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* Animaciones de micro-interacciones */
+.drawer-micro-bounce {
+    animation: micro-bounce 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes micro-bounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+/* Optimizar compositing layers para mejor rendimiento */
+.drawer-compositor-layer {
+    will-change: transform, opacity;
+    contain: layout style paint;
+}

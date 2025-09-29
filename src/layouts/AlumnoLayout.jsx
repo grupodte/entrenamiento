@@ -75,7 +75,7 @@ const AlumnoLayoutContent = () => {
       <GradualBlur
         target="page"
         position="top"
-        height="35px"
+        height="40px"
         strength={2}
         divCount={5}
         curve="bezier"
