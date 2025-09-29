@@ -70,14 +70,14 @@ const BottomNavBar = ({
   }, [user]);
 
   const handleMenuClick = () => {
+    console.log('BottomNavBar: Menu click detectado', { onOpenSwipeWidget });
     onOpenSwipeWidget?.();
   };
 
   const handleProfileClick = () => {
+    console.log('BottomNavBar: Profile click detectado', { onOpenPerfil });
     onOpenPerfil?.();
   };
-
-  const buttonClass = 'flex items-center justify-center w-12 h-12 ';
 
   return (
     <motion.nav
@@ -93,7 +93,7 @@ const BottomNavBar = ({
         {/* Botón de Perfil */}
         <motion.button
           onClick={handleProfileClick}
-          className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-gray-300 transition-all duration-200 hover:border-gray-400"
+          className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-gray-300 transition-all duration-200 hover:border-gray-400 cursor-pointer"
           whileTap={{ scale: 0.95 }}
         >
           {avatarUrl ? (
@@ -116,9 +116,10 @@ const BottomNavBar = ({
         {/* Botón de Menú */}
         <motion.button
           onClick={handleMenuClick}
-          className={buttonClass}
+          className="flex items-center justify-center w-12 h-120 cursor-pointer"
+          whileTap={{ scale: 0.95 }}
         >
-          <img src={BurgerIcon} alt="Menu" className="w-[34.24px] h-[22.83px]"  />
+          <img src={BurgerIcon} alt="Menu" className="w-[34.24px] h-[22.83px] pointer-events-none" />
         </motion.button>
       </div>
     </motion.nav>

@@ -32,11 +32,7 @@ const SubBloqueDisplay = (props) => {
     const getContainerStyles = () => {
         // Base: fondo muy oscuro + sutil glow púrpura y borde fino
         const base =
-            'relative rounded-2xl border text-white/90 transition-all duration-300 backdrop-blur-sm ' +
-            'bg-gradient-to-b from-[#121018] to-[#0A0A0F] ' + // fondo oscuro con leve gradiente
-            'border-[#7C3AED40] ring-1 ring-inset ring-[#A855F71f] ' + // borde/línea interior suave
-            'shadow-[inset_0_0_0_1px_rgba(168,85,247,0.25),0_0_18px_rgba(124,58,237,0.25)] ' + // glow doble
-            'hover:ring-[#A855F74d] hover:shadow-[inset_0_0_0_1px_rgba(168,85,247,0.35),0_0_24px_rgba(124,58,237,0.35)]';
+      ' '
 
         if (isCompleted) {
             // Un poco menos intenso, como “apagado” pero aún con halo
@@ -52,16 +48,14 @@ const SubBloqueDisplay = (props) => {
             // Estado activo: más brillo y contraste
             return (
                 base +
-                ' border-[#A855F7B3] ' +
-                'shadow-[inset_0_0_0_1px_rgba(168,85,247,0.5),0_0_36px_rgba(168,85,247,0.45)] ' +
-                'from-[#1A1326] to-[#0E0B15]'
+                ' border-[#FFFFFF] ' 
             );
         }
 
         // Idle / hover suave
         return (
             base +
-            ' hover:from-[#171223] hover:to-[#0E0B15]'
+            ' '
         );
     };
 
@@ -74,7 +68,7 @@ const SubBloqueDisplay = (props) => {
 
     const getBadgeStyles = () => {
         return isSuperset 
-            ? 'bg-violet-600/10 text-violet-100 border-violet-500/10'
+            ? 'bg-[#C6C6C6] border-[#FFFFFF ] '
             : 'bg-cyan-600/80 text-cyan-100 border-cyan-500/50';
     };
 

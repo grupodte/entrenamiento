@@ -1,7 +1,7 @@
 import React from 'react';
 import SubBloqueDisplay from './SubBloqueDisplay';
 
-import ShinyText from '../../components/ShinyText.jsx';
+
 
 
 const BloqueDisplay = (props) => {
@@ -74,7 +74,7 @@ const BloqueDisplay = (props) => {
 
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-2 ">
             {Object.entries(groupedSubBloques).map(([nombre, subbloquesDelGrupo]) => {
                 const isAGroupWithTitle = !nombre.startsWith('__individual__');
                 const theme = getBlockTheme(nombre);
@@ -82,19 +82,16 @@ const BloqueDisplay = (props) => {
                 return (
                     <div 
                         key={nombre} 
-                        className={`rounded-xl bg-[#D8D8D8]  ${
+                        className={`rounded-xl bg-[#D8D8D8] px-2 py-4 ${
                             isAGroupWithTitle ? `${theme.bg} ${theme.border}` : ' '
                         }`}
                     >
                         {isAGroupWithTitle && (
-                            <div className="flex items-center justify-center gap-2">
-                                <div className={`rounded-full bg-gradient-to-b from-${theme.accentColor}-400 to-${theme.accentColor}-600`} />
-                                <ShinyText
-                                    text={nombre.toUpperCase()}
-                                    disabled={false}
-                                    speed={3}
-                                    className={`text-xl font-bold ${theme.titleColor}`}
-                                />
+                            <div className="flex items-center justify-start ">
+                                
+                                <h2 className="text-[27px] text-[#3C3C3C]">
+                                    {nombre.charAt(0).toUpperCase() + nombre.slice(1)}
+                                </h2>
                             </div>
                         )}
                         <div className="space-y-1">
