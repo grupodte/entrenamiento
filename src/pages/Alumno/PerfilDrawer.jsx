@@ -8,8 +8,9 @@ import { useWorkoutData } from '../../hooks/useWorkoutData';
 import { Edit2, LogOut, Clock } from 'lucide-react';
 
 // Importa tus imágenes locales
-import cursoImage from '../../assets/curso.png';
+import cursoImage from '../../assets/perfilbg.webp';
 import rutinaImage from '../../assets/rutina.png';
+import edit from '../../assets/edit.svg';
 
 const fmt = (n, fallback = '–') => (Number.isFinite(n) ? n : fallback);
 
@@ -118,14 +119,17 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
     return (
         <Drawer isOpen={isOpen} onClose={onClose} height="h-[100vh]">
             <div className="h-full overflow-y-auto scrollbar-hide font-product">
-                <style>{`
-                    .font-product * {
-                        font-family: 'ProductSans', 'Inter', sans-serif !important;
-                    }
-                `}</style>
+                <button
+                    onClick={onEdit}
+                    className="absolute right-6 top-2"
+                    aria-label="Editar perfil"
+                    
+                >
+                      <img src={edit} alt="edit" className="w-7 h-7" />                    
+                </button>
                 {/* Perfil */}
-                <div className="relative mt-2 mb-4 overflow-hidden">
-                    <div className="relative z-10 flex items-center gap-3 p-4">
+                <div className="relative overflow-hidden">
+                    <div className="relative z-10 flex items-center gap-8 p-4">
                         <img
                             src={avatarUrl}
                             alt="avatar"
@@ -141,13 +145,7 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
                                 <span>{fmt(edad)} años</span>
                             </div>
                         </div>
-                        <button
-                            onClick={onEdit}
-                            className=""
-                            aria-label="Editar perfil"
-                        >
-                            <Edit2 className="w-4 h-4 text-[#151515]" />
-                        </button>
+                 
                     </div>
                 </div>
 

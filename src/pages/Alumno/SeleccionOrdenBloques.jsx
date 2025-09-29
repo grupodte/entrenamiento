@@ -5,6 +5,9 @@ import { motion } from 'framer-motion';
 import Drawer from '../../components/Drawer';
 import { useRutinaCache } from '../../hooks/useRutinaCache';
 
+import arrow from '../../assets/arrow.svg';
+
+
 const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
     const navigate = useNavigate();
     const { fetchRutinaData, loading: cacheLoading } = useRutinaCache();
@@ -83,8 +86,8 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
      
             {rutinaData ? (
                     <div className=" text-[#121212] w-[380px] mx-auto leading-none flex flex-item flex-col">
-                    <div className="mb-4">
-                            <h1 className="text-[27px] font-bold text-[#121212]">{rutinaData.rutina.nombre}</h1>
+                    <div className="mb-4  text-center">
+                            <h1 className="text-[34px] font-bold text-[#121212]">{rutinaData.rutina.nombre}</h1>
                         {rutinaData.rutina.descripcion && (
                                 <p className="text-[13px] text-[#575757]">{rutinaData.rutina.descripcion}</p>
                         )}
@@ -146,14 +149,12 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
 
                                                 {/* Botón flecha */}
                                                 <div
-                                                    className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200"
+                                                    className="w-[50px] h-[50px] rounded-lg flex items-center justify-center transition-colors duration-200"
                                                     style={{
                                                         backgroundColor: getColorForIndex(index),
-                                                        filter: 'brightness(0.9)'
                                                     }}
-                                                >
-                                                    <ChevronRight className="text-white text-lg transition-transform group-hover:translate-x-1" />
-                                                </div>
+                                                    
+                                                ><img className='w-[22px]' src={arrow} alt="arrow" />                                                  </div>
                                             </div>
                                         </button>
                                     </motion.div>
@@ -216,8 +217,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                                                         filter: 'brightness(0.9)'
                                                     }}
                                                 >
-                                                    <ChevronRight className="text-white text-lg transition-transform group-hover:translate-x-1" />
-                                                </div>
+<img src={arrow} alt="arrow" />                                                  </div>
                                             </div>
                                         </button>
                                     </motion.div>
