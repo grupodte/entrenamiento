@@ -17,6 +17,7 @@ import { useRutinaCache } from '../../hooks/useRutinaCache';
 import { useRutinaPrefetch } from '../../hooks/useRutinaPrefetch';
 
 import arrow from '../../assets/arrow.svg';
+import dashboardBg from '../../assets/dashboard-bg-entrenamientos.png';
 
 
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -229,10 +230,15 @@ const Dashboard = () => {
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className={`rounded-2xl h-[168px] item-center flex flex-col justify-center p-4 mt-2 
-               ${rutinaHoy.isCompleted
-                                ? 'bg-[#121212]'
-                                : 'bg-[#121212] '}`}
+                            className={`rounded-2xl h-[168px]  flex  justify-between  items-center  mt-2 bg-cover bg-center bg-no-repeat relative overflow-hidden
+                                ${rutinaHoy.isCompleted
+                                    ? 'bg-[#121212]'
+                                    : 'bg-[#121212]'}`}
+                            style={{
+                                backgroundImage: rutinaHoy.isCompleted 
+                                    ? ` url(${dashboardBg})`
+                                    : ` url(${dashboardBg})`
+                            }}
                         >
                             <div className="flex items-center justify-between gap-4 leading-none">
                                 <div>
