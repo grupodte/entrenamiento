@@ -60,60 +60,70 @@ const BloqueDisplay = (props) => {
     };
 
 
-    // Agrupa los subbloques por nombre (o individualmente si no tienen nombre)
-    // Los bloques principales se agrupan juntos, otros por nombre
+    // Agrupa los subbloques por tipo (calentamiento, principal, cooldown, etc.)
+    // Todos los bloques del mismo tipo se agrupan bajo una sola sección
 
     const groupedSubBloques = [...(bloque.subbloques ?? [])]
         .sort(sortSubBloques)
         .reduce((acc, subbloque) => {
             const nombreLower = subbloque.nombre?.toLowerCase() || '';
             
-            // Agrupar todos los bloques principales juntos
-            if (nombreLower.includes('principal')) {
-                const key = 'Principal';
-                if (!acc[key]) {
-                    acc[key] = [];
-                }
-                acc[key].push(subbloque);
-            } else {
-                // Usar el nombre como clave o un ID único si no hay nombre para no agruparlos
-                const key = subbloque.nombre || `__individual__${subbloque.id}`;
-                if (!acc[key]) {
-                    acc[key] = [];
-                }
-                acc[key].push(subbloque);
+            // Determinar el tipo de bloque y agrupar por tipo
+            let tipoBloque = 'Otros'; // Default
+            
+            if (nombreLower.includes('calentamiento')) {
+                tipoBloque = 'Calentamiento';
+            } else if (nombreLower.includes('principal')) {
+                tipoBloque = 'Principal';
+            } else if (nombreLower.includes('cooldown')) {
+                tipoBloque = 'Cooldown';
+            } else if (nombreLower.includes('estiramiento')) {
+                tipoBloque = 'Estiramiento';
+            } else if (subbloque.nombre) {
+                // Si tiene un nombre pero no coincide con los tipos conocidos
+                tipoBloque = subbloque.nombre.charAt(0).toUpperCase() + subbloque.nombre.slice(1);
             }
+            
+            if (!acc[tipoBloque]) {
+                acc[tipoBloque] = [];
+            }
+            acc[tipoBloque].push(subbloque);
+            
             return acc;
         }, {});
 
 
 
     return (
-        <div className="space-y-4 px-4">
-            {Object.entries(groupedSubBloques).map(([nombre, subbloquesDelGrupo]) => {
-                const isAGroupWithTitle = !nombre.startsWith('__individual__');
-                const theme = getBlockTheme(nombre);
+        <div className="space-y-6 px-4">
+            {Object.entries(groupedSubBloques).map(([tipoBloque, subbloquesDelGrupo]) => {
+                const theme = getBlockTheme(tipoBloque.toLowerCase());
 
                 return (
-                    <div key={nombre} className="space-y-3">
-                        {/* Header del grupo si existe */}
-                        {isAGroupWithTitle && (
-                            <div className="mb-4">
-                                <h2 className="text-2xl font-bold text-black/80 tracking-tight">
-                                    {nombre.charAt(0).toUpperCase() + nombre.slice(1)}
-                                </h2>
-                            </div>
-                        )}
+                    <div key={tipoBloque} className="space-y-4 ">
+                        {/* Header del grupo de tipo de bloque */}
+                        <div className="mb-4">
+                            <h2 className="text-2xl font-bold text-black/80 tracking-tight">
+                                {tipoBloque}
+                            </h2>
+                        </div>
                         
-                        {/* Grid de tarjetas */}
+                        {/* Grid de tarjetas del mismo tipo */}
                         <div className="grid grid-cols-1 gap-3">
                             {subbloquesDelGrupo.map((subbloque, index) => {
                                 const progressInfo = progressPorSubBloque[subbloque.id] || { isCompleted: false, isInProgress: false };
                                 
-                                // Para bloques principales, usar numeración secuencial
-                                const isPrincipal = nombre === 'Principal';
-                                const displayNumber = isPrincipal ? index + 1 : index + 1;
-                                const displayName = isPrincipal ? `Bloque ${displayNumber}` : null;
+                                // Generar nombre apropiado según el tipo
+                                // Como ya hay títulos de sección, siempre usar numeración
+                                let displayName;
+                                const blockNumber = index + 1;
+                                
+                                if (tipoBloque === 'Principal') {
+                                    displayName = `Bloque ${blockNumber}`;
+                                } else {
+                                    // Para todos los otros tipos, usar "Bloque X" ya que el tipo ya está en el header de sección
+                                    displayName = `Bloque ${blockNumber}`;
+                                }
                                 
                                 return (
                                     <SubBloqueDisplay
@@ -124,9 +134,9 @@ const BloqueDisplay = (props) => {
                                         {...props}
                                         lastSessionData={lastSessionData}
                                         index={index}
-                                        hideTitle={false} // Siempre mostrar el título del bloque individual
+                                        hideTitle={false}
                                         blockTheme={theme}
-                                        blockNumber={displayNumber}
+                                        blockNumber={blockNumber}
                                         blockName={displayName}
                                     />
                                 );

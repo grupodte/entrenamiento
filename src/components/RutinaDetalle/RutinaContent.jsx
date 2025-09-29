@@ -24,7 +24,7 @@ const RutinaContent = ({
     };
 
     return (
-        <main className="min-h-screen bg-gray-50">
+        <main className="min-h-screen mt-[35px]" >
             {rutinaBloques?.map(bloque => (
                 <BloqueDisplay key={bloque.id} bloque={bloque} {...displayProps} />
             ))}

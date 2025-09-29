@@ -9,8 +9,8 @@ import ShinyText from '../../components/ShinyText.jsx';
 const SubBloqueDisplay = (props) => {
     const { subbloque, isCompleted, isInProgress, hideTitle, lastSessionData, blockTheme, blockNumber, blockName } = props;
 
-    // 1. Iniciar siempre expandido para el nuevo diseño
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    // 1. Iniciar siempre colapsado para el nuevo diseño
+    const [isCollapsed, setIsCollapsed] = useState(true);
 
     // 2. Sincronizar solo para colapsar cuando se completa, no para expandir
     useEffect(() => {
