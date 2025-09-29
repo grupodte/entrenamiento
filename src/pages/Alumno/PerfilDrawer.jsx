@@ -1,140 +1,183 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
-import ProfileInfo from '../../components/Perfil/ProfileInfo';
-import WorkoutStats from '../../components/Perfil/WorkoutStats';
 import Drawer from '../../components/Drawer';
-import { useNavigate } from 'react-router-dom';
-import { usePerfilData } from "../../hooks/usePerfilData";
-import { useWorkoutData } from "../../hooks/useWorkoutData";
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaSignOutAlt, FaCog } from 'react-icons/fa';
+import { usePerfilData } from '../../hooks/usePerfilData';
+import { useWorkoutData } from '../../hooks/useWorkoutData';
+import { Edit2, LogOut, Clock } from 'lucide-react';
 
-const tabs = [{ label: 'Perfil' }, { label: 'Resultados' }];
+// Importa tus imágenes locales
+import cursoImage from '../../assets/curso.png';
+import rutinaImage from '../../assets/rutina.png';
+
+const fmt = (n, fallback = '–') => (Number.isFinite(n) ? n : fallback);
+
+const StatCard = ({
+    background,
+    leftValue,
+    leftSufix,
+    label,
+    icon = <Clock className="w-6 h-6" />,
+    gradient = 'from-red-500/80 to-red-700/50',
+}) => (
+    <div className="relative w-full rounded-[10px] overflow-hidden">
+        {/* BG image */}
+        <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${background})` }}
+        />
+    
+        {/* Foreground */}
+        <div className="relative z-10 flex items-center h-[99px] px-4 pl-12 pr-8">
+            {/* Left number */}
+            <div className="flex items-baseline min-w-[88px]">
+                <span className="text-white font-bold text-[47px] leading-none ">
+                    {leftValue}
+                </span>
+                {leftSufix && (
+                    <span className="ml-1 text-white/90 text-sm font-semibold">{leftSufix}</span>
+                )}
+            </div>
+
+        
+
+            {/* Right label */}
+            <div className="flex-1 text-right leading-snug">
+                <p className="text-white/90 text-[13px] font-semibold">{label?.line1}</p>
+                {label?.line2 && (
+                    <p className="text-white/85 text-[11px]">{label.line2}</p>
+                )}
+            </div>
+        </div>
+    </div>
+);
 
 const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
-    const { user } = useAuth();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState(tabs[0].label);
+    const { user } = useAuth();
 
-    const { perfil, loading, error } = usePerfilData(user?.id, isOpen);
-    const { weightDailyData, repsData, timeData, trainingDays, loadingCharts } = useWorkoutData(user?.id, isOpen);
+    const { perfil } = usePerfilData(user?.id, isOpen);
+    const { timeData, trainingDays } = useWorkoutData(user?.id, isOpen);
+
+    const avatarUrl =
+        perfil?.avatar_url ||
+        user?.user_metadata?.avatar_url ||
+        'https://i.pravatar.cc/200?img=12';
+
+    const displayName =
+        perfil?.nombre ||
+        user?.user_metadata?.full_name ||
+        user?.email?.split('@')[0] ||
+        'Usuario';
+
+    const alturaM = perfil?.altura_m ?? perfil?.altura ?? null;
+    const pesoKg = perfil?.peso_kg ?? perfil?.peso ?? null;
+    const edad = perfil?.edad ?? null;
+
+    // Calcular promedio de minutos
+    const avgMinutes = useMemo(() => {
+        if (!timeData || !Array.isArray(timeData) || timeData.length === 0) return null;
+        const vals = timeData
+            .map((d) => (typeof d === 'number' ? d : Number(d?.minutes)))
+            .filter(Number.isFinite);
+        if (!vals.length) return null;
+        const sum = vals.reduce((a, b) => a + b, 0);
+        return Math.round(sum / vals.length);
+    }, [timeData]);
+
+    // Entrenos del mes
+    const trainingsThisMonth = useMemo(() => {
+        if (!trainingDays || !Array.isArray(trainingDays)) return null;
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = now.getMonth();
+        const norm = (v) => {
+            if (!v) return null;
+            const d =
+                typeof v === 'string' || typeof v === 'number'
+                    ? new Date(v)
+                    : new Date(v?.date ?? v);
+            return isNaN(d) ? null : d;
+        };
+        return trainingDays
+            .map(norm)
+            .filter(Boolean)
+            .filter((d) => d.getFullYear() === y && d.getMonth() === m).length;
+    }, [trainingDays]);
 
     const handleLogout = async () => {
         try {
             await supabase.auth.signOut();
             navigate('/auth');
-        } catch (error) {
-            console.error('Error al cerrar sesión:', error);
+        } catch (e) {
+            console.error(e);
         }
     };
-
-    const variants = {
-        enter: (direction) => ({
-            x: direction > 0 ? '100%' : '-100%',
-            opacity: 0
-        }),
-        center: {
-            x: 0,
-            opacity: 1
-        },
-        exit: (direction) => ({
-            x: direction < 0 ? '100%' : '-100%',
-            opacity: 0
-        })
-    };
-    
-    const [direction, setDirection] = useState(0);
-
-    const paginate = (newDirection) => {
-        const newIndex = tabs.findIndex(t => t.label === activeTab) + newDirection;
-        if (newIndex >= 0 && newIndex < tabs.length) {
-            setDirection(newDirection);
-            setActiveTab(tabs[newIndex].label);
-        }
-    };
-
 
     return (
         <Drawer isOpen={isOpen} onClose={onClose} height="h-[100vh]">
-            <div className="flex flex-col h-full">
-                {/* Navegación de pestañas */}
-                <div className="flex-shrink-0 px-4 pt-2">
-                    <div className="flex justify-center border-b border-gray-200/20 pb-1">
-                        {tabs.map(tab => (
-                            <button
-                                key={tab.label}
-                                onClick={() => {
-                                    const newIndex = tabs.findIndex(t => t.label === tab.label);
-                                    const currentIndex = tabs.findIndex(t => t.label === activeTab);
-                                    setDirection(newIndex > currentIndex ? 1 : -1);
-                                    setActiveTab(tab.label);
-                                }}
-                                className={`relative py-3 px-6 text-sm font-medium transition-colors duration-300
-                                    ${activeTab === tab.label ? 'text-white' : 'text-gray-400 hover:text-white'}`
-                                }
-                            >
-                                {tab.label}
-                                {activeTab === tab.label && (
-                                    <motion.div
-                                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 rounded-full"
-                                        layoutId="underline"
-                                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                    />
-                                )}
-                            </button>
-                        ))}
+            <div className="h-full overflow-y-auto scrollbar-hide">
+                {/* Perfil */}
+                <div className="relative mt-2 mb-4 overflow-hidden">
+                    <div className="relative z-10 flex items-center gap-3 p-4">
+                        <img
+                            src={avatarUrl}
+                            alt="avatar"
+                            className="w-[113px] h-[113px] rounded-full object-cover"
+                        />
+                        <div className="flex-1">
+                            <h2 className="text-[#151515] text-[27px] font-extrabold leading-5 drop-shadow">
+                                {displayName} 
+                            </h2>
+                            <div className="mt-2 flex items-center gap-3 text-[12px] text-[#151515]">
+                                <span>{fmt(alturaM)}m</span>
+                                <span>{fmt(pesoKg)}kg</span>
+                                <span>{fmt(edad)} años</span>
+                            </div>
+                        </div>
+                        <button
+                            onClick={onEdit}
+                            className=""
+                            aria-label="Editar perfil"
+                        >
+                            <Edit2 className="w-4 h-4 text-[#151515]" />
+                        </button>
                     </div>
                 </div>
 
-                {/* Contenido principal */}
-                <div className="flex-1 overflow-hidden">
-                    <AnimatePresence initial={false} custom={direction}>
-                        <motion.div
-                            key={activeTab}
-                            custom={direction}
-                            variants={variants}
-                            initial="enter"
-                            animate="center"
-                            exit="exit"
-                            transition={{
-                                x: { type: "spring", stiffness: 300, damping: 30 },
-                                opacity: { duration: 0.2 }
-                            }}
-                            className="h-full overflow-y-auto scrollbar-hide px-4 pb-4"
-                        >
-                            {activeTab === 'Perfil' && (
-                                <div className="space-y-6">
-                                    <ProfileInfo
-                                        user={user}
-                                        perfil={perfil}
-                                        onEdit={onEdit}
-                                    />
-                                    
-                                    {/* Botón de cerrar sesión discreto al final del perfil */}
-                                    <div className="pt-6">
-                                        <button
-                                            onClick={handleLogout}
-                                            className="w-full flex items-center justify-center space-x-2 py-2 text-sm text-gray-400 hover:text-red-400 transition-colors duration-200 group"
-                                        >
-                                            <FaSignOutAlt className="text-xs group-hover:text-red-400" />
-                                            <span className="group-hover:text-red-400">Cerrar Sesión</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                            {activeTab === 'Resultados' && (
-                                <WorkoutStats
-                                    weightData={weightDailyData}
-                                    repsData={repsData}
-                                    timeData={timeData}
-                                    trainingDays={trainingDays}
-                                    loadingCharts={loadingCharts}
-                                />
-                            )}
-                        </motion.div>
-                    </AnimatePresence>
+                {/* Resultados con imágenes locales */}
+                <div className="grid grid-cols-1 gap-3">
+                    <StatCard
+                        background={rutinaImage}
+                        leftValue={fmt(avgMinutes ?? 0)}
+                        leftSufix="min"
+                        label={{ line1: 'Tiempo promedio de', line2: 'entrenamiento' }}
+                        gradient="from-red-600/80 to-red-500/40"
+                    />
+                    <StatCard
+                        background={cursoImage}
+                        leftValue={fmt(trainingsThisMonth ?? 0)}
+                        label={{
+                            line1: 'Número de entrenamientos',
+                            line2: 'realizados en el mes',
+                        }}
+                        gradient="from-blue-600/80 to-fuchsia-500/40"
+                    />
                 </div>
+
+                {/* Logout */}
+                <div className="pt-6 ">
+                    <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center justify-center gap-2 py-2 text-sm text-black"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        Cerrar sesión
+                    </button>
+                </div>
+
+                <div className="h-6" />
             </div>
         </Drawer>
     );

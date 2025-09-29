@@ -12,34 +12,37 @@ const BloqueDisplay = (props) => {
         const nombreLower = nombre.toLowerCase();
         if (nombreLower.includes('calentamiento')) {
             return {
-                border: 'border-orange-600/30',
-                accentColor: 'orange'
+                iconColor: 'bg-orange-500',
+                accentColor: 'orange',
+                iconColorClass: 'text-white'
             };
         }
         if (nombreLower.includes('principal')) {
             return {
-                border: 'border-blue-600/30',
-                accentColor: 'blue'
+                iconColor: 'bg-red-500',
+                accentColor: 'red', 
+                iconColorClass: 'text-white'
             };
         }
         if (nombreLower.includes('cooldown')) {
             return {
-                border: 'border-green-600/30',
-                accentColor: 'green'
+                iconColor: 'bg-green-500',
+                accentColor: 'green',
+                iconColorClass: 'text-white'
             };
         }
         if (nombreLower.includes('estiramiento')) {
             return {
-                border: 'border-purple-600/30',
-                accentColor: 'purple'
+                iconColor: 'bg-purple-500',
+                accentColor: 'purple',
+                iconColorClass: 'text-white'
             };
         }
         // Default theme
         return {
-            bg: 'bg-gradient-to-br from-gray-900/15 to-gray-800/10',
-            border: 'border-gray-600/30',
-            titleColor: 'text-gray-300',
-            accentColor: 'gray'
+            iconColor: 'bg-red-500',
+            accentColor: 'red',
+            iconColorClass: 'text-white'
         };
     };
 
@@ -58,48 +61,59 @@ const BloqueDisplay = (props) => {
 
 
     // Agrupa los subbloques por nombre (o individualmente si no tienen nombre)
+    // Los bloques principales se agrupan juntos, otros por nombre
 
     const groupedSubBloques = [...(bloque.subbloques ?? [])]
         .sort(sortSubBloques)
         .reduce((acc, subbloque) => {
-            // Usar el nombre como clave o un ID único si no hay nombre para no agruparlos
-            const key = subbloque.nombre || `__individual__${subbloque.id}`;
-            if (!acc[key]) {
-                acc[key] = [];
+            const nombreLower = subbloque.nombre?.toLowerCase() || '';
+            
+            // Agrupar todos los bloques principales juntos
+            if (nombreLower.includes('principal')) {
+                const key = 'Principal';
+                if (!acc[key]) {
+                    acc[key] = [];
+                }
+                acc[key].push(subbloque);
+            } else {
+                // Usar el nombre como clave o un ID único si no hay nombre para no agruparlos
+                const key = subbloque.nombre || `__individual__${subbloque.id}`;
+                if (!acc[key]) {
+                    acc[key] = [];
+                }
+                acc[key].push(subbloque);
             }
-            acc[key].push(subbloque);
             return acc;
         }, {});
 
 
 
     return (
-        <div className="space-y-2 ">
+        <div className="space-y-4 px-4">
             {Object.entries(groupedSubBloques).map(([nombre, subbloquesDelGrupo]) => {
                 const isAGroupWithTitle = !nombre.startsWith('__individual__');
                 const theme = getBlockTheme(nombre);
 
                 return (
-                    <div 
-                        key={nombre} 
-                        className={`rounded-xl bg-[#D8D8D8] px-2 py-4 ${
-                            isAGroupWithTitle ? `${theme.bg} ${theme.border}` : ' '
-                        }`}
-                    >
+                    <div key={nombre} className="space-y-3">
+                        {/* Header del grupo si existe */}
                         {isAGroupWithTitle && (
-                            <div className="flex items-center justify-start ">
-                                
-                                <h2 className="text-[27px] text-[#3C3C3C]">
+                            <div className="mb-4">
+                                <h2 className="text-2xl font-bold text-black/80 tracking-tight">
                                     {nombre.charAt(0).toUpperCase() + nombre.slice(1)}
                                 </h2>
                             </div>
                         )}
-                        <div className="space-y-1">
+                        
+                        {/* Grid de tarjetas */}
+                        <div className="grid grid-cols-1 gap-3">
                             {subbloquesDelGrupo.map((subbloque, index) => {
                                 const progressInfo = progressPorSubBloque[subbloque.id] || { isCompleted: false, isInProgress: false };
                                 
-                                // Calcular el número de bloque para este ejercicio dentro del tipo
-                                const ejercicioNumero = index + 1;
+                                // Para bloques principales, usar numeración secuencial
+                                const isPrincipal = nombre === 'Principal';
+                                const displayNumber = isPrincipal ? index + 1 : index + 1;
+                                const displayName = isPrincipal ? `Bloque ${displayNumber}` : null;
                                 
                                 return (
                                     <SubBloqueDisplay
@@ -110,10 +124,10 @@ const BloqueDisplay = (props) => {
                                         {...props}
                                         lastSessionData={lastSessionData}
                                         index={index}
-                                        // Ocultar el título si ya mostramos un título de grupo
-                                        hideTitle={isAGroupWithTitle}
+                                        hideTitle={false} // Siempre mostrar el título del bloque individual
                                         blockTheme={theme}
-                                        blockNumber={ejercicioNumero}
+                                        blockNumber={displayNumber}
+                                        blockName={displayName}
                                     />
                                 );
                             })}

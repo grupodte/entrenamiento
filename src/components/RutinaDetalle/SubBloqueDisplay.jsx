@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import EjercicioSimpleDisplay from './EjercicioSimpleDisplay';
 import SupersetDisplay from './SupersetDisplay';
-import { FaDumbbell, FaExchangeAlt, FaChevronDown, FaCheckCircle } from 'react-icons/fa';
+import { FaDumbbell, FaExchangeAlt, FaChevronDown, FaCheckCircle, FaMinus, FaPlus } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import ShinyText from '../../components/ShinyText.jsx';
 
 
 const SubBloqueDisplay = (props) => {
-    const { subbloque, isCompleted, isInProgress, hideTitle, lastSessionData, blockTheme, blockNumber } = props;
+    const { subbloque, isCompleted, isInProgress, hideTitle, lastSessionData, blockTheme, blockNumber, blockName } = props;
 
-    // 1. Iniciar siempre colapsado
-    const [isCollapsed, setIsCollapsed] = useState(true);
+    // 1. Iniciar siempre expandido para el nuevo diseño
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     // 2. Sincronizar solo para colapsar cuando se completa, no para expandir
     useEffect(() => {
@@ -26,118 +26,77 @@ const SubBloqueDisplay = (props) => {
     const isSuperset = subbloque?.tipo === 'superset';
     const Icon = isSuperset ? FaExchangeAlt : FaDumbbell;
     const typeLabel = isSuperset ? 'SUPERSET' : 'EJERCICIO SIMPLE';
-    const badgeText = isSuperset ? 'Sin pausa entre ejercicios' : 'Ejercicio simple';
-
-    // Colores diferenciados para cada tipo
-    const getContainerStyles = () => {
-        // Base: fondo muy oscuro + sutil glow púrpura y borde fino
-        const base =
-      ' '
-
-        if (isCompleted) {
-            // Un poco menos intenso, como “apagado” pero aún con halo
-            return (
-                base +
-                ' border-[#7C3AED80] ' +
-           'bg-black'
-             
-            );
-        }
-
-        if (isInProgress) {
-            // Estado activo: más brillo y contraste
-            return (
-                base +
-                ' border-[#FFFFFF] ' 
-            );
-        }
-
-        // Idle / hover suave
-        return (
-            base +
-            ' '
-        );
-    };
-
-
-    const getSidebarStyles = () => {
-        return isSuperset 
-            ? ''
-            : '';
-    };
-
-    const getBadgeStyles = () => {
-        return isSuperset 
-            ? 'bg-[#C6C6C6] border-[#FFFFFF ] '
-            : 'bg-cyan-600/80 text-cyan-100 border-cyan-500/50';
-    };
-
-    const borderTopColor = isSuperset ? 'border-violet-300/0' : 'border-cyan-300/0';
 
     // 3. Calcular información del resumen
     const numEjercicios = subbloque.subbloques_ejercicios?.length || 0;
     const totalSeries = isSuperset
         ? (subbloque.num_series_superset || 0)
         : (subbloque.subbloques_ejercicios?.reduce((acc, sbe) => acc + (sbe.series?.length || 0), 0) || 0);
+    
+    // Calcular progreso actual
+    const completedSets = isCompleted ? totalSeries : 0;
 
     return (
-        <section
-            role="group"
-            aria-label={`${typeLabel} ${subbloque?.nombre ?? ''}`}
-            className={`relative ${getContainerStyles()}`}
+        <motion.div
+            className={`relative rounded-2xl bg-gray-200 p-4 shadow-sm ${
+                isCompleted ? 'opacity-70' : ''
+            }`}
+            layout
         >
-            
-            {/* Encabezado Clickeable - Optimizado para móvil */}
+            {/* Header de la tarjeta */}
             <button
                 onClick={handleToggleCollapse}
-                className="w-full flex items-center  flex   touch-manipulation"
+                className="w-full flex items-center justify-between mb-3 touch-manipulation"
                 aria-expanded={!isCollapsed}
             >
-             
-                <div className="flex-1 min-w-0 mr-2">
-                    {!hideTitle && (
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                            <h3 className="text-sm font-medium text-white truncate">
-                                {blockNumber && blockTheme ? (
-                                    <span className={blockTheme.titleColor}>
-                                        Bloque {blockNumber}
-                                    </span>
-                                ) : (
-                                    subbloque?.nombre || typeLabel
-                                )}
-                            </h3>
-                            <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded border ${getBadgeStyles()} flex-shrink-0`}>
-                                {numEjercicios}ej • {totalSeries}sets
-                            </span>
-                        </div>
-                    )}
+                <div className="flex items-center gap-3">
+                    {/* Icono circular */}
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        blockTheme?.iconColor || 'bg-red-500'
+                    }`}>
+                        {isCompleted ? (
+                            <FaCheckCircle className="text-white text-sm" />
+                        ) : (
+                            <Icon className={`text-white text-sm ${blockTheme?.iconColorClass || 'text-white'}`} />
+                        )}
+                    </div>
                     
-                    {/* Info compacta - mostrar número de bloque */}
-                    {isCollapsed && !isInProgress && blockNumber && (
-                        <p className={`text-xs mt-0.5 ${blockTheme ? blockTheme.titleColor : 'text-gray-400'} opacity-80`}>
-                            Bloque {blockNumber}
+                    <div className="flex-1 text-left">
+                        <h3 className="text-lg font-semibold text-gray-800">
+                            {blockName ? (
+                                blockName
+                            ) : blockNumber && !hideTitle ? (
+                                `Bloque ${blockNumber}`
+                            ) : (
+                                subbloque?.nombre || typeLabel
+                            )}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                            {numEjercicios} {isSuperset ? 'ejercicios' : 'ejercicio'} • {completedSets}/{totalSeries} sets
                         </p>
-                    )}
-                    
-                    {/* Estado en progreso */}
-                    {isInProgress && !isCompleted && (
-                        <ShinyText
-                            text="En progreso"
-                            speed={3}
-                            disabled={false}
-                            className="text-xs"
-                        />
-                    )}
+                    </div>
                 </div>
 
-                <motion.div
-                    animate={{ rotate: isCollapsed ? 0 : 180 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex-shrink-0"
-                >
-                    <FaChevronDown className={`text-sm text-white/20`} />
-                </motion.div>
+                {/* Botón colapsar */}
+                <div className="flex-shrink-0 ml-2">
+                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                        {isCollapsed ? (
+                            <FaPlus className="text-gray-600 text-xs" />
+                        ) : (
+                            <FaMinus className="text-gray-600 text-xs" />
+                        )}
+                    </div>
+                </div>
             </button>
+
+            {/* Estado en progreso */}
+            {isInProgress && !isCompleted && (
+                <div className="mb-3">
+                    <div className="text-xs text-red-500 font-medium uppercase tracking-wide">
+                        En progreso
+                    </div>
+                </div>
+            )}
 
             {/* Contenido expandible */}
             <AnimatePresence>
@@ -149,7 +108,7 @@ const SubBloqueDisplay = (props) => {
                         transition={{ duration: 0.2, ease: 'easeInOut' }}
                         className="overflow-hidden"
                     >
-                        <div className={`px-3 pb-2 border-t ${borderTopColor}`}>
+                        <div className="pt-3 border-t border-gray-300">
                             {subbloque?.tipo === 'simple' &&
                                 subbloque?.subbloques_ejercicios?.map((sbe) => (
                                     <EjercicioSimpleDisplay
@@ -158,6 +117,7 @@ const SubBloqueDisplay = (props) => {
                                         subbloqueId={subbloque.id}
                                         {...props}
                                         lastSessionData={lastSessionData}
+                                        blockTheme={blockTheme}
                                     />
                                 ))}
 
@@ -166,13 +126,14 @@ const SubBloqueDisplay = (props) => {
                                     subbloque={subbloque}
                                     {...props}
                                     lastSessionData={lastSessionData}
+                                    blockTheme={blockTheme}
                                 />
                             )}
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
-        </section>
+        </motion.div>
     );
 };
 

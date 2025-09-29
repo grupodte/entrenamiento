@@ -67,7 +67,7 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
     };
 
     return (
-        <div className="space-y-1.5 mt-1">
+        <div className="space-y-4">
             {Array.from({ length: totalSeries }).map((_, setIndex) => {
                 const setNumero = setIndex + 1;
 
@@ -80,83 +80,71 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                     generarIdEjercicioEnSerieDeSuperset(subbloque.id, sbe.id, setNumero) === props.elementoActivoId
                 );
 
-                // Estilos optimizados para móvil con resaltado del conjunto completo
-                const getSetStyles = () => {
-                    if (completado) {
-                        return 'bg-black border-green-500/40 ';
-                    }
-                    if (isActive) {
-                        return ' bg-[#C6C6C6] border-[#FFFFFF] ';
-                    }
-                    return '  ';
-                };
+                // Calcular pausa del set
+                let pausaSet = subbloque.pausa_compartida || 0;
+                if (!pausaSet) {
+                    subbloque.subbloques_ejercicios.forEach(sbe => {
+                        const detalleSerie = sbe.series?.find(s => s.nro_set === setNumero) || sbe.series?.[0];
+                        if (detalleSerie?.pausa > pausaSet) {
+                            pausaSet = detalleSerie.pausa;
+                        }
+                    });
+                }
 
                 return (
-                    <motion.section
+                    <motion.div
                         key={`ss-${subbloque.id}-s${setNumero}`}
-                        aria-labelledby={`title-ss-${subbloque.id}-s${setNumero}`}
                         onClick={() => handleToggleSupersetSet(setNumero)}
-                        className={`relative rounded-lg backdrop-blur-md cursor-pointer transition-all duration-200 border p-3 min-h-[44px] touch-manipulation ${getSetStyles()}`}
+                        className={`relative rounded-2xl p-4 cursor-pointer transition-all duration-200 shadow-sm touch-manipulation ${
+                            completado 
+                                ? 'bg-green-50 border-2 border-green-500' 
+                                : isActive 
+                                    ? 'bg-red-50 border-2 border-red-500 ring-2 ring-red-200'
+                                    : 'bg-white border-2 border-gray-200 hover:border-gray-300'
+                        }`}
                         whileTap={{ scale: 0.98 }}
                     >
-                        {/* Header del superset con número de set */}
-                        <div className={`flex items-center justify-between mb-2 pb-2 border-b transition-all duration-300 ${
-                            completado ? 'border-green-600/30' : 'border-violet-600/20'
-                        }`}>
-                            <div className="flex items-center gap-2">
-                                <div className={`flex items-center justify-center w-7 h-7 rounded-full transition-all duration-300 ${
+                        {/* Header del superset */}
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                                     completado 
-                                        ? 'bg-green-600/30 border border-green-500/50 shadow-sm shadow-green-500/20'
-                                        : 'bg-violet-600/20 border border-violet-500/40'
+                                        ? 'bg-green-500' 
+                                        : props.blockTheme?.iconColor || 'bg-red-500'
                                 }`}>
                                     {completado ? (
-                                        <FaCheckCircle className="text-sm text-green-400" />
+                                        <FaCheckCircle className="text-white text-sm" />
                                     ) : (
-                                        <FaExchangeAlt className="text-xs text-violet-400" />
+                                        <FaExchangeAlt className="text-white text-sm" />
                                     )}
                                 </div>
-                                <span className={`text-sm font-medium transition-all duration-300 ${
-                                    completado ? 'text-green-200' : 'text-violet-200'
-                                }`}>
-                                    Set {setNumero}
-                                    {totalSeries > 1 && (
-                                        <span className={`text-xs ml-1 ${
-                                            completado ? 'text-green-300/70' : 'text-violet-300/60'
-                                        }`}>
-                                            de {totalSeries}
-                                        </span>
-                                    )}
-                                </span>
+                                <div>
+                                    <h4 className="text-lg font-semibold text-gray-800">
+                                        Set {setNumero} {totalSeries > 1 && `de ${totalSeries}`}
+                                    </h4>
+                                    <p className="text-sm text-gray-600">
+                                        {subbloque.subbloques_ejercicios.length} ejercicios
+                                        {pausaSet > 0 && ` • Pausa: ${pausaSet}s`}
+                                    </p>
+                                </div>
                             </div>
-                            <div className={`text-xs transition-all duration-300 flex flex-col items-end ${
-                                completado ? 'text-green-300/80' : 'text-violet-300/80'
-                            }`}>
-                                <span>{subbloque.subbloques_ejercicios.length} ejercicios</span>
-                                {(() => {
-                                    // Calcular pausa del set
-                                    let pausaSet = subbloque.pausa_compartida || 0;
-                                    if (!pausaSet) {
-                                        subbloque.subbloques_ejercicios.forEach(sbe => {
-                                            const detalleSerie = sbe.series?.find(s => s.nro_set === setNumero) || sbe.series?.[0];
-                                            if (detalleSerie?.pausa > pausaSet) {
-                                                pausaSet = detalleSerie.pausa;
-                                            }
-                                        });
-                                    }
-                                    return (
-                                        <span className={`text-[10px] font-medium ${
-                                            completado 
-                                                ? 'text-green-100 opacity-90' 
-                                                : 'text-violet-100 opacity-95'
-                                        }`}>
-                                            {pausaSet > 0 ? `Pausa: ${pausaSet}s` : 'Sin pausa'}
-                                        </span>
-                                    );
-                                })()}
-                            </div>
+
+                            {/* Botón ¡LISTO! */}
+                            {!completado && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleToggleSupersetSet(setNumero);
+                                    }}
+                                    className="px-4 py-2 bg-gray-800 text-white rounded-xl font-semibold hover:bg-gray-700 transition-colors touch-manipulation"
+                                >
+                                    ¡LISTO!
+                                </button>
+                            )}
                         </div>
 
-                        <div className="space-y-2">
+                        {/* Lista de ejercicios del superset */}
+                        <div className="space-y-3">
                             {subbloque.subbloques_ejercicios.map((sbe) => {
                                 const elementoId = generarIdEjercicioEnSerieDeSuperset(
                                     subbloque.id,
@@ -196,12 +184,14 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                                         lastSessionData={lastSessionData}
                                         ejercicio={sbe.ejercicio}
                                         openVideoPanel={props.openVideoPanel}
+                                        hideExerciseName={false}
+                                        blockTheme={props.blockTheme}
                                         classNameExtra="!cursor-default"
                                     />
                                 );
                             })}
                         </div>
-                    </motion.section>
+                    </motion.div>
                 );
             })}
         </div>
