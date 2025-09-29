@@ -234,7 +234,7 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                                     damping: 20
                                 }}
                             >
-                                <div className="relative h-[d50px]">
+                                <div className="relative h-[70px]">
                                     {/* handle */}
                                     <div
                                         className="absolute top-3 w-[25px] h-[5px] bg-[#D9D9D9] rounded-full"

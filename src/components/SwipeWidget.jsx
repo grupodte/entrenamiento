@@ -127,12 +127,11 @@ const SwipeWidget = ({ isOpen, onClose }) => {
       }}
     >
       
-              <div className="relative z-10 flex justify-between items-center">
-                <div className="text-[#FFFFFF] text-[39px] font-normal ">
-                  {title}
-                </div>
-                  <img src={arrow} alt="arrow" />
-              </div>
+      <div className="relative z-10 w-full flex flex-row justify-between items-center">
+        <div className="text-white text-[39px] font-normal">{title}</div>
+        <img src={arrow} alt="arrow" className="w-6 h-6" />
+      </div>
+
     </button>
   ));
 
