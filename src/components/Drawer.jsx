@@ -136,13 +136,10 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                             duration: 0.2,
                             ease: "easeOut"
                         }}
-                        className="fixed inset-0 bg-black/50 will-change-[opacity]"
+                        className="fixed inset-0 bg-black/50 will-change-[opacity] 
+                        backdrop-blur-sm z-50"
                         onClick={handleOverlayClick}
-                        style={{
-                            zIndex: 'var(--z-overlay)',
-                            WebkitBackdropFilter: 'blur(4px)',
-                            backdropFilter: 'blur(4px)'
-                        }}
+                     
                     />
 
                     {/* Drawer optimizado con swipe horizontal */}
@@ -194,22 +191,15 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                             drawer-safe-positioning
                             ${responsiveHeight}
                             w-full mx-auto
-                            bg-gray-900/98
                             text-white 
-                            shadow-2xl 
-                            rounded-t-3xl 
-                            overflow-hidden
+                             bg-[#FFFFFF]
                             pb-safe
-                            will-change-transform
-                            transform-gpu
+                          
                             flex flex-col
                         `}
                         style={{
                             paddingTop: 'env(safe-area-inset-top)',
                             zIndex: 99999,
-                            WebkitBackdropFilter: 'blur(20px) saturate(150%)',
-                            backdropFilter: 'blur(20px) saturate(150%)',
-                            opacity: swipeProgress > 0 ? 1 - (swipeProgress * 0.3) : 1 // Fade out durante swipe
                         }}
                     >
                         {/* Handle mejorado con indicador de swipe */}
@@ -233,12 +223,9 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                                 scrollbar-hide
                                 will-change-scroll
                                 drawer-content
+                                px-1
                             "
-                            style={{
-                                WebkitOverflowScrolling: 'touch',
-                                scrollbarWidth: 'none',
-                                msOverflowStyle: 'none'
-                            }}
+                      
                         >
                             {children}
                         </div>
