@@ -216,33 +216,30 @@ const Dashboard = () => {
                             </div>
                         
                         </div>
-
-                        {/* Pie opcional */}
-                        {/* <p className="text-xs text-white/60 mt-4">Sesiones completadas</p> */}
                     </div>
 
           
                 </section>
 
                 {/* Rutina de hoy */}
-                <section className="space-y-3">
-                    <h3 className="text-base font-semibold text-white/90">Rutina de hoy</h3>
+                <section className=" ">
+                    <h3 className="text-[20px] text-[#000000]">Rutina de hoy</h3>
 
                     {rutinaHoy ? (
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className={`rounded-2xl p-4 border backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.35)]
+                            className={`rounded-2xl h-[168px] item-center flex flex-col justify-center p-4 mt-2 
                ${rutinaHoy.isCompleted
-                                    ? 'bg-emerald-500/10 border-emerald-400/20'
-                                    : 'bg-white/[0.03] border-white/10'}`}
+                                ? 'bg-[#121212]'
+                                : 'bg-[#121212] '}`}
                         >
-                            <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center justify-between gap-4 leading-none">
                                 <div>
-                                    <p className="text-xs uppercase tracking-wide text-white/60">
+                                    <p className="text-[15px] tracking-wide text-[#B5B5B5] mb-1">
                                         {diasSemana[rutinaHoy.dia]}
                                     </p>
-                                    <h4 className="text-lg font-semibold leading-tight">{rutinaHoy.nombre}</h4>
+                                    <h4 className="text-[27px] font-bold text-[#F84B4B]">{rutinaHoy.nombre}</h4>
                                 </div>
 
                                 {rutinaHoy.isCompleted ? (
@@ -286,7 +283,7 @@ const Dashboard = () => {
                                         className="w-full  h-[110px] text-left leading-none p-2 rounded-2xl bg-[#000000] flex items-center justify-between pr-8 pl-4"
                                     >
                                         <div>
-                                            <p className="text-[15px] tracking-wide text-white/60 mb-1">
+                                            <p className="text-[15px] tracking-wide text-[#B5B5B5] mb-1">
                                                 {diasSemana[rutina.dia]}
                                             </p>
                                             <p className="text-[27px] font-bold text-[#F84B4B]">{rutina.nombre}</p>
