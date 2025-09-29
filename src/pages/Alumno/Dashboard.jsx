@@ -224,13 +224,13 @@ const Dashboard = () => {
 
                 {/* Rutina de hoy */}
                 <section className=" ">
-                    <h3 className="text-[20px] text-[#000000]">Rutina de hoy</h3>
+                    <h3 className="text-[20px] mt-[20px] mb-[5px] text-[#000000]">Rutina de hoy</h3>
 
                     {rutinaHoy ? (
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className={`rounded-2xl h-[168px]  flex  justify-between  items-center  mt-2 bg-cover bg-center bg-no-repeat relative overflow-hidden
+                            className={`rounded-2xl h-[168px] leading-none flex justify-between items-center p-4 mt-2  bg-center bg-no-repeat relative overflow-hidden pr-8 pl-4
                                 ${rutinaHoy.isCompleted
                                     ? 'bg-[#121212]'
                                     : 'bg-[#121212]'}`}
@@ -240,27 +240,26 @@ const Dashboard = () => {
                                     : ` url(${dashboardBg})`
                             }}
                         >
-                            <div className="flex items-center justify-between gap-4 leading-none">
-                                <div>
-                                    <p className="text-[15px] tracking-wide text-[#B5B5B5] mb-1">
-                                        {diasSemana[rutinaHoy.dia]}
-                                    </p>
-                                    <h4 className="text-[27px] font-bold text-[#F84B4B]">{rutinaHoy.nombre}</h4>
-                                </div>
+                            {/* Contenido izquierda */}
+                            <div className="flex flex-col justify-center">
+                                <p className="text-[15px] tracking-wide text-[#B5B5B5] mb-1">
+                                    {diasSemana[rutinaHoy.dia]}
+                                </p>
+                                <h4 className="text-[27px] font-bold text-[#F84B4B]">{rutinaHoy.nombre}</h4>
+                            </div>
 
+                            {/* Contenido derecha */}
+                            <div className="flex items-center">
                                 {rutinaHoy.isCompleted ? (
-                                    <span className="inline-flex items-center gap-2 text-emerald-400 text-sm font-medium">
+                                    <span className="text-[15px] text-[#4ADE80] flex items-center gap-2">
                                         <FaCheckCircle /> Completado
                                     </span>
                                 ) : (
                                     <motion.button
-                                        whileTap={{ scale: 0.98 }}
                                         onClick={() => iniciarRutina(rutinaHoy)}
-                                        className="inline-flex items-center gap-2 rounded-xl px-4 py-2 bg-cyan-500 text-white font-semibold
-                               shadow-[0_6px_20px_rgba(56,189,248,0.3)] hover:bg-cyan-400 transition"
+                                            className="text-[15px] text-white/80 flex items-center gap-2 hover:text-white transition"
                                     >
-                                        <FaPlayCircle /> Iniciar
-                                    </motion.button>
+                                          Iniciar  <img src={arrow} alt="arrow" />                                    </motion.button>
                                 )}
                             </div>
                         </motion.div>
@@ -273,8 +272,8 @@ const Dashboard = () => {
 
                 {/* Próximos entrenamientos */}
                 {proximasRutinas.length > 0 && (
-                    <section className="space-y-3">
-                        <h3 className="text-[20px] text-[#000000]">Próximos entrenamientos</h3>
+                    <section className=" ">
+                        <h3 className="text-[20px] mt-[20px] mb-[5px] text-[#000000]">Próximos entrenamientos</h3>
 
                         <motion.div layout className="space-y-2">
                             <AnimatePresence>

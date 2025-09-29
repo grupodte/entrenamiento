@@ -75,20 +75,8 @@ const AlumnoLayoutContent = () => {
       <GradualBlur
         target="page"
         position="top"
-        height="3rem"
+        height="35px"
         strength={2}
-        divCount={5}
-        curve="bezier"
-        opacity={1}
-        exponential={true}
-        className="pointer-events-none"
-        zIndex={30}
-      />
-      <GradualBlur
-        target="page"
-        position="bottom"
-        height="3rem"
-        strength={1}
         divCount={5}
         curve="bezier"
         opacity={1}
