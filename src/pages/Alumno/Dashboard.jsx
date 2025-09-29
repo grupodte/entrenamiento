@@ -16,6 +16,9 @@ import SeleccionOrdenBloques from './SeleccionOrdenBloques';
 import { useRutinaCache } from '../../hooks/useRutinaCache';
 import { useRutinaPrefetch } from '../../hooks/useRutinaPrefetch';
 
+import arrow from '../../assets/arrow.svg';
+
+
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 const getSaludo = () => {
@@ -41,6 +44,10 @@ const Dashboard = () => {
     const [totalWorkoutsThisWeek, setTotalWorkoutsThisWeek] = useState(0);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedRutina, setSelectedRutina] = useState(null);
+
+    // valores de ejemplo
+    // const completedWorkoutsThisWeek = 1;
+    // const totalWorkoutsThisWeek = 3;
 
     const todayIndex = useMemo(() => (new Date().getDay() + 6) % 7, []);
 
@@ -150,7 +157,7 @@ const Dashboard = () => {
     useRutinaPrefetch(rutinas);
 
     const progreso = totalWorkoutsThisWeek > 0
-        ? (completedWorkoutsThisWeek / totalWorkoutsThisWeek) * 100
+        ? Math.max(0, Math.min(100, (completedWorkoutsThisWeek / totalWorkoutsThisWeek) * 100))
         : 0;
 
 
@@ -159,46 +166,59 @@ const Dashboard = () => {
       
 
             {/* Contenido */}
-            <main className="mx-auto w-[380px]">
+            <main className="mx-auto w-[380px] ">
                 {/* Stats */}
-                <section className="grid grid-cols-1  gap-4">
+                <section className="grid grid-cols-1">
                     {/* Progreso semanal */}
-                    <div className="rounded-2xl p-4 bg-[#000000] grid grid-cols-2 h-[161px] items-center">
-                        <h3 className="text-[27px] leading-none">Progreso Semanal</h3>
-                        <div className="flex items-center gap-4">
-                            <svg className="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
-                                {/* fondo */}
-                                <path
-                                    stroke="currentColor"
-                                    className="text-white/15"
-                                    strokeWidth="3.5"
-                                    fill="none"
-                                    d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32"
-                                />
-                                {/* progreso */}
-                                <path
-                                    stroke="url(#grad)"
-                                    strokeWidth="3.5"
-                                    fill="none"
-                                    strokeLinecap="round"
-                                    strokeDasharray={`${Math.max(0, Math.min(100, progreso))}, 100`}
-                                    d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32"
-                                />
-                                <defs>
-                                    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-                                        <stop offset="0%" stopColor="currentColor" />
-                                        <stop offset="100%" stopColor="currentColor" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                            <div>
-                                <div className="text-3xl font-bold">
+                    <div className="bg-black rounded-2xl p-5 sm:p-6 text-white ">
+                        <div className="flex items-center justify-between">
+                            {/* Izquierda: título en dos líneas */}
+                            <p className="flex text-[28px] sm:text-[32px] leading-none tracking-tight font-medium">
+                                Progreso<br />semanal
+                            </p>
+
+                            {/* derecha:  contador  */}
+                            <div className="flex grid grid-cols-2 items-center gap-2">
+                            {/* Centro: anillo de progreso con número */}
+                            <div className="relative w-24 h-24 -rotate-90">
+                                <svg className="w-full h-full" viewBox="0 0 36 36">
+                                    {/* Fondo (anillo gris) */}
+                                    <path
+                                        d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32"
+                                        fill="none"
+                                        stroke="#3A414D"           
+                                        strokeWidth="4"
+                                        pathLength="100"
+                                    />
+                                    {/* Progreso (rojo) */}
+                                    <path
+                                        d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32"
+                                        fill="none"
+                                        stroke="#FF0000"           
+                                        strokeWidth="4"
+                                        strokeLinecap="round"
+                                        pathLength="100"
+                                        strokeDasharray={`${progreso} 100`}
+                                    />
+                                </svg>
+
+                                {/* Número al centro */}
+                                <span className="absolute inset-0 grid place-items-center rotate-90 text-[36px] font-semibold text-[#FF0000]">
                                     {completedWorkoutsThisWeek}
-                                    <span className="text-white/60 text-base font-medium"> / {totalWorkoutsThisWeek}</span>
-                                </div>
-                                <p className="text-xs text-white/60 mt-1">Sesiones completadas</p>
+                                </span>
+                                
                             </div>
+
+                            {/* Derecha: "de N" */}
+                            <span className="text-[19px] text-white/80">
+                                de {totalWorkoutsThisWeek}
+                            </span>
+                            </div>
+                        
                         </div>
+
+                        {/* Pie opcional */}
+                        {/* <p className="text-xs text-white/60 mt-4">Sesiones completadas</p> */}
                     </div>
 
           
@@ -251,7 +271,7 @@ const Dashboard = () => {
                 {/* Próximos entrenamientos */}
                 {proximasRutinas.length > 0 && (
                     <section className="space-y-3">
-                        <h3 className="text-base font-semibold text-white/90">Próximos entrenamientos</h3>
+                        <h3 className="text-[20px] text-[#000000]">Próximos entrenamientos</h3>
 
                         <motion.div layout className="space-y-2">
                             <AnimatePresence>
@@ -263,16 +283,19 @@ const Dashboard = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -8 }}
                                         onClick={() => iniciarRutina(rutina)}
-                                        className="w-full text-left rounded-2xl p-4 bg-white/[0.03] border border-white/10 
-                               hover:bg-white/[0.06] transition flex items-center justify-between"
+                                        className="w-full  h-[110px] text-left leading-none p-2 rounded-2xl bg-[#000000] flex items-center justify-between pr-8 pl-4"
                                     >
                                         <div>
-                                            <p className="text-xs uppercase tracking-wide text-white/60">
+                                            <p className="text-[15px] tracking-wide text-white/60 mb-1">
                                                 {diasSemana[rutina.dia]}
                                             </p>
-                                            <p className="text-sm font-medium text-white/90">{rutina.nombre}</p>
+                                            <p className="text-[27px] font-bold text-[#F84B4B]">{rutina.nombre}</p>
                                         </div>
-                                        <FaArrowRight className="text-white/50" />
+
+                                            <div className="">
+                                                          <img src={arrow} alt="arrow" />
+                                                        </div>
+
                                     </motion.button>
                                 ))}
                             </AnimatePresence>
