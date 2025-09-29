@@ -6,10 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 const FloatingNavBar = ({ 
   onOpenPerfil, 
   isPerfilOpen = false,
-  // Props para ProgressDock (solo en RutinaDetalle)
-  showProgressDock = false,
-  onToggleProgressDock = null,
-  progressGlobal = 0,
   // Props para botón dinámico Home/Back
   onBackClick = null,
   // Props para NavigationModal (no usado actualmente)
@@ -34,7 +30,6 @@ const FloatingNavBar = ({
   
   // Detectar rutas específicas
   const isInRutinaDetalle = location.pathname.includes('/rutina/');
-  const shouldShowProgressButton = isInRutinaDetalle && onToggleProgressDock;
   // Nota: SwipeWidget fue reemplazado por NavigationModal en BottomNavBar
   
   // Funciones para manejo de expansión
@@ -534,124 +529,6 @@ const FloatingNavBar = ({
               
               {/* Nota: NavigationModal ahora se maneja desde BottomNavBar */}
               
-              {/* Botón ProgressDock - Solo en RutinaDetalle */}
-              {shouldShowProgressButton && (
-                <>
-                  <motion.button
-                    onClick={() => {
-                      onToggleProgressDock();
-                      setActiveButton('progress');
-                      handleUserInteraction();
-                    }}
-                    className={navButtonClass(showProgressDock, true)}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    style={{ WebkitTapHighlightColor: 'transparent' }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                      boxShadow: showProgressDock 
-                        ? ['0 0 0 0 rgba(16, 185, 129, 0.4)', '0 0 0 8px rgba(16, 185, 129, 0)', '0 0 0 0 rgba(16, 185, 129, 0.4)']
-                        : ['0 0 0 0 rgba(16, 185, 129, 0.2)', '0 0 0 4px rgba(16, 185, 129, 0)', '0 0 0 0 rgba(16, 185, 129, 0.2)']
-                    }}
-                    transition={{ 
-                      type: "spring",
-                      stiffness: 550,
-                      damping: 26,
-                      delay: 0.06,
-                      boxShadow: {
-                        duration: 2.5,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }
-                    }}
-                  >
-                    <div className="relative">
-                      <motion.div
-                        animate={{ 
-                          rotate: showProgressDock ? 0 : [0, 10, -10, 0],
-                          scale: showProgressDock ? 1 : [1, 1.1, 1]
-                        }}
-                        transition={{
-                          rotate: {
-                            duration: 1.5,
-                            repeat: showProgressDock ? 0 : Infinity,
-                            ease: "easeInOut"
-                          },
-                          scale: {
-                            duration: 2,
-                            repeat: showProgressDock ? 0 : Infinity,
-                            ease: "easeInOut"
-                          }
-                        }}
-                      >
-                        <Target className="w-4 h-4" />
-                      </motion.div>
-                      
-                      {/* Dot indicator cuando está activo */}
-                      {showProgressDock && (
-                        <motion.div 
-                          className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-emerald-400 rounded-full"
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          exit={{ scale: 0 }}
-                        />
-                      )}
-                      
-                      {/* Pulso sutil cuando no está activo para llamar atención */}
-                      {!showProgressDock && (
-                        <motion.div
-                          className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-400 rounded-full"
-                          animate={{
-                            scale: [0, 1.2, 0],
-                            opacity: [0.8, 0.4, 0.8]
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                          }}
-                        />
-                      )}
-                      
-                      {/* Mini indicador de progreso mejorado */}
-                      {progressGlobal > 0 && (
-                        <motion.div 
-                          className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 flex items-center justify-center border border-white/30"
-                          initial={{ scale: 0, rotate: -180 }}
-                          animate={{ scale: 1, rotate: 0 }}
-                          whileHover={{ scale: 1.1 }}
-                        >
-                          <span className="text-[7px] font-bold text-white drop-shadow">
-                            {Math.round(progressGlobal)}
-                          </span>
-                        </motion.div>
-                      )}
-                      
-                      {/* Tooltip mejorado */}
-                      <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-emerald-600/90 text-white text-[10px] rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap backdrop-blur-sm border border-emerald-400/30">
-                        <span className="font-medium">Progreso</span>
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-emerald-600/90"></div>
-                      </div>
-                    </div>
-                  </motion.button>
-                  
-                  {/* Separador visual adicional */}
-                  <motion.div 
-                    className="w-px h-5 bg-white/20"
-                    initial={{ opacity: 0, scaleY: 0 }}
-                    animate={{ opacity: 1, scaleY: 1 }}
-                    transition={{ 
-                      type: "spring",
-                      stiffness: 600,
-                      damping: 28,
-                      delay: 0.07
-                    }}
-                  />
-                </>
-              )}
 
               
               {/* Botón Perfil - Solo visible si NO estamos en RutinaDetalle */}

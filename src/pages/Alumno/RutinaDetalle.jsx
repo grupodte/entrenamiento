@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext';
-import { useProgressDock } from '../../context/ProgressDockContext';
 import { useBackNavigation } from '../../context/BackNavigationContext';
 // usePrompt removido - lógica simplificada
 import useRutinaLogic from "../../hooks/useRutinaLogic";
@@ -11,7 +10,6 @@ import RutinaHeader from "../../components/RutinaDetalle/RutinaHeader";
 import RutinaContent from "../../components/RutinaDetalle/RutinaContent";
 import RutinaTimersDisplay from "../../components/RutinaDetalle/RutinaTimersDisplay";
 import EntrenamientoCompletado from "../../components/RutinaDetalle/EntrenamientoCompletado"; // <-- 1. IMPORTAR
-import ProgressDock from "../../components/RutinaDetalle/ProgressDock";
 import Drawer from "../../components/Drawer";
 import VideoPanel from "../../components/VideoPanel"; // Importar VideoPanel
 import { motion } from 'framer-motion'; // <-- 2. IMPORTAR MOTION
@@ -28,8 +26,7 @@ const RutinaDetalle = () => {
     const [allowNavigation, setAllowNavigation] = useState(false);
     const { state } = location;
     
-    // Usar contexto de ProgressDock y BackNavigation
-    const { showProgressDock, updateProgressGlobal } = useProgressDock();
+    // Usar contexto de BackNavigation
     const { registerBackHandler } = useBackNavigation();
     const tipo = state?.tipo || "base";
     const searchParams = new URLSearchParams(location.search);
@@ -99,10 +96,6 @@ const RutinaDetalle = () => {
         navigate('/dashboard');
     };
 
-    // Actualizar progreso global en el contexto
-    useEffect(() => {
-        updateProgressGlobal(progressGlobal);
-    }, [progressGlobal, updateProgressGlobal]);
 
     // Lógica de bloqueo de navegación simplificada (sin usePrompt)
     
@@ -191,10 +184,10 @@ const RutinaDetalle = () => {
                             </p>
                         </div>
                         
-                        <div className="space-y-4 px-2">
+                        <div className="space-y-4 " >
                             <motion.button
                                 onClick={handleCancelExit}
-                                className="w-full px-4 py-3 bg-500/90 text-white rounded-xl shadow-lg shadow-cyan-500/20 border border-cyan-400/30 backdrop-blur-md font-semibold transition-all duration-200 hover:bg-cyan-400 hover:shadow-cyan-400/30"
+                                className="w-full px-4 py-3  rounded-xl shadow-lg shadow-cyan-500/20 border border-cyan-400/30 backdrop-blur-md font-semibold transition-all duration-200 hover:bg-cyan-400 hover:shadow-cyan-400/30"
                                 whileHover={{ scale: 1.03 }}
                                 whileTap={{ scale: 0.98 }}
                             >
@@ -221,25 +214,6 @@ const RutinaDetalle = () => {
                 />
             </div>
 
-            {/* ProgressDock completamente independiente */}
-            <ProgressDock
-                isVisible={showProgressDock && !!rutina}
-                rutina={rutina}
-                elementosCompletados={elementosCompletados}
-                progressGlobal={progressGlobal}
-                seriesCompletadas={seriesCompletadas}
-                totalSeries={seriesCompletadas + (rutina ? Object.keys(elementosCompletados).length : 0)}
-                workoutTime={workoutTime}
-                formatWorkoutTime={formatWorkoutTime}
-                progressPorSubBloque={progressPorSubBloque}
-                onElementClick={(elementId) => {
-                    // Scroll hacia el elemento específico si existe
-                    const element = elementoRefs.current[elementId];
-                    if (element) {
-                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                }}
-            />
         </>
     );
 };

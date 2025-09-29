@@ -95,21 +95,21 @@ const BloqueDisplay = (props) => {
 
 
     return (
-        <div className="space-y-6 px-4">
+        <div className="space-y-6 px-2 pb-20">
             {Object.entries(groupedSubBloques).map(([tipoBloque, subbloquesDelGrupo]) => {
                 const theme = getBlockTheme(tipoBloque.toLowerCase());
 
                 return (
-                    <div key={tipoBloque} className="space-y-4 ">
+                    <div key={tipoBloque} className="space-y-4 bg-[#D8D8D8] px-2 py-4 rounded-[10px]">
                         {/* Header del grupo de tipo de bloque */}
                         <div className="mb-4">
-                            <h2 className="text-2xl font-bold text-black/80 tracking-tight">
+                            <h2 className="text-[27px]  text-black/80 tracking-tight">
                                 {tipoBloque}
                             </h2>
                         </div>
                         
                         {/* Grid de tarjetas del mismo tipo */}
-                        <div className="grid grid-cols-1 gap-3">
+                        <div className="grid grid-cols-1 ">
                             {subbloquesDelGrupo.map((subbloque, index) => {
                                 const progressInfo = progressPorSubBloque[subbloque.id] || { isCompleted: false, isInProgress: false };
                                 

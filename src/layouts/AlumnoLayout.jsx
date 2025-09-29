@@ -6,7 +6,6 @@ import PerfilDrawer from '../pages/Alumno/PerfilDrawer';
 import EditarPerfilDrawer from '../pages/Alumno/EditarPerfil';
 import SwipeWidget from '../components/SwipeWidget';
 import GradualBlur from '../components/GradualBlur';
-import { ProgressDockProvider, useProgressDock } from '../context/ProgressDockContext';
 import { BackNavigationProvider, useBackNavigation } from '../context/BackNavigationContext';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 
@@ -32,8 +31,7 @@ const AlumnoLayoutContent = () => {
   const [isEditPerfilDrawerOpen, setIsEditPerfilDrawerOpen] = useState(false);
   const [isSwipeWidgetOpen, setIsSwipeWidgetOpen] = useState(true); // Inicia abierto, solo control manual
   
-  // Usar el contexto de ProgressDock y BackNavigation
-  const { showProgressDock, toggleProgressDock, progressGlobal } = useProgressDock();
+  // Usar el contexto de BackNavigation
   const { onBackClick } = useBackNavigation();
 
   useViewportHeight();
@@ -134,11 +132,9 @@ const AlumnoLayoutContent = () => {
 // Componente principal con Provider
 const AlumnoLayout = () => {
   return (
-    <ProgressDockProvider>
-      <BackNavigationProvider>
-        <AlumnoLayoutContent />
-      </BackNavigationProvider>
-    </ProgressDockProvider>
+    <BackNavigationProvider>
+      <AlumnoLayoutContent />
+    </BackNavigationProvider>
   );
 };
 
