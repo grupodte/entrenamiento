@@ -53,13 +53,36 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
         visible: { y: 0, opacity: 1 }
     };
 
+    // Colores rotativos para diferenciar meses/bloques
+    const getColorForIndex = (index) => {
+        const colors = [
+            '#FF0000', // rojo
+            '#8941FF', // púrpura
+            '#10B981', // verde
+            '#F59E0B', // amarillo
+            '#EF4444', // rojo claro
+            '#3B82F6'  // azul
+        ];
+        return colors[index % colors.length];
+    };
+
+    // Alterna entre select1 y select2
+    const getImageForIndex = (index) => {
+        const images = [
+            '/src/assets/select1.webp',
+            '/src/assets/select2.webp'
+        ];
+        return images[index % images.length];
+    };
+
     // Mostrar el loader mientras se cargan los datos
     const isLoading = loading || cacheLoading;
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose} height="h-[100vh]">
+        <Drawer isOpen={isOpen} onClose={onClose} height="h-[100vh] ">
+     
             {rutinaData ? (
-                    <div className=" text-[#121212] max-w-full mx-auto leading-none flex flex-item flex-col  ">
+                    <div className=" text-[#121212] w-[380px] mx-auto leading-none flex flex-item flex-col">
                     <div className="mb-4">
                             <h1 className="text-[27px] font-bold text-[#121212]">{rutinaData.rutina.nombre}</h1>
                         {rutinaData.rutina.descripcion && (
@@ -72,28 +95,152 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                             <p className="text-gray-300">Esta rutina no tiene bloques definidos.</p>
                         </div>
                     ) : (
-                        <motion.div
-                            className="space-y-3"
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                        >
-                            {rutinaData.bloques.map((bloque) => (
-                                <motion.div key={bloque.id} variants={itemVariants}>
-                                    <button
-                                        onClick={() => handleElegirBloque(bloque.id)}
-                                        className="w-full h-[212px] flex justify-between items-center bg-[#121212] shadow-lg rounded-xl p-4 "
+                        <>
+                        {/* Grid responsivo en móvil, scroll horizontal en desktop */}
+                        <div className="block sm:hidden">
+                            {/* Versión móvil: Grid vertical */}
+                            <motion.div
+                                className="grid grid-cols-1 gap-4"
+                                variants={containerVariants}
+                                initial="hidden"
+                                animate="visible"
+                            >
+                                {rutinaData.bloques.map((bloque, index) => (
+                                    <motion.div 
+                                        key={bloque.id} 
+                                        variants={itemVariants}
+                                        className="w-full"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[27px] font-bold text-[#F84B4B]">
-                                                {bloque.nombre}
-                                            </span>
-                                        </div>
-                                        <ChevronRight className="text-cyan-400 text-lg transition-transform group-hover:translate-x-1" />
-                                    </button>
-                                </motion.div>
-                            ))}
-                        </motion.div>
+                                        <button
+                                            onClick={() => handleElegirBloque(bloque.id)}
+                                            className=" w-[380px] h-[290px] relative rounded-2xl shadow-lg overflow-hidden "
+                                        >
+                                            {/* Imagen de fondo */}
+                                            <div 
+                                                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                                                style={{
+                                                    backgroundImage: `url(${getImageForIndex(index)})`
+                                                }}
+                                            />
+
+
+                                            {/* Contenido centrado */}
+                                            <div className="relative z-10 h-full flex flex-col justify-center items-center text-white ">
+                                                <div className="text-center">
+                                                    <div
+                                                        className="text-[60px] font-bold leading-none"
+                                                        style={{ color: getColorForIndex(index) }}
+                                                    >
+                                                        {bloque.nombre.split('(')[0].trim()}
+                                                    </div>
+                                                    {bloque.nombre.includes('(') && (
+                                                        <div className="text-[16px] text-gray-300 mb-4">
+                                                            ({bloque.nombre.split('(')[1]}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {bloque.detalle && (
+                                                    <p className="text-[12px] text-[#FFFFFF] mb-4">{bloque.detalle}</p>
+                                                )}
+
+                                                {/* Botón flecha */}
+                                                <div
+                                                    className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200"
+                                                    style={{
+                                                        backgroundColor: getColorForIndex(index),
+                                                        filter: 'brightness(0.9)'
+                                                    }}
+                                                >
+                                                    <ChevronRight className="text-white text-lg transition-transform group-hover:translate-x-1" />
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </motion.div>
+                                ))}
+                            </motion.div>
+                        </div>
+
+                        {/* Versión desktop y tablet: Scroll horizontal */}
+                        <div className="hidden sm:block overflow-x-auto scrollbar-hide -mx-1 px-1">
+                            <motion.div
+                                className="flex gap-4 pb-2"
+                                variants={containerVariants}
+                                initial="hidden"
+                                animate="visible"
+                            >
+                                {rutinaData.bloques.map((bloque, index) => (
+                                    <motion.div 
+                                        key={bloque.id} 
+                                        variants={itemVariants}
+                                        className="flex-shrink-0"
+                                        style={{ width: '380px', height: '290px' }}
+                                    >
+                                        <button
+                                            onClick={() => handleElegirBloque(bloque.id)}
+                                            className="w-full h-full relative rounded-2xl shadow-lg overflow-hidden group "
+                                        >
+                                            {/* Imagen de fondo */}
+                                            <div 
+                                                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                                                style={{
+                                                    backgroundImage: `url(${getImageForIndex(index)})`
+                                                }}
+                                            />
+
+                                            {/* Contenido centrado */}
+                                            <div className="relative z-10 h-full flex flex-col justify-center items-center text-white">
+                                                <div className="text-center">
+                                                    <div
+                                                        className="text-[60px] font-bold leading-tight"
+                                                        style={{ color: getColorForIndex(index) }}
+                                                    >
+                                                        {bloque.nombre.split('(')[0].trim()}
+                                                    </div>
+                                                    {bloque.nombre.includes('(') && (
+                                                        <div className="text-[16px] text-gray-300 mb-4">
+                                                            ({bloque.nombre.split('(')[1]}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {bloque.detalle && (
+                                                    <p className="text-[12px] text-[#FFFFFF] mb-4">{bloque.detalle}</p>
+                                                )}
+
+                                                {/* Botón flecha */}
+                                                <div
+                                                    className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200"
+                                                    style={{
+                                                        backgroundColor: getColorForIndex(index),
+                                                        filter: 'brightness(0.9)'
+                                                    }}
+                                                >
+                                                    <ChevronRight className="text-white text-lg transition-transform group-hover:translate-x-1" />
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </motion.div>
+                                ))}
+                            </motion.div>
+                        </div>
+
+                        {/* Indicadores de scroll para desktop (solo cuando hay más de 2 bloques) */}
+                        <div className="hidden sm:block">
+                            {rutinaData.bloques.length > 2 && (
+                                <div className="flex justify-center mt-4">
+                                    <div className="flex space-x-2">
+                                        {rutinaData.bloques.map((_, index) => (
+                                            <div
+                                                key={index}
+                                                className="w-2 h-2 rounded-full bg-gray-400 opacity-60"
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        </>
                     )}
                 </div>
             ) : null}

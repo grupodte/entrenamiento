@@ -179,6 +179,20 @@ body {
   font-display: swap;
 }
 
+/* Asegurar consistencia de tipografía en drawers */
+.drawer-typography-fix,
+.font-product {
+  font-family: 'ProductSans', 'Inter', sans-serif !important;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.drawer-typography-fix *,
+.font-product * {
+  font-family: inherit !important;
+}
+
 /* ====== LAYOUT PRINCIPAL ====== */
 .app-container {
   @apply h-screen flex flex-col relative;

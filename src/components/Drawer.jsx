@@ -206,10 +206,14 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                             w-full mx-auto
                             text-white 
                             bg-[#FFFFFF]
+                            backdrop-blur-[2px]
+                            backdrop-saturate-[180%]
+                            bg-opacity-80
                             pb-safe
                             flex flex-col
                             transform-gpu
                             will-change-transform
+                            
                         `}
                         style={{
                             paddingTop: 'env(safe-area-inset-top)',
@@ -234,7 +238,7 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                                     damping: 20
                                 }}
                             >
-                                <div className="relative h-[70px]">
+                                <div className="relative h-[70px] ">
                                     {/* handle */}
                                     <div
                                         className="absolute top-3 w-[25px] h-[5px] bg-[#D9D9D9] rounded-full"

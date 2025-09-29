@@ -248,7 +248,7 @@ const Dashboard = () => {
                                 <p className="text-[15px] tracking-wide text-[#B5B5B5] mb-1">
                                     {diasSemana[rutinaHoy.dia]}
                                 </p>
-                                <h4 className="text-[27px] font-bold text-[#F84B4B]">{rutinaHoy.nombre}</h4>
+                                <h4 className="text-[27px] font-bold text-[#FF0000]">{rutinaHoy.nombre}</h4>
                             </div>
 
                             {/* Contenido derecha */}
@@ -294,7 +294,7 @@ const Dashboard = () => {
                                             <p className="text-[15px] tracking-wide text-[#B5B5B5] mb-1">
                                                 {diasSemana[rutina.dia]}
                                             </p>
-                                            <p className="text-[27px] font-bold text-[#F84B4B]">{rutina.nombre}</p>
+                                            <p className="text-[27px] font-bold text-[#FF0000]">{rutina.nombre}</p>
                                         </div>
 
                                             <div className="">

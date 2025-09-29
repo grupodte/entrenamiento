@@ -71,3 +71,38 @@
     will-change: transform, opacity;
     contain: layout style paint;
 }
+
+/* Fix para tipografía consistente en drawers */
+.drawer-safe-positioning {
+    font-family: 'ProductSans', 'Inter', sans-serif !important;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Asegurar que los textos dentro del drawer mantengan la fuente */
+.drawer-safe-positioning *,
+.drawer-safe-positioning h1,
+.drawer-safe-positioning h2,
+.drawer-safe-positioning h3,
+.drawer-safe-positioning p,
+.drawer-safe-positioning span,
+.drawer-safe-positioning button,
+.drawer-safe-positioning div {
+    font-family: inherit !important;
+    text-rendering: inherit;
+}
+
+/* Peso de fuente específico para elementos en drawer */
+.drawer-safe-positioning .font-extrabold {
+    font-weight: 800 !important;
+}
+
+.drawer-safe-positioning .font-bold {
+    font-weight: 700 !important;
+}
+
+.drawer-safe-positioning .font-semibold {
+    font-weight: 600 !important;
+}

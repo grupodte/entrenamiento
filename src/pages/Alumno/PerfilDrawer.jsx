@@ -44,7 +44,7 @@ const StatCard = ({
 
             {/* Right label */}
             <div className="flex-1 text-right leading-snug">
-                <p className="text-white/90 text-[13px] font-semibold">{label?.line1}</p>
+                <p className="text-white/90 text-[13px] ">{label?.line1}</p>
                 {label?.line2 && (
                     <p className="text-white/85 text-[11px]">{label.line2}</p>
                 )}
@@ -117,7 +117,12 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
 
     return (
         <Drawer isOpen={isOpen} onClose={onClose} height="h-[100vh]">
-            <div className="h-full overflow-y-auto scrollbar-hide">
+            <div className="h-full overflow-y-auto scrollbar-hide font-product">
+                <style>{`
+                    .font-product * {
+                        font-family: 'ProductSans', 'Inter', sans-serif !important;
+                    }
+                `}</style>
                 {/* Perfil */}
                 <div className="relative mt-2 mb-4 overflow-hidden">
                     <div className="relative z-10 flex items-center gap-3 p-4">
