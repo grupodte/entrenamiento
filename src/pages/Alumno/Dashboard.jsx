@@ -172,14 +172,15 @@ const Dashboard = () => {
                 <section className="grid grid-cols-1">
                     {/* Progreso semanal */}
                     <div className="bg-black rounded-2xl p-5 sm:p-6 text-white ">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between w-auto">
                             {/* Izquierda: título en dos líneas */}
                             <p className="flex text-[28px] sm:text-[32px] leading-none tracking-tight font-medium">
                                 Progreso<br />semanal
                             </p>
 
                             {/* derecha:  contador  */}
-                            <div className="flex grid grid-cols-2 items-center gap-2">
+                            <div className="w-full  h-[110px] text-left leading-none p-2 rounded-2xl flex items-center justify-end gap-2"
+>
                             {/* Centro: anillo de progreso con número */}
                             <div className="relative w-24 h-24 -rotate-90">
                                 <svg className="w-full h-full" viewBox="0 0 36 36">
@@ -211,9 +212,11 @@ const Dashboard = () => {
                             </div>
 
                             {/* Derecha: "de N" */}
-                            <span className="text-[19px] text-white/80">
+                            <div>
+                            <span className="text-[19px] text-white">
                                 de {totalWorkoutsThisWeek}
                             </span>
+                                </div>
                             </div>
                         
                         </div>

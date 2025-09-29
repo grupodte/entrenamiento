@@ -131,9 +131,7 @@ const SwipeWidget = ({ isOpen, onClose }) => {
                 <div className="text-[#FFFFFF] text-[39px] font-normal ">
                   {title}
                 </div>
-                <div className="text-[#FFFFFF] text-[39px]">
                   <img src={arrow} alt="arrow" />
-                </div>
               </div>
     </button>
   ));

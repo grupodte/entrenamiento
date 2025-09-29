@@ -234,14 +234,13 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                                     damping: 20
                                 }}
                             >
-                                <div className="relative">
+                                <div className="relative h-[d50px]">
                                     {/* handle */}
                                     <div
                                         className="absolute top-3 w-[25px] h-[5px] bg-[#D9D9D9] rounded-full"
                                         aria-hidden="true"
                                     />
-                                    {/* contenido del modal/card */}
-                                    <div className="mt-6">...</div>
+                                  
                                 </div>
                             </motion.div>
                             
