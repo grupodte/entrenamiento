@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dumbbell, Utensils, BookOpen } from 'lucide-react';
+import arrow from '../assets/arrow.svg';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 // Import background images
@@ -135,7 +136,7 @@ const SwipeWidget = ({ isOpen, onClose }) => {
                   </div>
                 </div>
                 <div className="text-[#FFFFFF] text-[39px]">
-                  🡪
+                  <img src={arrow} alt="arrow" />
                 </div>
       </div>
     </button>

@@ -75,7 +75,7 @@ const AlumnoLayoutContent = () => {
       <GradualBlur
         target="page"
         position="top"
-        height="6rem"
+        height="3rem"
         strength={2}
         divCount={5}
         curve="bezier"
@@ -106,7 +106,7 @@ const AlumnoLayoutContent = () => {
         animate="animate"
         exit="exit"
       >
-        <div className="content-wrapper" style={{ paddingTop: '3rem', paddingBottom: '6rem' }}>
+        <div className="content-wrapper" >
           <Outlet />
         </div>
       </motion.main>

@@ -159,12 +159,12 @@ const Dashboard = () => {
       
 
             {/* Contenido */}
-            <main className="max-w-screen-md mx-auto px-2 pb-[env(safe-area-inset-bottom)] py-6 space-y-8">
+            <main className="mx-auto w-[380px]">
                 {/* Stats */}
-                <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <section className="grid grid-cols-1  gap-4">
                     {/* Progreso semanal */}
-                    <div className="rounded-2xl p-4 bg-white/[0.03] border border-white/10 backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.35)]">
-                        <h3 className="text-sm font-medium text-white/80 mb-4">Progreso Semanal</h3>
+                    <div className="rounded-2xl p-4 bg-[#000000] grid grid-cols-2 h-[161px] items-center">
+                        <h3 className="text-[27px] leading-none">Progreso Semanal</h3>
                         <div className="flex items-center gap-4">
                             <svg className="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
                                 {/* fondo */}
