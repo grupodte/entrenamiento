@@ -1,72 +1,80 @@
-import React from 'react';
-import { FaUtensils, FaClock, FaPause } from 'react-icons/fa';
+import React, { useState } from 'react';
+// usa tu OptionCard actualizado (sin iconos)
+import OptionCard from '../OptionCard';
 
-const FrecuenciaDietaStep = ({ value, onChange }) => {
-    // TODO: Este componente está en pausa mientras se define la funcionalidad completa
-    // Las opciones siguientes son solo un placeholder para futura implementación
-    
-    // const frecuenciasDieta = [
-    //     {
-    //         id: 'seguimiento_diario',
-    //         title: 'Seguimiento diario',
-    //         description: 'Registra tus comidas todos los días',
-    //         icon: FaUtensils
-    //     },
-    //     {
-    //         id: 'seguimiento_semanal',
-    //         title: 'Seguimiento semanal',
-    //         description: 'Revisa tu alimentación una vez por semana',
-    //         icon: FaClock
-    //     }
-    // ];
+/**
+ * Props:
+ * - value: string | null  -> valor actual (ej: 'seguimiento_diario' | 'seguimiento_semanal')
+ * - onChange: (val: string) => void  -> callback para actualizar estado en el padre
+ * - supabase?: SupabaseClient  -> cliente supabase para persistir (opcional)
+ * - profileId?: string | number  -> id del perfil en 'perfiles' (opcional, requerido si se pasa supabase)
+ * - eqField?: 'id' | 'user_id'   -> columna para el where (default 'id')
+ */
+const FrecuenciaDietaStep = ({ value, onChange, supabase, profileId, eqField = 'id' }) => {
+    const [saving, setSaving] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+
+    const opciones = [
+        {
+            id: 'seguimiento_diario',
+            title: 'Seguimiento diario',
+            description: 'Registrar comidas cada día para mayor precisión',
+        },
+        {
+            id: 'seguimiento_semanal',
+            title: 'Seguimiento semanal',
+            description: 'Revisión 1 vez por semana con foco en hábitos',
+        },
+    ];
+
+    const persistIfNeeded = async (nuevoValor) => {
+        if (!supabase || !profileId) return; // solo persiste si se provee supabase + profileId
+        setSaving(true);
+        setErrorMsg('');
+        try {
+            const query = supabase.from('perfiles').update({ frecuencia_dieta: nuevoValor });
+            const { error } =
+                eqField === 'user_id'
+                    ? await query.eq('user_id', profileId)
+                    : await query.eq('id', profileId);
+            if (error) throw error;
+        } catch (err) {
+            setErrorMsg('No se pudo guardar. Reintentá más tarde.');
+            // (opcional) podrías revertir onChange si querés comportamiento no optimista
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleSelect = async (id) => {
+        onChange?.(id);       // optimista
+        await persistIfNeeded(id);
+    };
 
     return (
         <div className="space-y-6">
-            <div className="rounded-2xl p-4 bg-white/[0.03] border border-white/10 backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.35)]">
-                <p className="text-sm text-white/80">
-                    <strong className="text-cyan-400">Seguimiento nutricional:</strong> Estamos preparando 
-                    funcionalidades increíbles para ayudarte con tu alimentación.
-                </p>
+  
+
+            {/* Grid 2 columnas también en mobile */}
+            <div className="grid  gap-3 md:gap-4">
+                {opciones.map(({ id, title, description }) => (
+                    <OptionCard
+                        key={id}
+                        title={title}
+                        description={description}
+                        selected={value === id}
+                        onClick={() => handleSelect(id)}
+                    />
+                ))}
             </div>
 
-            {/* Mensaje de "en desarrollo" */}
-            <div className="flex flex-col items-center justify-center py-12 space-y-6">
-                <div className="w-20 h-20 rounded-full bg-yellow-500/10 border-2 border-yellow-500/30 flex items-center justify-center">
-                    <FaPause className="w-8 h-8 text-yellow-400" />
+            {/* Estado de guardado / error */}
+            {(saving || errorMsg) && (
+                <div className="rounded-2xl p-4 bg-[#191919] border border-white/10">
+                    {saving && <p className="text-[13px] text-white/70">Guardando cambios…</p>}
+                    {errorMsg && <p className="text-[13px] text-red-400">{errorMsg}</p>}
                 </div>
-                
-                <div className="text-center space-y-3">
-                    <h3 className="text-xl font-semibold text-white/90">
-                        Funcionalidad en desarrollo
-                    </h3>
-                    <p className="text-white/70 max-w-md">
-                        Estamos trabajando en herramientas avanzadas para el seguimiento nutricional. 
-                        Por ahora, puedes continuar y configurar esto más tarde desde tu perfil.
-                    </p>
-                </div>
-            </div>
-
-            {/* Información sobre qué viene */}
-            <div className="rounded-2xl p-5 bg-white/[0.03] border border-white/10 backdrop-blur-md">
-                <h4 className="text-white/90 font-semibold mb-3 flex items-center">
-                    <FaUtensils className="w-4 h-4 mr-2 text-cyan-400" />
-                    Próximamente:
-                </h4>
-                <ul className="space-y-2 text-sm text-white/70">
-                    <li className="flex items-center">
-                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mr-3"></div>
-                        Registro de comidas personalizado
-                    </li>
-                    <li className="flex items-center">
-                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mr-3"></div>
-                        Planes nutricionales adaptativos
-                    </li>
-                    <li className="flex items-center">
-                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mr-3"></div>
-                        Análisis de macronutrientes
-                    </li>
-                </ul>
-            </div>
+            )}
         </div>
     );
 };

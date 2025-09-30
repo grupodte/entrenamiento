@@ -110,15 +110,9 @@ const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
 
     return (
         <div className="space-y-6">
-            <div className="rounded-2xl p-4 bg-white/[0.03] border border-white/10 backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.35)]">
-                <p className="text-sm text-white/80">
-                    <strong className="text-cyan-400">¡Bienvenido!</strong> Para personalizar tu experiencia, 
-                    necesitamos algunos datos básicos. Los campos marcados con un asterisco (*) son obligatorios.
-                </p>
-            </div>
-            
+          
             {/* Foto de perfil */}
-            <div className="flex flex-col items-center space-y-4 p-6 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-md">
+            <div className="flex flex-col items-center ">
                 <div className="relative">
                     <div className="w-24 h-24 rounded-full overflow-hidden bg-white/10 border-2 border-white/20 flex items-center justify-center">
                         {values.avatar_url ? (
@@ -136,7 +130,7 @@ const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isUploadingPhoto}
-                        className="absolute -bottom-2 -right-2 w-8 h-8 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 rounded-full flex items-center justify-center transition-colors shadow-lg"
+                        className="absolute -bottom-2 -right-2 w-8 h-8 bg-[#FF0000]  rounded-full flex items-center justify-center transition-colors shadow-lg"
                     >
                         {isUploadingPhoto ? (
                             <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -146,11 +140,11 @@ const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
                     </button>
                 </div>
                 
-                <div className="text-center">
-                    <p className="text-sm text-white/80">
-                        Foto de perfil {values.avatar_url ? '(Personalizada)' : '(Usando foto de Google)'}
+                <div className="text-center leading-none">
+                    <p className="text-[14px] text-[#000000] mt-4">
+                        Foto de perfil 
                     </p>
-                    <p className="text-xs text-white/60 mt-1">
+                    <p className="text-[12px] text-[#000000] mt-1">
                         Toca el ícono para cambiar tu foto
                     </p>
                 </div>
@@ -167,10 +161,10 @@ const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
             <div className="space-y-4">
                 {campos.map((campo) => (
                     <div key={campo.key} className="space-y-2">
-                        <label className="flex items-center text-white/90 font-medium text-sm mb-2">
-                            <campo.icon className="w-4 h-4 mr-2 text-cyan-400" />
+                        <label className="flex items-center text-[#000000] font-medium text-[16px] mb-2">
+                            <campo.icon className="w-4 h-4 mr-2 text-[#FF0000]" />
                             {campo.label}
-                            {campo.required && <span className="text-red-400 ml-1">*</span>}
+                            {campo.required && <span className="text-[#FF0000] ml-1">*</span>}
                         </label>
                         
                         <input
@@ -178,17 +172,16 @@ const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
                             placeholder={campo.placeholder}
                             min={campo.min}
                             max={campo.max}
-                            value={values[campo.key] || ''}
+                            value={values[campo.key] ?? ''}
                             onChange={(e) => handleInputChange(campo.key, e.target.value)}
-                            disabled={campo.disabled}
-                            className={`w-full p-4 rounded-2xl transition-all duration-200 ${
-                                campo.disabled 
-                                    ? 'bg-white/[0.02] border border-white/5 text-white/40 cursor-not-allowed backdrop-blur-sm'
-                                    : errors[campo.key]
-                                        ? 'bg-white/[0.03] border border-red-400/30 focus:border-red-400/50 text-white placeholder-white/40 backdrop-blur-sm shadow-[0_4px_20px_rgba(239,68,68,0.15)]'
-                                        : 'bg-white/[0.03] border border-white/10 focus:border-cyan-400/50 text-white placeholder-white/40 backdrop-blur-sm shadow-[0_4px_20px_rgba(0,0,0,0.1)] hover:bg-white/[0.05]'
-                            } focus:outline-none focus:shadow-[0_4px_20px_rgba(56,189,248,0.2)]`}
+                            disabled={!!campo.disabled}
+                            className={`w-full p-4 rounded-2xl transition-all duration-200
+    focus:outline-none focus:ring-0 focus:border-transparent
+    ${campo.disabled ? 'bg-black cursor-not-allowed opacity-70' : 'bg-[#191919]'}
+    ${errors[campo.key] ? 'ring-1 ring-red-500/50' : ''}`
+                            }
                         />
+
                         
                         {errors[campo.key] && (
                             <p className="text-red-400/90 text-sm mt-2 px-2">{errors[campo.key]}</p>
@@ -198,8 +191,8 @@ const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
 
                 {/* Campo de género como select */}
                 <div className="space-y-2">
-                    <label className="flex items-center text-white/90 font-medium text-sm mb-2">
-                        <FaVenusMars className="w-4 h-4 mr-2 text-cyan-400" />
+                    <label className="flex items-center text-[#000000] font-medium text-[16px] mb-2">
+                        <FaVenusMars className=" w-4 h-4 mr-2 text-[#FF0000]" />
                         Género
                         <span className="text-red-400 ml-1">*</span>
                     </label>
@@ -219,8 +212,8 @@ const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
                 
                 {/* Campo de país como select */}
                 <div className="space-y-2">
-                    <label className="flex items-center text-white/90 font-medium text-sm mb-2">
-                        <FaGlobe className="w-4 h-4 mr-2 text-cyan-400" />
+                    <label className="flex items-center text-[#000000] font-medium text-[16px] mb-2">
+                        <FaGlobe className="w-4 h-4 mr-2 text-[#FF0000]" />
                         País
                         <span className="text-red-400 ml-1">*</span>
                     </label>

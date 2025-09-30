@@ -15,6 +15,8 @@ import DatosFisicosYObjetivosStep from '../components/Onboarding/steps/DatosFisi
 import FrecuenciaEntrenamientoStep from '../components/Onboarding/steps/FrecuenciaEntrenamientoStep';
 import FrecuenciaDietaStep from '../components/Onboarding/steps/FrecuenciaDietaStep';
 
+import Bgonbording from '../assets/onbordingbg.png';
+
 const Onboarding = () => {
     const { user, updateOnboardingStatus } = useAuth();
     const navigate = useNavigate();
@@ -254,9 +256,8 @@ const Onboarding = () => {
             isFeature: true, // Flag for new design
             component: (
                 <FeatureCard
-                    icon="✨"
-                    title="¡Bienvenido/a al Desafío de Transformación!"
-                    description="Has dado el paso más importante: decidir empezar. Estamos aquí para guiarte en cada etapa de tu camino hacia una vida más saludable."
+                    title="Bienvenido/a"
+                    description="Te estábamos esperando. Ahora te guiamos paso a paso hacia tu mejor versión"
                 />
             )
         },
@@ -267,9 +268,8 @@ const Onboarding = () => {
                     icon="💪"
                     title="Entrenamiento a Tu Medida"
                     bullets={[
-                        "Rutinas adaptadas a ti.",
-                        "Ejercicios en video para una técnica perfecta.",
-                        "Progresión semanal para que no te estanques."
+                        "Videos explicativos.",
+                        "Seguimiento de progreso semanal",
                     ]}
                 />
             )
@@ -279,8 +279,9 @@ const Onboarding = () => {
             component: (
                 <FeatureCard
                     icon="🍎"
-                    title="Nutrición Inteligente, Sin Sacrificios"
-                    description="Aprende a comer de forma saludable con nuestro plan de dieta. No se trata de restringir, sino de construir hábitos que te nutran."
+                    title=" Nutrición Inteligente"
+                    description="Te enseñamos a comer mejor, con conciencia y funcionalidad.
+Hábitos reales que podés sostener."
                 />
             )
         },
@@ -289,11 +290,11 @@ const Onboarding = () => {
             component: (
                 <FeatureCard
                     icon="💡"
-                    title="Aprendizaje y Motivación Semanal"
+                    title="Aprendé y Motiváte"
                     bullets={[
                         "Videos nuevos cada semana.",
-                        "Conceptos clave sobre fitness y nutrición.",
-                        "La dosis de motivación que necesitas."
+                        "Retos y desafíos",
+                        "Motivación constante"
                     ]}
                 />
             )
@@ -303,8 +304,9 @@ const Onboarding = () => {
             component: (
                 <FeatureCard
                     icon="🚀"
-                    title="¡Todo Listo Para Empezar!"
-                    description="Ahora, vamos a hacerte unas preguntas para personalizar tu programa. ¡Este es el inicio de tu gran cambio!"
+                    title=" ¡Listo para Empezar!"
+                    description="Vamos a personalizar tu plan.
+Unas preguntas rápidas y comenzamos"
                 />
             )
         },
@@ -312,7 +314,7 @@ const Onboarding = () => {
         // ⬇️ Pasos de recolección de datos con textos más motivacionales
         6: {
             title: "Primero, Conozcámonos Mejor",
-            description: "Estos datos básicos nos ayudan a crear tu perfil único dentro del programa.",
+            description: "Necesitamos algunos datos básicos para adaptar el plan a vos. Rápido, simple y útil.",
             component: (
                 <DatosPersonalesStep
                     values={onboardingData}
@@ -322,8 +324,8 @@ const Onboarding = () => {
             )
         },
         7: {
-            title: "Tu Punto de Partida y Tus Metas",
-            description: "Conocer tu estado actual es clave para personalizar tu plan y medir tu increíble progreso. ¡Sin juicios, solo datos para empezar!",
+            title: "Tu Cuerpo, Tus Metas",
+            description: "Conocer tu estado actual nos permite ajustar el plan a vos y medir tu evolución real desde el día",
             component: (
                 <DatosFisicosYObjetivosStep
                     values={onboardingData}
@@ -333,8 +335,8 @@ const Onboarding = () => {
             )
         },
         8: {
-            title: "Tu Compromiso Semanal",
-            description: "¿Cuántos días a la semana te comprometes a entrenar con nosotros? Sé realista para que podamos crear un plan sostenible.",
+            title: "Tu Frecuencia, Tu Compromiso",
+            description: "¿Cuántos días vas a entrenar? Elegí lo que realmente puedas sostener. Nosotros lo adaptamos.",
             component: (
                 <FrecuenciaEntrenamientoStep
                     value={onboardingData.frecuencia_entrenamiento}
@@ -357,39 +359,51 @@ const Onboarding = () => {
     const currentStepConfig = stepConfig[currentStep];
 
     return (
-        <div 
-            className="min-h-screen flex flex-col bg-cover bg-center" 
-            style={{ backgroundImage: `url('/backgrounds/admin-blur.png')` }}
+        <div
+            className="min-h-screen flex flex-col bg-center bg-no-repeat bg-cover "
+            style={{ backgroundImage: `url(${Bgonbording})` }}  
         >
-            <div className="min-h-screen flex flex-col bg-black/30 backdrop-blur-sm">
-                <div className="flex-1 container mx-auto px-4 py-8 max-w-2xl flex flex-col">
-                    <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />
+            <div className="min-h-screen flex flex-col">
+                <div className="flex-1 container mx-auto px-2 py-10 w-[320px] flex flex-col justify-between">
 
-                    {errors.general && (
-                        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                            <p className="text-red-400 text-sm">{errors.general}</p>
-                        </div>
-                    )}
+                    {/* Arriba: barra de progreso */}
+                    <div className="w-full flex justify-center">
+                        <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />
+                    </div>
 
-                    <AnimatePresence mode="wait">
-                        <StepContainer
-                            key={currentStep}
-                            title={currentStepConfig.title}
-                            description={currentStepConfig.description}
-                            isFeatureStep={!!currentStepConfig.isFeature} // Pass flag to container
-                            currentStep={currentStep}
-                            onNext={handleNext}
-                            onPrevious={handlePrevious}
-                            canContinue={canContinue()}
-                            isLastStep={currentStep === totalSteps}
-                            isLoading={isLoading}
-                        >
-                            {currentStepConfig.component}
-                        </StepContainer>
-                    </AnimatePresence>
+                    {/* Medio: contenido */}
+                    <div className="flex-1 flex flex-col justify-center">
+                        {errors.general && (
+                            <div className=" bg-red-500/10 border border-red-500/20 rounded-lg">
+                                <p className="text-red-400 text-sm">{errors.general}</p>
+                            </div>
+                        )}
+
+                        <AnimatePresence mode="wait">
+                            <StepContainer
+                                key={currentStep}
+                                title={currentStepConfig.title}
+                                description={currentStepConfig.description}
+                                isFeatureStep={!!currentStepConfig.isFeature}
+                                currentStep={currentStep}
+                                onNext={handleNext}
+                                onPrevious={handlePrevious}
+                                canContinue={canContinue()}
+                                isLastStep={currentStep === totalSteps}
+                                isLoading={isLoading}
+                            >
+                                {currentStepConfig.component}
+                            </StepContainer>
+                        </AnimatePresence>
+                    </div>
+
+           
+
                 </div>
             </div>
         </div>
+
+
     );
 };
 

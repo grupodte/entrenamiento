@@ -45,9 +45,9 @@ const StepContainer = ({
             {/* Header: Only show for non-feature steps */}
             {!isFeatureStep && (
                 <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-white/95 mb-3">{title}</h2>
+                    <h2 className="text-[35px] leading-none text-[#000000] mb-2 ">{title}</h2>
                     {description && (
-                        <p className="text-white/70 text-base leading-relaxed">{description}</p>
+                        <p className="text-[#000000] leading-none">{description}</p>
                     )}
                 </div>
             )}
@@ -58,14 +58,14 @@ const StepContainer = ({
             </div>
 
             {/* Navigation */}
-            <div className={`flex justify-between items-center pt-6 ${isFeatureStep ? 'mt-8' : 'border-t border-white/10'}`}>
+            <div className={`flex justify-between items-center pt-6 ${isFeatureStep ? 'mt-8' : ''}`}>
                 <button
                     onClick={onPrevious}
                     disabled={currentStep === 1}
-                    className={`px-6 py-3 rounded-2xl font-semibold transition-all duration-200 ${ 
+                    className={`rounded-[10px] w-[110px] h-[50px] text-[15px] text-[#686868] transition-all duration-200 ${ 
                         currentStep === 1
-                            ? 'bg-white/[0.02] text-white/30 cursor-not-allowed border border-white/5'
-                            : 'bg-white/[0.08] text-white/90 hover:bg-white/[0.12] border border-white/20 backdrop-blur-sm'
+                            ? 'bg-black'
+                        : 'bg-[#191919]'
                     }`}
                 >
                     Volver
@@ -74,10 +74,10 @@ const StepContainer = ({
                 <button
                     onClick={onNext}
                     disabled={!canContinue || isLoading}
-                    className={`px-8 py-3 rounded-2xl font-semibold transition-all duration-200 flex items-center space-x-2 ${ 
+                    className={`rounded-[10px] w-[123px] h-[50px] transition-all duration-200 text-[#000000]  ${ 
                         canContinue && !isLoading
-                            ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600 shadow-[0_6px_20px_rgba(56,189,248,0.3)] hover:shadow-[0_8px_25px_rgba(56,189,248,0.4)] transform hover:scale-[1.02]'
-                            : 'bg-white/[0.02] text-white/40 cursor-not-allowed border border-white/5'
+                        ? 'bg-[#FF0000]'
+                        : 'bg-[#FF0000]'
                     }`}
                 >
                     {isLoading ? (

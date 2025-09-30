@@ -97,15 +97,16 @@ const CustomSelect = ({
                 type="button"
                 onClick={handleButtonClick}
                 disabled={disabled}
-                className={`w-full p-4 rounded-2xl transition-all duration-200 flex items-center justify-between text-left ${
-                    disabled 
-                        ? 'bg-white/[0.02] border border-white/5 text-white/40 cursor-not-allowed backdrop-blur-sm'
+                className={`w-full p-4 rounded-2xl transition-all duration-200 flex items-center justify-between text-left
+    focus:outline-none focus:ring-0 focus:border-transparent
+    ${disabled
+                        ? 'bg-[#191919]'
                         : error
-                            ? 'bg-white/[0.03] border border-red-400/30 focus:border-red-400/50 text-white backdrop-blur-sm shadow-[0_4px_20px_rgba(239,68,68,0.15)] hover:bg-white/[0.04]'
+                            ? 'bg-[#191919]'
                             : isOpen
-                                ? 'bg-white/[0.05] border border-cyan-400/50 text-white backdrop-blur-sm shadow-[0_4px_20px_rgba(56,189,248,0.2)]'
-                                : 'bg-white/[0.03] border border-white/10 focus:border-cyan-400/50 text-white backdrop-blur-sm shadow-[0_4px_20px_rgba(0,0,0,0.1)] hover:bg-white/[0.05]'
-                } focus:outline-none focus:shadow-[0_4px_20px_rgba(56,189,248,0.2)]`}
+                                ? 'bg-[#191919] border border-cyan-400/50 text-white backdrop-blur-sm shadow-[0_4px_20px_rgba(56,189,248,0.2)]'
+                                : 'bg-[#191919]'
+                    }`}
             >
                 <span className={selectedOption ? 'text-white' : 'text-white/40'}>
                     {selectedOption ? selectedOption.label : placeholder}
@@ -115,10 +116,11 @@ const CustomSelect = ({
                         animate={{ rotate: isOpen ? 180 : 0 }}
                         transition={{ duration: 0.2 }}
                     >
-                        <ChevronDown className="h-5 w-5 text-cyan-400" />
+                        <ChevronDown className="h-5 w-5 text-[#FF0000]" />
                     </motion.div>
                 )}
             </button>
+
 
             {isOpen && createPortal(
                 <motion.div 
@@ -126,7 +128,7 @@ const CustomSelect = ({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: portalPosition.openUpward ? 10 : -10 }}
                     transition={{ duration: 0.15 }}
-                    className="custom-select-dropdown fixed z-[99999] rounded-2xl backdrop-blur-xl  py-2 shadow-2xl ring-1 ring-white/5 max-h-60 overflow-auto"
+                    className="custom-select-dropdown fixed z-[99999] rounded-2xl backdrop-blur-xl  shadow-2xl ring-1 ring-white/5 max-h-60 overflow-auto"
                     style={{
                         top: `${portalPosition.top}px`,
                         left: `${portalPosition.left}px`,
@@ -139,10 +141,10 @@ const CustomSelect = ({
                         <button
                             key={option.value}
                             type="button"
-                            className={`w-full cursor-pointer select-none px-4 py-3 transition-all duration-150 flex items-center justify-between text-left rounded-xl mx-2 my-1 ${
+                            className={`w-full cursor-pointer select-none px-4 py-3 transition-all duration-150 flex items-center justify-between  ${
                                 selectedOption?.value === option.value 
-                                    ? 'bg-cyan-500/20 text-cyan-300 shadow-[0_2px_10px_rgba(56,189,248,0.3)]' 
-                                    : 'text-white/90 hover:bg-white/[0.08] hover:text-white'
+                                ? 'bg-[#FF0000]/20 ' 
+                                    : 'text-white/90 '
                             }`}
                             onClick={() => handleSelect(option)}
                         >
@@ -153,7 +155,7 @@ const CustomSelect = ({
                                     animate={{ scale: 1 }}
                                     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                                 >
-                                    <Check className="h-4 w-4 text-cyan-400" />
+                                    <Check className="h-4 w-4 text-[#f2f2f2]" />
                                 </motion.div>
                             )}
                         </button>
