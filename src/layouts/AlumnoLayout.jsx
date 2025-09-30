@@ -7,6 +7,7 @@ import EditarPerfilDrawer from '../pages/Alumno/EditarPerfil';
 import SwipeWidget from '../components/SwipeWidget';
 import GradualBlur from '../components/GradualBlur';
 import { BackNavigationProvider, useBackNavigation } from '../context/BackNavigationContext';
+import { WorkoutProvider } from '../context/WorkoutContext';
 import { useViewportHeight } from '../hooks/useViewportHeight';
 
 // Variantes de animación optimizadas
@@ -133,7 +134,9 @@ const AlumnoLayoutContent = () => {
 const AlumnoLayout = () => {
   return (
     <BackNavigationProvider>
-      <AlumnoLayoutContent />
+      <WorkoutProvider>
+        <AlumnoLayoutContent />
+      </WorkoutProvider>
     </BackNavigationProvider>
   );
 };

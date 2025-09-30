@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext';
 import { useBackNavigation } from '../../context/BackNavigationContext';
+import { useWorkout } from '../../context/WorkoutContext';
 // usePrompt removido - lógica simplificada
 import useRutinaLogic from "../../hooks/useRutinaLogic";
 import useRutinaProgress from "../../hooks/useRutinaProgress";
@@ -28,6 +29,10 @@ const RutinaDetalle = () => {
     
     // Usar contexto de BackNavigation
     const { registerBackHandler } = useBackNavigation();
+    
+    // Usar contexto de Workout
+    const { startWorkout, endWorkout, updateWorkoutTime } = useWorkout();
+    
     const tipo = state?.tipo || "base";
     const searchParams = new URLSearchParams(location.search);
     const bloqueSeleccionado = searchParams.get("bloque");
@@ -109,6 +114,9 @@ const RutinaDetalle = () => {
         setShowExitModal(false);
         setPendingNavigation(null);
         
+        // Desactivar contexto de workout antes de salir
+        endWorkout();
+        
         // Navegar al dashboard
         setTimeout(() => {
             navigate('/dashboard', { replace: true });
@@ -120,6 +128,27 @@ const RutinaDetalle = () => {
         // Limpiar navegación pendiente (cancelar navegación)
         setPendingNavigation(null);
     };
+
+    // Effect para activar el contexto de workout cuando se carga la rutina
+    useEffect(() => {
+        if (rutina && !loading) {
+            console.log('RutinaDetalle: Activando workout context', { rutina: !!rutina, loading });
+            startWorkout(null, handleBackButtonClick);
+        }
+        return () => {
+            // Limpiar al desmontar el componente
+            console.log('RutinaDetalle: Limpiando workout context');
+            endWorkout();
+        };
+    }, [rutina, loading, startWorkout, endWorkout, handleBackButtonClick]);
+
+    // Effect para actualizar el tiempo del workout en el contexto
+    useEffect(() => {
+        if (workoutTime > 0) {
+            console.log('RutinaDetalle: Actualizando tiempo en contexto', { workoutTime });
+            updateWorkoutTime(workoutTime);
+        }
+    }, [workoutTime, updateWorkoutTime]);
 
 
     return (
@@ -169,14 +198,14 @@ const RutinaDetalle = () => {
                 )}
 
                 {/* Modales y paneles */}
-                <Drawer isOpen={showExitModal} onClose={handleCancelExit} height="h-[95vh]">
+                <Drawer isOpen={showExitModal} onClose={handleCancelExit} height="h-[100vh]">
                     <div className="p-6">
                         <div className="text-center mb-6">
                        
-                            <h3 className="text-lg font-semibold text-white mb-2">
+                            <h3 className="text-[35px] text-[#545454] mb-2  leading-none">
                                 ¿Salir del entrenamiento?
                             </h3>
-                            <p className="text-gray-400 text-sm">
+                            <p className="text-[#828282]  text-[16px] leading-none">
                                 {pendingNavigation 
                                     ? "Estás intentando navegar fuera del entrenamiento. Si continúas, perderás el progreso de esta sesión."
                                     : "Si sales ahora, perderás el progreso de esta sesión."
@@ -187,7 +216,7 @@ const RutinaDetalle = () => {
                         <div className="space-y-4 " >
                             <motion.button
                                 onClick={handleCancelExit}
-                                className="w-full px-4 py-3  rounded-xl shadow-lg shadow-cyan-500/20 border border-cyan-400/30 backdrop-blur-md font-semibold transition-all duration-200 hover:bg-cyan-400 hover:shadow-cyan-400/30"
+                                className="w-full px-4 py-3  rounded-[10px] bg-[#FF0000]  "
                                 whileHover={{ scale: 1.03 }}
                                 whileTap={{ scale: 0.98 }}
                             >
@@ -196,7 +225,7 @@ const RutinaDetalle = () => {
 
                             <motion.button
                                 onClick={handleConfirmExit}
-                                className="w-full px-4 py-3  text-gray-300 rounded-xl shadow-lg border border-white/20 backdrop-blur-md font-medium transition-colors duration-200 hover:bg-red-500/30 hover:text-white hover:border-red-400/40"
+                                className="w-full px-4 py-3 rounded-[10px]  bg-[#FF0000]/50"
                                 whileHover={{ scale: 1.03 }}
                                 whileTap={{ scale: 0.98 }}
                             >
