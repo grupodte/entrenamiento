@@ -1,10 +1,23 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FaUser, FaEnvelope, FaPhone, FaBirthdayCake, FaVenusMars, FaGlobe, FaCamera, FaEdit } from 'react-icons/fa';
+import { supabase } from '../../../lib/supabaseClient';
+import { useAuth } from '../../../context/AuthContext';
 import CustomSelect from '../CustomSelect';
 
 const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
+    const { user } = useAuth();
     const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+    const [previewUrl, setPreviewUrl] = useState(null);
     const fileInputRef = useRef(null);
+    
+    // Limpiar preview al desmontar componente
+    useEffect(() => {
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
     
     const handleInputChange = (field, value) => {
         onChange(field, value);
@@ -12,7 +25,7 @@ const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
     
     const handlePhotoUpload = async (event) => {
         const file = event.target.files[0];
-        if (!file) return;
+        if (!file || !user) return;
         
         // Validar tipo de archivo
         if (!file.type.startsWith('image/')) {
@@ -26,15 +39,91 @@ const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
             return;
         }
         
+        // Crear preview inmediato
+        const tempPreviewUrl = URL.createObjectURL(file);
+        setPreviewUrl(tempPreviewUrl);
+        
         setIsUploadingPhoto(true);
         try {
-            // Aquí implementarías la subida a tu servicio de almacenamiento
-            // Por ahora, solo creamos una URL temporal para preview
-            const photoUrl = URL.createObjectURL(file);
-            onChange('avatar_url', photoUrl);
+            // Eliminar foto anterior si existe
+            if (values.avatar_url && values.avatar_url.includes('supabase')) {
+                const oldPath = values.avatar_url.split('/').slice(-2).join('/');
+                await supabase.storage
+                    .from('avatars')
+                    .remove([oldPath]);
+            }
+            
+            // Crear nombre único para el archivo
+            const fileExt = file.name.split('.').pop();
+            const fileName = `avatar-${Date.now()}.${fileExt}`;
+            const filePath = `${user.id}/${fileName}`;
+            
+            // Subir archivo a Supabase Storage
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+            
+            if (uploadError) {
+                console.error('Upload error:', uploadError);
+                throw new Error(uploadError.message || 'Error al subir la imagen');
+            }
+            
+            // Obtener URL pública
+            const { data: urlData } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(filePath);
+            
+            if (urlData?.publicUrl) {
+                // Limpiar preview temporal
+                if (previewUrl) {
+                    URL.revokeObjectURL(previewUrl);
+                    setPreviewUrl(null);
+                }
+                
+                // Actualizar estado local primero (para feedback inmediato)
+                onChange('avatar_url', urlData.publicUrl);
+                
+                // Guardar URL en el perfil de usuario
+                const { error: updateError } = await supabase
+                    .from('perfiles')
+                    .update({ avatar_url: urlData.publicUrl })
+                    .eq('id', user.id);
+                
+                if (updateError) {
+                    console.warn('Error actualizando perfil:', updateError);
+                    // No mostramos error al usuario ya que la imagen se subió correctamente
+                }
+            } else {
+                throw new Error('No se pudo obtener la URL de la imagen');
+            }
         } catch (error) {
             console.error('Error subiendo foto:', error);
-            alert('Error al subir la imagen. Inténtalo de nuevo.');
+            let errorMessage = 'Error al subir la imagen. Inténtalo de nuevo.';
+            
+            if (error.message) {
+                if (error.message.includes('duplicate')) {
+                    errorMessage = 'Ya existe una imagen con ese nombre. Inténtalo de nuevo.';
+                } else if (error.message.includes('size')) {
+                    errorMessage = 'La imagen es demasiado grande. Máximo 5MB.';
+                } else if (error.message.includes('type')) {
+                    errorMessage = 'Tipo de archivo no válido. Usa JPG, PNG, WebP o GIF.';
+                } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                    errorMessage = 'Error de conexión. Verifica tu internet e inténtalo de nuevo.';
+                } else {
+                    errorMessage = error.message;
+                }
+            }
+            
+            alert(errorMessage);
+            
+            // Limpiar preview temporal en caso de error
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                setPreviewUrl(null);
+            }
         } finally {
             setIsUploadingPhoto(false);
         }
@@ -115,14 +204,27 @@ const DatosPersonalesStep = ({ values, onChange, errors = {} }) => {
             <div className="flex flex-col items-center ">
                 <div className="relative">
                     <div className="w-24 h-24 rounded-full overflow-hidden bg-white/10 border-2 border-white/20 flex items-center justify-center">
-                        {values.avatar_url ? (
+                        {(previewUrl || values.avatar_url) ? (
                             <img 
-                                src={values.avatar_url} 
+                                src={previewUrl || values.avatar_url} 
                                 alt="Foto de perfil" 
-                                className="w-full h-full object-cover"
+                                className={`w-full h-full object-cover ${isUploadingPhoto ? 'opacity-50' : ''}`}
+                                onError={(e) => {
+                                    console.warn('Error cargando avatar:', e);
+                                    e.target.style.display = 'none';
+                                    e.target.nextElementSibling.style.display = 'flex';
+                                }}
                             />
-                        ) : (
+                        ) : null}
+                        <div className={`w-full h-full flex items-center justify-center ${(previewUrl || values.avatar_url) ? 'hidden' : ''}`}>
                             <FaUser className="w-8 h-8 text-white/40" />
+                        </div>
+                        
+                        {/* Indicador de carga superpuesto */}
+                        {isUploadingPhoto && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                                <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                            </div>
                         )}
                     </div>
                     

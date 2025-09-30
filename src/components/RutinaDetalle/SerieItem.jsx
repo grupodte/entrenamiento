@@ -230,16 +230,21 @@ const SerieItem = React.forwardRef(({
                     </div>
                     <input
                         type="text"
+                        inputMode="numeric"
                         value={actualCarga}
                         onChange={(e) => setActualCarga(e.target.value)}
-                        onClick={(e) => {
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onFocus={(e) => {
                             e.stopPropagation();
-                            e.preventDefault();
+                            // Seleccionar todo el contenido al hacer focus
+                            e.target.select();
                         }}
-                        onFocus={(e) => e.stopPropagation()}
-                        onTouchStart={(e) => e.stopPropagation()}
                         placeholder="0kg"
-                        className="w-full text-2xl font-bold text-center py-2 rounded-xl bg-white border-2 border-gray-200 focus:border-red-500 focus:outline-none text-gray-800 touch-manipulation"
+                        className="w-full text-2xl font-bold text-center py-2 rounded-xl bg-white border-2 border-gray-200 focus:border-red-500 focus:outline-none text-gray-800"
+                        style={{
+                            touchAction: 'manipulation',
+                            WebkitTapHighlightColor: 'transparent'
+                        }}
                     />
                 </div>
 
@@ -261,7 +266,11 @@ const SerieItem = React.forwardRef(({
                 <div className="mt-4 pt-3 border-t border-gray-200">
                     <button
                         onClick={handleClick}
-                        className="w-full py-3 bg-gray-800 text-white rounded-xl font-semibold text-lg hover:bg-gray-700 transition-colors touch-manipulation"
+                        className="w-full py-3 bg-gray-800 text-white rounded-xl font-semibold text-lg hover:bg-gray-700 transition-colors active:scale-[0.98]"
+                        style={{
+                            touchAction: 'manipulation',
+                            WebkitTapHighlightColor: 'transparent'
+                        }}
                     >
                         ¡LISTO!
                     </button>

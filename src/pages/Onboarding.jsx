@@ -47,8 +47,9 @@ const Onboarding = () => {
         meta_cintura: '',
         // Frecuencia de entrenamiento
         frecuencia_entrenamiento: '',
-        // Nutrición (placeholder)
-        frecuencia_dieta: ''
+        // Nutrición
+        frecuencia_dieta: '',
+        comentarios_dieta: ''
     });
 
     // 🔸 Antes: 4. Ahora: 9 (5 tour + 4 datos)
@@ -72,6 +73,11 @@ const Onboarding = () => {
             if (!onboardingData.apellido && nameParts.length > 1) updates.apellido = nameParts.slice(1).join(' ');
         }
         if (user.email && !onboardingData.email) updates.email = user.email;
+        
+        // Agregar foto de Google si existe y no hay avatar guardado
+        if (metadata.avatar_url && !onboardingData.avatar_url) {
+            updates.avatar_url = metadata.avatar_url;
+        }
 
         if (Object.keys(updates).length > 0) {
             setOnboardingData(prev => ({ ...prev, ...updates }));
@@ -82,7 +88,7 @@ const Onboarding = () => {
         try {
             const { data, error } = await supabase
                 .from('perfiles')
-                .select('nombre, apellido, email, edad, telefono, genero, pais, avatar_url, objetivo, altura, peso, porcentaje_grasa, cintura_cm, meta_peso, meta_grasa, meta_cintura, frecuencia_entrenamiento, frecuencia_dieta')
+                .select('nombre, apellido, email, edad, telefono, genero, pais, avatar_url, objetivo, altura, peso, porcentaje_grasa, cintura_cm, meta_peso, meta_grasa, meta_cintura, frecuencia_entrenamiento, frecuencia_dieta, comentarios_dieta')
                 .eq('id', user.id)
                 .single();
 
@@ -152,8 +158,9 @@ const Onboarding = () => {
                     newErrors.frecuencia_entrenamiento = 'Debes seleccionar la frecuencia de entrenamiento';
                 break;
 
-            case 9: // Nutrición (placeholder)
-                // sin validaciones
+            case 9: // Nutrición
+                if (!onboardingData.frecuencia_dieta)
+                    newErrors.frecuencia_dieta = 'Debes seleccionar un patrón de comidas';
                 break;
         }
 
@@ -244,7 +251,7 @@ const Onboarding = () => {
             case 8:
                 return !!onboardingData.frecuencia_entrenamiento;
             case 9:
-                return true;
+                return !!onboardingData.frecuencia_dieta;
             default:
                 return false;
         }
@@ -350,7 +357,9 @@ Unas preguntas rápidas y comenzamos"
             component: (
                 <FrecuenciaDietaStep
                     value={onboardingData.frecuencia_dieta}
+                    comentario={onboardingData.comentarios_dieta}
                     onChange={(value) => updateStepData('frecuencia_dieta', value)}
+                    onComentarioChange={(value) => updateStepData('comentarios_dieta', value)}
                 />
             )
         }

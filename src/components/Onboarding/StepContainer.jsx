@@ -81,7 +81,7 @@ const StepContainer = ({
                     }`}
                 >
                     {isLoading ? (
-                        <>
+                        <div className="flex items-center justify-center gap-2">
                             <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                                 <circle
                                     className="opacity-25"
@@ -99,7 +99,7 @@ const StepContainer = ({
                                 />
                             </svg>
                             <span>Guardando...</span>
-                        </>
+                        </div>
                     ) : (
                         <span>{isLastStep ? 'Finalizar' : 'Continuar'}</span>
                     )}

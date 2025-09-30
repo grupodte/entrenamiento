@@ -74,19 +74,33 @@ const BottomNavBar = ({
     fetchAvatarUrl();
   }, [user]);
 
+  // Estados para proteger contra clics múltiples
+  const [isMenuDisabled, setIsMenuDisabled] = useState(false);
+  const [isProfileDisabled, setIsProfileDisabled] = useState(false);
+  const [isBackDisabled, setIsBackDisabled] = useState(false);
+
   const handleMenuClick = () => {
+    if (isMenuDisabled) return;
+    setIsMenuDisabled(true);
     console.log('BottomNavBar: Menu click detectado', { onOpenSwipeWidget });
     onOpenSwipeWidget?.();
+    setTimeout(() => setIsMenuDisabled(false), 300); // Reactivar después de 300ms
   };
 
   const handleProfileClick = () => {
+    if (isProfileDisabled) return;
+    setIsProfileDisabled(true);
     console.log('BottomNavBar: Profile click detectado', { onOpenPerfil });
     onOpenPerfil?.();
+    setTimeout(() => setIsProfileDisabled(false), 300);
   };
 
   const handleBackClick = () => {
+    if (isBackDisabled) return;
+    setIsBackDisabled(true);
     console.log('BottomNavBar: Back click detectado', { onBackClick });
     onBackClick?.();
+    setTimeout(() => setIsBackDisabled(false), 300);
   };
 
   // Usar el estado del contexto de workout
@@ -112,8 +126,13 @@ const BottomNavBar = ({
             {/* Botón de Perfil (izquierda) */}
             <motion.button
               onClick={handleProfileClick}
-              className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-gray-300 transition-all duration-200 hover:border-gray-400 cursor-pointer"
+              disabled={isProfileDisabled}
+              className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-gray-300 transition-all duration-200 hover:border-gray-400 cursor-pointer disabled:opacity-70"
               whileTap={{ scale: 0.95 }}
+              style={{ 
+                WebkitTapHighlightColor: 'transparent',
+                touchAction: 'manipulation'
+              }}
             >
               {avatarUrl ? (
                 <img 
@@ -150,8 +169,13 @@ const BottomNavBar = ({
             {/* Botón de Volver (derecha) */}
             <motion.button
               onClick={handleBackClick}
-              className="flex items-center justify-center w-[40px] h-[40px] cursor-pointer"
+              disabled={isBackDisabled}
+              className="flex items-center justify-center w-[40px] h-[40px] cursor-pointer disabled:opacity-70"
               whileTap={{ scale: 0.95 }}
+              style={{ 
+                WebkitTapHighlightColor: 'transparent',
+                touchAction: 'manipulation'
+              }}
             >
               <img src={ArrowBackIcon} alt="Volver" className="w-6 h-6 pointer-events-none" />
             </motion.button>
@@ -162,8 +186,13 @@ const BottomNavBar = ({
             {/* Botón de Perfil */}
             <motion.button
               onClick={handleProfileClick}
-              className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-gray-300 transition-all duration-200 hover:border-gray-400 cursor-pointer"
+              disabled={isProfileDisabled}
+              className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-gray-300 transition-all duration-200 hover:border-gray-400 cursor-pointer disabled:opacity-70"
               whileTap={{ scale: 0.95 }}
+              style={{ 
+                WebkitTapHighlightColor: 'transparent',
+                touchAction: 'manipulation'
+              }}
             >
               {avatarUrl ? (
                 <img 
@@ -184,9 +213,13 @@ const BottomNavBar = ({
             {/* Botón de Menú */}
             <motion.button
               onClick={handleMenuClick}
-              className="flex items-center justify-center w-12 h-12 cursor-pointer"
+              disabled={isMenuDisabled}
+              className="flex items-center justify-center w-12 h-12 cursor-pointer disabled:opacity-70"
               whileTap={{ scale: 0.95 }}
-              style={{ WebkitTapHighlightColor: 'transparent' }}
+              style={{ 
+                WebkitTapHighlightColor: 'transparent',
+                touchAction: 'manipulation'
+              }}
             >
               <img src={BurgerIcon} alt="Menu" className="w-[34.24px] h-[22.83px] pointer-events-none" />
             </motion.button>

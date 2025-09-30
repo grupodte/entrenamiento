@@ -34,9 +34,11 @@ const FrecuenciaDietaStep = ({ value, comentario, onChange, onComentarioChange }
                     value={comentario || ''}
                     onChange={(e) => onComentarioChange(e.target.value)}
                     rows={4}
-                    className="w-full p-3 rounded-xl bg-[#191919] border border-white/10 text-white placeholder-white/40 text-[14px] focus:outline-none focus:border-[#FF0000]/50"
+                    className="w-full p-3 rounded-xl bg-[#191919] border border-white/10 text-white placeholder-white/40 text-[14px] 
+             focus:outline-none focus:ring-0 focus:border-[#FF0000]/50"
                     placeholder="Ejemplo: Soy intolerante a la lactosa, no consumo gluten..."
                 />
+
             </div>
         </div>
     );

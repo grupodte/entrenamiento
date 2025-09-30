@@ -75,17 +75,22 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
         const absDeltaX = Math.abs(deltaX);
         const absDeltaY = Math.abs(deltaY);
 
-        // Check if touch is in content area
+        // Check if touch is in content area (mejorado)
         const target = e.target;
-        const isInContentArea = target.closest('.drawer-content, [class*="overflow-y-auto"]');
+        const isInContentArea = target.closest('.drawer-content, [class*="overflow-y-auto"], input, textarea, button');
+        
+        // Si es un elemento interactivo, no interferir
+        if (target.matches('input, textarea, button, [role="button"]')) {
+            return;
+        }
         
         // If in content area and scrolling vertically, allow it
-        if (isInContentArea && absDeltaY > absDeltaX) {
-            return; // Allow natural scroll
+        if (isInContentArea && absDeltaY > absDeltaX && absDeltaY > 15) {
+            return; // Allow natural scroll with threshold
         }
 
-        // Solo activar swipe horizontal si el movimiento es más horizontal que vertical
-        if (absDeltaX > absDeltaY && absDeltaX > 10) {
+        // Solo activar swipe horizontal si el movimiento es significativamente más horizontal
+        if (absDeltaX > absDeltaY && absDeltaX > 15) {
             isSwipingRef.current = true;
             
             // Solo permitir swipe hacia la derecha (cerrar) desde el borde izquierdo
@@ -119,12 +124,12 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
         if (!isOpen || !drawerRef.current) return;
 
         const drawerElement = drawerRef.current;
-        const options = { passive: false };
         
         // Solo escuchar eventos en el drawer específicamente
-        drawerElement.addEventListener('touchstart', handleTouchStart, options);
-        drawerElement.addEventListener('touchmove', handleTouchMove, options);
-        drawerElement.addEventListener('touchend', handleTouchEnd, options);
+        // touchstart y touchend pueden ser passive, solo touchmove necesita prevenir default
+        drawerElement.addEventListener('touchstart', handleTouchStart, { passive: true });
+        drawerElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+        drawerElement.addEventListener('touchend', handleTouchEnd, { passive: true });
 
         return () => {
             drawerElement.removeEventListener('touchstart', handleTouchStart);
