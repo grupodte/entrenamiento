@@ -85,7 +85,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
         <Drawer isOpen={isOpen} onClose={onClose} height="h-[100vh] ">
      
             {rutinaData ? (
-                    <div className=" text-[#121212] w-[380px] mx-auto leading-none flex flex-item flex-col">
+                    <div className=" text-[#121212] w-full max-w-[440px] mx-auto leading-none flex flex-item flex-col">
                     <div className="mb-4  text-center">
                             <h1 className="text-[34px] font-bold text-[#121212]">{rutinaData.rutina.nombre}</h1>
                         {rutinaData.rutina.descripcion && (
@@ -162,24 +162,32 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                             </motion.div>
                         </div>
 
-                        {/* Versión desktop y tablet: Scroll horizontal */}
-                        <div className="hidden sm:block overflow-x-auto scrollbar-hide -mx-1 px-1">
-                            <motion.div
-                                className="flex gap-4 pb-2"
-                                variants={containerVariants}
-                                initial="hidden"
-                                animate="visible"
+                        {/* Versión desktop y tablet: Layout vertical */}
+                        <div className="hidden sm:block">
+                            <div 
+                                className="max-h-[70vh] overflow-y-auto scrollbar-hide"
+                                style={{
+                                    scrollbarWidth: 'none',
+                                    msOverflowStyle: 'none',
+                                    WebkitOverflowScrolling: 'touch',
+                                    scrollBehavior: 'smooth'
+                                }}
                             >
+                                <motion.div
+                                    className="grid grid-cols-1 gap-4 place-items-center px-4 pb-8"
+                                    variants={containerVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                >
                                 {rutinaData.bloques.map((bloque, index) => (
                                     <motion.div 
                                         key={bloque.id} 
                                         variants={itemVariants}
-                                        className="flex-shrink-0"
-                                        style={{ width: '380px', height: '290px' }}
+                                        className="w-full flex justify-center"
                                     >
                                         <button
                                             onClick={() => handleElegirBloque(bloque.id)}
-                                            className="w-full h-full relative rounded-2xl shadow-lg overflow-hidden group "
+                                            className="w-[380px] h-[290px] relative rounded-2xl shadow-lg overflow-hidden group "
                                         >
                                             {/* Imagen de fondo */}
                                             <div 
@@ -211,35 +219,21 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
 
                                                 {/* Botón flecha */}
                                                 <div
-                                                    className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200"
+                                                    className="w-[50px] h-[50px] rounded-lg flex items-center justify-center transition-colors duration-200"
                                                     style={{
                                                         backgroundColor: getColorForIndex(index),
-                                                        filter: 'brightness(0.9)'
                                                     }}
                                                 >
-<img src={arrow} alt="arrow" />                                                  </div>
+                                                    <img className='w-[22px]' src={arrow} alt="arrow" />
+                                                </div>
                                             </div>
                                         </button>
                                     </motion.div>
                                 ))}
-                            </motion.div>
+                                </motion.div>
+                            </div>
                         </div>
 
-                        {/* Indicadores de scroll para desktop (solo cuando hay más de 2 bloques) */}
-                        <div className="hidden sm:block">
-                            {rutinaData.bloques.length > 2 && (
-                                <div className="flex justify-center mt-4">
-                                    <div className="flex space-x-2">
-                                        {rutinaData.bloques.map((_, index) => (
-                                            <div
-                                                key={index}
-                                                className="w-2 h-2 rounded-full bg-gray-400 opacity-60"
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
                         </>
                     )}
                 </div>

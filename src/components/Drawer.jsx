@@ -209,15 +209,16 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                             backdrop-blur-[10px]
                             backdrop-saturate-[180%]
                             bg-opacity-85
-                            pb-safe
                             flex flex-col
                             transform-gpu
                             will-change-transform
-                            
+                            fixed bottom-0 left-0 right-0
+                            rounded-t-3xl
                         `}
                         style={{
                             paddingTop: 'env(safe-area-inset-top)',
                             zIndex: 99999,
+                            maxHeight: '100vh'
                         }}
                     >
                         {/* Handle mejorado con animaciones suaves */}
