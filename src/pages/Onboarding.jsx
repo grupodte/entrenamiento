@@ -345,8 +345,8 @@ Unas preguntas rápidas y comenzamos"
             )
         },
         9: {
-            title: "Tu Plan de Alimentación",
-            description: "Elige cómo quieres que te acompañemos con tu nutrición para alcanzar tus metas de forma integral.",
+            title: "Tu Alimentación, Tus Necesidades",
+            description: "Contanos cuántas veces comés al día y si tenés alguna alergia, intolerancia o restricción. Así adaptamos tu plan sin errores.",
             component: (
                 <FrecuenciaDietaStep
                     value={onboardingData.frecuencia_dieta}

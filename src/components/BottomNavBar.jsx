@@ -184,8 +184,9 @@ const BottomNavBar = ({
             {/* Botón de Menú */}
             <motion.button
               onClick={handleMenuClick}
-              className="flex items-center justify-center w-12 h-120 cursor-pointer"
+              className="flex items-center justify-center w-12 h-12 cursor-pointer"
               whileTap={{ scale: 0.95 }}
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <img src={BurgerIcon} alt="Menu" className="w-[34.24px] h-[22.83px] pointer-events-none" />
             </motion.button>
