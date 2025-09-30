@@ -246,7 +246,7 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                                     damping: 20
                                 }}
                             >
-                                <div className="relative h-[70px] w-full flex items-start justify-center pt-3">
+                                <div className="relative h-[20px] w-full flex items-start justify-center pt-3">
                                     {/* handle */}
                                     <div
                                         className="w-[25px] h-[5px] bg-[#D9D9D9] rounded-full"
@@ -289,10 +289,7 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                         <div
                             className="
                                 flex-grow 
-                                overflow-y-auto 
                                 overscroll-contain
-                                scrollbar-hide
-                                will-change-scroll
                                 drawer-content
                                 px-1
                             "

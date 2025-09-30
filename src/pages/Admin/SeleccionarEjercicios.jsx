@@ -1,4 +1,4 @@
-// src/pages/SeleccionarEjercicios.jsx
+p// src/pages/SeleccionarEjercicios.jsx
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
