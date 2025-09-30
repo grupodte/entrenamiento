@@ -87,13 +87,13 @@ const AlumnoLayoutContent = () => {
       {/* Contenido principal con scroll */}
       <motion.main
         key={location.pathname}
-        className="flex-1 overflow-y-auto scrollbar-hide"
+        className="flex-1 overflow-hidden"
         variants={pageVariants}
         initial="initial"
         animate="animate"
         exit="exit"
       >
-        <div className="content-wrapper" >
+        <div className="content-wrapper h-full" >
           <Outlet />
         </div>
       </motion.main>
