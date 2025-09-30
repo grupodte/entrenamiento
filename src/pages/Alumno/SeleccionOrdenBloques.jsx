@@ -88,11 +88,19 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
         <Drawer isOpen={isOpen} onClose={onClose} height="min-h-[100dvh]">
             {rutinaData ? (
                 <>
-                    {/* Contenido con scroll que incluye todo */}
+                    {/* Header fijo */}
+                    <div className="mb-6 text-center px-4 pt-4 leading-none h-[100px] justify-center flex flex-col">
+                        <h1 className="text-[34px] font-bold text-[#121212] mb-2">{rutinaData.rutina.nombre}</h1>
+                        {rutinaData.rutina.descripcion && (
+                            <p className="text-[13px] text-[#575757]">{rutinaData.rutina.descripcion}</p>
+                        )}
+                    </div>
+
+                    {/* Contenido con scroll */}
                     <div 
                         className="text-[#121212] w-full mx-auto leading-none drawer-content"
                         style={{
-                            height: 'calc(100vh - 80px)', // Altura dinámica que solo deja espacio para el handle
+                            height: 'calc(100vh - 180px)', // Altura dinámica que deja espacio para header y handle
                             overflowY: 'auto',
                             overscrollBehavior: 'contain',
                             scrollbarWidth: 'none',
@@ -104,14 +112,6 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                             e.stopPropagation();
                         }}
                     >
-                        {/* Header que ahora scrollea junto con el contenido */}
-                        <div className="mb-6 text-center pt-4">
-                            <h1 className="text-[34px] font-bold text-[#121212] mb-2">{rutinaData.rutina.nombre}</h1>
-                            {rutinaData.rutina.descripcion && (
-                                <p className="text-[13px] text-[#575757]">{rutinaData.rutina.descripcion}</p>
-                            )}
-                        </div>
-
                         {rutinaData.bloques.length === 0 ? (
                             <div className="text-center p-4 bg-gray-700 rounded-lg text-sm">
                                 <p className="text-gray-300">Esta rutina no tiene bloques definidos.</p>
