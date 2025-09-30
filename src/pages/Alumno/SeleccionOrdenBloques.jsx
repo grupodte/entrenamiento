@@ -5,7 +5,10 @@ import { motion } from 'framer-motion';
 import Drawer from '../../components/Drawer';
 import { useRutinaCache } from '../../hooks/useRutinaCache';
 
+// Importar imágenes correctamente
 import arrow from '../../assets/arrow.svg';
+import select1Image from '../../assets/select1.webp';
+import select2Image from '../../assets/select2.webp';
 
 
 const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
@@ -72,8 +75,8 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
     // Alterna entre select1 y select2
     const getImageForIndex = (index) => {
         const images = [
-            '/src/assets/select1.webp',
-            '/src/assets/select2.webp'
+            select1Image,
+            select2Image
         ];
         return images[index % images.length];
     };
@@ -82,14 +85,13 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
     const isLoading = loading || cacheLoading;
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose} height="h-[100vh] ">
-     
+        <Drawer isOpen={isOpen} onClose={onClose} height="h-[100vh]">
             {rutinaData ? (
-                    <div className=" text-[#121212] w-full max-w-[440px] mx-auto leading-none flex flex-item flex-col">
-                    <div className="mb-4  text-center">
-                            <h1 className="text-[34px] font-bold text-[#121212]">{rutinaData.rutina.nombre}</h1>
+                <div className="text-[#121212] w-full max-w-[440px] mx-auto leading-none flex flex-col px-4">
+                    <div className="mb-6 text-center">
+                        <h1 className="text-[34px] font-bold text-[#121212] mb-2">{rutinaData.rutina.nombre}</h1>
                         {rutinaData.rutina.descripcion && (
-                                <p className="text-[13px] text-[#575757]">{rutinaData.rutina.descripcion}</p>
+                            <p className="text-[13px] text-[#575757]">{rutinaData.rutina.descripcion}</p>
                         )}
                     </div>
 
@@ -116,13 +118,22 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                                     >
                                         <button
                                             onClick={() => handleElegirBloque(bloque.id)}
-                                            className=" w-[380px] h-[290px] relative rounded-2xl shadow-lg overflow-hidden "
+                                            className="w-full max-w-[380px] h-[290px] mx-auto relative rounded-2xl shadow-lg overflow-hidden"
                                         >
                                             {/* Imagen de fondo */}
                                             <div 
                                                 className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                                                 style={{
-                                                    backgroundImage: `url(${getImageForIndex(index)})`
+                                                    backgroundImage: `url(${getImageForIndex(index)})`,
+                                                    backgroundColor: '#1f1f1f', // Fallback color
+                                                    backgroundSize: 'cover',
+                                                    backgroundPosition: 'center',
+                                                    backgroundRepeat: 'no-repeat',
+                                                    imageRendering: 'crisp-edges'
+                                                }}
+                                                onError={(e) => {
+                                                    console.warn('Error loading background image:', getImageForIndex(index));
+                                                    e.target.style.backgroundColor = '#1f1f1f';
                                                 }}
                                             />
 
@@ -193,7 +204,12 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                                             <div 
                                                 className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                                                 style={{
-                                                    backgroundImage: `url(${getImageForIndex(index)})`
+                                                    backgroundImage: `url(${getImageForIndex(index)})`,
+                                                    backgroundColor: '#1f1f1f', // Fallback color
+                                                    backgroundSize: 'cover',
+                                                    backgroundPosition: 'center',
+                                                    backgroundRepeat: 'no-repeat',
+                                                    imageRendering: 'crisp-edges'
                                                 }}
                                             />
 
