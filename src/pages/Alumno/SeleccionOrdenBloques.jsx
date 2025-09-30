@@ -89,7 +89,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
             {rutinaData ? (
                 <>
                     {/* Header fijo */}
-                    <div className="mb-6 text-center px-4 pt-4 leading-none h-[100px] justify-center flex flex-col">
+                    <div className="mb-6 text-center px-4 pt-4 leading-none justify-center flex flex-col">
                         <h1 className="text-[34px] font-bold text-[#121212] mb-2">{rutinaData.rutina.nombre}</h1>
                         {rutinaData.rutina.descripcion && (
                             <p className="text-[13px] text-[#575757]">{rutinaData.rutina.descripcion}</p>
@@ -98,7 +98,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
 
                     {/* Contenido con scroll */}
                     <div 
-                        className="text-[#121212] w-full mx-auto leading-none drawer-content"
+                        className="text-[#121212] w-full mx-auto leading-none drawer-content pb-10 pt-5"
                         style={{
                             height: 'calc(100vh - 180px)', // Altura dinámica que deja espacio para header y handle
                             overflowY: 'auto',
@@ -151,16 +151,16 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                                             />
 
                                             {/* Contenido centrado */}
-                                            <div className="relative z-10 h-full flex flex-col justify-center items-center text-white">
+                                            <div className="relative z-10 h-full flex flex-col justify-center items-center text-white ">
                                                 <div className="text-center">
                                                     <div
-                                                        className="text-[60px] font-bold leading-none"
+                                                        className="text-[57px] font-bold leading-none"
                                                         style={{ color: getColorForIndex(index) }}
                                                     >
                                                         {bloque.nombre.split('(')[0].trim()}
                                                     </div>
                                                     {bloque.nombre.includes('(') && (
-                                                        <div className="text-[16px] text-gray-300 mb-4">
+                                                        <div className="text-[27px] text-gray-300 mb-4">
                                                             ({bloque.nombre.split('(')[1]}
                                                         </div>
                                                     )}
