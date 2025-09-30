@@ -75,6 +75,15 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
         const absDeltaX = Math.abs(deltaX);
         const absDeltaY = Math.abs(deltaY);
 
+        // Check if touch is in content area
+        const target = e.target;
+        const isInContentArea = target.closest('.drawer-content, [class*="overflow-y-auto"]');
+        
+        // If in content area and scrolling vertically, allow it
+        if (isInContentArea && absDeltaY > absDeltaX) {
+            return; // Allow natural scroll
+        }
+
         // Solo activar swipe horizontal si el movimiento es más horizontal que vertical
         if (absDeltaX > absDeltaY && absDeltaX > 10) {
             isSwipingRef.current = true;
@@ -154,6 +163,7 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                     <motion.div
                         ref={drawerRef}
                         drag="y"
+                        whileDrag={{ cursor: 'grabbing' }}
                         onDragEnd={handleDragEnd}
                         dragConstraints={{ top: 0, bottom: 0 }}
                         dragElastic={{
@@ -213,7 +223,6 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                             transform-gpu
                             will-change-transform
                             fixed bottom-0 left-0 right-0
-                            rounded-t-3xl
                         `}
                         style={{
                             paddingTop: 'env(safe-area-inset-top)',
@@ -224,8 +233,6 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                         {/* Handle mejorado con animaciones suaves */}
                         <motion.div 
                             className="w-full flex justify-center cursor-grab active:cursor-grabbing relative"
-                            
-                            
                             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                         >
                             <motion.div
@@ -239,13 +246,20 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                                     damping: 20
                                 }}
                             >
-                                <div className="relative h-[70px] ">
+                                <div className="relative h-[70px] w-full flex items-start justify-center pt-3">
                                     {/* handle */}
                                     <div
-                                        className="absolute top-3 w-[25px] h-[5px] bg-[#D9D9D9] rounded-full"
+                                        className="w-[25px] h-[5px] bg-[#D9D9D9] rounded-full"
                                         aria-hidden="true"
                                     />
-                                  
+                                    
+                                    {/* Invisible drag area for better UX */}
+                                    <div 
+                                        className="absolute inset-0 cursor-grab active:cursor-grabbing"
+                                        style={{
+                                            touchAction: 'pan-y'
+                                        }}
+                                    />
                                 </div>
                             </motion.div>
                             
@@ -282,7 +296,10 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                                 drawer-content
                                 px-1
                             "
-                      
+                            style={{
+                                touchAction: 'pan-y', // Allow vertical panning only
+                                overscrollBehavior: 'contain'
+                            }}
                         >
                             {children}
                         </div>

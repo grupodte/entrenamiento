@@ -103,13 +103,29 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                         <>
                         {/* Grid responsivo en móvil, scroll horizontal en desktop */}
                         <div className="block sm:hidden">
-                            {/* Versión móvil: Grid vertical */}
-                            <motion.div
-                                className="grid grid-cols-1 gap-4"
-                                variants={containerVariants}
-                                initial="hidden"
-                                animate="visible"
+                            {/* Versión móvil: Grid vertical con scroll */}
+                            <div 
+                                className="max-h-[75vh] overflow-y-auto scrollbar-hide pb-4 overscroll-contain drawer-content"
+                                style={{
+                                    scrollbarWidth: 'none',
+                                    msOverflowStyle: 'none',
+                                    WebkitOverflowScrolling: 'touch',
+                                    scrollBehavior: 'smooth',
+                                    touchAction: 'pan-y',
+                                    pointerEvents: 'auto',
+                                    isolation: 'isolate' // Prevent interference from parent drag
+                                }}
+                                onTouchStart={(e) => {
+                                    // Stop event from bubbling to prevent drawer drag interference
+                                    e.stopPropagation();
+                                }}
                             >
+                                <motion.div
+                                    className="grid grid-cols-1 gap-4"
+                                    variants={containerVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                >
                                 {rutinaData.bloques.map((bloque, index) => (
                                     <motion.div 
                                         key={bloque.id} 
@@ -170,7 +186,8 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                                         </button>
                                     </motion.div>
                                 ))}
-                            </motion.div>
+                                </motion.div>
+                            </div>
                         </div>
 
                         {/* Versión desktop y tablet: Layout vertical */}
