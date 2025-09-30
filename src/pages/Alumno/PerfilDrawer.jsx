@@ -9,7 +9,7 @@ import { Edit2, LogOut, Clock } from 'lucide-react';
 
 // Importa tus imágenes locales
 import cursoImage from '../../assets/perfilbg.webp';
-import rutinaImage from '../../assets/rutina.png';
+import rutinaImage from '../../assets/perfilbg2.webp';
 import edit from '../../assets/edit.svg';
 
 const fmt = (n, fallback = '–') => (Number.isFinite(n) ? n : fallback);
@@ -44,10 +44,10 @@ const StatCard = ({
         
 
             {/* Right label */}
-            <div className="flex-1 text-right leading-snug">
+            <div className="flex-1 pl-[70px] text-left  leading-none">
                 <p className="text-white/90 text-[13px] ">{label?.line1}</p>
                 {label?.line2 && (
-                    <p className="text-white/85 text-[11px]">{label.line2}</p>
+                    <p className="text-white/85 text-[13px]">{label.line2}</p>
                 )}
             </div>
         </div>
@@ -129,22 +129,23 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
                 </button>
                 {/* Perfil */}
                 <div className="relative overflow-hidden">
-                    <div className="relative z-10 flex items-center gap-8 p-4">
+                    <div className="relative z-10 flex items-center gap-12 px-4 h-[200px]">
                         <img
                             src={avatarUrl}
                             alt="avatar"
                             className="w-[113px] h-[113px] rounded-full object-cover"
                         />
-                        <div className="flex-1">
-                            <h2 className="text-[#151515] text-[27px] font-extrabold leading-5 drop-shadow">
-                                {displayName} 
+                        <div className="flex-1 flex flex-col justify-between h-[100px]">
+                            <h2 className="text-[#151515] text-[27px] font-semibold leading-none">
+                                {displayName}
                             </h2>
-                            <div className="mt-2 flex items-center gap-3 text-[12px] text-[#151515]">
+                            <div className="mt-2 flex items-center gap-3 text-[13px] text-[#747474]">
                                 <span>{fmt(alturaM)}m</span>
                                 <span>{fmt(pesoKg)}kg</span>
                                 <span>{fmt(edad)} años</span>
                             </div>
                         </div>
+
                  
                     </div>
                 </div>
