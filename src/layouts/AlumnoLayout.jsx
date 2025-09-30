@@ -74,7 +74,7 @@ const AlumnoLayoutContent = () => {
       <GradualBlur
         target="page"
         position="top"
-        height="40px"
+        height="50px"
         strength={2}
         divCount={5}
         curve="bezier"
@@ -87,13 +87,13 @@ const AlumnoLayoutContent = () => {
       {/* Contenido principal con scroll */}
       <motion.main
         key={location.pathname}
-        className="flex-1 overflow-hidden"
+        className="flex-1 overflow-y-auto scrollbar-hide"
         variants={pageVariants}
         initial="initial"
         animate="animate"
         exit="exit"
       >
-        <div className="content-wrapper h-full" >
+        <div className="content-wrapper" >
           <Outlet />
         </div>
       </motion.main>

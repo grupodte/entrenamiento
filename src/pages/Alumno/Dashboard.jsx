@@ -150,9 +150,9 @@ const Dashboard = () => {
 
 
     return (
-        <div className={`h-full text-white dashboard transition-all duration-300 ${loading ? 'blur-[20px] pointer-events-none' : 'blur-0'}`}>
+        <div className={`min-h-screen  text-white dashboard transition-all duration-300 ${loading ? 'blur-[20px] pointer-events-none' : 'blur-0'}`}>
             {/* Contenido */}
-            <main className="mx-auto w-[380px] h-full overflow-y-auto px-4 py-6">
+            <main className="mx-auto w-[380px] px-2 py-4 pb-20">
                 {/* Stats - solo mostrar si hay rutinas asignadas */}
                 {rutinas.length > 0 && (
                     <section className="grid grid-cols-1">
