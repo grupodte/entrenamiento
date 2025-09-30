@@ -66,11 +66,22 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
         user?.user_metadata?.avatar_url ||
         'https://i.pravatar.cc/200?img=12';
 
-    const displayName =
-        perfil?.nombre ||
-        user?.user_metadata?.full_name ||
-        user?.email?.split('@')[0] ||
-        'Usuario';
+    const displayName = (() => {
+        // Intentar construir nombre completo desde perfil
+        if (perfil?.nombre || perfil?.apellido) {
+            const nombre = perfil?.nombre || '';
+            const apellido = perfil?.apellido || '';
+            const nombreCompleto = `${nombre} ${apellido}`.trim();
+            if (nombreCompleto) {
+                return nombreCompleto;
+            }
+        }
+        
+        // Fallback a metadata del usuario o email
+        return user?.user_metadata?.full_name ||
+               user?.email?.split('@')[0] ||
+               'Usuario';
+    })();
 
     const alturaM = perfil?.altura_m ?? perfil?.altura ?? null;
     const pesoKg = perfil?.peso_kg ?? perfil?.peso ?? null;
@@ -120,12 +131,18 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
         <Drawer isOpen={isOpen} onClose={onClose} height="h-[100vh]">
             <div className="h-full overflow-y-auto scrollbar-hide font-product">
                 <button
-                    onClick={onEdit}
-                    className="absolute right-6 top-2"
+                    onClick={() => {
+                        console.log('Botón de editar clicked, onEdit:', typeof onEdit);
+                        if (onEdit) {
+                            onEdit();
+                        } else {
+                            console.error('onEdit function not provided to PerfilDrawer');
+                        }
+                    }}
+                    className="absolute right-6 z-50"
                     aria-label="Editar perfil"
-                    
                 >
-                      <img src={edit} alt="edit" className="w-7 h-7" />                    
+                    <img src={edit} alt="edit" className="w-5 h-5" />                    
                 </button>
                 {/* Perfil */}
                 <div className="relative overflow-hidden">
