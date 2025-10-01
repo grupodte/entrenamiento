@@ -8,6 +8,7 @@ import ProgressBar from '../components/Onboarding/ProgressBar';
 import StepContainer from '../components/Onboarding/StepContainer';
 
 import FeatureCard from '../components/Onboarding/steps/FeatureCard';
+import WelcomeVideoCard from '../components/Onboarding/steps/WelcomeVideoCard';
 
 // Pasos existentes de datos
 import DatosPersonalesStep from '../components/Onboarding/steps/DatosPersonalesStep';
@@ -262,9 +263,10 @@ const Onboarding = () => {
         1: {
             isFeature: true, // Flag for new design
             component: (
-                <FeatureCard
-                    title="Bienvenido/a"
-                    description="Te estábamos esperando. Ahora te guiamos paso a paso hacia tu mejor versión"
+                <WelcomeVideoCard
+                    title="Bienvenido"
+                    description="Te estábamos esperando."
+                    videoSrc="/videos/welcome-video.mp4"
                 />
             )
         },
