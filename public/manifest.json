@@ -1,6 +1,7 @@
 {
+    "id": "dd-entrenamiento-personalizado",
     "name": "DD - Entrenamiento Personalizado",
-    "short_name": "DD",
+    "short_name": "DD Fitness",
     "description": "Entrena inteligente con rutinas personalizadas, seguimiento de progreso y ejercicios en video HD. Tu entrenador personal en el bolsillo.",
     "start_url": "/",
     "scope": "/",
@@ -13,34 +14,28 @@
     "dir": "ltr",
     "icons": [
         {
-            "src": "/icons/icon-192x192.png",
+            "src": "/icons/pwa-icon.png",
             "type": "image/png",
             "sizes": "192x192",
             "purpose": "any"
         },
         {
-            "src": "/icons/icon-512x512.png",
+            "src": "/icons/pwa-icon-512.png",
             "type": "image/png",
             "sizes": "512x512",
             "purpose": "any"
         },
         {
-            "src": "/icons/icon-192x192.png",
+            "src": "/icons/pwa-icon.png",
             "type": "image/png",
             "sizes": "192x192",
             "purpose": "maskable"
         },
         {
-            "src": "/icons/icon-512x512.png",
+            "src": "/icons/pwa-icon-512.png",
             "type": "image/png",
             "sizes": "512x512",
             "purpose": "maskable"
-        },
-        {
-            "src": "/icons/icon-512x512.png",
-            "type": "image/png",
-            "sizes": "512x512",
-            "purpose": "any maskable"
         }
     ],
     "screenshots": [
@@ -81,7 +76,7 @@
             "url": "/dashboard",
             "icons": [
                 {
-                    "src": "/icons/icon-512x512.png",
+                    "src": "/icons/pwa-icon.png",
                     "type": "image/png",
                     "sizes": "192x192"
                 }
@@ -94,7 +89,7 @@
             "url": "/dashboard",
             "icons": [
                 {
-                    "src": "/icons/icon-192.png",
+                    "src": "/icons/pwa-icon.png",
                     "type": "image/png",
                     "sizes": "192x192"
                 }
@@ -107,7 +102,7 @@
             "url": "/mis-cursos",
             "icons": [
                 {
-                    "src": "/icons/icon-192.png",
+                    "src": "/icons/pwa-icon.png",
                     "type": "image/png",
                     "sizes": "192x192"
                 }
@@ -120,7 +115,7 @@
             "url": "/admin",
             "icons": [
                 {
-                    "src": "/icons/icon-192.png",
+                    "src": "/icons/pwa-icon.png",
                     "type": "image/png",
                     "sizes": "192x192"
                 }
@@ -135,5 +130,9 @@
         "preferred_width": 400
     },
     "display_override": ["window-controls-overlay", "standalone"],
-    "handle_links": "preferred"
+    "handle_links": "preferred",
+    "iarc_rating_id": "",
+    "related_applications": [],
+    "protocol_handlers": [],
+    "file_handlers": []
 }

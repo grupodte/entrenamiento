@@ -221,9 +221,8 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                             w-full mx-auto
                             text-white 
                             bg-[#FFFFFF]
-                            backdrop-blur-[10px]
-                            backdrop-saturate-[180%]
-                            bg-opacity-85
+                            backdrop-blur-[15px]
+                            bg-opacity-80
                             flex flex-col
                             transform-gpu
                             will-change-transform

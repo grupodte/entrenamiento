@@ -277,8 +277,13 @@ const Onboarding = () => {
                     icon="💪"
                     title="Entrenamiento a Tu Medida"
                     bullets={[
+                        "Rutina de gimnasio",
+
+                        "Soporte experto",
+
                         "Videos explicativos.",
                         "Seguimiento de progreso semanal",
+                     
                     ]}
                 />
             )
