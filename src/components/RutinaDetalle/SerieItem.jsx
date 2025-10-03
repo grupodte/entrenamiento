@@ -62,7 +62,7 @@ const SerieItem = React.forwardRef(({
 
     const variants = {
         inactive: { scale: 1 },
-        active: { scale: 1.02 },
+        active: { scale: 1 },
         completed: { scale: 1 },
     };
 
