@@ -5,7 +5,6 @@ import './index.css';
 import { registerSW } from 'virtual:pwa-register';
 import { AuthProvider } from './context/AuthContext';
 import { HelmetProvider } from 'react-helmet-async';
-import { ToastProvider } from './components/notifications/ToastSystem';
 
 import { BrowserRouter as Router } from 'react-router-dom';
 
@@ -29,9 +28,6 @@ const updateSW = registerSW({
 
 import SpotifyProvider from './context/SpotifyContext.jsx';
 
-// Importar sistemas de notificaciones
-import './utils/notificacionesCore.js';
-import './utils/notificacionesIOS.js';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -39,9 +35,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Router>
         <AuthProvider>
           <SpotifyProvider>
-            <ToastProvider>
-              <App />
-            </ToastProvider>
+            <App />
           </SpotifyProvider>
         </AuthProvider>
       </Router>

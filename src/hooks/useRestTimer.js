@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
  * Hook personalizado para manejar el timer de descanso
- * Implementa la lógica robusta con localStorage y notificaciones del Service Worker
+ * Implementa la lógica robusta con localStorage solamente
  */
 const useRestTimer = () => {
   const [isResting, setIsResting] = useState(false);
@@ -10,17 +10,7 @@ const useRestTimer = () => {
   const [exerciseName, setExerciseName] = useState('');
   const [originalDuration, setOriginalDuration] = useState(0);
   const intervalRef = useRef(null);
-  const hasNotificationPermission = useRef(false);
 
-  // Verificar y solicitar permiso para notificaciones
-  const requestNotificationPermission = useCallback(async () => {
-    if ('Notification' in window) {
-      const permission = await Notification.requestPermission();
-      hasNotificationPermission.current = permission === 'granted';
-      return permission === 'granted';
-    }
-    return false;
-  }, []);
 
   // Función para calcular el tiempo restante basado en restEndTime
   const calculateTimeLeft = useCallback(() => {
@@ -35,10 +25,7 @@ const useRestTimer = () => {
   }, []);
 
   // Función para iniciar el descanso
-  const startRest = useCallback(async (duration, nextExerciseName = 'Siguiente ejercicio') => {
-    // Solicitar permiso para notificaciones si no lo tenemos
-    const hasPermission = await requestNotificationPermission();
-    
+  const startRest = useCallback((duration, nextExerciseName = 'Siguiente ejercicio') => {
     // Calcular el tiempo de finalización
     const endTime = Date.now() + (duration * 1000);
     
@@ -52,17 +39,7 @@ const useRestTimer = () => {
     setTimeLeft(duration);
     setExerciseName(nextExerciseName);
     setOriginalDuration(duration);
-    
-    // Enviar mensaje al Service Worker para programar la notificación
-    if (hasPermission && 'serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'SCHEDULE_REST_NOTIFICATION',
-        duration: duration,
-        exerciseName: nextExerciseName,
-        endTime: endTime
-      });
-    }
-  }, [requestNotificationPermission]);
+  }, []);
 
   // Función para finalizar el descanso
   const finishRest = useCallback(() => {
@@ -170,8 +147,7 @@ const useRestTimer = () => {
     startRest,
     finishRest,
     skipRest,
-    formatTime,
-    hasNotificationPermission: hasNotificationPermission.current
+    formatTime
   };
 };
 

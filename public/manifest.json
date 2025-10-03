@@ -134,12 +134,5 @@
     "iarc_rating_id": "",
     "related_applications": [],
     "protocol_handlers": [],
-    "file_handlers": [],
-    "permissions": ["notifications", "background-sync"],
-    "gcm_sender_id": "103953800507",
-    "notification_permission": "granted",
-    "background": {
-        "scripts": ["sw.js"],
-        "persistent": false
-    }
+    "file_handlers": []
 }

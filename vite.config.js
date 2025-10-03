@@ -34,22 +34,8 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
-        // Configuración para PWA iOS
         navigateFallback: '/index.html',
-        navigateFallbackAllowlist: [/^(?!\/__).*/], // Permitir todas las rutas excepto las que empiecen con /__
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/.*\.(png|jpg|jpeg|svg|gif)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images-cache',
-              expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 días
-              }
-            }
-          }
-        ]
+        navigateFallbackAllowlist: [/^(?!\/__).*/]
       }
     }),
     // Bundle analyzer (solo en análisis)

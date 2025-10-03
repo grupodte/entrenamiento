@@ -1,18 +1,11 @@
 /**
  * Sistema de seguimiento de progreso fitness
- * Dispara notificaciones automáticas basadas en logros y progreso
  */
 
 export class ProgressTracker {
   constructor() {
     this.storageKey = 'fit_user_progress';
     this.data = this.loadProgress();
-    this.notifications = null; // Se inyectará desde el hook
-  }
-
-  // Inyectar sistema de notificaciones
-  setNotificationSystem(notifications) {
-    this.notifications = notifications;
   }
 
   // Cargar progreso del localStorage
@@ -103,14 +96,6 @@ export class ProgressTracker {
     
     this.saveProgress();
     
-    // Notificar entrenamiento completado
-    if (this.notifications) {
-      this.notifications.workoutCompleted(type, {
-        exercises: exercises.length,
-        duration
-      });
-    }
-
     return workout;
   }
 
@@ -142,11 +127,6 @@ export class ProgressTracker {
     }
     
     this.data.lastWorkoutDate = today.toISOString();
-    
-    // Notificar racha especial
-    if (this.notifications && this.data.currentStreak > 1 && this.data.currentStreak % 3 === 0) {
-      this.notifications.streakMotivation(this.data.currentStreak);
-    }
   }
 
   // Verificar récord personal
@@ -164,11 +144,6 @@ export class ProgressTracker {
         total: newRecord,
         date: new Date().toISOString()
       };
-      
-      // Notificar nuevo récord
-      if (this.notifications && oldRecord > 0) {
-        this.notifications.personalRecord(exercise, weight, currentRecord.weight);
-      }
       
       return true;
     }
@@ -194,14 +169,6 @@ export class ProgressTracker {
     }
     
     this.saveProgress();
-    
-    // Notificar cambio significativo
-    if (lastWeight && this.notifications) {
-      const difference = newWeight - lastWeight.weight;
-      if (Math.abs(difference) >= 0.5) { // Cambio de al menos 0.5kg
-        this.notifications.weightUpdate(newWeight, difference);
-      }
-    }
     
     return weightEntry;
   }
@@ -244,11 +211,6 @@ export class ProgressTracker {
     achievements.forEach(achievement => {
       if (!this.data.achievements.has(achievement.id) && achievement.condition()) {
         this.data.achievements.add(achievement.id);
-        
-        // Notificar logro
-        if (this.notifications) {
-          this.notifications.achievement(achievement.name, achievement.description);
-        }
       }
     });
   }
