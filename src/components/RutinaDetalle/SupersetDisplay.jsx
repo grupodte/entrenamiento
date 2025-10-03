@@ -96,10 +96,9 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                 return (
                     <motion.div
                         key={`ss-${subbloque.id}-s${setNumero}`}
-                        onClick={() => handleToggleSupersetSet(setNumero)}
-                        className={`relative rounded-[10px]  cursor-pointer  touch-manipulation ${
+                        className={`relative rounded-[10px] ${
                             completado 
-                                ? 'bg-green-50 border-2 border-green-500' 
+                            ? ' border-2 border-[#47D065]' 
                                 : isActive 
                                 ? 'bg-[#E7E7E7] border-2 border-[#FF0000]'
                                 : 'bg-[#C6C6C6] '
@@ -110,39 +109,37 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                             <div className="flex items-center justify-between w-full px-4 pt-4">
                                 {/* Lado izquierdo: Icono + Set */}
                                 <div className="flex items-center gap-2">
-                                    <div
-                                        className={`w-8 h-8 rounded-full flex items-center justify-center ${completado
-                                                ? "bg-green-500"
-                                                : props.blockTheme?.iconColor || "bg-red-500"
-                                            }`}
-                                    >
-                                        {completado ? (
-                                            <FaCheckCircle className="text-white text-sm" />
-                                        ) : (
-                                            <FaExchangeAlt className="text-white text-sm" />
-                                        )}
-                                    </div>
+                                    
                                     <h4 className="text-[25px] font-semibold text-gray-800">
                                         Set {setNumero} {totalSeries > 1 && `de ${totalSeries}`}
                                     </h4>
                                 </div>
 
-                                {/* Lado derecho: solo se muestra el botón si NO está completado */}
-                                {!completado && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleToggleSupersetSet(setNumero);
-                                        }}
-                                        className=" w-[107px] h-[50px] bg-[#2A2A2A] text-[#47D065] rounded-[8px] font-semibold text-[27px]"
-                                    >
-                                        ¡Listo!
-                                    </button>
-                                )}
+                                {/* Lado derecho: checkbox style */}
+                                <div 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleToggleSupersetSet(setNumero);
+                                    }}
+                                    className="flex items-center gap-2 cursor-pointer touch-manipulation"
+                                >
+                                    <span className="text-[8px] text-gray-600 select-none">
+                                        Marcar al finalizar
+                                    </span>
+                                    <div className={`w-[44px] h-[44px] rounded  flex items-center justify-center transition-all rounded-[8px] ${
+                                        completado 
+                                        ? 'bg-[#47D065]' 
+                                        : 'bg-[#C1C1C1] '
+                                    }`}>
+                                        {completado && (
+                                            <img src={tickRutina} alt="Completado" className="w-4 h-4" />
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Info secundaria */}
-                            <div className="flex items-center justify-between mt-2 text-[20px] text-[#3F3F3F] bg-[#D0D0D0] px-4 py-2">
+                            <div className="flex items-center justify-between mt-2 text-[20px] text-[#3F3F3F] bg-[#D0D0D0] px-4 py-2 rounded-[12px]">
                                 <span>{subbloque.subbloques_ejercicios.length} Ejercicios</span>
 
                                 {pausaSet > 0 && (

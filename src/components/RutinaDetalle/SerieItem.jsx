@@ -129,7 +129,7 @@ const SerieItem = React.forwardRef(({
     const isSuperset = tipoElemento?.includes('superset');
 
     // Derivar label y valor central según tipo de ejecución
-    let labelArriba = 'Rep';
+    let labelArriba = 'Repeticiones';
     let valorCentral = reps || '—';
 
     if (tipoEjecucion === EXECUTION_TYPES.FALLO) {
@@ -157,7 +157,7 @@ const SerieItem = React.forwardRef(({
           className={`
             relative w-full p-2 transition-all duration-200 justify-center items-center flex flex-col
             ${isSuperset ? 'cursor-default' : 'cursor-pointer'}
-            ${isCompletada ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'}
+            ${isCompletada ? '' : 'border-gray-200 hover:border-gray-300'}
             ${isActive && !isSuperset ? 'border-red-500 ring-2 ring-red-200' : ''}
             ${classNameExtra}
           `}
@@ -165,8 +165,8 @@ const SerieItem = React.forwardRef(({
           tabIndex={0}
           aria-pressed={isCompletada}
         >
-          {isSuperset ? (
-            // ====== VISTA MINIMAL (como la imagen) ======
+            {isSuperset ? (
+                // ====== VISTA MINIMAL (como la imagen) ======
                 <div className="py-5 text-center select-none">
                     {/* Nombre con botón de video */}
                     {!hideExerciseName && (
@@ -189,7 +189,7 @@ const SerieItem = React.forwardRef(({
                             </span>
                         </div>
 
-                        {/* Botón ver video (alineado a la derecha del pill) */}
+                        {/* Botón ver video */}
                         {ejercicio?.video_url && (
                             <button
                                 onClick={(e) => {
@@ -204,7 +204,7 @@ const SerieItem = React.forwardRef(({
                         )}
                     </div>
 
-                    {/* Chip de peso (abajo del pill) */}
+                    {/* Chip de peso */}
                     <div className="mt-2 flex justify-center">
                         <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F0F0]">
                             <span className="text-[12px] text-[#7C7C7C] select-none">{pesoTexto}</span>
@@ -221,9 +221,13 @@ const SerieItem = React.forwardRef(({
                             </button>
                         </div>
                     </div>
-                </div>
 
-          ) : (
+                    {/* Línea separadora solo si NO es el último ejercicio */}
+                    {index !== subbloque.subbloques_ejercicios.length - 1 && (
+                        <div className="h-2 w-full bg-black"></div>
+                    )}
+                </div>
+            ) : null} : (
             // ====== TU VISTA ACTUAL PARA EJERCICIO SIMPLE (sin cambios) ======
             <>
               {/* Header con nombre del ejercicio */}
