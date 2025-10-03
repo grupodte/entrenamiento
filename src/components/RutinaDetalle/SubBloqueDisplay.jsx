@@ -52,7 +52,7 @@ const SubBloqueDisplay = (props) => {
 
     return (
         <motion.div
-            className={`relative rounded-[10px] bg-[#F6F5F5] max-w-[370px] min-h-[87px] px-4 justify-center item-center flex flex-col ${
+            className={`relative rounded-[10px] bg-[#F6F5F5] max-w-[370px] min-h-[87px] px-4  justify-center item-center flex flex-col ${
                 isCompleted ? 'opacity-60' : '' 
             }`}
             layout
@@ -108,12 +108,15 @@ const SubBloqueDisplay = (props) => {
                 {!isCollapsed && (
                     <motion.div
                         initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
+                        animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2, ease: 'easeInOut' }}
+                        transition={{
+                            duration: 0.4,
+                            ease: [0.25, 0.8, 0.5, 1] // curva más suave
+                        }}
                         className="overflow-hidden"
                     >
-                        <div className="pt-3 border-t border-gray-300">
+                        <div className="pt-4">
                             {subbloque?.tipo === 'simple' &&
                                 subbloque?.subbloques_ejercicios?.map((sbe) => (
                                     <EjercicioSimpleDisplay

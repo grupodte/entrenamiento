@@ -120,8 +120,8 @@ const SerieItem = React.forwardRef(({
             transition={{ duration: 0.2, ease: 'easeInOut' }}
             onClick={handleClick}
             className={`
-                relative w-full rounded-2xl p-4 mb-3 transition-all duration-200
-                bg-white border-2 min-h-[120px] touch-manipulation shadow-sm
+                relative w-full  p-4  transition-all duration-200
+               flex flex-col justify-center item-center
                 ${tipoElemento?.includes('superset') ? 'cursor-default' : 'cursor-pointer'}
                 ${isCompletada ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'}
                 ${isActive && !tipoElemento?.includes('superset') ? 'border-red-500 ring-2 ring-red-200' : ''}
@@ -133,8 +133,8 @@ const SerieItem = React.forwardRef(({
         >
             {/* Header con nombre del ejercicio */}
             {!hideExerciseName && (
-                <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-lg font-semibold text-gray-800 truncate">
+                <div className="flex items-center justify-between ">
+                    <h4 className="text-[25px] font-semibold text-[#2E2E2E]">
                         {nombreEjercicio}
                     </h4>
                     {ejercicio?.video_url && (
@@ -143,7 +143,7 @@ const SerieItem = React.forwardRef(({
                                 e.stopPropagation();
                                 openVideoPanel(ejercicio.video_url);
                             }}
-                            className="p-2 rounded-full text-red-500 hover:bg-red-50 touch-manipulation"
+                            className=" bg-[#2E2E2E]  p-1 rounded-full  touch-manipulation"
                             aria-label="Ver video"
                         >
                             <FaPlayCircle className="w-5 h-5" />
