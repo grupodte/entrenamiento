@@ -88,15 +88,13 @@ const SubBloqueDisplay = (props) => {
 
     return (
         <div
-            className={`relative rounded-[10px] bg-[#D8D8D8] max-w-[370px] min-h-[87px] justify-center item-center flex flex-col transition-opacity duration-200 ease-in-out ${
+            className={`relative rounded-[10px] bg-[#D8D8D8] max-w-[370px] min-h-[87px] justify-center items-center flex flex-col transition-opacity duration-200 ease-in-out ${
                 isCompleted ? 'opacity-60' : '' 
             }`}
         >
             {/* Header de la tarjeta */}
-            <button
-                onClick={handleToggleCollapse}
-                className="w-full flex items-center justify-between touch-manipulation"
-                aria-expanded={!isCollapsed}
+            <div
+                className="w-full flex items-center justify-between pr-2 "
             >
                 <div className="flex items-center gap-3">
                     {/* Icono circular */}
@@ -127,7 +125,12 @@ const SubBloqueDisplay = (props) => {
                 </div>
 
                 {/* Botón colapsar */}
-                <div className="flex-shrink-0 ml-2">
+                <button
+                    onClick={handleToggleCollapse}
+                    className="flex-shrink-0 "
+                    aria-expanded={!isCollapsed}
+                    aria-label={isCollapsed ? 'Expandir bloque' : 'Colapsar bloque'}
+                >
                     <div className="w-[29px] h-[29px] rounded-full bg-[#C3C3C3] flex items-center justify-center">
                         {isCollapsed ? (
                             <FaPlus className="text-[#595959] text-xs" />
@@ -135,8 +138,8 @@ const SubBloqueDisplay = (props) => {
                                 <FaMinus className="text-[#595959] text-xs" />
                         )}
                     </div>
-                </div>
-            </button>
+                </button>
+            </div>
 
             {/* Contenido expandible */}
             <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
