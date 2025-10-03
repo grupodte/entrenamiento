@@ -198,7 +198,7 @@ const SerieItem = React.forwardRef(({
                                     e.stopPropagation();
                                     openVideoPanel(ejercicio.video_url);
                                 }}
-                                className="absolute right-[-50px] top-1/2 -translate-y-1/2 touch-manipulation"
+                                className="absolute right-[25px] top-1/2 -translate-y-1/2 touch-manipulation"
                                 aria-label="Ver video"
                             >
                                 <img src={VideoRutinaIcon} alt="Ver video" className="w-10 h-12" />
