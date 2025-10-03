@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { FaExchangeAlt, FaCheckCircle } from 'react-icons/fa';
 import SerieItem from './SerieItem';
 import { generarIdEjercicioEnSerieDeSuperset } from '../../utils/rutinaIds';
+import tickRutina from '../../assets/tick-rutina.svg';
+import pausaRutina from '../../assets/pausa-clock-rutina.svg';
 
 const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
     const totalSeries = subbloque.num_series_superset || 1;
@@ -102,7 +104,6 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                                 ? 'bg-[#E7E7E7] border-2 border-[#FF0000]'
                                 : 'bg-[#C6C6C6] '
                         }`}
-                        whileTap={{ scale: 0.98 }}
                     >
                         {/* Header del superset */}
                         <div className="">
@@ -143,8 +144,15 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                             {/* Info secundaria */}
                             <div className="flex items-center justify-between mt-2 text-[20px] text-[#3F3F3F] bg-[#D0D0D0] px-4 py-2">
                                 <span>{subbloque.subbloques_ejercicios.length} Ejercicios</span>
-                                {pausaSet > 0 && <span>⏱ Pausa {pausaSet}s</span>}
+
+                                {pausaSet > 0 && (
+                                    <span className="flex items-center gap-2">
+                                        <img src={pausaRutina} alt="Icono pausa" className="w-5 h-5" />
+                                        Pausa {pausaSet}s
+                                    </span>
+                                )}
                             </div>
+
                         </div>
 
 

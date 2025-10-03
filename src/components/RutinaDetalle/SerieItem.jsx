@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { FaCheck, FaPlayCircle } from 'react-icons/fa';
+import { FaCheck } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import VideoRutinaIcon from '../../assets/video-rutina.svg';
 import { 
     EXECUTION_TYPES, 
     getExecutionTypeConfig, 
@@ -166,57 +167,62 @@ const SerieItem = React.forwardRef(({
         >
           {isSuperset ? (
             // ====== VISTA MINIMAL (como la imagen) ======
-            <div className="py-5 text-center select-none">
-              {/* Nombre con botón de video */}
-              {!hideExerciseName && (
-                <div className="flex items-center justify-center gap-3">
-                  <h4 className="text-[22px] font-semibold text-[#1E1E1E]">
-                    {nombreEjercicio}
-                  </h4>
-                  {ejercicio?.video_url && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openVideoPanel(ejercicio.video_url);
-                      }}
-                      className="bg-[#2E2E2E] p-1 rounded-full touch-manipulation"
-                      aria-label="Ver video"
-                    >
-                      <FaPlayCircle className="w-5 h-5 text-white" />
-                    </button>
-                  )}
+                <div className="py-5 text-center select-none">
+                    {/* Nombre con botón de video */}
+                    {!hideExerciseName && (
+                        <div className="flex items-center justify-center gap-3">
+                            <h4 className="text-[22px] font-semibold text-[#1E1E1E]">
+                                {nombreEjercicio}
+                            </h4>
+                        </div>
+                    )}
+
+                    {/* Subtítulo */}
+                    <div className="text-[19px] text-[#8C8C8C]">{labelArriba}</div>
+
+                    {/* Contenedor centrado con pill y botón */}
+                    <div className="mt-1 mb-3 relative flex justify-center">
+                        {/* Pill central negro */}
+                        <div className="inline-flex items-center justify-center w-[144px] h-[62px] rounded-[8px] bg-[#232323]">
+                            <span className="text-[29px] leading-none font-bold text-[#F84B4B]">
+                                {valorCentral}
+                            </span>
+                        </div>
+
+                        {/* Botón ver video (alineado a la derecha del pill) */}
+                        {ejercicio?.video_url && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    openVideoPanel(ejercicio.video_url);
+                                }}
+                                className="absolute right-[-50px] top-1/2 -translate-y-1/2 touch-manipulation"
+                                aria-label="Ver video"
+                            >
+                                <img src={VideoRutinaIcon} alt="Ver video" className="w-10 h-12" />
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Chip de peso (abajo del pill) */}
+                    <div className="mt-2 flex justify-center">
+                        <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F0F0]">
+                            <span className="text-[12px] text-[#7C7C7C] select-none">{pesoTexto}</span>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    incKg();
+                                }}
+                                className="w-5 h-5 leading-none rounded-md bg-white/80 hover:bg-white text-[#1E1E1E] text-[13px] font-bold flex items-center justify-center"
+                                aria-label="Aumentar peso"
+                            >
+                                +
+                            </button>
+                        </div>
+                    </div>
                 </div>
-              )}
 
-              {/* Subtítulo */}
-              <div className="text-[19px] text-[#8C8C8C]">
-                {labelArriba}
-              </div>
-
-              {/* Pill central negro */}
-                    <div className="inline-flex items-center justify-center w-[144px] h-[62px] rounded-[8px] bg-[#232323]">
-                        <span className="text-[29px] leading-none font-bold text-[#F84B4B]">
-                  {valorCentral}
-                </span>
-              </div>
-
-              {/* Chip de peso (estilo imagen) - abajo del pill */}
-              <div className="mt-2 flex justify-center">
-                <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F0F0]">
-                <span className="text-[12px] text-[#7C7C7C] select-none">
-                  {pesoTexto}
-                </span>
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); incKg(); }}
-                  className="w-5 h-5 leading-none rounded-md bg-white/80 hover:bg-white text-[#1E1E1E] text-[13px] font-bold flex items-center justify-center"
-                  aria-label="Aumentar peso"
-                >
-                  +
-                </button>
-                </div>
-              </div>
-            </div>
           ) : (
             // ====== TU VISTA ACTUAL PARA EJERCICIO SIMPLE (sin cambios) ======
             <>
@@ -232,10 +238,10 @@ const SerieItem = React.forwardRef(({
                                   e.stopPropagation();
                                   openVideoPanel(ejercicio.video_url);
                               }}
-                              className=" bg-[#2E2E2E]  p-1 rounded-full  touch-manipulation"
+                              className="touch-manipulation"
                               aria-label="Ver video"
                           >
-                              <FaPlayCircle className="w-5 h-5" />
+                              <img src={VideoRutinaIcon} alt="Ver video" className="w-10 h-12" />
                           </button>
                       )}
                   </div>
