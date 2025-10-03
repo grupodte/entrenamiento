@@ -153,6 +153,8 @@ body,
 html {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  /* Eliminar delay de 300ms en iOS Safari */
+  touch-action: manipulation;
 }
 
 body {
@@ -160,6 +162,12 @@ body {
   background-color: var(--bg-primary);
   -webkit-overflow-scrolling: touch;
   text-rendering: optimizeLegibility;
+  /* Optimizaciones para móvil */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* ====== TIPOGRAFÍA PERSONALIZADA ====== */
@@ -417,8 +425,33 @@ body {
     outline: none;
   }
 
-  button {
+  /* Optimizaciones para respuesta táctil móvil */
+  button,
+  [role="button"],
+  .cursor-pointer,
+  .clickable {
     -webkit-tap-highlight-color: transparent;
+    tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+
+  /* Eliminar delay de 300ms en dispositivos táctiles */
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  .cursor-pointer,
+  .clickable {
+    touch-action: manipulation;
   }
 
   button:active {
@@ -774,4 +807,136 @@ ol::-webkit-scrollbar,
 .drawer-dynamic-height {
   height: calc(min(85vh, var(--safe-viewport-height) * 0.85));
   max-height: var(--safe-viewport-height);
+}
+
+/* ====== OPTIMIZACIONES ESPECÍFICAS PARA MÓVIL ====== */
+/* Mejoras críticas para la respuesta táctil en dispositivos móviles */
+
+/* Eliminar delays de 300ms en todos los navegadores móviles */
+@media (hover: none) and (pointer: coarse) {
+  * {
+    touch-action: manipulation !important;
+  }
+  
+  /* Asegurar respuesta inmediata en elementos interactivos */
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [tabindex],
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  .cursor-pointer,
+  .clickable {
+    -webkit-tap-highlight-color: transparent !important;
+    tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    -khtml-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    touch-action: manipulation !important;
+  }
+  
+  /* Optimizaciones para Framer Motion en móvil */
+  .motion-button,
+  [data-framer-component-type="motion"] {
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+}
+
+/* Optimizaciones específicas para iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  body {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  
+  button,
+  a,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Optimizaciones para Android Chrome */
+@media screen and (max-width: 768px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  /* Prevenir zoom en inputs */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  
+  /* Mejorar rendimiento de animaciones */
+  * {
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    -ms-backface-visibility: hidden;
+    backface-visibility: hidden;
+    
+    -webkit-perspective: 1000;
+    -moz-perspective: 1000;
+    -ms-perspective: 1000;
+    perspective: 1000;
+  }
+}
+
+/* Clase utilitaria para elementos que requieren respuesta táctil inmediata */
+.fast-tap {
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  cursor: pointer;
+}
+
+/* Clase para botones críticos */
+.critical-button {
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  cursor: pointer;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Optimización para elementos con hover en móvil */
+@media (hover: none) {
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+  
+  .hover\:bg-gray-700:hover {
+    background-color: inherit;
+  }
+}
+
+/* Fix para Samsung Internet y otros navegadores móviles */
+@media screen and (max-device-width: 640px) {
+  html {
+    -webkit-text-size-adjust: none;
+  }
+  
+  body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
 }

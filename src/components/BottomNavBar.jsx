@@ -111,7 +111,7 @@ const BottomNavBar = ({
 
   return (
     <motion.nav
-      className="fixed bottom-0 left-0 right-0 h-[75px] z-floating-nav bg-[#D9D9D9/80] backdrop-blur-md "
+      className="fixed bottom-0 left-0 right-0 h-[75px] z-navbar bg-[#D9D9D9/80] backdrop-blur-md "
       style={{ paddingBottom: `${safeAreaInsets.bottom}px` }}
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
@@ -127,11 +127,14 @@ const BottomNavBar = ({
             <motion.button
               onClick={handleProfileClick}
               disabled={isProfileDisabled}
-              className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-gray-300 transition-all duration-200 hover:border-gray-400 cursor-pointer disabled:opacity-70"
+              className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-gray-300 transition-all duration-200 hover:border-gray-400 cursor-pointer disabled:opacity-70 fast-tap"
               whileTap={{ scale: 0.95 }}
               style={{ 
                 WebkitTapHighlightColor: 'transparent',
-                touchAction: 'manipulation'
+                touchAction: 'manipulation',
+                WebkitTouchCallout: 'none',
+                WebkitUserSelect: 'none',
+                userSelect: 'none'
               }}
             >
               {avatarUrl ? (
@@ -170,11 +173,14 @@ const BottomNavBar = ({
             <motion.button
               onClick={handleBackClick}
               disabled={isBackDisabled}
-              className="flex items-center justify-center w-[40px] h-[40px] cursor-pointer disabled:opacity-70"
+              className="flex items-center justify-center w-[40px] h-[40px] cursor-pointer disabled:opacity-70 critical-button"
               whileTap={{ scale: 0.95 }}
               style={{ 
                 WebkitTapHighlightColor: 'transparent',
-                touchAction: 'manipulation'
+                touchAction: 'manipulation',
+                WebkitTouchCallout: 'none',
+                WebkitUserSelect: 'none',
+                userSelect: 'none'
               }}
             >
               <img src={ArrowBackIcon} alt="Volver" className="w-6 h-6 pointer-events-none" />
@@ -187,11 +193,14 @@ const BottomNavBar = ({
             <motion.button
               onClick={handleProfileClick}
               disabled={isProfileDisabled}
-              className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-gray-300 transition-all duration-200 hover:border-gray-400 cursor-pointer disabled:opacity-70"
+              className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-gray-300 transition-all duration-200 hover:border-gray-400 cursor-pointer disabled:opacity-70 fast-tap"
               whileTap={{ scale: 0.95 }}
               style={{ 
                 WebkitTapHighlightColor: 'transparent',
-                touchAction: 'manipulation'
+                touchAction: 'manipulation',
+                WebkitTouchCallout: 'none',
+                WebkitUserSelect: 'none',
+                userSelect: 'none'
               }}
             >
               {avatarUrl ? (
@@ -214,11 +223,14 @@ const BottomNavBar = ({
             <motion.button
               onClick={handleMenuClick}
               disabled={isMenuDisabled}
-              className="flex items-center justify-center w-12 h-12 cursor-pointer disabled:opacity-70"
+              className="flex items-center justify-center w-12 h-12 cursor-pointer disabled:opacity-70 critical-button"
               whileTap={{ scale: 0.95 }}
               style={{ 
                 WebkitTapHighlightColor: 'transparent',
-                touchAction: 'manipulation'
+                touchAction: 'manipulation',
+                WebkitTouchCallout: 'none',
+                WebkitUserSelect: 'none',
+                userSelect: 'none'
               }}
             >
               <img src={BurgerIcon} alt="Menu" className="w-[34.24px] h-[22.83px] pointer-events-none" />

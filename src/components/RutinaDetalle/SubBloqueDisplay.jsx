@@ -4,6 +4,7 @@ import SupersetDisplay from './SupersetDisplay';
 import { FaDumbbell, FaExchangeAlt, FaChevronDown, FaCheckCircle, FaMinus, FaPlus } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import ShinyText from '../../components/ShinyText.jsx';
+import tick from '../../assets/tick-rutina.svg';
 
 
 const SubBloqueDisplay = (props) => {
@@ -55,14 +56,14 @@ const SubBloqueDisplay = (props) => {
                         blockTheme?.iconColor || 'bg-red-500'
                     }`}>
                         {isCompleted ? (
-                            <FaCheckCircle className="text-white text-sm" />
+                            <Tick className="text-white text-sm" />
                         ) : (
                             <Icon className={`text-white text-sm ${blockTheme?.iconColorClass || 'text-white'}`} />
                         )}
                     </div>
                     
                     <div className="flex-1 text-left">
-                        <h3 className="text-lg font-semibold text-gray-800">
+                        <h3 className="text-[27px] text-[#818181]">
                             {blockName ? (
                                 blockName
                             ) : blockNumber && !hideTitle ? (
@@ -71,7 +72,7 @@ const SubBloqueDisplay = (props) => {
                                 subbloque?.nombre || typeLabel
                             )}
                         </h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-[13px] text-[#818181]">
                             {numEjercicios} {isSuperset ? 'ejercicios' : 'ejercicio'} • {completedSets}/{totalSeries} sets
                         </p>
                     </div>
@@ -79,11 +80,11 @@ const SubBloqueDisplay = (props) => {
 
                 {/* Botón colapsar */}
                 <div className="flex-shrink-0 ml-2">
-                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                    <div className="w-[29px] h-[29px] rounded-full bg-[#C3C3C3] flex items-center justify-center">
                         {isCollapsed ? (
-                            <FaPlus className="text-gray-600 text-xs" />
+                            <FaPlus className="text-[#595959] text-xs" />
                         ) : (
-                            <FaMinus className="text-gray-600 text-xs" />
+                                <FaMinus className="text-[#595959] text-xs" />
                         )}
                     </div>
                 </div>
