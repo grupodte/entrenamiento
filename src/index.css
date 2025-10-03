@@ -9,6 +9,7 @@ html,
 body {
   overscroll-behavior-x: none;
   -webkit-overscroll-behavior-x: none;
+  touch-action: manipulation; /* ✅ Eliminar delay de 300ms y gestos multi-touch */
 }
 
 /* Solo para PWA standalone */
@@ -18,6 +19,7 @@ body {
   body {
     overscroll-behavior: none;
     -webkit-overscroll-behavior: none;
+    touch-action: manipulation; /* ✅ Prevenir gestos de zoom en PWA standalone */
   }
 }
 

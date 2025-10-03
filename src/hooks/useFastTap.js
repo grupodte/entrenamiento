@@ -17,7 +17,7 @@ export const useFastTap = (onTap, options = {}) => {
   const {
     preventDoubleClick = true,
     doubleClickDelay = 300,
-    preventDefault = true,
+    preventDefault = false, // ✅ Cambio: dejar que el navegador maneje eventos nativos
     stopPropagation = false,
     disabled = false
   } = options;
