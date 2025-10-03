@@ -107,6 +107,15 @@ export const usePushNotifications = () => {
       // Aquí puedes manejar la navegación o acciones específicas
     }
     
+    // Nuevo: Manejar notificaciones en app cuando está visible
+    if (data && data.type === 'SHOW_IN_APP_NOTIFICATION') {
+      console.log('Mostrando notificación en app:', data.data);
+      // Disparar evento personalizado para que el sistema de toast lo maneje
+      window.dispatchEvent(new CustomEvent('showInAppNotification', {
+        detail: data.data
+      }));
+    }
+    
     if (data && data.type === 'PLAY_SOUND') {
       // Manejar reproducción de sonido
       playNotificationSound(data.soundType);

@@ -17,12 +17,38 @@ export default defineConfig({
         'favicon.svg',
         'favicon.ico', 
         'robots.txt',
-        'backgrounds/admin-blur.png'
+        'backgrounds/admin-blur.png',
+        'icons/*.png'
       ],
       manifest: false, // Usar el manifest.json del directorio public
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
         // El runtime caching se maneja en el SW personalizado
+        maximumFileSizeToCacheInBytes: 3000000, // 3MB para imágenes grandes
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module'
+      },
+      workbox: {
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
+        // Configuraciones específicas para notificaciones
+        navigateFallback: undefined, // Evitar conflictos con notificaciones
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/.*\.(png|jpg|jpeg|svg|gif)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images-cache',
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 días
+              }
+            }
+          }
+        ]
       }
     }),
     // Bundle analyzer (solo en análisis)

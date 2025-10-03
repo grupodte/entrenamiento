@@ -209,8 +209,9 @@ const SerieItem = React.forwardRef(({
                                     e.stopPropagation();
                                     openVideoPanel(ejercicio.video_url);
                                 }}
-                                className="absolute right-[25px] top-1/2 -translate-y-1/2 touch-manipulation"
+                                className="absolute right-[25px] top-1/2 -translate-y-1/2 touch-manipulation active:scale-100 active:translate-y-[-50%] focus:outline-none"
                                 aria-label="Ver video"
+                                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                             >
                                 <img src={VideoRutinaIcon} alt="Ver video" className="w-10 h-12" />
                             </button>
@@ -226,8 +227,9 @@ const SerieItem = React.forwardRef(({
                                     e.stopPropagation();
                                     decKg();
                                 }}
-                                className="w-5 h-5 leading-none rounded-md bg-white/80 hover:bg-white text-[#1E1E1E] text-[13px] font-bold flex items-center justify-center"
+                                className="w-5 h-5 leading-none rounded-md bg-white/80 hover:bg-white text-[#1E1E1E] text-[13px] font-bold flex items-center justify-center active:scale-100 focus:outline-none"
                                 aria-label="Disminuir peso"
+                                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                             >
                                 -
                             </button>
@@ -238,8 +240,9 @@ const SerieItem = React.forwardRef(({
                                     e.stopPropagation();
                                     incKg();
                                 }}
-                                className="w-5 h-5 leading-none rounded-md bg-white/80 hover:bg-white text-[#1E1E1E] text-[13px] font-bold flex items-center justify-center"
+                                className="w-5 h-5 leading-none rounded-md bg-white/80 hover:bg-white text-[#1E1E1E] text-[13px] font-bold flex items-center justify-center active:scale-100 focus:outline-none"
                                 aria-label="Aumentar peso (+5kg)"
+                                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                             >
                                 +
                             </button>
@@ -266,8 +269,9 @@ const SerieItem = React.forwardRef(({
                                   e.stopPropagation();
                                   openVideoPanel(ejercicio.video_url);
                               }}
-                              className="touch-manipulation"
+                              className="touch-manipulation active:scale-100 focus:outline-none"
                               aria-label="Ver video"
+                              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                           >
                               <img src={VideoRutinaIcon} alt="Ver video" className="w-10 h-12" />
                           </button>

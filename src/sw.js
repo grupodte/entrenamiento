@@ -264,8 +264,39 @@ self.addEventListener('push', (event) => {
     }
   };
   
+  // Solo mostrar notificación si la app no está visible o activa
   event.waitUntil(
-    self.registration.showNotification(notificationData.title, notificationOptions)
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(clientList => {
+        // Verificar si algún cliente está visible y enfocado
+        const hasVisibleClient = clientList.some(client => {
+          return client.visibilityState === 'visible' && client.focused;
+        });
+        
+        console.log('SW: Clientes activos:', clientList.length, 'Visible y enfocado:', hasVisibleClient);
+        
+        // Solo mostrar notificación push si NO hay ventanas visibles
+        // O si es una notificación crítica (como timer de descanso)
+        const shouldShowNotification = !hasVisibleClient || 
+          notificationData.type === 'rest-timer' ||
+          notificationData.requireInteraction === true;
+          
+        if (shouldShowNotification) {
+          console.log('SW: Mostrando notificación push (app no visible o notificación crítica)');
+          return self.registration.showNotification(notificationData.title, notificationOptions);
+        } else {
+          console.log('SW: App visible, no mostrando notificación push');
+          // Enviar mensaje a la app visible en su lugar
+          clientList.forEach(client => {
+            if (client.visibilityState === 'visible') {
+              client.postMessage({
+                type: 'SHOW_IN_APP_NOTIFICATION',
+                data: notificationData
+              });
+            }
+          });
+        }
+      })
   );
 });
 
@@ -290,34 +321,49 @@ self.addEventListener('message', (event) => {
     
     // Programar nueva notificación
     const timerId = setTimeout(() => {
-      console.log('SW: Mostrando notificación de descanso terminado');
+      console.log('SW: Timer de descanso terminado');
       
-      // Mostrar la notificación push
-      self.registration.showNotification('¡Descanso terminado!', {
-        body: `¡Es hora de continuar: ${exerciseName}! 💪`,
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/icon-192x192.png',
-        vibrate: [300, 100, 300, 100, 300],
-        tag: 'rest-timer-finish',
-        renotify: true,
-        requireInteraction: false,
-        actions: [
-          {
-            action: 'open-app',
-            title: '💪 Continuar entrenamiento'
-          },
-          {
-            action: 'add-rest',
-            title: '⏰ +30s más'
-          }
-        ],
-        data: {
-          type: 'rest-finished',
-          exerciseName: exerciseName,
-          timestamp: Date.now(),
-          url: '/dashboard' // Llevar al dashboard cuando haga clic
-        }
-      });
+      // Verificar si la app está visible antes de mostrar notificación
+      clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then(clientList => {
+          const hasVisibleClient = clientList.some(client => {
+            return client.visibilityState === 'visible';
+          });
+          
+          console.log('SW: App visible durante timer:', hasVisibleClient);
+          
+          // SIEMPRE mostrar notificación de descanso terminado (es crítica)
+          // pero ajustar el comportamiento según visibilidad
+          const notificationOptions = {
+            body: `¡Es hora de continuar: ${exerciseName}! 💪`,
+            icon: '/icons/icon-192x192.png',
+            badge: '/icons/icon-192x192.png',
+            vibrate: [300, 100, 300, 100, 300],
+            tag: 'rest-timer-finish',
+            renotify: true,
+            requireInteraction: !hasVisibleClient, // Requerir interacción solo si app no visible
+            silent: hasVisibleClient, // Silencioso si app visible
+            actions: [
+              {
+                action: 'open-app',
+                title: '💪 Continuar entrenamiento'
+              },
+              {
+                action: 'add-rest',
+                title: '⏰ +30s más'
+              }
+            ],
+            data: {
+              type: 'rest-finished',
+              exerciseName: exerciseName,
+              timestamp: Date.now(),
+              url: '/dashboard'
+            }
+          };
+          
+          // Mostrar notificación
+          self.registration.showNotification('¡Descanso terminado!', notificationOptions);
+        });
       
       // Reproducir sonido automáticamente si la app está abierta
       clients.matchAll({ type: 'window', includeUncontrolled: true })

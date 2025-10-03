@@ -27,7 +27,10 @@ const updateSW = registerSW({
   },
 });
 
-import SpotifyProvider from './context/SpotifyContext.jsx'
+import SpotifyProvider from './context/SpotifyContext.jsx';
+
+// Importar sistema de notificaciones principales
+import './utils/notificacionesCore.js';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
