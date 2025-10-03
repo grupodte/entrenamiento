@@ -166,12 +166,26 @@ const SerieItem = React.forwardRef(({
         >
           {isSuperset ? (
             // ====== VISTA MINIMAL (como la imagen) ======
-            <div className="py-2 text-center select-none">
-              {/* Nombre */}
+            <div className="py-5 text-center select-none">
+              {/* Nombre con botón de video */}
               {!hideExerciseName && (
-                        <h4 className="text-[25px] font-semibold text-[#2E2E2E]">
-                  {nombreEjercicio}
-                </h4>
+                <div className="flex items-center justify-center gap-3">
+                  <h4 className="text-[22px] font-semibold text-[#1E1E1E]">
+                    {nombreEjercicio}
+                  </h4>
+                  {ejercicio?.video_url && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openVideoPanel(ejercicio.video_url);
+                      }}
+                      className="bg-[#2E2E2E] p-1 rounded-full touch-manipulation"
+                      aria-label="Ver video"
+                    >
+                      <FaPlayCircle className="w-5 h-5 text-white" />
+                    </button>
+                  )}
+                </div>
               )}
 
               {/* Subtítulo */}

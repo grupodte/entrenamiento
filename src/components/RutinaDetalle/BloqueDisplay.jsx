@@ -103,7 +103,7 @@ const BloqueDisplay = (props) => {
                     <div key={tipoBloque} className="space-y-2 bg-[#D8D8D8] px-1 py-2 rounded-[10px]">
                         {/* Header del grupo de tipo de bloque */}
                         <div className="mb-1 ">  
-                            <h2 className="px-2 text-[27px]  text-[#3D3D3D]  ">
+                            <h2 className="px-2 text-[27px]  text-[#020202]  ">
                                 {tipoBloque}
                             </h2>
                         </div>

@@ -65,7 +65,7 @@ const SubBloqueDisplay = (props) => {
             >
                 <div className="flex items-center gap-3">
                     {/* Icono circular */}
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    <div className={`w-[45px] h-[45px] rounded-full flex items-center justify-center ${
                         isCompleted ? 'bg-[#47D065]' : (blockTheme?.iconColor || 'bg-[#F04444]')
                     }`}>
                         <img 
