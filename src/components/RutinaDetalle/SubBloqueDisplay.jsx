@@ -4,7 +4,9 @@ import SupersetDisplay from './SupersetDisplay';
 import { FaDumbbell, FaExchangeAlt, FaChevronDown, FaCheckCircle, FaMinus, FaPlus } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import ShinyText from '../../components/ShinyText.jsx';
-import tick from '../../assets/tick-rutina.svg';
+import tickRutina from '../../assets/tick-rutina.svg';
+import ondaRutina from '../../assets/onda-rutina.svg';
+import banderaRutina from '../../assets/bandera-rutina.svg';
 
 
 const SubBloqueDisplay = (props) => {
@@ -27,6 +29,17 @@ const SubBloqueDisplay = (props) => {
     const isSuperset = subbloque?.tipo === 'superset';
     const Icon = isSuperset ? FaExchangeAlt : FaDumbbell;
     const typeLabel = isSuperset ? 'SUPERSET' : 'EJERCICIO SIMPLE';
+    
+    // Función para obtener el icono apropiado
+    const getIcon = () => {
+        if (isCompleted) {
+            return tickRutina; // Bloque completado
+        } else if (isSuperset) {
+            return banderaRutina; // Superset
+        } else {
+            return ondaRutina; // Ejercicio simple
+        }
+    };
 
     // 3. Calcular información del resumen
     const numEjercicios = subbloque.subbloques_ejercicios?.length || 0;
@@ -39,27 +52,27 @@ const SubBloqueDisplay = (props) => {
 
     return (
         <motion.div
-            className={`relative rounded-2xl bg-gray-200 p-4 shadow-sm ${
-                isCompleted ? 'opacity-70' : ''
+            className={`relative rounded-[10px] bg-[#F6F5F5] max-w-[370px] min-h-[87px] px-4 justify-center item-center flex flex-col ${
+                isCompleted ? 'opacity-60' : '' 
             }`}
             layout
         >
             {/* Header de la tarjeta */}
             <button
                 onClick={handleToggleCollapse}
-                className="w-full flex items-center justify-between mb-3 touch-manipulation"
+                className="w-full flex items-center justify-between touch-manipulation"
                 aria-expanded={!isCollapsed}
             >
                 <div className="flex items-center gap-3">
                     {/* Icono circular */}
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        blockTheme?.iconColor || 'bg-red-500'
+                        isCompleted ? 'bg-[#47D065]' : (blockTheme?.iconColor || 'bg-[#F04444]')
                     }`}>
-                        {isCompleted ? (
-                            <Tick className="text-white text-sm" />
-                        ) : (
-                            <Icon className={`text-white text-sm ${blockTheme?.iconColorClass || 'text-white'}`} />
-                        )}
+                        <img 
+                            src={getIcon()} 
+                            alt={isCompleted ? 'Completado' : (isSuperset ? 'Superset' : 'Ejercicio simple')}
+                            className="w-5 h-5"
+                        />
                     </div>
                     
                     <div className="flex-1 text-left">
@@ -89,15 +102,6 @@ const SubBloqueDisplay = (props) => {
                     </div>
                 </div>
             </button>
-
-            {/* Estado en progreso */}
-            {isInProgress && !isCompleted && (
-                <div className="mb-3">
-                    <div className="text-xs text-red-500 font-medium uppercase tracking-wide">
-                        En progreso
-                    </div>
-                </div>
-            )}
 
             {/* Contenido expandible */}
             <AnimatePresence>

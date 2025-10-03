@@ -24,7 +24,7 @@ const RutinaContent = ({
     };
 
     return (
-        <main className="min-h-screen mt-[35px]" >
+        <main className=" mt-[30px] w-[380px] justify-center flex flex-col item-center" >
             {rutinaBloques?.map(bloque => (
                 <BloqueDisplay key={bloque.id} bloque={bloque} {...displayProps} />
             ))}

@@ -12,35 +12,35 @@ const BloqueDisplay = (props) => {
         const nombreLower = nombre.toLowerCase();
         if (nombreLower.includes('calentamiento')) {
             return {
-                iconColor: 'bg-orange-500',
+                iconColor: 'bg-[#FFA500]',
                 accentColor: 'orange',
                 iconColorClass: 'text-white'
             };
         }
         if (nombreLower.includes('principal')) {
             return {
-                iconColor: 'bg-red-500',
+                iconColor: 'bg-[#F04444]',
                 accentColor: 'red', 
                 iconColorClass: 'text-white'
             };
         }
         if (nombreLower.includes('cooldown')) {
             return {
-                iconColor: 'bg-green-500',
+                iconColor: 'bg-[#F04444]',
                 accentColor: 'green',
                 iconColorClass: 'text-white'
             };
         }
         if (nombreLower.includes('estiramiento')) {
             return {
-                iconColor: 'bg-purple-500',
+                iconColor: 'bg-[#F04444]',
                 accentColor: 'purple',
                 iconColorClass: 'text-white'
             };
         }
         // Default theme
         return {
-            iconColor: 'bg-red-500',
+            iconColor: 'bg-[#F04444]',
             accentColor: 'red',
             iconColorClass: 'text-white'
         };
@@ -95,21 +95,21 @@ const BloqueDisplay = (props) => {
 
 
     return (
-        <div className="space-y-6 px-2 pb-20">
+        <div className="space-y-2 pb-16">
             {Object.entries(groupedSubBloques).map(([tipoBloque, subbloquesDelGrupo]) => {
                 const theme = getBlockTheme(tipoBloque.toLowerCase());
 
                 return (
-                    <div key={tipoBloque} className="space-y-4 bg-[#D8D8D8] px-2 py-4 rounded-[10px]">
+                    <div key={tipoBloque} className="space-y-2 bg-[#D8D8D8] px-1 py-2 rounded-[10px]">
                         {/* Header del grupo de tipo de bloque */}
-                        <div className="mb-4">  
-                            <h2 className="text-[27px]  text-black/80 tracking-tight">
+                        <div className="mb-1 ">  
+                            <h2 className="px-2 text-[27px]  text-[#3D3D3D]  ">
                                 {tipoBloque}
                             </h2>
                         </div>
                         
                         {/* Grid de tarjetas del mismo tipo */}
-                        <div className="grid grid-cols-1 ">
+                        <div className="grid grid-cols-1 gap-1">
                             {subbloquesDelGrupo.map((subbloque, index) => {
                                 const progressInfo = progressPorSubBloque[subbloque.id] || { isCompleted: false, isInProgress: false };
                                 

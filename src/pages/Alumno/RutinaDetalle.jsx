@@ -159,7 +159,7 @@ const RutinaDetalle = () => {
                 <div className="flex-1 overflow-y-auto">
                     {/* Contenido principal */}
                     {rutina && (
-                        <div className="">
+                        <div className="flex flex-col items-center">
                             <RutinaContent
                                 // 4. PROPS SIMPLIFICADAS
                                 rutinaBloques={rutina.bloques}
