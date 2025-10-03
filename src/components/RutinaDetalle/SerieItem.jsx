@@ -47,16 +47,22 @@ const SerieItem = React.forwardRef(({
     // Solo mantener estado para el peso que sigue siendo editable
     const [actualCarga, setActualCarga] = useState(lastCarga || carga || '');
 
-    // step en kg (cambiá a 2.5 si querés)
-    const STEP_KG = 1;
+    // step en kg 
+    const STEP_KG_INC = 5; // Aumentar de a 5
+    const STEP_KG_DEC = 1; // Disminuir de a 1
 
     const toNumber = (v) => {
       const n = parseFloat(String(v).replace(',', '.'));
       return Number.isFinite(n) ? n : 0;
     };
 
-    const incKg = (step = STEP_KG) => {
-      const next = Math.max(0, toNumber(actualCarga) + step);
+    const incKg = () => {
+      const next = Math.max(0, toNumber(actualCarga) + STEP_KG_INC);
+      setActualCarga(String(next));
+    };
+
+    const decKg = () => {
+      const next = Math.max(0, toNumber(actualCarga) - STEP_KG_DEC);
       setActualCarga(String(next));
     };
 
@@ -148,16 +154,21 @@ const SerieItem = React.forwardRef(({
 
     const pesoTexto = `Peso ${toNumber(actualCarga)}kg`;
 
+    const Component = isSuperset ? 'div' : motion.div;
+    const motionProps = isSuperset ? {} : {
+        layout: true,
+        variants: variants,
+        animate: status,
+        transition: { duration: 0.2, ease: 'easeInOut' }
+    };
+
     return (
-        <motion.div
+        <Component
           ref={ref}
-          layout
-          variants={variants}
-          animate={status}
-          transition={{ duration: 0.2, ease: 'easeInOut' }}
+          {...motionProps}
           onClick={handleClick}
           className={`
-            relative w-full p-2 transition-all duration-200 justify-center items-center flex flex-col
+            relative w-full p-2 justify-center items-center flex flex-col
             ${isSuperset ? 'cursor-default' : 'cursor-pointer'}
             ${isCompletada ? '' : 'border-gray-200 hover:border-gray-300'}
             ${isActive && !isSuperset ? 'border-red-500 ring-2 ring-red-200' : ''}
@@ -209,7 +220,18 @@ const SerieItem = React.forwardRef(({
                     {/* Chip de peso */}
                     <div className="mt-2 flex justify-center">
                         <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F0F0]">
-                            <span className="text-[12px] text-[#7C7C7C] select-none">{pesoTexto}</span>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    decKg();
+                                }}
+                                className="w-5 h-5 leading-none rounded-md bg-white/80 hover:bg-white text-[#1E1E1E] text-[13px] font-bold flex items-center justify-center"
+                                aria-label="Disminuir peso"
+                            >
+                                -
+                            </button>
+                            <span className="text-[12px] text-[#7C7C7C] select-none mx-1">{pesoTexto}</span>
                             <button
                                 type="button"
                                 onClick={(e) => {
@@ -217,7 +239,7 @@ const SerieItem = React.forwardRef(({
                                     incKg();
                                 }}
                                 className="w-5 h-5 leading-none rounded-md bg-white/80 hover:bg-white text-[#1E1E1E] text-[13px] font-bold flex items-center justify-center"
-                                aria-label="Aumentar peso"
+                                aria-label="Aumentar peso (+5kg)"
                             >
                                 +
                             </button>
@@ -369,7 +391,7 @@ const SerieItem = React.forwardRef(({
               )}
             </>
           )}
-        </motion.div>
+        </Component>
     );
 });
 

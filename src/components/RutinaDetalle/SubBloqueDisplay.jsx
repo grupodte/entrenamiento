@@ -4,6 +4,7 @@ import SupersetDisplay from './SupersetDisplay';
 import { FaDumbbell, FaExchangeAlt, FaChevronDown, FaCheckCircle, FaMinus, FaPlus } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import ShinyText from '../../components/ShinyText.jsx';
+import { generarIdEjercicioEnSerieDeSuperset, generarIdSerieSimple } from '../../utils/rutinaIds';
 import tickRutina from '../../assets/tick-rutina.svg';
 import ondaRutina from '../../assets/onda-rutina.svg';
 import banderaRutina from '../../assets/bandera-rutina.svg';
@@ -48,14 +49,48 @@ const SubBloqueDisplay = (props) => {
         : (subbloque.subbloques_ejercicios?.reduce((acc, sbe) => acc + (sbe.series?.length || 0), 0) || 0);
     
     // Calcular progreso actual
-    const completedSets = isCompleted ? totalSeries : 0;
+    const completedSets = (() => {
+        if (isCompleted) return totalSeries;
+        
+        if (isSuperset) {
+            // Para supersets, contar cuántos sets del superset están completados
+            let completed = 0;
+            const totalSupersetSets = subbloque.num_series_superset || 0;
+            
+            for (let setNum = 1; setNum <= totalSupersetSets; setNum++) {
+                // Generar el ID del primer ejercicio de cada set del superset
+                if (subbloque.subbloques_ejercicios?.length > 0) {
+                    const firstExerciseId = generarIdEjercicioEnSerieDeSuperset(
+                        subbloque.id,
+                        subbloque.subbloques_ejercicios[0].id,
+                        setNum
+                    );
+                    if (props.elementosCompletados?.[firstExerciseId]) {
+                        completed++;
+                    }
+                }
+            }
+            return completed;
+        } else {
+            // Para ejercicios simples, contar todos los sets completados
+            let completed = 0;
+            subbloque.subbloques_ejercicios?.forEach(sbe => {
+                sbe.series?.forEach(serie => {
+                    const serieId = generarIdSerieSimple(subbloque.id, sbe.id, serie.nro_set);
+                    if (props.elementosCompletados?.[serieId]) {
+                        completed++;
+                    }
+                });
+            });
+            return completed;
+        }
+    })();
 
     return (
-        <motion.div
-            className={`relative rounded-[10px] bg-[#D8D8D8] max-w-[370px] min-h-[87px]  justify-center item-center flex flex-col ${
+        <div
+            className={`relative rounded-[10px] bg-[#D8D8D8] max-w-[370px] min-h-[87px] justify-center item-center flex flex-col transition-opacity duration-200 ease-in-out ${
                 isCompleted ? 'opacity-60' : '' 
             }`}
-            layout
         >
             {/* Header de la tarjeta */}
             <button
@@ -104,44 +139,31 @@ const SubBloqueDisplay = (props) => {
             </button>
 
             {/* Contenido expandible */}
-            <AnimatePresence>
-                {!isCollapsed && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{
-                            duration: 0.4,
-                            ease: [0.25, 0.8, 0.5, 1] // curva más suave
-                        }}
-                        className="overflow-hidden"
-                    >
-                        <div className="pt-4">
-                            {subbloque?.tipo === 'simple' &&
-                                subbloque?.subbloques_ejercicios?.map((sbe) => (
-                                    <EjercicioSimpleDisplay
-                                        key={sbe.id}
-                                        sbe={sbe}
-                                        subbloqueId={subbloque.id}
-                                        {...props}
-                                        lastSessionData={lastSessionData}
-                                        blockTheme={blockTheme}
-                                    />
-                                ))}
+            {!isCollapsed && (
+                <div className="pt-4">
+                    {subbloque?.tipo === 'simple' &&
+                        subbloque?.subbloques_ejercicios?.map((sbe) => (
+                            <EjercicioSimpleDisplay
+                                key={sbe.id}
+                                sbe={sbe}
+                                subbloqueId={subbloque.id}
+                                {...props}
+                                lastSessionData={lastSessionData}
+                                blockTheme={blockTheme}
+                            />
+                        ))}
 
-                            {subbloque?.tipo === 'superset' && (
-                                <SupersetDisplay
-                                    subbloque={subbloque}
-                                    {...props}
-                                    lastSessionData={lastSessionData}
-                                    blockTheme={blockTheme}
-                                />
-                            )}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </motion.div>
+                    {subbloque?.tipo === 'superset' && (
+                        <SupersetDisplay
+                            subbloque={subbloque}
+                            {...props}
+                            lastSessionData={lastSessionData}
+                            blockTheme={blockTheme}
+                        />
+                    )}
+                </div>
+            )}
+        </div>
     );
 };
 
