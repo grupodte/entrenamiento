@@ -52,7 +52,7 @@ const SubBloqueDisplay = (props) => {
 
     return (
         <motion.div
-            className={`relative rounded-[10px] bg-[#D8D8D8] max-w-[370px] min-h-[87px] px-4  justify-center item-center flex flex-col ${
+            className={`relative rounded-[10px] bg-[#D8D8D8] max-w-[370px] min-h-[87px]  justify-center item-center flex flex-col ${
                 isCompleted ? 'opacity-60' : '' 
             }`}
             layout

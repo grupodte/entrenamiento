@@ -34,6 +34,8 @@ const SerieItem = React.forwardRef(({
     tipoEjecucion = EXECUTION_TYPES.STANDARD,
     duracionSegundos,
     unidadTiempo = TIME_UNITS.MINUTES,
+    index,
+    isLastInGroup = false,
 }, ref) => {
     const lastSessionData_item = lastSessionData[`${serieId}`] || {};
     const lastCarga = lastSessionData_item?.carga_realizada || '';
@@ -223,11 +225,11 @@ const SerieItem = React.forwardRef(({
                     </div>
 
                     {/* Línea separadora solo si NO es el último ejercicio */}
-                    {index !== subbloque.subbloques_ejercicios.length - 1 && (
-                        <div className="h-2 w-full bg-black"></div>
+                    {!isLastInGroup && (
+                        <div className="mt-4 h-[5px] w-[330px] bg-[#B8B8B8]"></div>
                     )}
                 </div>
-            ) : null} : (
+            ) : (
             // ====== TU VISTA ACTUAL PARA EJERCICIO SIMPLE (sin cambios) ======
             <>
               {/* Header con nombre del ejercicio */}

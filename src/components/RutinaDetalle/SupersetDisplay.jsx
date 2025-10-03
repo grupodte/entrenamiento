@@ -155,7 +155,7 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
 
                         {/* Lista de ejercicios del superset */}
                         <div className="space-y-3">
-                            {subbloque.subbloques_ejercicios.map((sbe) => {
+                            {subbloque.subbloques_ejercicios.map((sbe, index) => {
                                 const elementoId = generarIdEjercicioEnSerieDeSuperset(
                                     subbloque.id,
                                     sbe.id,
@@ -169,6 +169,7 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                                 const pausa = subbloque.pausa_compartida || detalleSerie?.pausa || 0;
                                 const nota = detalleSerie?.nota || '';
                                 const isCompletada = !!props.elementosCompletados[elementoId];
+                                const isLastInGroup = index === subbloque.subbloques_ejercicios.length - 1;
 
                                 return (
                                     <SerieItem
@@ -197,6 +198,8 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                                         hideExerciseName={false}
                                         blockTheme={props.blockTheme}
                                         classNameExtra="!cursor-default"
+                                        index={index}
+                                        isLastInGroup={isLastInGroup}
                                     />
                                 );
                             })}
