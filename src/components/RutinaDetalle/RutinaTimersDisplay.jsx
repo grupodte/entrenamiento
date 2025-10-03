@@ -75,7 +75,7 @@ const FullScreenRest = ({ visible, timeLeft, duration, exerciseName, onSkip, onM
             {/* Botón minimizar */}
             <button
               onClick={onMinimize}
-              className="absolute top-[55px] right-4 "
+              className="absolute top-[55px] right-4 p-4 z-10"
               aria-label="Minimizar"
             >
               <Minimize2 className="w-5 h-5" />

@@ -129,9 +129,16 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                                         variants={itemVariants}
                                         className="w-full flex justify-center"
                                     >
-                                        <button
+                                        <div
                                             onClick={() => handleElegirBloque(bloque.id)}
-                                            className="w-full max-w-[380px] h-[290px] relative rounded-2xl  overflow-hidden"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    handleElegirBloque(bloque.id);
+                                                }
+                                            }}
+                                            role="button"
+                                            tabIndex={0}
+                                            className="w-full max-w-[380px] h-[290px] relative rounded-2xl  overflow-hidden cursor-pointer"
                                         >
                                             {/* Imagen de fondo */}
                                             <div 
@@ -180,7 +187,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                                                     <img className='w-[22px]' src={arrow} alt="arrow" />
                                                 </div>
                                             </div>
-                                        </button>
+                                        </div>
                                     </motion.div>
                                 ))}
                             </motion.div>

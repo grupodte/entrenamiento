@@ -10,6 +10,11 @@ body {
   overscroll-behavior-x: none;
   -webkit-overscroll-behavior-x: none;
   touch-action: manipulation; /* ✅ Eliminar delay de 300ms y gestos multi-touch */
+  user-select: none; /* ✅ Prevenir selección de texto e imágenes */
+  -webkit-user-select: none;
+  -webkit-touch-callout: none; /* ✅ Prevenir menú contextual en iOS */
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 /* Solo para PWA standalone */
@@ -20,6 +25,11 @@ body {
     overscroll-behavior: none;
     -webkit-overscroll-behavior: none;
     touch-action: manipulation; /* ✅ Prevenir gestos de zoom en PWA standalone */
+    user-select: none; /* ✅ Prevenir selección en PWA */
+    -webkit-user-select: none;
+    -webkit-touch-callout: none; /* ✅ Prevenir menú contextual en iOS */
+    -moz-user-select: none;
+    -ms-user-select: none;
   }
 }
 
