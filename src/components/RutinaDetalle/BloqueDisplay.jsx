@@ -12,8 +12,8 @@ const BloqueDisplay = (props) => {
         const nombreLower = nombre.toLowerCase();
         if (nombreLower.includes('calentamiento')) {
             return {
-                iconColor: 'bg-[#FFA500]',
-                accentColor: 'orange',
+                iconColor: 'bg-[#F04444]',
+                accentColor: 'red',
                 iconColorClass: 'text-white'
             };
         }

@@ -95,53 +95,58 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                     <motion.div
                         key={`ss-${subbloque.id}-s${setNumero}`}
                         onClick={() => handleToggleSupersetSet(setNumero)}
-                        className={`relative rounded-2xl p-4 cursor-pointer transition-all duration-200 shadow-sm touch-manipulation ${
+                        className={`relative rounded-[10px]  cursor-pointer  touch-manipulation ${
                             completado 
                                 ? 'bg-green-50 border-2 border-green-500' 
                                 : isActive 
                                     ? 'bg-red-50 border-2 border-red-500 ring-2 ring-red-200'
-                                    : 'bg-white border-2 border-gray-200 hover:border-gray-300'
+                                : 'bg-[#C6C6C6] border-[#FFFFFF] border-2'
                         }`}
                         whileTap={{ scale: 0.98 }}
                     >
                         {/* Header del superset */}
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                                    completado 
-                                        ? 'bg-green-500' 
-                                        : props.blockTheme?.iconColor || 'bg-red-500'
-                                }`}>
-                                    {completado ? (
-                                        <FaCheckCircle className="text-white text-sm" />
-                                    ) : (
-                                        <FaExchangeAlt className="text-white text-sm" />
-                                    )}
-                                </div>
-                                <div>
-                                    <h4 className="text-lg font-semibold text-gray-800">
+                        <div className="">
+                            <div className="flex items-center justify-between w-full px-4 pt-4">
+                                {/* Lado izquierdo: Icono + Set */}
+                                <div className="flex items-center gap-2">
+                                    <div
+                                        className={`w-8 h-8 rounded-full flex items-center justify-center ${completado
+                                                ? "bg-green-500"
+                                                : props.blockTheme?.iconColor || "bg-red-500"
+                                            }`}
+                                    >
+                                        {completado ? (
+                                            <FaCheckCircle className="text-white text-sm" />
+                                        ) : (
+                                            <FaExchangeAlt className="text-white text-sm" />
+                                        )}
+                                    </div>
+                                    <h4 className="text-[25px] font-semibold text-gray-800">
                                         Set {setNumero} {totalSeries > 1 && `de ${totalSeries}`}
                                     </h4>
-                                    <p className="text-sm text-gray-600">
-                                        {subbloque.subbloques_ejercicios.length} ejercicios
-                                        {pausaSet > 0 && ` • Pausa: ${pausaSet}s`}
-                                    </p>
                                 </div>
+
+                                {/* Lado derecho: solo se muestra el botón si NO está completado */}
+                                {!completado && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleToggleSupersetSet(setNumero);
+                                        }}
+                                        className="bg-[#2A2A2A] text-[#47D065] font-bold px-3 py-1 rounded-[8px ] text-[27px]"
+                                    >
+                                        ¡Listo!
+                                    </button>
+                                )}
                             </div>
 
-                            {/* Botón ¡LISTO! */}
-                            {!completado && (
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleToggleSupersetSet(setNumero);
-                                    }}
-                                    className="px-4 py-2 bg-gray-800 text-white rounded-xl font-semibold hover:bg-gray-700 transition-colors touch-manipulation"
-                                >
-                                    ¡LISTO!
-                                </button>
-                            )}
+                            {/* Info secundaria */}
+                            <div className="flex items-center justify-between mt-2 text-[20px] text-[#B91212] bg-[#CCB8B8] px-4 py-2">
+                                <span>{subbloque.subbloques_ejercicios.length} Ejercicios</span>
+                                {pausaSet > 0 && <span>⏱ Pausa {pausaSet}s</span>}
+                            </div>
                         </div>
+
 
                         {/* Lista de ejercicios del superset */}
                         <div className="space-y-3">
@@ -191,6 +196,8 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                                 );
                             })}
                         </div>
+                
+
                     </motion.div>
                 );
             })}
