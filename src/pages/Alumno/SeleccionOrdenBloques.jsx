@@ -118,7 +118,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                             </div>
                         ) : (
                             <motion.div
-                                className="grid grid-cols-1 gap-4 pb-20" 
+                                className="grid grid-cols-1 gap-1 pb-20" 
                                 variants={containerVariants}
                                 initial="hidden"
                                 animate="visible"
@@ -131,7 +131,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                                     >
                                         <button
                                             onClick={() => handleElegirBloque(bloque.id)}
-                                            className="w-full max-w-[380px] h-[290px] relative rounded-2xl shadow-lg overflow-hidden"
+                                            className="w-full max-w-[380px] h-[290px] relative rounded-2xl  overflow-hidden"
                                         >
                                             {/* Imagen de fondo */}
                                             <div 
