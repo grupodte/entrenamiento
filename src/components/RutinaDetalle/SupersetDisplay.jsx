@@ -133,7 +133,7 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                                             e.stopPropagation();
                                             handleToggleSupersetSet(setNumero);
                                         }}
-                                        className="bg-[#2A2A2A] text-[#47D065] font-bold px-3 py-1 rounded-[8px ] text-[27px]"
+                                        className=" w-[107px] h-[50px] bg-[#2A2A2A] text-[#47D065] rounded-[8px] font-semibold text-[27px]"
                                     >
                                         ¡Listo!
                                     </button>
