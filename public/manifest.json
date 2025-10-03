@@ -3,7 +3,7 @@
     "name": "DD - Entrenamiento Personalizado",
     "short_name": "DD Fitness",
     "description": "Entrena inteligente con rutinas personalizadas, seguimiento de progreso y ejercicios en video HD. Tu entrenador personal en el bolsillo.",
-    "start_url": "/",
+    "start_url": "/?utm_source=pwa",
     "scope": "/",
     "display": "standalone",
     "orientation": "portrait-primary",
@@ -129,7 +129,7 @@
     "edge_side_panel": {
         "preferred_width": 400
     },
-    "display_override": ["window-controls-overlay", "standalone"],
+    "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
     "handle_links": "preferred",
     "iarc_rating_id": "",
     "related_applications": [],

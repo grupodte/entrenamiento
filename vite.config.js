@@ -34,8 +34,9 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
-        // Configuraciones específicas para notificaciones
-        navigateFallback: undefined, // Evitar conflictos con notificaciones
+        // Configuración para PWA iOS
+        navigateFallback: '/index.html',
+        navigateFallbackAllowlist: [/^(?!\/__).*/], // Permitir todas las rutas excepto las que empiecen con /__
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.(png|jpg|jpeg|svg|gif)$/,
