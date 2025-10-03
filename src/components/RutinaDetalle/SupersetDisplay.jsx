@@ -99,8 +99,8 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                             completado 
                                 ? 'bg-green-50 border-2 border-green-500' 
                                 : isActive 
-                                    ? 'bg-red-50 border-2 border-red-500 ring-2 ring-red-200'
-                                : 'bg-[#C6C6C6] border-[#FFFFFF] border-2'
+                                ? 'bg-[#E7E7E7] border-2 border-[#FF0000]'
+                                : 'bg-[#C6C6C6] '
                         }`}
                         whileTap={{ scale: 0.98 }}
                     >
@@ -141,7 +141,7 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                             </div>
 
                             {/* Info secundaria */}
-                            <div className="flex items-center justify-between mt-2 text-[20px] text-[#B91212] bg-[#CCB8B8] px-4 py-2">
+                            <div className="flex items-center justify-between mt-2 text-[20px] text-[#3F3F3F] bg-[#D0D0D0] px-4 py-2">
                                 <span>{subbloque.subbloques_ejercicios.length} Ejercicios</span>
                                 {pausaSet > 0 && <span>⏱ Pausa {pausaSet}s</span>}
                             </div>
