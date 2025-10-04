@@ -120,7 +120,8 @@ const SwipeWidget = ({ isOpen, onClose }) => {
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         boxShadow: shadow,
-        width: '380px',
+        width: '100%', // Responsive width
+        maxWidth: '380px',
         height: '222px',
         willChange: 'transform', // Hint para GPU
         backfaceVisibility: 'hidden' // Evitar flickering
@@ -163,6 +164,17 @@ const SwipeWidget = ({ isOpen, onClose }) => {
     }
   }, [onClose]);
 
+  // Manejador para prevenir propagación de eventos de scroll
+  const handleScrollContainerTouch = useCallback((e) => {
+    // Permitir que los eventos de touch pasen al scroll container
+    e.stopPropagation();
+  }, []);
+
+  // Prevenir cierre accidental durante scroll
+  const handleScrollStart = useCallback(() => {
+    // Opcional: marcar que se está scrolleando para prevenir cierre accidental
+  }, []);
+
   // Sin indicador de progreso ya que no hay swipe
 
   return (
@@ -196,18 +208,43 @@ const SwipeWidget = ({ isOpen, onClose }) => {
               width: '100vw',
               left: '0',
               backgroundColor: '#FFFFFF',
-              touchAction: 'pan-y manipulation',
+              touchAction: 'manipulation', // Permitir scroll vertical
               willChange: 'transform, opacity',
               backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden'
+              WebkitBackfaceVisibility: 'hidden',
+              overflow: 'hidden' // Prevenir scroll en el contenedor principal
             }}
           >
             {/* Contenido principal */}
             <div className="h-full flex flex-col">
-              <div className="flex-1 flex flex-col justify-start mx-auto space-y-2 pt-[calc(env(safe-area-inset-top)+24px)]">
-                {widgetConfigs.map((config) => (
-                  <WidgetButton key={config.action} {...config} />
-                ))}
+              {/* Contenedor con scroll vertical */}
+              <div 
+                className="
+                  flex-1 
+                  overflow-y-auto 
+                  overscroll-contain
+                  scrollbar-hide
+                  px-4
+                "
+                style={{
+                  paddingTop: 'calc(env(safe-area-inset-top) + 24px)',
+                  paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)',
+                  touchAction: 'pan-y',
+                  WebkitOverflowScrolling: 'touch',
+                  scrollBehavior: 'smooth'
+                }}
+                onTouchStart={handleScrollContainerTouch}
+                onScrollCapture={handleScrollStart}
+              >
+                {/* Grid de widgets con scroll vertical */}
+                <div className="flex flex-col justify-start mx-auto space-y-4 w-full max-w-[400px]">
+                  {widgetConfigs.map((config) => (
+                    <WidgetButton key={config.action} {...config} />
+                  ))}
+                </div>
+                
+                {/* Espaciado adicional al final para mejor UX y safe area */}
+                <div className="h-8" />
               </div>
             </div>
           </motion.div>
