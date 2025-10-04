@@ -85,7 +85,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
     const isLoading = loading || cacheLoading;
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose} height="min-h-[100dvh]">
+        <Drawer isOpen={isOpen} onClose={onClose} height="max-h-[85vh]">
             {rutinaData ? (
                 <>
                     {/* Header fijo */}

@@ -198,7 +198,7 @@ const RutinaDetalle = () => {
                 )}
 
                 {/* Modales y paneles */}
-                <Drawer isOpen={showExitModal} onClose={handleCancelExit} height="h-[100vh]">
+                <Drawer isOpen={showExitModal} onClose={handleCancelExit} height="max-h-[60vh]">
                     <div className="p-6">
                         <div className="text-center mb-6">
                        

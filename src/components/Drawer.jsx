@@ -138,6 +138,64 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
         };
     }, [isOpen, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
+    // Detectar si es PWA instalada o navegador web
+    const isPWAInstalled = () => {
+        return window.matchMedia('(display-mode: standalone)').matches ||
+               window.navigator.standalone ||
+               document.referrer.includes('android-app://');
+    };
+
+    const [isStandalone, setIsStandalone] = useState(isPWAInstalled());
+    const [windowDimensions, setWindowDimensions] = useState({
+        width: window.innerWidth,
+        height: window.innerHeight
+    });
+
+    // Actualizar estado cuando cambie el modo de pantalla o las dimensiones
+    useEffect(() => {
+        const handleResize = () => {
+            setWindowDimensions({
+                width: window.innerWidth,
+                height: window.innerHeight
+            });
+            setIsStandalone(isPWAInstalled());
+        };
+
+        const handleOrientationChange = () => {
+            // Esperar a que se complete el cambio de orientación
+            setTimeout(() => {
+                handleResize();
+            }, 100);
+        };
+
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', handleOrientationChange);
+        
+        // También escuchar cambios en display-mode
+        const displayModeQuery = window.matchMedia('(display-mode: standalone)');
+        const handleDisplayModeChange = (e) => {
+            setIsStandalone(isPWAInstalled());
+        };
+        
+        if (displayModeQuery.addEventListener) {
+            displayModeQuery.addEventListener('change', handleDisplayModeChange);
+        } else {
+            // Fallback para navegadores que no soportan addEventListener en MediaQueryList
+            displayModeQuery.addListener(handleDisplayModeChange);
+        }
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('orientationchange', handleOrientationChange);
+            
+            if (displayModeQuery.removeEventListener) {
+                displayModeQuery.removeEventListener('change', handleDisplayModeChange);
+            } else {
+                displayModeQuery.removeListener(handleDisplayModeChange);
+            }
+        };
+    }, []);
+
     const drawerContent = (
         <AnimatePresence mode="wait">
             {isOpen && (
@@ -216,7 +274,7 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                             }
                         }}
                         className={`
-                            drawer-safe-positioning
+                            ${isStandalone ? 'drawer-safe-positioning' : 'drawer-web-positioning'}
                             ${responsiveHeight}
                             w-full mx-auto
                             text-white 
@@ -229,9 +287,17 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                             fixed bottom-0 left-0 right-0
                         `}
                         style={{
-                            paddingTop: 'env(safe-area-inset-top)',
+                            paddingTop: isStandalone ? 'env(safe-area-inset-top)' : '0',
                             zIndex: 99999,
-                            maxHeight: '100vh'
+                            maxHeight: isStandalone ? '100vh' : `${Math.min(windowDimensions.height * 0.9, windowDimensions.height - 40)}px`,
+                            // Para navegadores web, usar dimensiones dinámicas calculadas
+                            ...((!isStandalone) && {
+                                bottom: '0px',
+                                maxHeight: `${Math.min(windowDimensions.height * 0.85, windowDimensions.height - 40)}px`,
+                                height: 'auto',
+                                // Asegurar que el drawer no se salga en pantallas pequeñas
+                                minHeight: Math.min(200, windowDimensions.height * 0.3) + 'px'
+                            })
                         }}
                     >
                         {/* Handle mejorado con animaciones suaves */}

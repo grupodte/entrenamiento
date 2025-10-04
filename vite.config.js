@@ -6,6 +6,12 @@ import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
   base: '/',
+  server: {
+    historyApiFallback: true
+  },
+  preview: {
+    historyApiFallback: true
+  },
   plugins: [
     react(),
     VitePWA({

@@ -81,6 +81,32 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Posicionamiento específico para navegadores web (no PWA instalada) */
+.drawer-web-positioning {
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000px;
+    perspective: 1000px;
+    font-family: 'ProductSans', 'Inter', sans-serif !important;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    
+    /* Asegurar posicionamiento correcto en navegadores web */
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    
+    /* Prevenir problemas de viewport en navegadores móviles */
+    max-height: 90vh !important;
+    overflow: visible;
+}
+
 /* Asegurar que los textos dentro del drawer mantengan la fuente */
 .drawer-safe-positioning *,
 .drawer-safe-positioning h1,
@@ -95,14 +121,119 @@
 }
 
 /* Peso de fuente específico para elementos en drawer */
-.drawer-safe-positioning .font-extrabold {
+.drawer-safe-positioning .font-extrabold,
+.drawer-web-positioning .font-extrabold {
     font-weight: 800 !important;
 }
 
-.drawer-safe-positioning .font-bold {
+.drawer-safe-positioning .font-bold,
+.drawer-web-positioning .font-bold {
     font-weight: 700 !important;
 }
 
-.drawer-safe-positioning .font-semibold {
+.drawer-safe-positioning .font-semibold,
+.drawer-web-positioning .font-semibold {
     font-weight: 600 !important;
+}
+
+/* Media queries para diferentes dispositivos y navegadores */
+@media (max-width: 768px) {
+    .drawer-web-positioning {
+        /* En móviles, asegurar que ocupe el ancho completo */
+        left: 0 !important;
+        right: 0 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        margin: 0 !important;
+        
+        /* Altura segura para móviles */
+        max-height: 85vh !important;
+        min-height: 200px;
+    }
+}
+
+@media (min-width: 769px) {
+    .drawer-web-positioning {
+        /* En desktop/tablet, centrar y limitar ancho */
+        max-width: 500px !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) translateZ(0) !important;
+        
+        /* Altura más conservadora en desktop */
+        max-height: 70vh !important;
+    }
+}
+
+/* Fix específico para Chrome en Android */
+@media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+    .drawer-web-positioning {
+        /* Forzar posicionamiento desde la parte inferior */
+        bottom: 0px !important;
+        top: auto !important;
+        
+        /* Asegurar que no se salga de la pantalla */
+        max-height: calc(100vh - 20px) !important;
+        height: auto !important;
+        
+        /* Evitar problemas con teclado virtual */
+        position: fixed !important;
+    }
+}
+
+/* Fix para Safari iOS en navegador web */
+@supports (-webkit-touch-callout: none) {
+    .drawer-web-positioning {
+        /* Safari iOS specific fixes */
+        bottom: env(safe-area-inset-bottom, 0px) !important;
+        max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px) !important;
+    }
+}
+
+/* Fixes adicionales para navegadores específicos */
+/* Firefox móvil */
+@-moz-document url-prefix() {
+    .drawer-web-positioning {
+        bottom: 0px !important;
+        max-height: 90vh !important;
+    }
+}
+
+/* Edge móvil */
+@supports (-ms-ime-align: auto) {
+    .drawer-web-positioning {
+        bottom: 0px !important;
+        max-height: 85vh !important;
+    }
+}
+
+/* Samsung Internet Browser */
+@media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
+    .drawer-web-positioning {
+        /* Optimizaciones específicas para Samsung Internet */
+        transform: translate3d(0, 0, 0) !important;
+        will-change: transform !important;
+        backface-visibility: hidden !important;
+        -webkit-backface-visibility: hidden !important;
+    }
+}
+
+/* Fix general para todos los navegadores móviles */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+    .drawer-web-positioning {
+        /* Asegurar posicionamiento correcto en orientación vertical */
+        bottom: 0 !important;
+        top: auto !important;
+        height: auto !important;
+        min-height: 150px !important;
+        max-height: 85vh !important;
+    }
+}
+
+@media screen and (max-width: 768px) and (orientation: landscape) {
+    .drawer-web-positioning {
+        /* En landscape, usar menos altura para dejar espacio */
+        max-height: 70vh !important;
+        min-height: 100px !important;
+    }
 }
