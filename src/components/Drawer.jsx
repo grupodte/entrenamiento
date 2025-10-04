@@ -138,63 +138,10 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
         };
     }, [isOpen, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
-    // Detectar si es PWA instalada o navegador web
-    const isPWAInstalled = () => {
-        return window.matchMedia('(display-mode: standalone)').matches ||
-               window.navigator.standalone ||
-               document.referrer.includes('android-app://');
-    };
-
-    const [isStandalone, setIsStandalone] = useState(isPWAInstalled());
-    const [windowDimensions, setWindowDimensions] = useState({
-        width: window.innerWidth,
-        height: window.innerHeight
-    });
-
-    // Actualizar estado cuando cambie el modo de pantalla o las dimensiones
-    useEffect(() => {
-        const handleResize = () => {
-            setWindowDimensions({
-                width: window.innerWidth,
-                height: window.innerHeight
-            });
-            setIsStandalone(isPWAInstalled());
-        };
-
-        const handleOrientationChange = () => {
-            // Esperar a que se complete el cambio de orientación
-            setTimeout(() => {
-                handleResize();
-            }, 100);
-        };
-
-        window.addEventListener('resize', handleResize);
-        window.addEventListener('orientationchange', handleOrientationChange);
-        
-        // También escuchar cambios en display-mode
-        const displayModeQuery = window.matchMedia('(display-mode: standalone)');
-        const handleDisplayModeChange = (e) => {
-            setIsStandalone(isPWAInstalled());
-        };
-        
-        if (displayModeQuery.addEventListener) {
-            displayModeQuery.addEventListener('change', handleDisplayModeChange);
-        } else {
-            // Fallback para navegadores que no soportan addEventListener en MediaQueryList
-            displayModeQuery.addListener(handleDisplayModeChange);
-        }
-
-        return () => {
-            window.removeEventListener('resize', handleResize);
-            window.removeEventListener('orientationchange', handleOrientationChange);
-            
-            if (displayModeQuery.removeEventListener) {
-                displayModeQuery.removeEventListener('change', handleDisplayModeChange);
-            } else {
-                displayModeQuery.removeListener(handleDisplayModeChange);
-            }
-        };
-    }, []);
+    // Detectar si es PWA instalada de forma simple
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||  
+                        window.navigator.standalone || 
+                        false;
 
     const drawerContent = (
         <AnimatePresence mode="wait">
@@ -287,13 +234,7 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                             fixed bottom-0 left-0 right-0
                         `}
                         style={{
-                            paddingTop: isStandalone ? 'env(safe-area-inset-top)' : '0',
-                            zIndex: 99999,
-                            // Los estilos de altura se manejan por CSS para mayor control
-                            ...((!isStandalone) && {
-                                // Asegurar posicionamiento desde abajo
-                                bottom: '0px'
-                            })
+                            zIndex: 99999
                         }}
                     >
                         {/* Handle mejorado con animaciones suaves */}
