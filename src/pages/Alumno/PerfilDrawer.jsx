@@ -128,7 +128,7 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
     };
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose} height="max-h-[90vh]">
+        <Drawer isOpen={isOpen} onClose={onClose}>
             <div className="h-full overflow-y-auto scrollbar-hide font-product">
                 <button
                     onClick={() => {

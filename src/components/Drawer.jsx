@@ -289,14 +289,10 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                         style={{
                             paddingTop: isStandalone ? 'env(safe-area-inset-top)' : '0',
                             zIndex: 99999,
-                            maxHeight: isStandalone ? '100vh' : `${Math.min(windowDimensions.height * 0.9, windowDimensions.height - 40)}px`,
-                            // Para navegadores web, usar dimensiones dinámicas calculadas
+                            // Los estilos de altura se manejan por CSS para mayor control
                             ...((!isStandalone) && {
-                                bottom: '0px',
-                                maxHeight: `${Math.min(windowDimensions.height * 0.85, windowDimensions.height - 40)}px`,
-                                height: 'auto',
-                                // Asegurar que el drawer no se salga en pantallas pequeñas
-                                minHeight: Math.min(200, windowDimensions.height * 0.3) + 'px'
+                                // Asegurar posicionamiento desde abajo
+                                bottom: '0px'
                             })
                         }}
                     >

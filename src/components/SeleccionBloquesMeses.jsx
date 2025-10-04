@@ -86,7 +86,7 @@ const SeleccionBloquesMeses = ({
     }, [bloques]);
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose} height="max-h-[85vh]">
+        <Drawer isOpen={isOpen} onClose={onClose}>
             <div className="text-[#121212] max-w-full mx-auto leading-none flex flex-col">
                 {/* Header */}
                 <div className="mb-6">

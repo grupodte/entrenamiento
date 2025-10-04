@@ -444,7 +444,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
     };
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose} height="max-h-[95vh]">
+        <Drawer isOpen={isOpen} onClose={onClose}>
             <div className="flex flex-col min-h-[100dvh] pt-safe pb-safe">
                 {/* Header */}
                 <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-700/50">
