@@ -24,6 +24,9 @@
     max-height: 100dvh !important;
     min-height: 100dvh !important;
     box-sizing: border-box !important;
+    
+    /* Padding superior para evitar que el contenido quede donde está la hora */
+    padding-top: max(20px, env(safe-area-inset-top)) !important;
 }
 
 /* PWA instalada - también pantalla completa consistente */
@@ -40,6 +43,9 @@
     max-height: 100dvh !important;
     min-height: 100dvh !important;
     box-sizing: border-box !important;
+    
+    /* Padding superior usando safe area para PWA */
+    padding-top: max(20px, env(safe-area-inset-top)) !important;
 }
 
 /* Contenido con scroll */

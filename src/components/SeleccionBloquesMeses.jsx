@@ -90,7 +90,7 @@ const SeleccionBloquesMeses = ({
             <div className="h-full flex flex-col">
                 <div className="text-[#121212] max-w-full mx-auto leading-none flex flex-col flex-1">
                     {/* Header */}
-                    <div className="flex-shrink-0 mb-6 p-4">
+                    <div className="flex-shrink-0 mb-6 px-4">
                         <h1 className="text-[27px] font-bold text-[#121212]">{titulo}</h1>
                         {descripcion && (
                             <p className="text-[13px] text-[#575757]">{descripcion}</p>

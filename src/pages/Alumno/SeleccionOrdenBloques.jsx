@@ -90,7 +90,7 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                 {rutinaData ? (
                     <>
                         {/* Header fijo */}
-                        <div className="flex-shrink-0 mb-6 text-center px-4 pt-4 leading-none justify-center flex flex-col">
+                        <div className="flex-shrink-0 mb-6 text-center px-4 leading-none justify-center flex flex-col">
                             <h1 className="text-[34px] font-bold text-[#121212] mb-2">{rutinaData.rutina.nombre}</h1>
                             {rutinaData.rutina.descripcion && (
                                 <p className="text-[13px] text-[#575757]">{rutinaData.rutina.descripcion}</p>
