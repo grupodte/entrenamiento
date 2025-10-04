@@ -86,22 +86,21 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
 
     return (
         <Drawer isOpen={isOpen} onClose={onClose}>
-            {rutinaData ? (
-                <>
-                    {/* Header fijo */}
-                    <div className="mb-6 text-center px-4 pt-4 leading-none justify-center flex flex-col">
-                        <h1 className="text-[34px] font-bold text-[#121212] mb-2">{rutinaData.rutina.nombre}</h1>
-                        {rutinaData.rutina.descripcion && (
-                            <p className="text-[13px] text-[#575757]">{rutinaData.rutina.descripcion}</p>
-                        )}
-                    </div>
+            <div className="h-full flex flex-col">
+                {rutinaData ? (
+                    <>
+                        {/* Header fijo */}
+                        <div className="flex-shrink-0 mb-6 text-center px-4 pt-4 leading-none justify-center flex flex-col">
+                            <h1 className="text-[34px] font-bold text-[#121212] mb-2">{rutinaData.rutina.nombre}</h1>
+                            {rutinaData.rutina.descripcion && (
+                                <p className="text-[13px] text-[#575757]">{rutinaData.rutina.descripcion}</p>
+                            )}
+                        </div>
 
-                    {/* Contenido con scroll */}
-                    <div 
-                        className="text-[#121212] w-full mx-auto leading-none drawer-content pb-10 pt-5"
+                        {/* Contenido con scroll */}
+                        <div 
+                            className="text-[#121212] w-full mx-auto leading-none drawer-content pb-10 pt-5 flex-1 overflow-y-auto"
                         style={{
-                            height: 'calc(100vh - 180px)', // Altura dinámica que deja espacio para header y handle
-                            overflowY: 'auto',
                             overscrollBehavior: 'contain',
                             scrollbarWidth: 'none',
                             msOverflowStyle: 'none',
@@ -191,10 +190,11 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
                                     </motion.div>
                                 ))}
                             </motion.div>
-                        )}
-                    </div>
-                </>
-            ) : null}
+                            )}
+                        </div>
+                    </>
+                ) : null}
+            </div>
         </Drawer>
     );
 };

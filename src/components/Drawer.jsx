@@ -5,13 +5,7 @@ import { useEffect, useCallback, useState, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import '../styles/drawer-animations.css';
 
-const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
-    // Normalizar la altura para usar nuestras nuevas clases CSS
-    const getResponsiveHeight = (heightProp) => {
-        return heightProp;
-    };
-    
-    const responsiveHeight = getResponsiveHeight(height);
+const Drawer = ({ isOpen, onClose, children }) => {
     const [swipeProgress, setSwipeProgress] = useState(0);
     const startPosRef = useRef({ x: 0, y: 0 });
     const isSwipingRef = useRef(false);
@@ -222,7 +216,6 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                         }}
                         className={`
                             ${isStandalone ? 'drawer-safe-positioning' : 'drawer-web-positioning'}
-                            ${responsiveHeight}
                             w-full mx-auto
                             text-white 
                             bg-[#FFFFFF]
@@ -232,9 +225,12 @@ const Drawer = ({ isOpen, onClose, children, height = 'max-h-[85vh]' }) => {
                             transform-gpu
                             will-change-transform
                             fixed bottom-0 left-0 right-0
+                            h-full
                         `}
                         style={{
-                            zIndex: 99999
+                            zIndex: 99999,
+                            height: '100dvh',
+                            maxHeight: '100dvh'
                         }}
                     >
                         {/* Handle mejorado con animaciones suaves */}

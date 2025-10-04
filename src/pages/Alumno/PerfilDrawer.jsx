@@ -129,7 +129,8 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
 
     return (
         <Drawer isOpen={isOpen} onClose={onClose}>
-            <div className="h-full overflow-y-auto scrollbar-hide font-product">
+            <div className="h-full flex flex-col font-product">
+                <div className="flex-1 overflow-y-auto scrollbar-hide drawer-content">
                 <button
                     onClick={() => {
                         console.log('Botón de editar clicked, onEdit:', typeof onEdit);
@@ -198,7 +199,8 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
                     </button>
                 </div>
 
-                <div className="h-6" />
+                    <div className="h-6" />
+                </div>
             </div>
         </Drawer>
     );

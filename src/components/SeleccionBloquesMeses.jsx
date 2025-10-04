@@ -87,17 +87,18 @@ const SeleccionBloquesMeses = ({
 
     return (
         <Drawer isOpen={isOpen} onClose={onClose}>
-            <div className="text-[#121212] max-w-full mx-auto leading-none flex flex-col">
-                {/* Header */}
-                <div className="mb-6">
-                    <h1 className="text-[27px] font-bold text-[#121212]">{titulo}</h1>
-                    {descripcion && (
-                        <p className="text-[13px] text-[#575757]">{descripcion}</p>
-                    )}
-                </div>
+            <div className="h-full flex flex-col">
+                <div className="text-[#121212] max-w-full mx-auto leading-none flex flex-col flex-1">
+                    {/* Header */}
+                    <div className="flex-shrink-0 mb-6 p-4">
+                        <h1 className="text-[27px] font-bold text-[#121212]">{titulo}</h1>
+                        {descripcion && (
+                            <p className="text-[13px] text-[#575757]">{descripcion}</p>
+                        )}
+                    </div>
 
-                {/* Grid scrolleable de bloques */}
-                <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+                    {/* Grid scrolleable de bloques */}
+                    <div className="flex-1 overflow-x-auto scrollbar-hide -mx-4 px-4">
                     <div 
                         className="flex gap-4 pb-4"
                         style={{
@@ -173,8 +174,9 @@ const SeleccionBloquesMeses = ({
                                 />
                             ))}
                         </div>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
         </Drawer>
     );
