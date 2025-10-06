@@ -47,7 +47,7 @@ const SimpleInput = ({ label, name, type = "text", placeholder, value, onChange,
                     onChange={onChange}
                     placeholder={placeholder}
                     rows={rows}
-                    className="w-full p-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 resize-none"
+                        className="w-full p-3 bg-[#000000] text-[#FFFFFF] border-none"
                 />
             ) : (
                 <input
@@ -60,7 +60,7 @@ const SimpleInput = ({ label, name, type = "text", placeholder, value, onChange,
                     min={min}
                     max={max}
                     step={step}
-                    className="w-full p-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
+                            className="w-full p-3 bg-[#000000] text-[#FFFFFF] border-none"
                 />
             )}
         </div>
@@ -432,7 +432,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
 
     return (
         <Drawer isOpen={isOpen} onClose={onClose}>
-            <div className="flex flex-col h-full pb-safe">
+            <div className="flex flex-col h-full pb-safe font-product">
                 {/* Header */}
                 <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-700/50">
                     <button 
@@ -534,8 +534,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                                         options={[
                                             { value: 'masculino', label: 'Masculino' },
                                             { value: 'femenino', label: 'Femenino' },
-                                            { value: 'no_binario', label: 'No binario' },
-                                            { value: 'prefiero_no_decir', label: 'Prefiero no decir' }
+                                           
                                         ]}
                                     />
                                     <SimpleInput
