@@ -527,7 +527,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
     };
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose}>
+        <Drawer isOpen={isOpen} onClose={onClose} panelClassName=" bg-[url('/src/assets/onbordingbg.png')] backdrop-blur-[15px] ">
             <div className="flex flex-col h-full pb-safe font-product">
                 {/* Header */}
                 <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-700/50">

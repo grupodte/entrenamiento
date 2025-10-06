@@ -146,7 +146,7 @@ const PerfilDrawer = ({  isOpen, onClose, onEdit }) => {
     };
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose} panelClassName={`bg-[url('${bgNoiseWhite}')]`}>
+        <Drawer isOpen={isOpen} onClose={onClose} panelClassName=" bg-[url('/src/assets/bg-noise-white.png')] backdrop-blur-[15px] ">
             <div className="h-full flex flex-col font-product ">
                 {/* Botón de editar */}
                 <button
@@ -165,11 +165,12 @@ const PerfilDrawer = ({  isOpen, onClose, onEdit }) => {
                     onTouchEnd={(e) => {
                         e.stopPropagation();
                     }}
-                    className="edit-button absolute right-4 top-4 z-[9999] p-4 rounded-lg "
+                    className="edit-button absolute right-4 top-4 z-[9999] p-4  "
                     aria-label="Editar perfil"
                     style={{
                         touchAction: 'manipulation',
                         userSelect: 'none'
+                        
                     }}
                 >
                     <img 
