@@ -455,7 +455,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                 ) : (
                     <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
                         {/* Contenido scrolleable único */}
-                        <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-hide p-4 space-y-6 ios-inertial">
+                        <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-hide p-4 space-y-2 ios-inertial">
                             
                             {/* Información Personal */}
                             <ExpandableSection
@@ -697,7 +697,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                                 <button 
                                     type="submit" 
                                     disabled={saving} 
-                                    className="w-full flex items-center justify-center space-x-2 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg"
+                                        className="w-full flex items-center justify-center space-x-2 py-3 text-[15px] bg-[#FF0000] rounded-[10px] text-[#000000]"
                                 >
                                     {saving ? (
                                         <>
@@ -706,7 +706,6 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                                         </>
                                     ) : (
                                         <>
-                                            <FaSave />
                                             <span>Guardar Cambios</span>
                                         </>
                                     )}
