@@ -54,6 +54,13 @@ const Drawer = ({ isOpen, onClose, children }) => {
     const handleTouchStart = useCallback((e) => {
         if (!isOpen) return;
         
+        // Si el touch comienza en un elemento interactivo, no hacer nada
+        const target = e.target;
+        if (target.matches('input, textarea, button, [role="button"], img') || 
+            target.closest('button, [role="button"], .edit-button')) {
+            return;
+        }
+        
         const touch = e.touches[0];
         startPosRef.current = { x: touch.clientX, y: touch.clientY };
         isSwipingRef.current = false;
@@ -73,8 +80,9 @@ const Drawer = ({ isOpen, onClose, children }) => {
         const target = e.target;
         const isInContentArea = target.closest('.drawer-content, [class*="overflow-y-auto"], input, textarea, button');
         
-        // Si es un elemento interactivo, no interferir
-        if (target.matches('input, textarea, button, [role="button"]')) {
+        // Si es un elemento interactivo o está dentro de uno, no interferir
+        if (target.matches('input, textarea, button, [role="button"], img') || 
+            target.closest('button, [role="button"], .edit-button')) {
             return;
         }
         
@@ -97,7 +105,19 @@ const Drawer = ({ isOpen, onClose, children }) => {
     }, [isOpen]);
 
     const handleTouchEnd = useCallback((e) => {
-        if (!isOpen || !isSwipingRef.current) return;
+        if (!isOpen) return;
+        
+        // Si el touch termina en un elemento interactivo, no hacer nada
+        const target = e.target;
+        if (target.matches('input, textarea, button, [role="button"], img') || 
+            target.closest('button, [role="button"], .edit-button')) {
+            // Reset pero no cerrar
+            setSwipeProgress(0);
+            isSwipingRef.current = false;
+            return;
+        }
+        
+        if (!isSwipingRef.current) return;
         
         const touch = e.changedTouches[0];
         const deltaX = touch.clientX - startPosRef.current.x;
@@ -291,14 +311,17 @@ const Drawer = ({ isOpen, onClose, children }) => {
                         {/* Contenido con scroll optimizado */}
                         <div
                             className="
-                                flex-grow 
+                                flex-1 
+                                overflow-y-auto
                                 overscroll-contain
                                 drawer-content
+                                scrollbar-hide
                                 px-1
                             "
                             style={{
                                 touchAction: 'pan-y', // Allow vertical panning only
-                                overscrollBehavior: 'contain'
+                                overscrollBehavior: 'contain',
+                                maxHeight: 'calc(100dvh - 50px)' // Restar altura del handle
                             }}
                         >
                             {children}

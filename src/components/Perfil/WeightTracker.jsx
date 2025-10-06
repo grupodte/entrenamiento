@@ -134,26 +134,7 @@ const WeightTracker = ({ userId }) => {
                 </button>
             </div>
 
-            {/* Mensaje informativo o historial */}
-            {historial?.length > 0 ? (
-                <div className="mt-2">
-                    <div className="text-[11px] text-white/60 mb-1">Historial reciente</div>
-                    <div className="grid grid-cols-4 gap-2">
-                        {historial.map((r) => (
-                            <div key={`${r.fecha_registro}`} className="bg-white/5 border border-white/10 rounded p-2 text-center">
-                                <div className="text-[10px] text-white/50">
-                                    {new Date(r.fecha_registro).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
-                                </div>
-                                <div className="text-sm font-semibold">{Number(r.peso_kg).toFixed(1)} kg</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            ) : (
-                <div className="">
-                 
-                </div>
-            )}
+        
         </div>
     );
 };
