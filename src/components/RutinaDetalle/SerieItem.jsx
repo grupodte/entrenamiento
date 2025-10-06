@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FaCheck } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import VideoRutinaIcon from '../../assets/video-rutina.svg';
+import tickRutina from '../../assets/tick-rutina.svg';
 import { 
     EXECUTION_TYPES, 
     getExecutionTypeConfig, 
@@ -74,15 +75,15 @@ const SerieItem = React.forwardRef(({
 
     const status = isCompletada ? 'completed' : isActive ? 'active' : 'inactive';
 
-    const handleClick = () => {
+    const handleClick = (forceComplete = false) => {
         // En supersets, no manejar clicks individuales - el click es en el contenedor padre
         if (tipoElemento?.includes('superset')) {
             return;
         }
         
-        // Para ejercicios simples con la nueva estructura, no manejar clicks
-        // ya que el completado se maneja desde el header del EjercicioSimpleDisplay
-        if (tipoElemento === 'simple' && esEjercicioSimple) {
+        // Para ejercicios simples con la nueva estructura, solo permitir el click
+        // desde el botón "Marcar al finalizar" (forceComplete = true)
+        if (tipoElemento === 'simple' && esEjercicioSimple && !forceComplete) {
             return;
         }
         
@@ -177,8 +178,8 @@ const SerieItem = React.forwardRef(({
           className={`
             relative w-full p-2 justify-center items-center flex flex-col 
             ${useMinimalView ? 'cursor-default' : 'cursor-pointer'}
-            ${isCompletada ? '' : 'border-gray-200 hover:border-gray-300'}
-            ${isActive && !isSuperset ? 'border-red-500 ring-2 ring-red-200' : ''}
+            ${isCompletada ? '' : ''}
+            ${isActive && !isSuperset ? '' : ''}
             ${classNameExtra}
           `}
           role="button"
@@ -256,6 +257,7 @@ const SerieItem = React.forwardRef(({
                         </div>
                     </div>
 
+                  
                     {/* Línea separadora solo si NO es el último ejercicio EN SUPERSETS */}
                     {isSuperset && !isLastInGroup && (
                         <div className="mt-4 h-[5px] w-[330px] bg-[#B8B8B8]"></div>

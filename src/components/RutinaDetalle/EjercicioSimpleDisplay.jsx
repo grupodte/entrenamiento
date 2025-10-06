@@ -69,23 +69,49 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                         key={serieId}
                         className={`relative rounded-[10px] transition-all duration-200 ease-in-out ${
                             isCompletada 
-                            ? ' border-2 border-[#47D065] opacity-60' 
+                            ? 'border-2 border-[#47D065] opacity-60' 
                                 : isActive 
                                 ? 'bg-[#E7E7E7] border-2 border-[#FF0000]'
-                                : 'bg-black] '
+                                : 'bg-[#C6C6C6]'
                         }`}
                     >
                         {/* Header del ejercicio simple */}
-                        <div className="flex items-center justify-between w-full px-4 py-4 bg-[#D0D0D0] rounded-[10px]">
+                        <div className="flex items-center justify-between w-full px-4 py-4">
                             {/* Lado izquierdo: Set */}
                             <div className="flex items-center gap-2">
-                                <h4 className="text-[19px] font-semibold text-[#828282]">
-                                    Set {setNumero}
+                                <h4 className="text-[25px] font-semibold text-gray-800">
+                                    Set {setNumero} {totalSets > 1 && `de ${totalSets}`}
                                 </h4>
                             </div>
 
-                            <div className="flex items-center justify-between mt-2 text-[20px] text-[#828282] px-4 py-2 rounded-[12px]">
+                            {/* Lado derecho: checkbox style */}
+                            <div 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleSimpleSet(setNumero);
+                                }}
+                                className="flex items-center gap-2 cursor-pointer touch-manipulation"
+                            >
+                                <span className="text-[8px] text-gray-600 select-none">
+                                    Marcar al finalizar
+                                </span>
+                                <div className={`w-[44px] h-[44px] rounded flex items-center justify-center transition-all rounded-[8px] ${
+                                    isCompletada 
+                                    ? 'bg-[#47D065]' 
+                                    : 'bg-[#C1C1C1]'
+                                }`}>
+                                    {isCompletada && (
+                                        <img src={tickRutina} alt="Completado" className="w-4 h-4" />
+                                    )}
+                                </div>
+                            </div>
+                        </div>
 
+                        {/* Contenido adicional - oculto cuando completado */}
+                        <div className={`transition-opacity duration-200 ease-in-out ${isCompletada ? 'hidden' : 'block'}`}>
+                            {/* Info secundaria */}
+                            <div className="flex items-center justify-center mt-2 text-[20px] text-[#3F3F3F] bg-[#D0D0D0] px-4 py-2 rounded-[12px]">
+                            
                                 {serie.pausa > 0 && (
                                     <span className="flex items-center gap-2">
                                         <img src={pausaRutina} alt="Icono pausa" className="w-5 h-5" />
@@ -93,17 +119,6 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                                     </span>
                                 )}
                             </div>
-                            {/* Lado derecho: checkbox style */}
-                           
-                        </div>
-
-                        {/* Contenido adicional - oculto cuando completado */}
-                        <div className={`transition-opacity duration-200 ease-in-out ${isCompletada ? 'hidden' : 'block'}`}>
-                            {/* Info secundaria */}
-
-
-                            
-                         
 
                             {/* Ejercicio */}
                             <div className="space-y-3">
@@ -134,9 +149,6 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                                 />
                             </div>
                         </div>
-
-
-                        
                     </div>
                 );
             })}
