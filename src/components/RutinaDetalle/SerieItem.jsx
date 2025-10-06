@@ -81,10 +81,21 @@ const SerieItem = React.forwardRef(({
             return;
         }
         
-        // Para ejercicios simples con la nueva estructura, solo permitir el click
-        // desde el botón "Marcar al finalizar" (forceComplete = true)
-        if (tipoElemento === 'simple' && esEjercicioSimple && !forceComplete) {
-            return;
+        // Para ejercicios simples con la nueva estructura:
+        // - Si no está activo y no es forceComplete, activar el elemento
+        // - Si está activo y es forceComplete, completar el elemento
+        if (tipoElemento === 'simple' && esEjercicioSimple) {
+            if (!forceComplete && !isActive) {
+                // Activar el elemento
+                if (onItemClick) {
+                    onItemClick(serieId, { tipoElemento: 'activate' });
+                }
+                return;
+            } else if (!forceComplete) {
+                // Si ya está activo pero no es forceComplete, no hacer nada
+                return;
+            }
+            // Si es forceComplete, continuar con la lógica de completado
         }
         
         if (onItemClick) {
@@ -176,8 +187,8 @@ const SerieItem = React.forwardRef(({
           {...motionProps}
           onClick={handleClick}
           className={`
-            relative w-full p-2 justify-center items-center flex flex-col 
-            ${useMinimalView ? 'cursor-default' : 'cursor-pointer'}
+            relative w-full  justify-center items-center flex flex-col 
+            ${isSuperset ? 'cursor-default' : (tipoElemento === 'simple' && esEjercicioSimple && isActive) ? 'cursor-default' : 'cursor-pointer'}
             ${isCompletada ? '' : ''}
             ${isActive && !isSuperset ? '' : ''}
             ${classNameExtra}
@@ -188,7 +199,7 @@ const SerieItem = React.forwardRef(({
         >
             {useMinimalView ? (
                 // ====== VISTA MINIMAL (como la imagen) ======
-                <div className="py-5 text-center select-none">
+                <div className="py-3 text-center select-none">
                     {/* Nombre con botón de video */}
                     {!hideExerciseName && (
                         <div className="flex items-center justify-center gap-3">
@@ -260,7 +271,7 @@ const SerieItem = React.forwardRef(({
                   
                     {/* Línea separadora solo si NO es el último ejercicio EN SUPERSETS */}
                     {isSuperset && !isLastInGroup && (
-                        <div className="mt-4 h-[5px] w-[330px] bg-[#B8B8B8]"></div>
+                        <div className="mt-10 h-[5px] w-[330px] bg-[#B8B8B8]"></div>
                     )}
                 </div>
             ) : (
