@@ -437,11 +437,11 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                 <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-700/50">
                     <button 
                         onClick={onBack} 
-                        className="p-2 rounded-xl hover:bg-gray-700/50 transition-colors duration-200"
+                        className="p-4 "
                     >
-                        <FaArrowLeft className="text-gray-400" />
+                        <FaArrowLeft className="text-[#000000]" />
                     </button>
-                    <h1 className="text-xl font-bold text-white">Editar Perfil</h1>
+                    <h1 className="text-[20px] text-[#000000]">Editar Perfil</h1>
                     <div className="w-10" /> {/* Spacer */}
                 </div>
 
