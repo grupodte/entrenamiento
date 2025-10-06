@@ -6,6 +6,8 @@ import Drawer from '../../components/Drawer';
 import { usePerfilData } from '../../hooks/usePerfilData';
 import { useWorkoutData } from '../../hooks/useWorkoutData';
 import { Edit2, LogOut, Clock } from 'lucide-react';
+import MiniCalendar from '../../components/Perfil/MiniCalendar';
+import WeightTracker from '../../components/Perfil/WeightTracker';
 
 // Importa tus imágenes locales
 import cursoImage from '../../assets/perfilbg.webp';
@@ -31,9 +33,13 @@ const StatCard = ({
     
         {/* Foreground */}
         <div className="relative z-10 flex items-center h-[99px] px-4 pl-12 pr-8">
-            {/* Left number */}
+            {/* Left value - ajustar tamaño según contenido */}
             <div className="flex items-baseline min-w-[88px]">
-                <span className="text-white font-bold text-[47px] leading-none ">
+                <span className={`text-white font-bold leading-none ${
+                    typeof leftValue === 'string' && leftValue.includes('de') 
+                        ? 'text-[24px]' // Texto más pequeño para formato "X de Y"
+                        : 'text-[47px]' // Tamaño normal para números
+                }`}>
                     {leftValue}
                 </span>
                 {leftSufix && (
@@ -59,7 +65,7 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
     const { user } = useAuth();
 
     const { perfil } = usePerfilData(user?.id, isOpen);
-    const { timeData, trainingDays } = useWorkoutData(user?.id, isOpen);
+    const { timeData, trainingDays, monthlySessionsCount, weeklyAssignments, currentMonthTrainingDays } = useWorkoutData(user?.id, isOpen);
 
     const avatarUrl =
         perfil?.avatar_url ||
@@ -89,34 +95,52 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
 
     // Calcular promedio de minutos
     const avgMinutes = useMemo(() => {
-        if (!timeData || !Array.isArray(timeData) || timeData.length === 0) return null;
+        console.log('🕰️ PerfilDrawer: Calculando avgMinutes con timeData:', timeData);
+        
+        if (!timeData || !Array.isArray(timeData) || timeData.length === 0) {
+            console.log('🕰️ PerfilDrawer: No timeData available');
+            return null;
+        }
+        
         const vals = timeData
-            .map((d) => (typeof d === 'number' ? d : Number(d?.minutes)))
+            .map((d) => {
+                // Intentar diferentes campos
+                const minute = typeof d === 'number' ? d : 
+                              (d?.minutes || d?.minutos || d?.total_minutos);
+                console.log('🕰️ PerfilDrawer: Processing item:', d, 'extracted minute:', minute);
+                return Number(minute);
+            })
             .filter(Number.isFinite);
+            
+        console.log('🕰️ PerfilDrawer: Processed values:', vals);
+        
         if (!vals.length) return null;
         const sum = vals.reduce((a, b) => a + b, 0);
-        return Math.round(sum / vals.length);
+        const avg = Math.round(sum / vals.length);
+        
+        console.log('🕰️ PerfilDrawer: Final avg:', avg, 'from sum:', sum, 'count:', vals.length);
+        return avg;
     }, [timeData]);
 
-    // Entrenos del mes
-    const trainingsThisMonth = useMemo(() => {
-        if (!trainingDays || !Array.isArray(trainingDays)) return null;
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = now.getMonth();
-        const norm = (v) => {
-            if (!v) return null;
-            const d =
-                typeof v === 'string' || typeof v === 'number'
-                    ? new Date(v)
-                    : new Date(v?.date ?? v);
-            return isNaN(d) ? null : d;
+    // Cálculo de progreso mensual: completados de meta total
+    const monthlyProgress = useMemo(() => {
+        console.log('📅 PerfilDrawer: Calculando monthlyProgress');
+        console.log('📅 monthlySessionsCount:', monthlySessionsCount);
+        console.log('📅 weeklyAssignments:', weeklyAssignments);
+        
+        // Completados: usar el conteo directo de sesiones mensuales
+        const completados = typeof monthlySessionsCount === 'number' ? monthlySessionsCount : 0;
+        
+        // Meta: número total de asignaciones del usuario * 4 semanas
+        const metaMensual = weeklyAssignments > 0 ? weeklyAssignments * 4 : 12; // Default 12 si no hay datos
+        
+        
+        return {
+            completados,
+            meta: metaMensual,
+            texto: `${completados} de ${metaMensual}`
         };
-        return trainingDays
-            .map(norm)
-            .filter(Boolean)
-            .filter((d) => d.getFullYear() === y && d.getMonth() === m).length;
-    }, [trainingDays]);
+    }, [monthlySessionsCount, weeklyAssignments]);
 
     const handleLogout = async () => {
         try {
@@ -179,14 +203,25 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
                     />
                     <StatCard
                         background={cursoImage}
-                        leftValue={fmt(trainingsThisMonth ?? 0)}
+                        leftValue={monthlyProgress.texto}
+                        leftSufix=""
                         label={{
-                            line1: 'Número de entrenamientos',
-                            line2: 'realizados en el mes',
+                            line1: 'Entrenamientos del mes'
                         }}
                         gradient="from-blue-600/80 to-fuchsia-500/40"
                     />
+
+                            <WeightTracker userId={user?.id} />
+
+                        {/* Mini Calendario */}
+                            <MiniCalendar
+                                trainingDays={currentMonthTrainingDays}
+                                className=""
+                            />
                 </div>
+                
+                {/* Control de Peso */}
+               
 
                 {/* Logout */}
                 <div className="pt-6 ">

@@ -2,6 +2,14 @@ import { supabase } from '../lib/supabaseClient';
 import { EXECUTION_TYPES } from '../constants/executionTypes';
 
 export async function guardarSesionEntrenamiento({ rutinaId, tiempoTranscurrido, elementosCompletados, rutinaDetalle, alumnoId }) {
+    console.log('🔄 Iniciando guardado de sesión:', {
+        rutinaId,
+        tiempoTranscurrido,
+        alumnoId,
+        elementosCompletadosCount: Object.keys(elementosCompletados).length,
+        elementosCompletados: Object.entries(elementosCompletados).slice(0, 3) // Solo primeros 3 para no saturar
+    });
+    
     try {
         // 1. Insertar en sesiones_entrenamiento
         const insertObject = {
@@ -83,53 +91,107 @@ export async function guardarSesionEntrenamiento({ rutinaId, tiempoTranscurrido,
 
                 const completedData = elementosCompletados[elementoId];
                 if (ejercicioEncontrado && completedData) {
-                    // Manejar ambos formatos: nuevo (objeto) y anterior (boolean)
-                    const completedDetails = typeof completedData === 'object' 
-                        ? completedData 
-                        : { completed: true }; // Formato anterior
                     
-                    console.log('Processing elementoId:', elementoId);
-                    console.log('Ejercicio encontrado:', ejercicioEncontrado);
-                    console.log('Completed details:', completedDetails);
+                    // Intentar obtener datos del DOM si no los tenemos en completedData
+                    let actualCarga = 0;
+                    let actualReps = 0;
+                    let actualDuracion = 0;
+                    let tipoEjecucion = EXECUTION_TYPES.STANDARD;
                     
-                    // Solo procesar si tenemos datos de serie o es formato boolean
-                    if (completedDetails.completed || completedDetails === true || typeof completedData === 'boolean') {
-                        // Preparar datos base
-                        const serieData = {
-                            sesion_id: sesionId,
-                            ejercicio_id: ejercicioEncontrado.id,
-                            nro_set: nroSet,
-                            carga_realizada: completedDetails.actualCarga || 0,
-                            tipo_ejecucion: completedDetails.tipoEjecucion || EXECUTION_TYPES.STANDARD,
-                        };
-                        
-                        // Agregar datos específicos según tipo de ejecución
-                        const tipoEjecucion = completedDetails.tipoEjecucion || EXECUTION_TYPES.STANDARD;
-                        
-                        if (tipoEjecucion === EXECUTION_TYPES.STANDARD) {
-                            serieData.reps_realizadas = completedDetails.actualReps || 0;
-                        } else if (tipoEjecucion === EXECUTION_TYPES.TIEMPO) {
-                            serieData.duracion_realizada_segundos = completedDetails.actualDuracion || 0;
-                        } else if (tipoEjecucion === EXECUTION_TYPES.FALLO) {
-                            serieData.reps_realizadas = completedDetails.actualReps || 0; // Reps alcanzadas al fallo
+                    // Si tenemos datos en formato objeto, usarlos
+                    if (typeof completedData === 'object' && completedData.actualCarga !== undefined) {
+                        actualCarga = completedData.actualCarga || 0;
+                        actualReps = completedData.actualReps || 0;
+                        actualDuracion = completedData.actualDuracion || 0;
+                        tipoEjecucion = completedData.tipoEjecucion || EXECUTION_TYPES.STANDARD;
+                    } else {
+                        // Intentar obtener del DOM como fallback
+                        try {
+                            // Buscar el elemento en el DOM
+                            const elementInDOM = document.querySelector(`[data-serie-id="${elementoId}"]`) || 
+                                                document.querySelector(`[id*="${elementoId}"]`);
+                            
+                            if (elementInDOM) {
+                                // Buscar inputs dentro del elemento
+                                const cargaInput = elementInDOM.querySelector('input[type="text"]') || 
+                                                 elementInDOM.querySelector('input[placeholder*="kg"]') ||
+                                                 elementInDOM.querySelector('input[placeholder*="Peso"]');
+                                const repsInput = elementInDOM.querySelector('input[type="number"]') ||
+                                                elementInDOM.querySelector('input[placeholder*="reps"]') ||
+                                                elementInDOM.querySelector('input[placeholder*="Reps"]');
+                                
+                                if (cargaInput) {
+                                    actualCarga = parseFloat(cargaInput.value) || 0;
+                                }
+                                if (repsInput) {
+                                    actualReps = parseInt(repsInput.value) || 0;
+                                }
+                            }
+                            
+                            // Si no encontramos en DOM, usar datos de la serie original como fallback
+                            if (actualCarga === 0 && serieEncontrada?.carga) {
+                                actualCarga = parseFloat(serieEncontrada.carga) || 0;
+                            }
+                            if (actualReps === 0 && serieEncontrada?.reps) {
+                                actualReps = parseInt(serieEncontrada.reps) || 0;
+                            }
+                            
+                            tipoEjecucion = serieEncontrada?.tipo_ejecucion || EXECUTION_TYPES.STANDARD;
+                            
+                        } catch (domError) {
+                            console.warn('Error accessing DOM for exercise data:', domError);
+                            // Usar datos por defecto de la serie
+                            actualCarga = parseFloat(serieEncontrada?.carga || 0);
+                            actualReps = parseInt(serieEncontrada?.reps || 0);
+                            tipoEjecucion = serieEncontrada?.tipo_ejecucion || EXECUTION_TYPES.STANDARD;
                         }
-                        
-                        seriesParaInsertar.push(serieData);
                     }
+                    
+                    
+                    // Preparar datos base
+                    const serieData = {
+                        sesion_id: sesionId,
+                        ejercicio_id: ejercicioEncontrado.id,
+                        nro_set: nroSet,
+                        carga_realizada: actualCarga,
+                        tipo_ejecucion: tipoEjecucion,
+                    };
+                    
+                    // Agregar datos específicos según tipo de ejecución
+                    if (tipoEjecucion === EXECUTION_TYPES.STANDARD) {
+                        serieData.reps_realizadas = actualReps;
+                    } else if (tipoEjecucion === EXECUTION_TYPES.TIEMPO) {
+                        serieData.duracion_realizada_segundos = actualDuracion;
+                    } else if (tipoEjecucion === EXECUTION_TYPES.FALLO) {
+                        serieData.reps_realizadas = actualReps;
+                    }
+                    
+                    seriesParaInsertar.push(serieData);
                 }
             }
         }
 
+        console.log('📊 Series para insertar:', {
+            cantidad: seriesParaInsertar.length,
+            datos: seriesParaInsertar
+        });
+
         // 3. Insertar en sesiones_series (batch insert para eficiencia)
         if (seriesParaInsertar.length > 0) {
-            const { error: seriesError } = await supabase
+            console.log('💾 Insertando', seriesParaInsertar.length, 'series...');
+            const { data: insertedSeries, error: seriesError } = await supabase
                 .from('sesiones_series')
-                .insert(seriesParaInsertar);
+                .insert(seriesParaInsertar)
+                .select();
 
             if (seriesError) {
-                console.error('Error al guardar las series de la sesión:', seriesError);
+                console.error('❌ Error al guardar las series de la sesión:', seriesError);
                 throw seriesError;
+            } else {
+                console.log('✅ Series guardadas exitosamente:', insertedSeries);
             }
+        } else {
+            console.log('⚠️ No hay series para insertar');
         }
 
         console.log('Sesión de entrenamiento guardada exitosamente:', sesionId);

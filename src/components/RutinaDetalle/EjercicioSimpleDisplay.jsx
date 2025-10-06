@@ -5,6 +5,7 @@ import SerieItem from './SerieItem';
 import { generarIdSerieSimple } from '../../utils/rutinaIds';
 import tickRutina from '../../assets/tick-rutina.svg';
 import pausaRutina from '../../assets/pausa-clock-rutina.svg';
+import { useUniversalTouch } from '../../hooks/useUniversalTouch';
 
 const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props }) => {
     const ejercicio = sbe.ejercicio;
@@ -85,12 +86,9 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                             </div>
 
                             {/* Lado derecho: checkbox style */}
-                            <div 
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleToggleSimpleSet(setNumero);
-                                }}
-                                className="flex items-center gap-2 cursor-pointer touch-manipulation"
+                            <TouchButtonWrapper
+                                onClick={() => handleToggleSimpleSet(setNumero)}
+                                className="flex items-center gap-2 cursor-pointer"
                             >
                                 <span className="text-[8px] text-gray-600 select-none">
                                     Marcar al finalizar
@@ -104,7 +102,7 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                                         <img src={tickRutina} alt="Completado" className="w-4 h-4" />
                                     )}
                                 </div>
-                            </div>
+                            </TouchButtonWrapper>
                         </div>
 
                         {/* Contenido adicional - oculto cuando completado */}
@@ -149,6 +147,32 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                     </div>
                 );
             })}
+        </div>
+    );
+};
+
+// Componente wrapper para usar touch optimizado con divs
+const TouchButtonWrapper = ({ onClick, className, children }) => {
+    const touchProps = useUniversalTouch(onClick, {
+        preventDoubleClick: true,
+        doubleClickDelay: 200,
+        scaleOnTouch: true,
+        scaleValue: 0.95,
+        hapticFeedback: true,
+        minTouchSize: true
+    });
+
+    return (
+        <div
+            ref={touchProps.ref}
+            className={className}
+            style={touchProps.style}
+            onTouchStart={touchProps.onTouchStart}
+            onTouchEnd={touchProps.onTouchEnd}
+            onTouchCancel={touchProps.onTouchCancel}
+            onClick={touchProps.onClick}
+        >
+            {children}
         </div>
     );
 };

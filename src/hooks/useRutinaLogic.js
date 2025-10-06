@@ -173,6 +173,7 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
 
     }, [rutina]);
 
+
     const activarTemporizadorPausa = useCallback((duracion, originId) => {
         if (duracion > 0 && !isResting) {
             const siguienteElementoInfo = obtenerSiguienteElementoInfo(originId);
@@ -196,17 +197,32 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
         }
     }, [isResting, currentTimerOriginId, obtenerSiguienteElementoInfo]);
 
-    const toggleElementoCompletado = (elementoId, payload = null) => {
+    const toggleElementoCompletado = (...args) => {
+        const [payload, additionalData] = args;
+        
         if (typeof payload === 'object' && payload.tipoElemento === 'superset_set') {
-            const { childIds, pausa } = payload;
+            const { childIds, pausa, exerciseData } = payload;
 
             setElementosCompletados(prev => {
                 if (!childIds || childIds.length === 0) return prev;
 
                 const isMarkingAsComplete = !prev[childIds[0]];
                 const newCompletedState = { ...prev };
+                
                 childIds.forEach(id => {
-                    newCompletedState[id] = isMarkingAsComplete;
+                    if (isMarkingAsComplete) {
+                        // Guardar datos completos para supersets
+                        newCompletedState[id] = {
+                            completed: true,
+                            actualCarga: exerciseData?.[id]?.actualCarga || 0,
+                            actualReps: exerciseData?.[id]?.actualReps || 0,
+                            actualDuracion: exerciseData?.[id]?.actualDuracion || 0,
+                            tipoEjecucion: exerciseData?.[id]?.tipoEjecucion || 'standard',
+                            timestamp: Date.now()
+                        };
+                    } else {
+                        newCompletedState[id] = false;
+                    }
                 });
 
                 if (isMarkingAsComplete) {
@@ -229,33 +245,70 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
             return;
         }
 
-        // Si no hay payload, es el formato anterior (solo toggle)
-        if (!payload) {
+        // Formato de EjercicioSimpleDisplay (nuevo formato)
+        if (typeof payload === 'string' && args.length === 2 && typeof additionalData === 'object') {
+            const elementoId = payload;
+            const data = additionalData;
+            
             setElementosCompletados((prev) => {
                 const isAlreadyCompleted = !!prev[elementoId];
-                const newCompletedState = { ...prev, [elementoId]: !isAlreadyCompleted };
+                const newCompletedState = { ...prev };
+                
+                if (!isAlreadyCompleted) {
+                    // Guardar datos completos de la serie completada
+                    newCompletedState[elementoId] = {
+                        completed: true,
+                        actualCarga: data.actualCarga || 0,
+                        actualReps: data.actualReps || 0,
+                        actualDuracion: data.actualDuracion || 0,
+                        tipoEjecucion: data.tipoEjecucion || 'standard',
+                        timestamp: Date.now()
+                    };
+
+                    // Lógica de pausa y siguiente elemento
+                    let tipo = '';
+                    if (elementoId.startsWith('simple-')) {
+                        tipo = 'simple';
+                    } else {
+                        const parts = elementoId.split('-');
+                        tipo = parts[0];
+                    }
+
+                    if (tipo === 'simple') {
+                        const serieData = getSerieDataFromElementoId(elementoId);
+                        const pauseDuration = data.pausa || serieData?.pausa || 0;
+
+                        const currentIndex = orderedInteractiveElementIds.indexOf(elementoId);
+                        const isLastElement = currentIndex === orderedInteractiveElementIds.length - 1;
+
+                        if (pauseDuration > 0 && !isLastElement) {
+                            activarTemporizadorPausa(pauseDuration, elementoId);
+                        } else if (isLastElement) {
+                            setElementoActivoId(null);
+                        } else {
+                            const nextElementId = orderedInteractiveElementIds[currentIndex + 1];
+                            if (nextElementId) {
+                                setElementoActivoId(nextElementId);
+                            }
+                        }
+                    }
+                } else {
+                    // Desmarcar como completado
+                    delete newCompletedState[elementoId];
+                }
+
                 return newCompletedState;
             });
             return;
         }
 
-        // Nuevo formato: payload contiene datos de la serie completada
+        // Formato anterior (SerieItem): solo toggle boolean
+        const elementoId = payload;
         setElementosCompletados((prev) => {
             const isAlreadyCompleted = !!prev[elementoId];
-            const newCompletedState = { ...prev };
-            
-            if (!isAlreadyCompleted) {
-                // Guardar los datos completos de la serie completada
-                newCompletedState[elementoId] = {
-                    completed: true,
-                    actualCarga: payload.actualCarga,
-                    actualReps: payload.actualReps,
-                    actualDuracion: payload.actualDuracion,
-                    tipoEjecucion: payload.tipoEjecucion,
-                    timestamp: Date.now()
-                };
+            const newCompletedState = { ...prev, [elementoId]: !isAlreadyCompleted };
 
-                // Lógica de pausa y siguiente elemento
+            if (!isAlreadyCompleted) {
                 let tipo = '';
                 if (elementoId.startsWith('simple-')) {
                     tipo = 'simple';
@@ -266,7 +319,7 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
 
                 if (tipo === 'simple') {
                     const serieData = getSerieDataFromElementoId(elementoId);
-                    const pauseDuration = payload.pausa || serieData?.pausa || 0;
+                    const pauseDuration = serieData?.pausa ?? 0;
 
                     const currentIndex = orderedInteractiveElementIds.indexOf(elementoId);
                     const isLastElement = currentIndex === orderedInteractiveElementIds.length - 1;
@@ -282,11 +335,7 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
                         }
                     }
                 }
-            } else {
-                // Desmarcar como completado
-                delete newCompletedState[elementoId];
             }
-
             return newCompletedState;
         });
     };
@@ -518,7 +567,6 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
     const totalSeriesCompletadas = Object.values(elementosCompletados).filter(Boolean).length;
 
     const handleFinalizarYGuardar = async () => {
-        console.log("Elementos Completados al guardar:", elementosCompletados);
         try {
             const result = await guardarSesionEntrenamiento({
                 rutinaId: rutina.id,
