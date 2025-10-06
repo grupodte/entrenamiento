@@ -199,7 +199,7 @@ const SerieItem = React.forwardRef(({
         >
             {useMinimalView ? (
                 // ====== VISTA MINIMAL (como la imagen) ======
-                <div className="py-3 text-center select-none justify-center items-center flex flex-col">
+                <div className="py-3 text-center select-none">
                     {/* Nombre con botón de video */}
                     {!hideExerciseName && (
                         <div className="flex items-center justify-center gap-3">
