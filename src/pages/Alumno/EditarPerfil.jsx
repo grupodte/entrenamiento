@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
 import { 
     FaArrowLeft, FaSave, FaUserCircle, FaChevronDown, FaChevronUp, FaUser, 
-    FaWeight, FaBullseye, FaHeartbeat, FaMedkit, FaCamera
+    FaWeight, FaBullseye, FaHeartbeat, FaMedkit, FaCamera, FaUtensils
 } from 'react-icons/fa';
 import Drawer from '../../components/Drawer';
 import CustomSelect from '../../components/Onboarding/CustomSelect';
@@ -67,6 +67,25 @@ const SimpleInput = ({ label, name, type = "text", placeholder, value, onChange,
     );
 };
 
+// Lista de países del onboarding
+const opcionesPaises = [
+    { value: 'AR', label: 'Argentina' },
+    { value: 'MX', label: 'México' },
+    { value: 'ES', label: 'España' },
+    { value: 'CO', label: 'Colombia' },
+    { value: 'CL', label: 'Chile' },
+    { value: 'PE', label: 'Perú' },
+    { value: 'UY', label: 'Uruguay' },
+    { value: 'PY', label: 'Paraguay' },
+    { value: 'BO', label: 'Bolivia' },
+    { value: 'EC', label: 'Ecuador' },
+    { value: 'VE', label: 'Venezuela' },
+    { value: 'US', label: 'Estados Unidos' },
+    { value: 'OTHER', label: 'Otro' }
+];
+
+
+
 // Componente para sección expandible (también movido fuera)
 const ExpandableSection = ({ title, icon, isOpen, onToggle, children }) => (
     <div className="bg-[#191919] rounded-[10px]  overflow-hidden ">
@@ -106,11 +125,13 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
         // Fitness y objetivos
         objetivo: '', nivel: '', experiencia: '', actividad_fisica: '', frecuencia_entrenamiento: '',
         // Métricas físicas - usando nombres correctos de la tabla
-        peso: '', altura: '', cintura: '', grasa_pct: '',
+        peso: '', altura: '', cintura_cm: '',
         // Metas
-        meta_peso: '', meta_grasa: '', meta_cintura: '',
+        meta_peso: '', meta_cintura: '',
         // Salud
         condiciones_medicas: '',
+        // Dieta
+        comentarios_dieta: '',
         // Preferencias
         preferencia_inicio: ''
     });
@@ -126,6 +147,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
         fitness: false,
         metrics: false,
         goals: false,
+        diet: false,
         health: false
     });
 
@@ -150,7 +172,8 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                     // Asegurar que peso y altura usen los nombres correctos
                     peso: data?.peso || data?.peso_kg || '',
                     altura: data?.altura || data?.altura_m || (data?.altura_cm ? (data.altura_cm / 100).toString() : '') || '',
-                    cintura: data?.cintura || data?.cintura_cm || ''
+                    // Campos que ya tienen nombres correctos
+                    cintura_cm: data?.cintura_cm || data?.cintura || ''
                 };
                 
                 console.log('Datos cargados del perfil:', normalizedData);
@@ -277,17 +300,17 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
             const altura = perfil.altura ? parseFloat(perfil.altura) : null;
             const meta_peso = perfil.meta_peso ? parseFloat(perfil.meta_peso) : null;
             
-            // Validaciones específicas
-            if (peso !== null && (peso < 1 || peso > 1000)) {
-                throw new Error('El peso debe estar entre 1 y 1000 kg');
+            // Validaciones específicas - ajustadas a la precisión de la BD (5,2)
+            if (peso !== null && (peso < 1 || peso > 999.99)) {
+                throw new Error('El peso debe estar entre 1 y 999.99 kg');
             }
             
-            if (altura !== null && (altura < 0.5 || altura > 3.0)) {
-                throw new Error('La altura debe estar entre 0.5 y 3.0 metros');
+            if (altura !== null && (altura < 0.50 || altura > 9.99)) {
+                throw new Error('La altura debe estar entre 0.50 y 9.99 metros');
             }
             
-            if (meta_peso !== null && (meta_peso < 1 || meta_peso > 1000)) {
-                throw new Error('La meta de peso debe estar entre 1 y 1000 kg');
+            if (meta_peso !== null && (meta_peso < 1 || meta_peso > 999.99)) {
+                throw new Error('La meta de peso debe estar entre 1 y 999.99 kg');
             }
             
             // Validar preferencia_inicio si no está vacía
@@ -341,58 +364,130 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
             console.log('- frecuencia_entrenamiento:', perfil.frecuencia_entrenamiento, '->', frecuenciaLimpia);
             console.log('- preferencia_inicio:', perfil.preferencia_inicio, '->', preferenciaLimpia);
             
+            // DEBUGGING: Crear objeto minimal para identificar el campo problemático
             const updateData = {
-                // Información básica
+                // Solo campos de texto básicos para testing
                 nombre: perfil.nombre || null,
                 apellido: perfil.apellido || null,
-                edad: perfil.edad ? parseInt(perfil.edad) : null,
                 telefono: perfil.telefono || null,
-                genero: generoLimpio,
-                fecha_nacimiento: perfil.fecha_nacimiento || null,
-                biografia: perfil.biografia || null,
-                ciudad: perfil.ciudad || null,
-                pais: perfil.pais || null,
-                avatar_url: avatar_url,
-                // Fitness y objetivos
-                objetivo: perfil.objetivo || null,
-                nivel: perfil.nivel || null,
-                experiencia: experienciaLimpia,
-                actividad_fisica: actividadLimpia,
-                frecuencia_entrenamiento: frecuenciaLimpia,
-                // Métricas físicas
-                peso: peso,
-                altura: altura,
-                cintura: perfil.cintura ? parseFloat(perfil.cintura) : null,
-                grasa_pct: perfil.grasa_pct ? parseFloat(perfil.grasa_pct) : null,
-                // Metas
-                meta_peso: meta_peso,
-                meta_grasa: perfil.meta_grasa ? parseFloat(perfil.meta_grasa) : null,
-                meta_cintura: perfil.meta_cintura ? parseFloat(perfil.meta_cintura) : null,
-                // Salud
-                condiciones_medicas: perfil.condiciones_medicas || null,
-                // Preferencias (limpiar valores legacy)
-                preferencia_inicio: preferenciaLimpia,
-                // Timestamp de actualización
                 fecha_actualizacion: new Date().toISOString()
             };
             
+            // PASO 2: Agregar campos de texto (no numéricos)
+            if (generoLimpio) updateData.genero = generoLimpio;
+            if (perfil.fecha_nacimiento) updateData.fecha_nacimiento = perfil.fecha_nacimiento;
+            if (perfil.biografia) updateData.biografia = perfil.biografia;
+            if (perfil.ciudad) updateData.ciudad = perfil.ciudad;
+            if (perfil.pais) updateData.pais = perfil.pais;
+            if (avatar_url) updateData.avatar_url = avatar_url;
+            if (perfil.objetivo) updateData.objetivo = perfil.objetivo;
+            if (perfil.nivel) updateData.nivel = perfil.nivel;
+            if (experienciaLimpia) updateData.experiencia = experienciaLimpia;
+            if (actividadLimpia) updateData.actividad_fisica = actividadLimpia;
+            if (frecuenciaLimpia) updateData.frecuencia_entrenamiento = frecuenciaLimpia;
+            if (preferenciaLimpia) updateData.preferencia_inicio = preferenciaLimpia;
+            if (perfil.condiciones_medicas) updateData.condiciones_medicas = perfil.condiciones_medicas;
+            
+            // CAMPOS DE DIETA
+            if (perfil.comentarios_dieta) updateData.comentarios_dieta = perfil.comentarios_dieta;
+            if (perfil.frecuencia_cena) updateData.frecuencia_cena = perfil.frecuencia_cena;
+            
+            // PASO 3: Agregar campos numéricos uno por uno
+            
+            // Campos integer
+            if (perfil.edad && parseInt(perfil.edad) > 0) {
+                console.log('➕ Agregando edad:', parseInt(perfil.edad));
+                updateData.edad = parseInt(perfil.edad);
+            }
+            
+            // ALTURA: Convertir de metros a centímetros (integer)
+            if (altura !== null && altura > 0 && altura <= 9.99) {
+                const alturaCm = Math.round(altura * 100); // Convertir metros a cm
+                console.log('➕ Agregando altura:', altura, 'm ->', alturaCm, 'cm');
+                updateData.altura = alturaCm;
+            }
+            
+            // PESO: Campo numeric
+            if (peso !== null && peso > 0 && peso <= 999.99) {
+                const pesoRedondeado = Math.round(peso * 100) / 100;
+                console.log('➕ Agregando peso:', pesoRedondeado);
+                updateData.peso = pesoRedondeado;
+            }
+            
+            // META PESO: Campo numeric  
+            if (meta_peso !== null && meta_peso > 0 && meta_peso <= 999.99) {
+                const metaPesoRedondeado = Math.round(meta_peso * 100) / 100;
+                console.log('➕ Agregando meta_peso:', metaPesoRedondeado);
+                updateData.meta_peso = metaPesoRedondeado;
+            }
+            
+            // CAMPOS DE CINTURA: integers
+            if (perfil.cintura_cm && parseInt(perfil.cintura_cm) > 0) {
+                console.log('➕ Agregando cintura_cm:', parseInt(perfil.cintura_cm));
+                updateData.cintura_cm = parseInt(perfil.cintura_cm);
+            }
+            if (perfil.meta_cintura && parseInt(perfil.meta_cintura) > 0) {
+                console.log('➕ Agregando meta_cintura:', parseInt(perfil.meta_cintura));
+                updateData.meta_cintura = parseInt(perfil.meta_cintura);
+            }
+            
             console.log('Datos que se enviarán a la base de datos:', updateData);
+            
+            // Debug detallado de campos numéricos
+            console.log('=== DEBUG CAMPOS NUMÉRICOS ===');
+            console.log('peso:', peso, '(type:', typeof peso, ')');
+            console.log('altura:', altura, '(type:', typeof altura, ') -> cm:', altura ? Math.round(altura * 100) : null);
+            console.log('meta_peso:', meta_peso, '(type:', typeof meta_peso, ')');
+            console.log('cintura_cm:', perfil.cintura_cm, '(parsed:', perfil.cintura_cm ? parseInt(perfil.cintura_cm) : null, ')');
+            console.log('meta_cintura:', perfil.meta_cintura, '(parsed:', perfil.meta_cintura ? parseInt(perfil.meta_cintura) : null, ')');
+            console.log('edad:', perfil.edad, '(parsed:', perfil.edad ? parseInt(perfil.edad) : null, ')');
+            console.log('================================');
+            
+            console.log('🚀 INICIANDO GUARDADO...', new Date().toISOString());
+            console.log('📋 updateData final:', JSON.stringify(updateData, null, 2));
+            console.log('🔑 user.id:', user.id);
             
             const { error: updateError } = await supabase
                 .from('perfiles')
                 .update(updateData)
                 .eq('id', user.id);
 
-            if (updateError) throw updateError;
+            console.log('✅ RESPUESTA DE SUPABASE:');
+            console.log('- error:', updateError);
+            console.log('- success:', !updateError);
 
-            // Actualizar estado local
-            setPerfil(prev => ({ ...prev, avatar_url: avatar_url, avatarFile: undefined }));
+            if (updateError) {
+                console.error('🛑 ERROR EN SUPABASE:', updateError);
+                throw updateError;
+            }
+            
+            console.log('✨ GUARDADO EXITOSO - continuando...');
+
+            // Actualizar estado local con TODOS los datos guardados
+            console.log('🔄 Actualizando estado local...');
+            setPerfil(prev => ({ 
+                ...prev, 
+                ...updateData,  // Aplicar todos los cambios guardados
+                avatar_url: avatar_url, 
+                avatarFile: undefined 
+            }));
             setPreview(avatar_url);
             
-            // Llamar callback de actualización si existe
-            if(onProfileUpdate) onProfileUpdate();
+            // Llamar callback de actualización si existe (esto debe invalidar queries)
+            console.log('🔄 Llamando callback de actualización...');
+            if(onProfileUpdate) {
+                console.log('onProfileUpdate existe, llamando...');
+                onProfileUpdate();
+            } else {
+                console.log('onProfileUpdate NO existe');
+            }
             
-            // Cerrar drawer inmediatamente
+            // Pequeño delay para asegurar actualización de UI antes de cerrar
+            console.log('😪 Esperando 100ms antes de cerrar drawer...');
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Cerrar drawer
+            console.log('❌ Cerrando drawer...');
             onClose();
             
             // Mostrar toast de éxito
@@ -563,9 +658,10 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                                     <SimpleInput
                                         label="País"
                                         name="pais"
-                                        placeholder="Tu país"
+                                        placeholder="Selecciona tu país"
                                         value={perfil.pais}
                                         onChange={handleChange}
+                                        options={opcionesPaises}
                                     />
                                 </div>
                                 <SimpleInput
@@ -594,8 +690,8 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                                         inputMode="decimal"
                                         placeholder="70.5"
                                         min="1"
-                                        max="1000"
-                                        step="0.1"
+                                        max="999.99"
+                                        step="0.01"
                                         value={perfil.peso}
                                         onChange={handleChange}
                                     />
@@ -605,29 +701,21 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                                         type="number"
                                         inputMode="decimal"
                                         placeholder="1.75"
-                                        min="0.5"
-                                        max="3.0"
+                                        min="0.50"
+                                        max="9.99"
                                         step="0.01"
                                         value={perfil.altura}
                                         onChange={handleChange}
                                     />
                                     <SimpleInput
                                         label="Cintura (cm)"
-                                        name="cintura"
+                                        name="cintura_cm"
                                         type="number"
-                                        inputMode="decimal"
-                                        placeholder="85.5"
-                                        step="0.1"
-                                        value={perfil.cintura}
-                                        onChange={handleChange}
-                                    />
-                                    <SimpleInput
-                                        label="% Grasa Corporal"
-                                        name="grasa_pct"
-                                        type="number"
-                                        inputMode="decimal"
-                                        placeholder="15.5"
-                                        value={perfil.grasa_pct}
+                                        inputMode="numeric"
+                                        placeholder="85"
+                                        min="40"
+                                        max="200"
+                                        value={perfil.cintura_cm}
                                         onChange={handleChange}
                                     />
                                 </div>
@@ -648,19 +736,41 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                                         inputMode="decimal"
                                         placeholder="75.0"
                                         min="1"
-                                        max="1000"
-                                        step="0.1"
+                                        max="999.99"
+                                        step="0.01"
                                         value={perfil.meta_peso}
                                         onChange={handleChange}
                                     />
                                     <SimpleInput
-                                        label="Meta de % Grasa"
-                                        name="meta_grasa"
+                                        label="Meta de Cintura (cm)"
+                                        name="meta_cintura"
                                         type="number"
-                                        inputMode="decimal"
-                                        placeholder="12.0"
-                                        value={perfil.meta_grasa}
+                                        inputMode="numeric"
+                                        placeholder="80"
+                                        min="40"
+                                        max="150"
+                                        value={perfil.meta_cintura}
                                         onChange={handleChange}
+                                    />
+                                </div>
+                            </ExpandableSection>
+
+                            {/* Dieta */}
+                            <ExpandableSection
+                                title="Dieta"
+                                icon={<FaUtensils className="text-[#FF0000]" />}
+                                isOpen={expandedSections.diet}
+                                onToggle={() => toggleSection('diet')}
+                            >
+                                <div className="space-y-4">
+                                 
+                                    <SimpleInput
+                                        label="Comentarios sobre Dieta"
+                                        name="comentarios_dieta"
+                                        placeholder="Comparte información relevante sobre tus hábitos alimentarios, restricciones, preferencias..."
+                                        value={perfil.comentarios_dieta}
+                                        onChange={handleChange}
+                                        rows={3}
                                     />
                                 </div>
                             </ExpandableSection>
