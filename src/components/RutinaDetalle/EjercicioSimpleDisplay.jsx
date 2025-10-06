@@ -72,7 +72,7 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                             ? 'border-2 border-[#47D065] opacity-60' 
                                 : isActive 
                                 ? 'bg-[#E7E7E7] border-2 border-[#FF0000]'
-                                : 'bg-[#C6C6C6]'
+                                : 'bg-[#E7E7E7]'
                         }`}
                     >
                         {/* Header del ejercicio simple */}
@@ -111,13 +111,10 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                         <div className={`transition-opacity duration-200 ease-in-out ${isCompletada ? 'hidden' : 'block'}`}>
                             {/* Info secundaria */}
                             <div className="flex items-center justify-center mt-2 text-[20px] text-[#3F3F3F] bg-[#D0D0D0] px-4 py-2 rounded-[12px]">
-                            
-                                {serie.pausa > 0 && (
-                                    <span className="flex items-center gap-2">
-                                        <img src={pausaRutina} alt="Icono pausa" className="w-5 h-5" />
-                                        Pausa {serie.pausa}s
-                                    </span>
-                                )}
+                                <span className="flex items-center gap-2">
+                                    <img src={pausaRutina} alt="Icono pausa" className="w-5 h-5" />
+                                    {serie.pausa > 0 ? `Pausa ${serie.pausa}s` : 'Sin pausa'}
+                                </span>
                             </div>
 
                             {/* Ejercicio */}

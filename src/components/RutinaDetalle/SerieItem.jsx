@@ -199,7 +199,7 @@ const SerieItem = React.forwardRef(({
         >
             {useMinimalView ? (
                 // ====== VISTA MINIMAL (como la imagen) ======
-                <div className="py-3 text-center select-none">
+                <div className="py-3 text-center select-none justify-center items-center flex flex-col">
                     {/* Nombre con botón de video */}
                     {!hideExerciseName && (
                         <div className="flex items-center justify-center gap-3">
@@ -237,36 +237,38 @@ const SerieItem = React.forwardRef(({
                         )}
                     </div>
 
-                    {/* Chip de peso */}
-                    <div className="mt-2 flex justify-center">
-                        <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F0F0]">
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    decKg();
-                                }}
-                                className="w-5 h-5 leading-none rounded-md bg-white/80 hover:bg-white text-[#1E1E1E] text-[13px] font-bold flex items-center justify-center active:scale-100 focus:outline-none"
-                                aria-label="Disminuir peso"
-                                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-                            >
-                                -
-                            </button>
-                            <span className="text-[12px] text-[#7C7C7C] select-none mx-1">{pesoTexto}</span>
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    incKg();
-                                }}
-                                className="w-5 h-5 leading-none rounded-md bg-white/80 hover:bg-white text-[#1E1E1E] text-[13px] font-bold flex items-center justify-center active:scale-100 focus:outline-none"
-                                aria-label="Aumentar peso (+5kg)"
-                                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-                            >
-                                +
-                            </button>
+                    {/* Chip de peso - Solo para ejercicios que NO sean de tiempo */}
+                    {tipoEjecucion !== EXECUTION_TYPES.TIEMPO && (
+                        <div className="mt-2 flex justify-center">
+                            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F0F0]">
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        decKg();
+                                    }}
+                                    className="w-5 h-5 leading-none rounded-md bg-white/80 hover:bg-white text-[#1E1E1E] text-[13px] font-bold flex items-center justify-center active:scale-100 focus:outline-none"
+                                    aria-label="Disminuir peso"
+                                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                                >
+                                    -
+                                </button>
+                                <span className="text-[12px] text-[#7C7C7C] select-none mx-1">{pesoTexto}</span>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        incKg();
+                                    }}
+                                    className="w-5 h-5 leading-none rounded-md bg-white/80 hover:bg-white text-[#1E1E1E] text-[13px] font-bold flex items-center justify-center active:scale-100 focus:outline-none"
+                                    aria-label="Aumentar peso (+5kg)"
+                                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                                >
+                                    +
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                   
                     {/* Línea separadora solo si NO es el último ejercicio EN SUPERSETS */}
@@ -303,8 +305,14 @@ const SerieItem = React.forwardRef(({
                   <p className="text-sm text-gray-600 mb-3 truncate">{nota}</p>
               )}
 
-              {/* Grid principal */}
-              <div className={`grid gap-6 ${isSuperset ? 'grid-cols-2' : 'grid-cols-4'}`}>
+              {/* Grid principal - Ajustar columnas según el tipo de ejercicio */}
+              <div className={`grid gap-6 ${
+                  isSuperset 
+                  ? 'grid-cols-2' 
+                  : tipoEjecucion === EXECUTION_TYPES.TIEMPO 
+                  ? 'grid-cols-2' 
+                  : 'grid-cols-4'
+              }`}>
                   {/* Set */}
                   {!isSuperset && (
                       <div className="text-center">
@@ -365,23 +373,25 @@ const SerieItem = React.forwardRef(({
                       )}
                   </div>
 
-                  {/* Peso editable */}
-                  <div className="text-center">
-                      <div className="text-sm text-gray-500 mb-1 uppercase tracking-wide font-medium">
-                          Peso
+                  {/* Peso editable - Solo para ejercicios que NO sean de tiempo */}
+                  {tipoEjecucion !== EXECUTION_TYPES.TIEMPO && (
+                      <div className="text-center">
+                          <div className="text-sm text-gray-500 mb-1 uppercase tracking-wide font-medium">
+                              Peso
+                          </div>
+                          <input
+                              type="text"
+                              inputMode="numeric"
+                              value={actualCarga}
+                              onChange={(e) => setActualCarga(e.target.value)}
+                              onPointerDown={(e) => e.stopPropagation()}
+                              onFocus={(e) => { e.stopPropagation(); e.target.select(); }}
+                              placeholder="0kg"
+                              className="w-full text-2xl font-bold text-center py-2 rounded-xl bg-white border-2 border-gray-200 focus:border-red-500 focus:outline-none text-gray-800"
+                              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                          />
                       </div>
-                      <input
-                          type="text"
-                          inputMode="numeric"
-                          value={actualCarga}
-                          onChange={(e) => setActualCarga(e.target.value)}
-                          onPointerDown={(e) => e.stopPropagation()}
-                          onFocus={(e) => { e.stopPropagation(); e.target.select(); }}
-                          placeholder="0kg"
-                          className="w-full text-2xl font-bold text-center py-2 rounded-xl bg-white border-2 border-gray-200 focus:border-red-500 focus:outline-none text-gray-800"
-                          style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-                      />
-                  </div>
+                  )}
 
                   {/* Pausa */}
                   {!isSuperset && (
@@ -390,7 +400,7 @@ const SerieItem = React.forwardRef(({
                               Pausa
                           </div>
                           <div className="text-xl font-bold py-2 rounded-xl bg-gray-100 text-gray-800">
-                              {pausa && pausa > 0 ? `${pausa}s` : '0s'}
+                              {pausa && pausa > 0 ? `${pausa}s` : 'Sin pausa'}
                           </div>
                       </div>
                   )}
