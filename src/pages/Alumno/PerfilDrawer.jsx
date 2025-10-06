@@ -217,7 +217,6 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
                             leftSufix=""
                             label={{
                                 line1: 'Entrenamientos del mes',
-                                line2: `Meta: ${monthlyProgress.meta} sesiones`,
                             }}
                             gradient="from-blue-600/80 to-fuchsia-500/40"
                         />

@@ -69,22 +69,22 @@ const SimpleInput = ({ label, name, type = "text", placeholder, value, onChange,
 
 // Componente para sección expandible (también movido fuera)
 const ExpandableSection = ({ title, icon, isOpen, onToggle, children }) => (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 overflow-hidden">
+    <div className="bg-[#191919] rounded-[10px]  overflow-hidden ">
         <button
             type="button"
             onClick={onToggle}
-            className="w-full flex items-center justify-between p-4 hover:bg-gray-700/30 transition-colors duration-200 focus:outline-none"
+            className="w-full flex items-center justify-between p-2 "
         >
             <div className="flex items-center space-x-3">
-                <div className="p-2 bg-cyan-500/20 rounded-lg">
+                <div className="p-2 ">
                     {icon}
                 </div>
-                <h3 className="text-lg font-semibold text-white">{title}</h3>
+                <h3 className="text-[15px] text-[#FFFFFF]">{title}</h3>
             </div>
             {isOpen ? (
-                <FaChevronUp className="text-gray-400" />
+                <FaChevronUp className="text-[#FF0000]" />
             ) : (
-                <FaChevronDown className="text-gray-400" />
+                    <FaChevronDown className="text-[#FF0000]" />
             )}
         </button>
         
@@ -105,10 +105,10 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
         biografia: '', ciudad: '', pais: '', avatar_url: '',
         // Fitness y objetivos
         objetivo: '', nivel: '', experiencia: '', actividad_fisica: '', frecuencia_entrenamiento: '',
-        // Métricas físicas
-        peso_kg: '', altura_cm: '', cintura_cm: '', grasa_pct: '',
+        // Métricas físicas - usando nombres correctos de la tabla
+        peso: '', altura: '', cintura: '', grasa_pct: '',
         // Metas
-        meta_peso: '', meta_grasa: '',
+        meta_peso: '', meta_grasa: '', meta_cintura: '',
         // Salud
         condiciones_medicas: '',
         // Preferencias
@@ -144,8 +144,18 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                 console.error(err);
                 setError('No se pudo cargar el perfil');
             } else {
-                setPerfil(prev => ({ ...prev, ...data }));
-                setPreview(data?.avatar_url || '');
+                // Normalizar datos para manejar campos legacy
+                const normalizedData = {
+                    ...data,
+                    // Asegurar que peso y altura usen los nombres correctos
+                    peso: data?.peso || data?.peso_kg || '',
+                    altura: data?.altura || data?.altura_m || (data?.altura_cm ? (data.altura_cm / 100).toString() : '') || '',
+                    cintura: data?.cintura || data?.cintura_cm || ''
+                };
+                
+                console.log('Datos cargados del perfil:', normalizedData);
+                setPerfil(prev => ({ ...prev, ...normalizedData }));
+                setPreview(normalizedData?.avatar_url || '');
             }
             setLoading(false);
         };
@@ -166,14 +176,13 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
         if (!peso || !altura) return '';
         
         const pesoNum = parseFloat(peso);
-        const alturaCm = parseFloat(altura);
+        const alturaM = parseFloat(altura);
         
         // Validaciones básicas
-        if (isNaN(pesoNum) || isNaN(alturaCm) || pesoNum <= 0 || alturaCm < 1) {
+        if (isNaN(pesoNum) || isNaN(alturaM) || pesoNum <= 0 || alturaM <= 0) {
             return '';
         }
         
-        const alturaM = alturaCm / 100; // convertir cm a metros
         const imc = (pesoNum / (alturaM * alturaM)).toFixed(1);
         return imc;
     };
@@ -264,17 +273,17 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
             // Validar y preparar datos antes de enviar
             console.log('Perfil completo antes de validar:', perfil);
             
-            const peso_kg = perfil.peso_kg ? parseFloat(perfil.peso_kg) : null;
-            const altura_cm = perfil.altura_cm ? parseInt(perfil.altura_cm) : null;
+            const peso = perfil.peso ? parseFloat(perfil.peso) : null;
+            const altura = perfil.altura ? parseFloat(perfil.altura) : null;
             const meta_peso = perfil.meta_peso ? parseFloat(perfil.meta_peso) : null;
             
             // Validaciones específicas
-            if (peso_kg !== null && (peso_kg < 1 || peso_kg > 1000)) {
+            if (peso !== null && (peso < 1 || peso > 1000)) {
                 throw new Error('El peso debe estar entre 1 y 1000 kg');
             }
             
-            if (altura_cm !== null && (altura_cm < 1 || altura_cm > 300)) {
-                throw new Error('La altura debe estar entre 1 y 300 cm');
+            if (altura !== null && (altura < 0.5 || altura > 3.0)) {
+                throw new Error('La altura debe estar entre 0.5 y 3.0 metros');
             }
             
             if (meta_peso !== null && (meta_peso < 1 || meta_peso > 1000)) {
@@ -288,11 +297,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                 ''
             ];
             
-            console.log('Validando preferencia_inicio:', perfil.preferencia_inicio);
-            console.log('Valor de experiencia:', perfil.experiencia);
-            console.log('Valor de actividad_fisica:', perfil.actividad_fisica);
-            console.log('Valor de frecuencia_entrenamiento:', perfil.frecuencia_entrenamiento);
-            console.log('Valor de genero:', perfil.genero);
+     
             
             // Función para limpiar valores problemáticos
             const limpiarValor = (campo, valor) => {
@@ -300,37 +305,14 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                 
                 // Mapear valores problemáticos a valores válidos conocidos
                 const mapeos = {
-                    experiencia: {
-                        'Principiante': 'principiante',
-                        'Intermedio': 'intermedio', 
-                        'Avanzado': 'avanzado',
-                        'Experto': 'avanzado' // mapear experto a avanzado
-                    },
+       
                     genero: {
                         'Masculino': 'masculino',
                         'Femenino': 'femenino',
-                        'No binario': 'no_binario',
-                        'Prefiero no decir': 'prefiero_no_decir'
+                        
                     },
-                    actividad_fisica: {
-                        'Sedentario': 'sedentario',
-                        'Ligera': 'ligera',
-                        'Moderada': 'moderada',
-                        'Intensa': 'intensa',
-                        'Muy Intensa': 'muy_intensa'
-                    },
-                    frecuencia_entrenamiento: {
-                        '1-2 días': '1-2_dias',
-                        '3-4 días': '3-4_dias', 
-                        '5-6 días': '5-6_dias',
-                        'Todos los días': 'todos_los_dias'
-                    },
-                    preferencia_inicio: {
-                        'Mañana': 'rutina', // mapear valores legacy
-                        'Tarde': 'cursos',
-                        'Noche': 'explorar',
-                        'Sin preferencia': null
-                    }
+                   
+                   
                 };
                 
                 if (mapeos[campo] && mapeos[campo][valor]) {
@@ -359,41 +341,46 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
             console.log('- frecuencia_entrenamiento:', perfil.frecuencia_entrenamiento, '->', frecuenciaLimpia);
             console.log('- preferencia_inicio:', perfil.preferencia_inicio, '->', preferenciaLimpia);
             
+            const updateData = {
+                // Información básica
+                nombre: perfil.nombre || null,
+                apellido: perfil.apellido || null,
+                edad: perfil.edad ? parseInt(perfil.edad) : null,
+                telefono: perfil.telefono || null,
+                genero: generoLimpio,
+                fecha_nacimiento: perfil.fecha_nacimiento || null,
+                biografia: perfil.biografia || null,
+                ciudad: perfil.ciudad || null,
+                pais: perfil.pais || null,
+                avatar_url: avatar_url,
+                // Fitness y objetivos
+                objetivo: perfil.objetivo || null,
+                nivel: perfil.nivel || null,
+                experiencia: experienciaLimpia,
+                actividad_fisica: actividadLimpia,
+                frecuencia_entrenamiento: frecuenciaLimpia,
+                // Métricas físicas
+                peso: peso,
+                altura: altura,
+                cintura: perfil.cintura ? parseFloat(perfil.cintura) : null,
+                grasa_pct: perfil.grasa_pct ? parseFloat(perfil.grasa_pct) : null,
+                // Metas
+                meta_peso: meta_peso,
+                meta_grasa: perfil.meta_grasa ? parseFloat(perfil.meta_grasa) : null,
+                meta_cintura: perfil.meta_cintura ? parseFloat(perfil.meta_cintura) : null,
+                // Salud
+                condiciones_medicas: perfil.condiciones_medicas || null,
+                // Preferencias (limpiar valores legacy)
+                preferencia_inicio: preferenciaLimpia,
+                // Timestamp de actualización
+                fecha_actualizacion: new Date().toISOString()
+            };
+            
+            console.log('Datos que se enviarán a la base de datos:', updateData);
+            
             const { error: updateError } = await supabase
                 .from('perfiles')
-                .update({
-                    // Información básica
-                    nombre: perfil.nombre || null,
-                    apellido: perfil.apellido || null,
-                    edad: perfil.edad ? parseInt(perfil.edad) : null,
-                    telefono: perfil.telefono || null,
-                    genero: generoLimpio,
-                    fecha_nacimiento: perfil.fecha_nacimiento || null,
-                    biografia: perfil.biografia || null,
-                    ciudad: perfil.ciudad || null,
-                    pais: perfil.pais || null,
-                    avatar_url: avatar_url,
-                    // Fitness y objetivos
-                    objetivo: perfil.objetivo || null,
-                    nivel: perfil.nivel || null,
-                    experiencia: experienciaLimpia,
-                    actividad_fisica: actividadLimpia,
-                    frecuencia_entrenamiento: frecuenciaLimpia,
-                    // Métricas físicas
-                    peso_kg: peso_kg,
-                    altura_cm: altura_cm,
-                    cintura_cm: perfil.cintura_cm ? parseInt(perfil.cintura_cm) : null,
-                    grasa_pct: perfil.grasa_pct ? parseFloat(perfil.grasa_pct) : null,
-                    // Metas
-                    meta_peso: meta_peso,
-                    meta_grasa: perfil.meta_grasa ? parseFloat(perfil.meta_grasa) : null,
-                    // Salud
-                    condiciones_medicas: perfil.condiciones_medicas || null,
-                    // Preferencias (limpiar valores legacy)
-                    preferencia_inicio: preferenciaLimpia,
-                    // Timestamp de actualización
-                    fecha_actualizacion: new Date().toISOString()
-                })
+                .update(updateData)
                 .eq('id', user.id);
 
             if (updateError) throw updateError;
@@ -473,7 +460,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                             {/* Información Personal */}
                             <ExpandableSection
                                 title="Información Personal"
-                                icon={<FaUser className="text-cyan-400" />}
+                                    icon={<FaUser className="text-[#FF0000]" />}
                                 isOpen={expandedSections.personal}
                                 onToggle={() => toggleSection('personal')}
                             >
@@ -592,125 +579,47 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                                 />
                             </ExpandableSection>
 
-                            {/* Fitness y Objetivos */}
-                            <ExpandableSection
-                                title="Fitness y Objetivos"
-                                icon={<FaBullseye className="text-orange-400" />}
-                                isOpen={expandedSections.fitness}
-                                onToggle={() => toggleSection('fitness')}
-                            >
-                                <div className="grid grid-cols-1 gap-4">
-                                    <SimpleInput
-                                        label="Objetivo Principal"
-                                        name="objetivo"
-                                        placeholder="Ej: Perder peso, ganar músculo, mantener forma..."
-                                        value={perfil.objetivo}
-                                        onChange={handleChange}
-                                    />
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <SimpleInput
-                                            label="Nivel de Experiencia"
-                                            name="experiencia"
-                                            placeholder="Seleccionar nivel"
-                                            value={perfil.experiencia}
-                                            onChange={handleChange}
-                                            options={[
-                                                { value: 'principiante', label: 'Principiante' },
-                                                { value: 'intermedio', label: 'Intermedio' },
-                                                { value: 'avanzado', label: 'Avanzado' }
-                                            ]}
-                                        />
-                                        <SimpleInput
-                                            label="Nivel Actual"
-                                            name="nivel"
-                                            placeholder="Tu nivel"
-                                            value={perfil.nivel}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <SimpleInput
-                                            label="Actividad Física"
-                                            name="actividad_fisica"
-                                            placeholder="Tipo de actividad"
-                                            value={perfil.actividad_fisica}
-                                            onChange={handleChange}
-                                            options={[
-                                                { value: 'sedentario', label: 'Sedentario' },
-                                                { value: 'ligera', label: 'Ligera' },
-                                                { value: 'moderada', label: 'Moderada' },
-                                                { value: 'intensa', label: 'Intensa' },
-                                                { value: 'muy_intensa', label: 'Muy Intensa' }
-                                            ]}
-                                        />
-                                        <SimpleInput
-                                            label="Frecuencia de Entrenamiento"
-                                            name="frecuencia_entrenamiento"
-                                            placeholder="Días por semana"
-                                            value={perfil.frecuencia_entrenamiento}
-                                            onChange={handleChange}
-                                            options={[
-                                                { value: '1-2_dias', label: '1-2 días' },
-                                                { value: '3-4_dias', label: '3-4 días' },
-                                                { value: '5-6_dias', label: '5-6 días' },
-                                                { value: 'todos_los_dias', label: 'Todos los días' }
-                                            ]}
-                                        />
-                                    </div>
-                                    <SimpleInput
-                                        label="Preferencia de Inicio"
-                                        name="preferencia_inicio"
-                                        placeholder="¿Cómo quieres empezar?"
-                                        value={perfil.preferencia_inicio}
-                                        onChange={handleChange}
-                                        options={[
-                                            { value: '', label: 'Sin preferencia' },
-                                            { value: 'rutina', label: 'Comenzar con una rutina' },
-                                            { value: 'cursos', label: 'Explorar cursos' },
-                                            { value: 'explorar', label: 'Explorar la plataforma' }
-                                        ]}
-                                    />
-                                </div>
-                            </ExpandableSection>
-
+                    
                             {/* Métricas Físicas */}
                             <ExpandableSection
                                 title="Métricas Físicas"
-                                icon={<FaWeight className="text-green-400" />}
+                                icon={<FaWeight className="text-[#FF0000]" />}
                                 isOpen={expandedSections.metrics}
                                 onToggle={() => toggleSection('metrics')}
                             >
                                 <div className="grid grid-cols-2 gap-4">
                                     <SimpleInput
                                         label="Peso Actual (kg)"
-                                        name="peso_kg"
+                                        name="peso"
                                         type="number"
                                         inputMode="decimal"
                                         placeholder="70.5"
                                         min="1"
                                         max="1000"
                                         step="0.1"
-                                        value={perfil.peso_kg}
+                                        value={perfil.peso}
                                         onChange={handleChange}
                                     />
                                     <SimpleInput
-                                        label="Altura (cm)"
-                                        name="altura_cm"
+                                        label="Altura (m)"
+                                        name="altura"
                                         type="number"
-                                        inputMode="numeric"
-                                        placeholder="175"
-                                        min="1"
-                                        max="300"
-                                        value={perfil.altura_cm}
+                                        inputMode="decimal"
+                                        placeholder="1.75"
+                                        min="0.5"
+                                        max="3.0"
+                                        step="0.01"
+                                        value={perfil.altura}
                                         onChange={handleChange}
                                     />
                                     <SimpleInput
                                         label="Cintura (cm)"
-                                        name="cintura_cm"
+                                        name="cintura"
                                         type="number"
-                                        inputMode="numeric"
-                                        placeholder="85"
-                                        value={perfil.cintura_cm}
+                                        inputMode="decimal"
+                                        placeholder="85.5"
+                                        step="0.1"
+                                        value={perfil.cintura}
                                         onChange={handleChange}
                                     />
                                     <SimpleInput
@@ -728,7 +637,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                             {/* Metas y Objetivos */}
                             <ExpandableSection
                                 title="Metas y Objetivos"
-                                icon={<FaBullseye className="text-purple-400" />}
+                                    icon={<FaBullseye className="text-[#FF0000]" />}
                                 isOpen={expandedSections.goals}
                                 onToggle={() => toggleSection('goals')}
                             >
@@ -760,7 +669,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                             {/* Información de Salud */}
                             <ExpandableSection
                                 title="Información de Salud"
-                                icon={<FaMedkit className="text-red-400" />}
+                                    icon={<FaMedkit className="text-[#FF0000]" />}
                                 isOpen={expandedSections.health}
                                 onToggle={() => toggleSection('health')}
                             >

@@ -77,20 +77,19 @@ const WeightTracker = ({ userId }) => {
         <div className="bg-[#000000] border border-white/10 rounded-xl p-4 text-white">
             <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-white/90">Control de peso</h3>
-                <div className="text-xs text-white/60">{loading ? 'Cargando…' : diffText}</div>
             </div>
 
             {/* Resumen */}
             <div className="grid grid-cols-3 gap-3 mb-3">
                 <div className="bg-white/5 border border-white/10 rounded-lg p-2 text-center">
                     <div className="text-[11px] text-white/60">
-                        Inicial {progreso?.total_registros === 0 ? '(perfil)' : '(perfil)'}
+                        Inicial 
                     </div>
                     <div className="text-base font-semibold">{progreso?.peso_inicial ?? '–'} kg</div>
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-lg p-2 text-center">
                     <div className="text-[11px] text-white/60">
-                        Actual {progreso?.total_registros > 0 ? `(${progreso.total_registros} reg.)` : ''}
+                        Actual 
                     </div>
                     <div className="text-base font-semibold">{progreso?.peso_actual ?? '–'} kg</div>
                 </div>
