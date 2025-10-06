@@ -171,7 +171,8 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                     ...data,
                     // Asegurar que peso y altura usen los nombres correctos
                     peso: data?.peso || data?.peso_kg || '',
-                    altura: data?.altura || data?.altura_m || (data?.altura_cm ? (data.altura_cm / 100).toString() : '') || '',
+                    // Altura: si viene en metros (legacy), convertir a cm; si ya está en cm, usar directamente
+                    altura: data?.altura || (data?.altura_m ? Math.round(data.altura_m * 100).toString() : '') || '',
                     // Campos que ya tienen nombres correctos
                     cintura_cm: data?.cintura_cm || data?.cintura || ''
                 };
@@ -297,7 +298,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
             console.log('Perfil completo antes de validar:', perfil);
             
             const peso = perfil.peso ? parseFloat(perfil.peso) : null;
-            const altura = perfil.altura ? parseFloat(perfil.altura) : null;
+            const altura = perfil.altura ? parseInt(perfil.altura) : null; // Altura en cm como integer
             const meta_peso = perfil.meta_peso ? parseFloat(perfil.meta_peso) : null;
             
             // Validaciones específicas - ajustadas a la precisión de la BD (5,2)
@@ -305,8 +306,8 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                 throw new Error('El peso debe estar entre 1 y 999.99 kg');
             }
             
-            if (altura !== null && (altura < 0.50 || altura > 9.99)) {
-                throw new Error('La altura debe estar entre 0.50 y 9.99 metros');
+            if (altura !== null && (altura < 100 || altura > 250)) {
+                throw new Error('La altura debe estar entre 100 y 250 cm');
             }
             
             if (meta_peso !== null && (meta_peso < 1 || meta_peso > 999.99)) {
@@ -396,15 +397,12 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
             
             // Campos integer
             if (perfil.edad && parseInt(perfil.edad) > 0) {
-                console.log('➕ Agregando edad:', parseInt(perfil.edad));
                 updateData.edad = parseInt(perfil.edad);
             }
             
-            // ALTURA: Convertir de metros a centímetros (integer)
-            if (altura !== null && altura > 0 && altura <= 9.99) {
-                const alturaCm = Math.round(altura * 100); // Convertir metros a cm
-                console.log('➕ Agregando altura:', altura, 'm ->', alturaCm, 'cm');
-                updateData.altura = alturaCm;
+            // ALTURA: Campo integer directo en centímetros
+            if (altura !== null && altura > 0 && altura <= 250) {
+                updateData.altura = altura; // Ya está en cm como integer
             }
             
             // PESO: Campo numeric
@@ -436,7 +434,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
             // Debug detallado de campos numéricos
             console.log('=== DEBUG CAMPOS NUMÉRICOS ===');
             console.log('peso:', peso, '(type:', typeof peso, ')');
-            console.log('altura:', altura, '(type:', typeof altura, ') -> cm:', altura ? Math.round(altura * 100) : null);
+            console.log('altura:', altura, '(type:', typeof altura, 'cm)');
             console.log('meta_peso:', meta_peso, '(type:', typeof meta_peso, ')');
             console.log('cintura_cm:', perfil.cintura_cm, '(parsed:', perfil.cintura_cm ? parseInt(perfil.cintura_cm) : null, ')');
             console.log('meta_cintura:', perfil.meta_cintura, '(parsed:', perfil.meta_cintura ? parseInt(perfil.meta_cintura) : null, ')');
@@ -482,26 +480,25 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                 console.log('onProfileUpdate NO existe');
             }
             
-            // Pequeño delay para asegurar actualización de UI antes de cerrar
-            console.log('😪 Esperando 100ms antes de cerrar drawer...');
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Mostrar toast de éxito ANTES de cerrar
+            toast('Perfil actualizado', {
+                duration: 2000,
+                position: 'top-center',
+                style: {
+                    background: '#191919',
+                    color: '#ffffff',
+                    borderRadius: '10px',
+                    fontSize: '16px',
+                    padding: '16px 24px',
+                },
+            });
+            
+            console.log('😪 Esperando 500ms para mostrar el toast antes de cerrar drawer...');
+            await new Promise(resolve => setTimeout(resolve, 500));
             
             // Cerrar drawer
             console.log('❌ Cerrando drawer...');
             onClose();
-            
-            // Mostrar toast de éxito
-            toast.success('Perfil actualizado correctamente', {
-                duration: 4000,
-                position: 'top-center',
-                style: {
-                    background: 'rgba(0, 255, 94, 0.15)',
-                    color: 'white',
-                    borderRadius: '12px',
-                    fontSize: '16px',
-                    padding: '12px 20px'
-                }
-            });
 
         } catch (err) {
             console.error(err);
@@ -510,15 +507,19 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
             
             // También mostrar toast de error
             toast.error(`❌ ${errorMessage}`, {
-                duration: 5000,
+                duration: 6000,
                 position: 'top-center',
                 style: {
-                    background: 'rgba(239, 68, 68, 0.9)',
+                    background: '#EF4444',
                     color: 'white',
                     borderRadius: '12px',
                     fontSize: '16px',
-                    padding: '12px 20px'
-                }
+                    fontWeight: '600',
+                    padding: '16px 24px',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    border: '1px solid #DC2626'
+                },
+                icon: '⚠️'
             });
         } finally {
             setSaving(false);
@@ -696,14 +697,13 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                                         onChange={handleChange}
                                     />
                                     <SimpleInput
-                                        label="Altura (m)"
+                                        label="Altura (cm)"
                                         name="altura"
                                         type="number"
-                                        inputMode="decimal"
-                                        placeholder="1.75"
-                                        min="0.50"
-                                        max="9.99"
-                                        step="0.01"
+                                        inputMode="numeric"
+                                        placeholder="175"
+                                        min="100"
+                                        max="250"
                                         value={perfil.altura}
                                         onChange={handleChange}
                                     />

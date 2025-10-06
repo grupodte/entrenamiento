@@ -1,6 +1,7 @@
 import React, { Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { Toaster } from 'react-hot-toast';
 
 // --- IMPORTACIONES INMEDIATAS (CRÍTICAS) ---
 import RutaProtegida from './components/RutaProtegida';
@@ -175,6 +176,37 @@ const AppContent = () => {
       <Suspense fallback={<div></div>}>
         <WidgetGuideOverlay />
       </Suspense>
+      
+      {/* Toaster para notificaciones */}
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        gutter={8}
+        containerClassName=""
+        containerStyle={{
+          top: 20,
+          left: 20,
+          bottom: 20,
+          right: 20,
+        }}
+        toastOptions={{
+          // Estilos por defecto para todos los toasts
+          className: '',
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          // Estilos específicos para success
+          success: {
+            duration: 5000,
+          },
+          // Estilos específicos para error
+          error: {
+            duration: 6000,
+          },
+        }}
+      />
       
     </WidgetGuideProvider>
   );

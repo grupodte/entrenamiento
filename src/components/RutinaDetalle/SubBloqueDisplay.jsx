@@ -94,7 +94,8 @@ const SubBloqueDisplay = (props) => {
         >
             {/* Header de la tarjeta */}
             <div
-                className="w-full flex items-center justify-between pr-2 "
+                className="w-full flex items-center justify-between pr-2 cursor-pointer"
+                onClick={handleToggleCollapse}
             >
                 <div className="flex items-center gap-3">
                     {/* Icono circular */}
@@ -126,7 +127,6 @@ const SubBloqueDisplay = (props) => {
 
                 {/* Botón colapsar */}
                 <button
-                    onClick={handleToggleCollapse}
                     className="flex-shrink-0 "
                     aria-expanded={!isCollapsed}
                     aria-label={isCollapsed ? 'Expandir bloque' : 'Colapsar bloque'}
@@ -142,32 +142,45 @@ const SubBloqueDisplay = (props) => {
             </div>
 
             {/* Contenido expandible */}
-            <div className={`transition-all duration-300 ease-in-out overflow-hidden w-full ${
-                isCollapsed ? 'max-h-0 opacity-0' : 'max-h-[2000px] opacity-100 w-full'
-            }`}>
-                <div className="pt-4">
-                    {subbloque?.tipo === 'simple' &&
-                        subbloque?.subbloques_ejercicios?.map((sbe) => (
-                            <EjercicioSimpleDisplay
-                                key={sbe.id}
-                                sbe={sbe}
-                                subbloqueId={subbloque.id}
-                                {...props}
-                                lastSessionData={lastSessionData}
-                                blockTheme={blockTheme}
-                            />
-                        ))}
+            <AnimatePresence initial={false}>
+                {!isCollapsed && (
+                    <motion.div
+                        key="content"
+                        initial="collapsed"
+                        animate="open"
+                        exit="collapsed"
+                        variants={{
+                            open: { opacity: 1, height: 'auto' },
+                            collapsed: { opacity: 0, height: 0 }
+                        }}
+                        transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                        className="overflow-hidden w-full"
+                    >
+                        <div className="pt-4">
+                            {subbloque?.tipo === 'simple' &&
+                                subbloque?.subbloques_ejercicios?.map((sbe) => (
+                                    <EjercicioSimpleDisplay
+                                        key={sbe.id}
+                                        sbe={sbe}
+                                        subbloqueId={subbloque.id}
+                                        {...props}
+                                        lastSessionData={lastSessionData}
+                                        blockTheme={blockTheme}
+                                    />
+                                ))}
 
-                    {subbloque?.tipo === 'superset' && (
-                        <SupersetDisplay
-                            subbloque={subbloque}
-                            {...props}
-                            lastSessionData={lastSessionData}
-                            blockTheme={blockTheme}
-                        />
-                    )}
-                </div>
-            </div>
+                            {subbloque?.tipo === 'superset' && (
+                                <SupersetDisplay
+                                    subbloque={subbloque}
+                                    {...props}
+                                    lastSessionData={lastSessionData}
+                                    blockTheme={blockTheme}
+                                />
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

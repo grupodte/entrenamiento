@@ -5,7 +5,7 @@ import { useEffect, useCallback, useState, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import '../styles/drawer-animations.css';
 
-const Drawer = ({ isOpen, onClose, children }) => {
+const Drawer = ({ isOpen, onClose, children, panelClassName }) => {
     const [swipeProgress, setSwipeProgress] = useState(0);
     const startPosRef = useRef({ x: 0, y: 0 });
     const isSwipingRef = useRef(false);
@@ -157,97 +157,100 @@ const Drawer = ({ isOpen, onClose, children }) => {
                         window.navigator.standalone || 
                         false;
 
-    const drawerContent = (
-        <AnimatePresence mode="wait">
-            {isOpen && (
-                <>
-                    {/* Overlay con blur gradual sin fondo oscuro */}
-                    <motion.div
-                        initial={{ 
-                            backdropFilter: "blur(0px)",
-                            WebkitBackdropFilter: "blur(0px)"
-                        }}
-                        animate={{ 
-                            backdropFilter: "blur(12px)",
-                            WebkitBackdropFilter: "blur(12px)"
-                        }}
-                        exit={{ 
-                            backdropFilter: "blur(0px)",
-                            WebkitBackdropFilter: "blur(0px)"
-                        }}
-                        transition={{
-                            duration: 0.5,
-                            ease: [0.25, 0.46, 0.45, 0.94]
-                        }}
-                        className="fixed inset-0 will-change-[backdrop-filter] z-50"
-                        onClick={handleOverlayClick}
-                    />
-
-                    {/* Drawer optimizado con swipe horizontal */}
-                    <motion.div
-                        ref={drawerRef}
-                        drag="y"
-                        whileDrag={{ cursor: 'grabbing' }}
-                        onDragEnd={handleDragEnd}
-                        dragConstraints={{ top: 0, bottom: 0 }}
-                        dragElastic={{
-                            top: 0,
-                            bottom: 0.3
-                        }}
-                        dragMomentum={false}
-                        initial={{
-                            y: "100%",
-                            scale: 0.95 // Solo escala, sin opacity para evitar flash
-                        }}
-                        animate={{
-                            y: 0,
-                            scale: 1,
-                            x: swipeProgress > 0 ? `${swipeProgress * -30}%` : 0
-                        }}
-                        exit={{
-                            y: "100%",
-                            scale: 0.95,
-                            transition: {
-                                duration: 0.25,
-                                ease: [0.4, 0, 0.2, 1]
-                            }
-                        }}
-                        transition={{
-                            // Animación de entrada suave sin opacity para evitar flash
-                            y: {
-                                type: 'tween',
-                                duration: 0.35,
+        const baseClasses = `
+            ${
+                isStandalone
+                    ? 'drawer-safe-positioning'
+                    : 'drawer-web-positioning'
+            }
+            w-full mx-auto
+            text-white 
+            flex flex-col
+            transform-gpu
+            will-change-transform
+            fixed bottom-0 left-0 right-0
+            h-full
+        `;
+        const defaultPanelClasses = 'bg-[#FFFFFF] backdrop-blur-[14px] bg-opacity-70';
+    
+        const drawerContent = (
+            <AnimatePresence mode="wait">
+                {isOpen && (
+                    <>
+                        {/* Overlay con blur gradual sin fondo oscuro */}
+                        <motion.div
+                            initial={{
+                                backdropFilter: "blur(0px)",
+                                WebkitBackdropFilter: "blur(0px)"
+                            }}
+                            animate={{
+                                backdropFilter: "blur(12px)",
+                                WebkitBackdropFilter: "blur(12px)"
+                            }}
+                            exit={{
+                                backdropFilter: "blur(0px)",
+                                WebkitBackdropFilter: "blur(0px)"
+                            }}
+                            transition={{
+                                duration: 0.5,
                                 ease: [0.25, 0.46, 0.45, 0.94]
-                            },
-                            scale: {
-                                type: 'tween',
-                                duration: 0.3,
-                                ease: [0.25, 0.46, 0.45, 0.94]
-                            },
-                            x: swipeProgress > 0 ? { 
-                                type: 'tween', 
-                                duration: 0.1,
-                                ease: "easeOut"
-                            } : {
-                                type: 'tween',
-                                duration: 0.3,
-                                ease: [0.25, 0.46, 0.45, 0.94]
-                            }
-                        }}
-                        className={`
-                            ${isStandalone ? 'drawer-safe-positioning' : 'drawer-web-positioning'}
-                            w-full mx-auto
-                            text-white 
-                            bg-[#FFFFFF]
-                            backdrop-blur-[15px]
-                            bg-opacity-80
-                            flex flex-col
-                            transform-gpu
-                            will-change-transform
-                            fixed bottom-0 left-0 right-0
-                            h-full
-                        `}
-                        style={{
+                            }}
+                            className="fixed inset-0 will-change-[backdrop-filter] z-50"
+                            onClick={handleOverlayClick}
+                        />
+    
+                        {/* Drawer optimizado con swipe horizontal */}
+                        <motion.div
+                            ref={drawerRef}
+                            drag="y"
+                            whileDrag={{ cursor: 'grabbing' }}
+                            onDragEnd={handleDragEnd}
+                            dragConstraints={{ top: 0, bottom: 0 }}
+                            dragElastic={{
+                                top: 0,
+                                bottom: 0.3
+                            }}
+                            dragMomentum={false}
+                            initial={{
+                                y: "100%",
+                                scale: 0.95 // Solo escala, sin opacity para evitar flash
+                            }}
+                            animate={{
+                                y: 0,
+                                scale: 1,
+                                x: swipeProgress > 0 ? `${swipeProgress * -30}%` : 0
+                            }}
+                            exit={{
+                                y: "100%",
+                                scale: 0.95,
+                                transition: {
+                                    duration: 0.25,
+                                    ease: [0.4, 0, 0.2, 1]
+                                }
+                            }}
+                            transition={{
+                                // Animación de entrada suave sin opacity para evitar flash
+                                y: {
+                                    type: 'tween',
+                                    duration: 0.35,
+                                    ease: [0.25, 0.46, 0.45, 0.94]
+                                },
+                                scale: {
+                                    type: 'tween',
+                                    duration: 0.3,
+                                    ease: [0.25, 0.46, 0.45, 0.94]
+                                },
+                                x: swipeProgress > 0 ? { 
+                                    type: 'tween', 
+                                    duration: 0.1,
+                                    ease: "easeOut"
+                                } : {
+                                    type: 'tween',
+                                    duration: 0.3,
+                                    ease: [0.25, 0.46, 0.45, 0.94]
+                                }
+                            }}
+                            className={`${baseClasses} ${panelClassName || defaultPanelClasses}`}                        style={{
                             zIndex: 99999,
                             height: '100dvh',
                             maxHeight: '100dvh'

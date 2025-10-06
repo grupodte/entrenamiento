@@ -180,10 +180,10 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
                 </button>
                 
                 {/* Contenido scrolleable */}
-                <div className="flex-1 overflow-y-auto scrollbar-hide pb-4">
+                <div className="flex-1 overflow-y-auto scrollbar-hide ">
                     {/* Perfil */}
                     <div className="relative overflow-hidden">
-                        <div className="relative z-10 flex items-center gap-12 px-4 h-[200px]">
+                        <div className="relative z-10 flex items-center gap-12 px-4 h-[160px]">
                             <img
                                 src={avatarUrl}
                                 alt="avatar"
@@ -194,13 +194,17 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
                                     {displayName}
                                 </h2>
                                 <div className="mt-2 flex items-center gap-3 text-[13px] text-[#747474]">
-                                    <span>{fmt(alturaM)}m</span>
+                                    <span>{fmt(alturaM ? Math.round(alturaM * 1) : null)}cm</span>
                                     <span>{fmt(pesoKg)}kg</span>
                                     <span>{fmt(edad)} años</span>
                                 </div>
                             </div>
+                            
                         </div>
+
                     </div>
+                    <div className='bg-[#9F9F9F] h-[1px] mb-4'> </div>
+
 
                     {/* Resultados con imágenes locales */}
                     <div className="px-2 space-y-3">
