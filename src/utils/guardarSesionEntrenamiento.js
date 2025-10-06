@@ -81,33 +81,41 @@ export async function guardarSesionEntrenamiento({ rutinaId, tiempoTranscurrido,
                 console.log('Found ejercicioEncontrado:', ejercicioEncontrado);
                 console.log('Found serieEncontrada:', serieEncontrada);
 
-                if (ejercicioEncontrado && elementosCompletados[elementoId]) {
-                    const completedDetails = elementosCompletados[elementoId];
+                const completedData = elementosCompletados[elementoId];
+                if (ejercicioEncontrado && completedData) {
+                    // Manejar ambos formatos: nuevo (objeto) y anterior (boolean)
+                    const completedDetails = typeof completedData === 'object' 
+                        ? completedData 
+                        : { completed: true }; // Formato anterior
+                    
                     console.log('Processing elementoId:', elementoId);
                     console.log('Ejercicio encontrado:', ejercicioEncontrado);
                     console.log('Completed details:', completedDetails);
                     
-                    // Preparar datos base
-                    const serieData = {
-                        sesion_id: sesionId,
-                        ejercicio_id: ejercicioEncontrado.id,
-                        nro_set: nroSet,
-                        carga_realizada: completedDetails.actualCarga,
-                        tipo_ejecucion: completedDetails.tipoEjecucion || EXECUTION_TYPES.STANDARD,
-                    };
-                    
-                    // Agregar datos específicos según tipo de ejecución
-                    const tipoEjecucion = completedDetails.tipoEjecucion || EXECUTION_TYPES.STANDARD;
-                    
-                    if (tipoEjecucion === EXECUTION_TYPES.STANDARD) {
-                        serieData.reps_realizadas = completedDetails.actualReps || 0;
-                    } else if (tipoEjecucion === EXECUTION_TYPES.TIEMPO) {
-                        serieData.duracion_realizada_segundos = completedDetails.actualDuracion || 0;
-                    } else if (tipoEjecucion === EXECUTION_TYPES.FALLO) {
-                        serieData.reps_realizadas = completedDetails.actualReps || 0; // Reps alcanzadas al fallo
+                    // Solo procesar si tenemos datos de serie o es formato boolean
+                    if (completedDetails.completed || completedDetails === true || typeof completedData === 'boolean') {
+                        // Preparar datos base
+                        const serieData = {
+                            sesion_id: sesionId,
+                            ejercicio_id: ejercicioEncontrado.id,
+                            nro_set: nroSet,
+                            carga_realizada: completedDetails.actualCarga || 0,
+                            tipo_ejecucion: completedDetails.tipoEjecucion || EXECUTION_TYPES.STANDARD,
+                        };
+                        
+                        // Agregar datos específicos según tipo de ejecución
+                        const tipoEjecucion = completedDetails.tipoEjecucion || EXECUTION_TYPES.STANDARD;
+                        
+                        if (tipoEjecucion === EXECUTION_TYPES.STANDARD) {
+                            serieData.reps_realizadas = completedDetails.actualReps || 0;
+                        } else if (tipoEjecucion === EXECUTION_TYPES.TIEMPO) {
+                            serieData.duracion_realizada_segundos = completedDetails.actualDuracion || 0;
+                        } else if (tipoEjecucion === EXECUTION_TYPES.FALLO) {
+                            serieData.reps_realizadas = completedDetails.actualReps || 0; // Reps alcanzadas al fallo
+                        }
+                        
+                        seriesParaInsertar.push(serieData);
                     }
-                    
-                    seriesParaInsertar.push(serieData);
                 }
             }
         }

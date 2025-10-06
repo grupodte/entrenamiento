@@ -73,6 +73,76 @@ body.video-panel-open {
 /* ====== UTILIDADES PERSONALIZADAS DE TAILWIND ====== */
 @layer utilities {
 
+  /* ====== UTILIDADES PARA TOUCH UNIVERSAL ====== */
+  /* Aplicar a todos los elementos interactivos para mejor touch */
+  .touch-optimized {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    min-height: 44px; /* Área táctil mínima WCAG */
+    min-width: 44px;
+  }
+
+  /* Para botones pequeños que necesitan más área táctil */
+  .touch-small-button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px;
+    position: relative;
+  }
+
+  /* Agregar área táctil invisible para botones muy pequeños */
+  .touch-small-button::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Para inputs en móviles - prevenir zoom */
+  .touch-input {
+    font-size: max(16px, 1rem);
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Feedback visual para touch */
+  .touch-feedback {
+    transition: transform 0.1s ease-out, background-color 0.1s ease-out;
+  }
+
+  .touch-feedback:active {
+    transform: scale(0.95);
+  }
+
+  /* Para elementos que necesitan respuesta inmediata */
+  .touch-critical {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    min-height: 44px;
+    min-width: 44px;
+    transition: transform 0.1s ease-out;
+  }
+
+  .touch-critical:active {
+    transform: scale(0.92);
+  }
+
   /* Utilidad para ocultar scrollbars pero mantener funcionalidad */
   .scrollbar-none {
     scrollbar-width: none;

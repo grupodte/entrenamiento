@@ -196,7 +196,7 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
         }
     }, [isResting, currentTimerOriginId, obtenerSiguienteElementoInfo]);
 
-    const toggleElementoCompletado = (payload) => {
+    const toggleElementoCompletado = (elementoId, payload = null) => {
         if (typeof payload === 'object' && payload.tipoElemento === 'superset_set') {
             const { childIds, pausa } = payload;
 
@@ -229,12 +229,33 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
             return;
         }
 
-        const elementoId = payload;
+        // Si no hay payload, es el formato anterior (solo toggle)
+        if (!payload) {
+            setElementosCompletados((prev) => {
+                const isAlreadyCompleted = !!prev[elementoId];
+                const newCompletedState = { ...prev, [elementoId]: !isAlreadyCompleted };
+                return newCompletedState;
+            });
+            return;
+        }
+
+        // Nuevo formato: payload contiene datos de la serie completada
         setElementosCompletados((prev) => {
             const isAlreadyCompleted = !!prev[elementoId];
-            const newCompletedState = { ...prev, [elementoId]: !isAlreadyCompleted };
-
+            const newCompletedState = { ...prev };
+            
             if (!isAlreadyCompleted) {
+                // Guardar los datos completos de la serie completada
+                newCompletedState[elementoId] = {
+                    completed: true,
+                    actualCarga: payload.actualCarga,
+                    actualReps: payload.actualReps,
+                    actualDuracion: payload.actualDuracion,
+                    tipoEjecucion: payload.tipoEjecucion,
+                    timestamp: Date.now()
+                };
+
+                // Lógica de pausa y siguiente elemento
                 let tipo = '';
                 if (elementoId.startsWith('simple-')) {
                     tipo = 'simple';
@@ -245,7 +266,7 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
 
                 if (tipo === 'simple') {
                     const serieData = getSerieDataFromElementoId(elementoId);
-                    const pauseDuration = serieData?.pausa ?? 0;
+                    const pauseDuration = payload.pausa || serieData?.pausa || 0;
 
                     const currentIndex = orderedInteractiveElementIds.indexOf(elementoId);
                     const isLastElement = currentIndex === orderedInteractiveElementIds.length - 1;
@@ -261,7 +282,11 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
                         }
                     }
                 }
+            } else {
+                // Desmarcar como completado
+                delete newCompletedState[elementoId];
             }
+
             return newCompletedState;
         });
     };
