@@ -282,13 +282,26 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
     const buildOrderedIdsInternal = (currentRutina) => {
         const ids = [];
 
+        // Función para ordenar los subbloques según su tipo/nombre
+        const sortSubBloques = (a, b) => {
+            const prioridad = (nombre = '') => {
+                nombre = nombre.toLowerCase();
+                if (nombre.includes('calentamiento')) return 0;
+                if (nombre.includes('principal')) return 1;
+                if (nombre.includes('cooldown')) return 2;
+                if (nombre.includes('estiramiento')) return 3;
+                return 4;
+            };
+            return prioridad(a.nombre) - prioridad(b.nombre);
+        };
+
         currentRutina?.bloques
             ?.slice()
             ?.sort((a, b) => a.orden - b.orden)
             ?.forEach(bloque => {
                 bloque.subbloques
                     ?.slice()
-                    ?.sort((a, b) => a.orden - b.orden)
+                    ?.sort(sortSubBloques) // Usar el ordenamiento por tipo de bloque
                     ?.forEach(subbloque => {
                         if (subbloque.tipo === 'simple') {
                             subbloque.subbloques_ejercicios
@@ -450,39 +463,8 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
     useEffect(() => {
         if (!rutina || orderedInteractiveElementIds.length === 0) return;
 
-        const subbloqueCalentamiento = rutina.bloques
-            .flatMap(b => b.subbloques)
-            .find(sb =>
-                sb.tipo?.toLowerCase() === 'calentamiento' ||
-                sb.nombre?.toLowerCase().includes('calentamiento')
-            );
-
-        if (subbloqueCalentamiento) {
-            const idsCalentamiento = [];
-
-            if (subbloqueCalentamiento.tipo === 'simple') {
-                subbloqueCalentamiento.subbloques_ejercicios?.forEach(sbe => {
-                    sbe.series?.forEach(serie => {
-                        idsCalentamiento.push(generarIdSerieSimple(subbloqueCalentamiento.id, sbe.id, serie.nro_set));
-                    });
-                });
-            } else if (subbloqueCalentamiento.tipo === 'superset') {
-                Array.from({ length: subbloqueCalentamiento.num_series_superset || 1 }).forEach((_, setIndex) => {
-                    const setNumero = setIndex + 1;
-                    subbloqueCalentamiento.subbloques_ejercicios?.forEach(sbe => {
-                        idsCalentamiento.push(generarIdEjercicioEnSerieDeSuperset(subbloqueCalentamiento.id, sbe.id, setNumero));
-                    });
-                });
-            }
-
-            const primerIdNoCompletado = idsCalentamiento.find(id => !elementosCompletados[id]);
-
-            if (primerIdNoCompletado) {
-                setElementoActivoId(primerIdNoCompletado);
-                return;
-            }
-        }
-
+        // Buscar el primer elemento no completado en orden global
+        // Esto garantiza que la transición entre bloques funcione correctamente
         const primerIdGeneral = orderedInteractiveElementIds.find(id => !elementosCompletados[id]);
 
         if (primerIdGeneral) {
