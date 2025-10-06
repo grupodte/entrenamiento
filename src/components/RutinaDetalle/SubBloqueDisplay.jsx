@@ -142,8 +142,8 @@ const SubBloqueDisplay = (props) => {
             </div>
 
             {/* Contenido expandible */}
-            <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                isCollapsed ? 'max-h-0 opacity-0' : 'max-h-[2000px] opacity-100'
+            <div className={`transition-all duration-300 ease-in-out overflow-hidden w-full ${
+                isCollapsed ? 'max-h-0 opacity-0' : 'max-h-[2000px] opacity-100 w-full'
             }`}>
                 <div className="pt-4">
                     {subbloque?.tipo === 'simple' &&
