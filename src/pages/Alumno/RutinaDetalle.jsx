@@ -198,25 +198,24 @@ const RutinaDetalle = () => {
                 )}
 
                 {/* Modales y paneles */}
-                <Drawer isOpen={showExitModal} onClose={handleCancelExit} panelClassName="bg-black/90 bg-[url('/src/assets/bg-noise.png ')]">
-                    <div className="p-6 h-full flex flex-col justify-center item-center  pb-safe font-product w-[220px]">
-                        <div className="text-center mb-6 ">
-                       
-                            <h3 className="text-[27px] text-[#FF0000] mb-2  leading-none">
+                <Drawer isOpen={showExitModal} onClose={handleCancelExit} panelClassName=" bg-[url('/src/assets/bg-noise.png')]">
+                    <div className="p-6 h-full flex flex-col items-center justify-center pb-safe font-product min-w-[220px]">
+                        <div className="text-center mb-6 max-w-xs">
+                            <h3 className="text-[27px] text-[#FF0000] mb-2 leading-none">
                                 ¿Salir del entrenamiento?
                             </h3>
-                            <p className="text-white  text-[13px] leading-none">
-                                {pendingNavigation 
+                            <p className="text-white text-[13px] leading-tight">
+                                {pendingNavigation
                                     ? "Estás intentando navegar fuera del entrenamiento. Si continúas, perderás el progreso de esta sesión."
                                     : "Si sales ahora, perderás el progreso de esta sesión."
                                 }
                             </p>
                         </div>
-                        
-                        <div className="space-y-4 " >
+
+                        <div className="space-y-4 w-full max-w-xs">
                             <motion.button
                                 onClick={handleCancelExit}
-                                className="w-full px-4 py-3  rounded-[10px] bg-[#FF0000]  text-[13px]"
+                                className="w-full px-4 py-3 rounded-[10px] bg-[#FF0000] text-white text-[13px]"
                                 whileHover={{ scale: 1.03 }}
                                 whileTap={{ scale: 0.98 }}
                             >
@@ -225,14 +224,13 @@ const RutinaDetalle = () => {
 
                             <motion.button
                                 onClick={handleConfirmExit}
-                                className="w-full px-4 py-3 rounded-[10px]  bg-[#480000] text-[13px]"
+                                className="w-full px-4 py-3 rounded-[10px] bg-[#480000] text-white text-[13px]"
                                 whileHover={{ scale: 1.03 }}
                                 whileTap={{ scale: 0.98 }}
                             >
                                 Salir sin Guardar
                             </motion.button>
                         </div>
-
                     </div>
                 </Drawer>
 

@@ -13,6 +13,7 @@ import WeightTracker from '../../components/Perfil/WeightTracker';
 import cursoImage from '../../assets/perfilbg.webp';
 import rutinaImage from '../../assets/perfilbg2.webp';
 import edit from '../../assets/edit.svg';
+import bgNoiseWhite from '../../assets/bg-noise-white.png';
 
 const fmt = (n, fallback = '–') => (Number.isFinite(n) ? n : fallback);
 
@@ -60,7 +61,7 @@ const StatCard = ({
     </div>
 );
 
-const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
+const PerfilDrawer = ({  isOpen, onClose, onEdit }) => { 
     const navigate = useNavigate();
     const { user } = useAuth();
 
@@ -145,7 +146,7 @@ const PerfilDrawer = ({ isOpen, onClose, onEdit }) => {
     };
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose}>
+        <Drawer isOpen={isOpen} onClose={onClose} panelClassName={`bg-[url('${bgNoiseWhite}')]`}>
             <div className="h-full flex flex-col font-product ">
                 {/* Botón de editar */}
                 <button
