@@ -156,7 +156,7 @@ const RutinaDetalle = () => {
             <div className={`flex flex-col overflow-hidden transition-all duration-300 ${
                 loading ? 'blur-[20px] pointer-events-none' : 'blur-0'
             }`}>
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto ">
                     {/* Contenido principal */}
                     {rutina && (
                         <div className="flex flex-col items-center">

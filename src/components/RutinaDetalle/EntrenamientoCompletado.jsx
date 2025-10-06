@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactDOM from 'react-dom';
 
 // Hook simple para obtener el tamaño de la ventana (necesario para el confeti)
 const useWindowSize = () => {
@@ -45,7 +46,7 @@ const EntrenamientoCompletado = ({
         exit: { opacity: 0, y: 50, scale: 0.9 },
     };
 
-    return (
+    const modalContent = (
         <AnimatePresence>
             {isOpen && (
                 <>
@@ -53,47 +54,58 @@ const EntrenamientoCompletado = ({
 
                     {/* Contenedor principal que cubre toda la pantalla y aplica el blur */}
                     <motion.div
-                        className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-                        style={{ zIndex: 'var(--z-modal)' }}
+                        className="fixed inset-0 bg-black/85 backdrop-blur-[10px]"
+                        style={{ 
+                            zIndex: 99999, // Usar z-index muy alto como el Drawer
+                            height: '100dvh',
+                            maxHeight: '100dvh'
+                        }}
                         variants={backdropVariants}
                         initial="hidden"
                         animate="visible"
                         exit="hidden"
                     >
-                        {/* Contenido del Modal (tu componente original adaptado) */}
-                        <motion.div
-                            variants={modalVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                            className="relative text-center p-6 bg-gray-800 rounded-xl shadow-lg w-11/12 max-w-md"
-                        >
-                            <h2 className="text-2xl font-bold text-green-400">¡Entrenamiento completado!</h2>
-                            <p className="text-gray-300 mt-2 mb-4">¡Gran trabajo! Has finalizado todos los ejercicios.</p>
-
-                            <div className="grid grid-cols-2 gap-4 text-white my-4">
-                                <div className="bg-gray-700/50 p-3 rounded-lg">
-                                    <p className="text-sm text-gray-400">Tiempo Total</p>
-                                    <p className="text-xl font-bold">{formatWorkoutTime(workoutTime)}</p>
-                                </div>
-                                <div className="bg-gray-700/50 p-3 rounded-lg">
-                                    <p className="text-sm text-gray-400">Series Completadas</p>
-                                    <p className="text-xl font-bold">{seriesCompletadas}</p>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={handleFinalizarYGuardar}
-                                className="mt-4 w-full bg-green-500 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 text-lg"
+                        {/* Contenedor flex para centrar el modal */}
+                        <div className="w-full h-full flex items-center justify-center p-4">
+                            {/* Contenido del Modal */}
+                            <motion.div
+                                variants={modalVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="relative text-center p-6 justify-center item-center flex flex-col  w-full max-w-md mx-auto"
                             >
-                                Finalizar y Guardar
-                            </button>
-                        </motion.div>
+                                <h2 className="text-[27px]  text-[#FF0000] leading-none mb-8">¡Entrenamiento completado!</h2>
+                                <p className="text-[#FFFFFF] text-[13px] mt-2 mb-2">¡Gran trabajo! Has finalizado todos los ejercicios.</p>
+
+                                <div className="my-4 mx-auto grid grid-flow-col auto-cols-max gap-4">
+                                    <div className="bg-[#121212] p-3 rounded-[10px] h-[96px] w-[116px] flex flex-col justify-center items-center">
+                                        <p className="text-[13px] text-[#626262] leading-none">Tiempo Total</p>
+                                        <p className="text-[33px] font-bold text-[#FF0000]">{formatWorkoutTime(workoutTime)}</p>
+                                    </div>
+                                    <div className="bg-[#121212] p-3 rounded-[10px] h-[96px] w-[116px] flex flex-col justify-center items-center">
+                                        <p className="text-[13px] text-[#626262] leading-none">Series Completadas</p>
+                                        <p className="text-[33px] font-bold text-[#FF0000]">{seriesCompletadas}</p>
+                                    </div>
+                                </div>
+
+
+
+                                <button
+                                    onClick={handleFinalizarYGuardar}
+                                    className="mt-4 w-[192px] bg-[#FF0000] text-[#FFFFFF] py-3 px-6 rounded-[10px] text-[13px] flex justify-center items-center mx-auto"
+                                >
+                                    Finalizar y Guardar
+                                </button>
+                            </motion.div>
+                        </div>
                     </motion.div>
                 </>
             )}
         </AnimatePresence>
     );
+
+    return ReactDOM.createPortal(modalContent, document.body);
 };
 
 export default EntrenamientoCompletado;
