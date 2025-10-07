@@ -549,8 +549,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                 {loading ? (
                     <div className="flex-1 flex justify-center items-center">
                         <div className="text-center">
-                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mb-2"></div>
-                            <p className="text-gray-400">Cargando perfil...</p>
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF0000] mb-2"></div>
                         </div>
                     </div>
                 ) : (

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import saveIcon from '../../assets/save.svg';
 
 const WeightTracker = ({ userId }) => {
     const [loading, setLoading] = useState(false);
@@ -126,9 +127,17 @@ const WeightTracker = ({ userId }) => {
                 <button
                     onClick={onSave}
                     disabled={saving}
-                    className="px-3 py-2 rounded-lg bg-[#FF0000] text-[#000000] text-sm font-semibold hover:bg-cyan-300 disabled:opacity-60"
+                    className="h-[40px] w-[54px] rounded-[17px] bg-[#FF0000] text-[#000000]  flex items-center justify-center"
                 >
-                    {saving ? 'Guardando…' : 'Guardar'}
+                    {saving ? (
+                        'Guardando…'
+                    ) : (
+                        <img 
+                            src={saveIcon} 
+                            alt="save" 
+                            className="w-[18px] h-[18px]" 
+                        />
+                    )}
                 </button>
             </div>
 

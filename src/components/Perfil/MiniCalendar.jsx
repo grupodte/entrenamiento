@@ -49,18 +49,18 @@ const MiniCalendar = ({ trainingDays = [], className = '' }) => {
     }, [trainingDays]);
     
     return (
-        <div className={`bg-black border rounded-[10px] p-3 ${className}`}>
+        <div className={`bg-black border-none rounded-[10px] p-3 ${className}`}>
             {/* Header del calendario */}
             <div className="text-center mb-2">
-                <h3 className="text-[15px] font-bold text-[#FFFFFF]">
-                    {calendarData.monthName} {calendarData.year}
+                <h3 className="text-[15px] font-bold text-[#FF0000]">
+                    {calendarData.monthName}
                 </h3>
             </div>
             
             {/* Días de la semana */}
             <div className="grid grid-cols-7 gap-0.5 mb-1">
                 {DIAS_SEMANA.map((dia, index) => (
-                    <div key={index} className="px-2 text-left text-[13px]  text-[#FFFFFF] py-1">
+                    <div key={index} className="px-2 text-left text-[15px]  text-[#FFFFFF] py-1">
                         {dia}
                     </div>
                 ))}
@@ -81,14 +81,14 @@ const MiniCalendar = ({ trainingDays = [], className = '' }) => {
                         <div
                             key={index}
                             className={`
-                                w-6 h-6 rounded-md flex items-center justify-center text-[13px] 
+                                w-6 h-6 rounded-md flex items-center justify-center text-[15px] 
                                 border-none
                                 ${hasTraining 
-                                    ? 'bg-[#FF0000] text-white ' 
+                                ? 'bg-[#47D065] text-[#FFFFFF]  ' 
                                     : 'text-[#FFFFFF]/80 '
                                 }
                                 ${isToday 
-                                ? 'ring-1 ring-[#FF0000]' 
+                                ? 'ring-1 ring-[#47D065]' 
                                     : ''
                                 }
                             `}

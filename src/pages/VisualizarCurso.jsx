@@ -23,10 +23,10 @@ import {
   FileText,
   Download,
   Menu,
-  X,
-  SkipBack,
-  SkipForward
+  X
 } from 'lucide-react';
+import SwipeBack from '../assets/swipe-back.svg';
+import SwipeForward from '../assets/swipe-forward.svg';
 
 const VisualizarCurso = () => {
   const { cursoId } = useParams();
@@ -223,12 +223,12 @@ const VisualizarCurso = () => {
     const totalLecciones = modulo.lecciones?.length || 0;
 
     return (
-      <div className="rounded-lg overflow-hidden">
+      <div className=" overflow-hidden mx-auto w-full flex flex-col gap-2">
         <button
           onClick={() => toggleModulo(modulo.id)}
-          className="w-full p-3 md:p-4 bg-gray-800/30 hover:bg-gray-700/30 transition-colors flex items-center justify-between text-left"
+          className="p-4 border-[1px] rounded-[10px] border-[#92929] flex items-center justify-between text-left"
         >
-          <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+          <div className="flex items-center gap-2 md:gap-3 ">
             <div className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 bg-purple-600 rounded-lg text-white font-bold text-xs md:text-sm flex-shrink-0">
               {index + 1}
             </div>
@@ -349,7 +349,7 @@ const VisualizarCurso = () => {
   }
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen pt-20 ">
       {/* Header Responsive */}
       <div className="sticky top-0 z-30">
         <div className="px-4 md:px-6 py-3 md:py-4">
@@ -362,135 +362,34 @@ const VisualizarCurso = () => {
                 <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
                 <span className="hidden sm:inline text-sm md:text-base">Mis Cursos</span>
               </button>
-              <ChevronRight className="w-3 h-3 md:w-4 md:h-4 text-gray-600 hidden sm:block" />
-              <h1 className="text-sm md:text-xl font-semibold text-white truncate">{curso?.titulo}</h1>
             </div>
             
         
             
-            {/* Toggle Desktop Sidebar Button - Solo visible en desktop */}
-            <button
-              onClick={() => setSidebarColapsado(!sidebarColapsado)}
-              className="hidden lg:flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors"
-            >
-              {sidebarColapsado ? (
-                <>
-                  <ChevronsLeft className="w-4 h-4" />
-                  <span className="text-sm">Mostrar contenido</span>
-                </>
-              ) : (
-                <>
-                  <ChevronsRight className="w-4 h-4" />
-                  <span className="text-sm">Ocultar contenido</span>
-                </>
-              )}
-            </button>
+        
           </div>
         </div>
       </div>
 
       {/* Layout Responsive */}
-      <div className="flex flex-col lg:flex-row relative">
-        {/* Área principal de contenido */}
-        <div className={`flex-1 min-h-0 transition-all duration-300 ${sidebarColapsado ? '' : 'lg:mr-96'}`}>
-          {/* Video Player Responsive */}
-          <div className="relative">
-            <div className="aspect-video bg-black">
-              {leccionActual?.video_url ? (
-                <VideoPlayer
-                  src={leccionActual.video_url}
-                  title={leccionActual.titulo}
-                  onProgressUpdate={handleVideoProgress}
-                  onVideoComplete={() => marcarLeccionCompletada(leccionActual.id, true)}
-                  allowDownload={false}
-                  className="w-full h-full "
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <div className="text-center p-4">
-                    <Play className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-sm md:text-base">Selecciona una lección para comenzar</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+      <div className="flex flex-col w-auto mx-auto ">
 
-          {/* Navegación móvil entre lecciones */}
-          <div className="lg:hidden bg-gray-800/50 border-t border-gray-700 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => anterior && seleccionarLeccion(anterior)}
-                disabled={!anterior}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                  anterior 
-                    ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                    : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                <SkipBack className="w-4 h-4" />
-                <span className="text-sm">Anterior</span>
-              </button>
-              
-              <button
-                onClick={() => setMenuMovilAbierto(true)}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                <span className="text-sm font-medium">Ver lecciones</span>
-              </button>
-              
-              <button
-                onClick={() => siguiente && seleccionarLeccion(siguiente)}
-                disabled={!siguiente}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                  siguiente 
-                    ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                    : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                <span className="text-sm">Siguiente</span>
-                <SkipForward className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
+    
           {/* Información de la lección actual */}
           {leccionActual && (
-            <div className="p-4 md:p-6 bg-gray-800/30">
+          <div className="p-4 md:p-6  bg-[#000000]">
               <div className="max-w-4xl">
-                <h2 className="text-lg md:text-2xl font-bold text-white mb-2">
+              <h2 className="text-[27px]  leading-none font-bold text-[#F04444] mb-2">
                   {leccionActual.titulo}
                 </h2>
                 
                 {leccionActual.descripcion && (
-                  <p className="text-gray-400 mb-4 text-sm md:text-base">
+                  <p className="text-[#FFFFFF]  mb-4 text-[13px]">
                     {leccionActual.descripcion}
                   </p>
                 )}
 
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
-                    <Clock className="w-4 h-4" />
-                    <span>
-                      {leccionActual.duracion_segundos ? 
-                        `${Math.ceil(leccionActual.duracion_segundos / 60)} min` : 
-                        'Duración no disponible'
-                      }
-                    </span>
-                  </div>
-                  
-                  <button
-                    onClick={() => marcarLeccionCompletada(leccionActual.id, !progreso[leccionActual.id]?.completada)}
-                    className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      progreso[leccionActual.id]?.completada 
-                        ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                        : 'bg-gray-600/20 text-gray-400 hover:bg-gray-600/30 border border-gray-600/30'
-                    }`}
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    {progreso[leccionActual.id]?.completada ? 'Completada' : 'Marcar completada'}
-                  </button>
-                </div>
+              
 
                 {leccionActual.contenido && (
                   <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
@@ -504,64 +403,87 @@ const VisualizarCurso = () => {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Desktop Sidebar */}
-        <div className={`hidden lg:block fixed top-0 right-0 w-96 bg-gray-800/50 border-l border-gray-700 h-screen overflow-y-auto transition-transform duration-300 z-40 ${
-          sidebarColapsado ? 'translate-x-full' : 'translate-x-0'
-        }`}>
-          <div className="p-4 border-b border-gray-700" style={{ marginTop: '73px' }}>
-            <h3 className="text-lg font-semibold text-white">Contenido del curso</h3>
-            <p className="text-sm text-gray-400">
-              {modulos.length} módulos • {modulos.reduce((total, m) => total + (m.lecciones?.length || 0), 0)} lecciones
-            </p>
-          </div>
           
-          <div className="p-4 space-y-3">
-            {modulos.map((modulo, index) => (
-              <ModuloItem key={modulo.id} modulo={modulo} index={index} />
-            ))}
+
+      </div>
+
+      {/* Área principal de contenido */}
+      <div className={`flex-1 min-h-0 transition-all duration-300 ${sidebarColapsado ? '' : 'lg:mr-96'}`}>
+        {/* Video Player Responsive */}
+        <div className="relative">
+          <div className="aspect-video ">
+            {leccionActual?.video_url ? (
+              <VideoPlayer
+                src={leccionActual.video_url}
+                title={leccionActual.titulo}
+                onProgressUpdate={handleVideoProgress}
+                onVideoComplete={() => marcarLeccionCompletada(leccionActual.id, true)}
+                allowDownload={false}
+                className="w-full h-full rounded-none "
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="text-center p-4">
+                  <Play className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-sm md:text-base">Selecciona una lección para comenzar</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Modal/Drawer móvil para contenido del curso con blur */}
-        <AnimatePresence>
-          {menuMovilAbierto && (
-            <>
-              {/* Overlay con blur */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-md z-40 "
-                onClick={() => setMenuMovilAbierto(false)}
-              />
-              
-              {/* Modal Content */}
-              <motion.div
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className=" lg:hidden fixed  right-0 w-full bg-gray-800/20 sm:w-80 max-w-xs h-full z-50 overflow-y-auto overflow-x-hidden  shadow-2xl"
-              >
-            
-                
-                {/* Lista de módulos y lecciones */}
-                <div className="p-4 space-y-3 pb-8">
-                  {modulos.map((modulo, index) => (
-                    <ModuloItem 
-                      key={modulo.id} 
-                      modulo={modulo} 
-                      index={index}
-                      onLeccionSelect={() => setMenuMovilAbierto(false)}
-                    />
-                  ))}
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
+        {/* Navegación móvil entre lecciones */}
+        <div className="p-2">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => anterior && seleccionarLeccion(anterior)}
+              disabled={!anterior}
+              className={`flex items-center justify-center gap-2 h-[41px] w-[124px] rounded-[10px]  transition-colors ${anterior
+                  ? 'bg-[#D9D9D9] hover:bg-gray-600 text-[#222020]'
+                  : 'bg-[#D9D9D9] text-[#222020] cursor-not-allowed'
+                }`}
+            >
+              <img src={SwipeBack} alt="Anterior" className="w-4 h-4" />
+              <span className="text-sm">Anterior</span>
+            </button>
+
+            <button
+              onClick={() => setMenuMovilAbierto(true)}
+              className="bg-[#F84B4B] text-[15px] text-[#FFFFFF] w-[123px] h-[41px]  rounded-[10px] leading-none"
+            >
+              <span className="">Ver lecciones</span>
+            </button>
+
+            <button
+              onClick={() => siguiente && seleccionarLeccion(siguiente)}
+              disabled={!siguiente}
+              className={` flex items-center justify-center gap-2 h-[41px] w-[124px] rounded-[10px]  transition-colors ${siguiente
+                  ? 'bg-[#D9D9D9] hover:bg-gray-600 text-[#222020]'
+                  : 'bg-[#D9D9D9] text-[#222020] cursor-not-allowed'
+                }`}
+            >
+              <span className="text-sm">Siguiente</span>
+              <img src={SwipeForward} alt="Siguiente" className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="mt-[50px] w-[261px] justify-center flex flex-col text-center mx-auto">
+
+            <button
+              onClick={() => marcarLeccionCompletada(leccionActual.id, !progreso[leccionActual.id]?.completada)}
+              className={` flex items-center justify-center gap-2 h-[41px]  rounded-[10px] text-[17px] ${progreso[leccionActual.id]?.completada
+                ? 'bg-[#47D065] text-[#222020]'
+                : 'bg-[#D9D9D9] text-[#222020]'
+                }`}
+            >
+              {progreso[leccionActual.id]?.completada ? 'Completada' : 'Marcar completada'}
+            </button>
+
+          </div>
+        </div>
+
+
+
       </div>
     </div>
   );

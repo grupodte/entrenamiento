@@ -222,9 +222,8 @@ const PerfilDrawer = ({  isOpen, onClose, onEdit }) => {
                             leftValue={monthlyProgress.texto}
                             leftSufix=""
                             label={{
-                                line1: 'Entrenamientos del mes',
+                                line1: 'Entrenamientos realizados en el mes',
                             }}
-                            gradient="from-blue-600/80 to-fuchsia-500/40"
                         />
 
                         {/* Control de Peso */}

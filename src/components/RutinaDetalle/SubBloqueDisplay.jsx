@@ -94,7 +94,7 @@ const SubBloqueDisplay = (props) => {
         >
             {/* Header de la tarjeta */}
             <div
-                className="w-full flex items-center justify-between pr-2 cursor-pointer"
+                className="w-full flex items-center justify-between  cursor-pointe bg-[#F6F5F5] w-[#370] h-[87px] px-4 rounded-[10px]  "
                 onClick={handleToggleCollapse}
             >
                 <div className="flex items-center gap-3">

@@ -66,15 +66,14 @@ const MisCursos = () => {
 
   const CursoCard = ({ acceso, curso }) => (
     <motion.div
-      className="bg-gray-800/50 backdrop-blur-sm rounded-lg md:rounded-xl overflow-hidden border border-gray-700/50 hover:border-purple-500/30 transition-all duration-300 cursor-pointer"
+      className="bg-[#121212] py-4 min-h-[440px] min-w-[363px] rounded-[10px] overflow-hidden flex flex-col justify-center items-center  cursor-pointer p-2"
       whileHover={{ y: -2 }}
       onClick={() => navigate(`/curso/${curso.id}`)}
     >
-      <div className="relative h-32 md:h-40">
+      <div className="relative h-[206px] w-[321px] ">
         {curso.imagen_portada ? (
           <img 
             src={curso.imagen_portada} 
-            alt={curso.titulo}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -83,7 +82,7 @@ const MisCursos = () => {
           </div>
         )}
 
-        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
           <motion.div
             className="bg-white/20 backdrop-blur-sm rounded-full p-2 md:p-3"
             whileHover={{ scale: 1.1 }}
@@ -92,48 +91,31 @@ const MisCursos = () => {
           </motion.div>
         </div>
 
-        <div className="absolute top-2 left-2">
-          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-            acceso.tipo_acceso === 'comprado' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
-            'bg-green-500/20 text-green-400 border border-green-500/30'
-          }`}>
-            {acceso.tipo_acceso === 'comprado' ? 'Comprado' : 'Regalo'}
-          </div>
-        </div>
+        
       </div>
 
       <div className="p-3 md:p-4">
         <div className="flex items-start justify-between mb-2">
-          <h3 className="text-base md:text-lg font-bold text-white line-clamp-2 flex-1">
+          <h3 className="text-[27px] text-[#B5B5B5] leading-none">
             {curso.titulo}
           </h3>
-          <div className="flex items-center gap-1 ml-2">
-            <Star className="w-3 h-3 md:w-4 md:h-4 text-yellow-400 fill-current" />
-            <span className="text-xs md:text-sm text-gray-400">{curso.rating_promedio || 0}</span>
-          </div>
+        
         </div>
 
-        <div className="flex items-center gap-2 mb-2 md:mb-3">
-          <User className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
-          <span className="text-xs md:text-sm text-gray-400 truncate">{curso.instructor}</span>
-          <span className="text-gray-600">•</span>
-          <span className="text-xs bg-gray-700 text-gray-300 px-1.5 py-0.5 rounded-full">
-            {curso.categoria}
-          </span>
-        </div>
+    
 
-        <p className="text-gray-400 text-xs md:text-sm mb-3 md:mb-4 line-clamp-2">
+        <p className="text-[#B5B5B5] text-[13px] leading-none md:text-sm mb-3 md:mb-4 ">
           {curso.descripcion || 'Sin descripción disponible'}
         </p>
 
         <motion.button
-          className="w-full hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-2.5 md:py-3 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 text-sm md:text-base"
+          className="w-full  text-[23px]  font-bold  py-2.5 flex items-center justify-center gap-2  text-[#F84B4B]"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <PlayCircle className="w-4 h-4 md:w-5 md:h-5" />
           Ver Curso
-          <ArrowRight className="w-3 h-3 md:w-4 md:h-4 ml-1" />
+          <PlayCircle className="w-[24px] h-[24px]" />
+
         </motion.button>
       </div>
     </motion.div>
@@ -141,7 +123,7 @@ const MisCursos = () => {
 
 
   return (
-    <div className={`min-h-screen p-3 sm:p-4 md:p-6 transition-all duration-300 ${loading ? 'blur-[20px] pointer-events-none' : 'blur-0'}`}>
+    <div className={`min-h-screen mt-10 p-3 sm:p-4 md:p-6 transition-all flex flex-col  duration-300 ${loading ? 'blur-[20px] pointer-events-none' : 'blur-0'}`}>
       <div className="max-w-7xl mx-auto">
 
 
