@@ -3,13 +3,15 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import {
     FaUtensils,
-    FaDownload,
     FaSpinner,
     FaCalendarAlt,
     FaInfoCircle,
     FaTag,
 } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import DietaSlider from '../../assets/dieta-slider.png';
+import DownloadDietIcon from '../../assets/download-diet.svg';
+import DocIcon from '../../assets/doc.svg';
 
 const DietasAlumno = () => {
     const { user } = useAuth();
@@ -253,32 +255,24 @@ const DietasAlumno = () => {
         return tipos[tipo] || { label: tipo || 'General', color: 'bg-gray-500/20 text-gray-400' };
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-svh text-white flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <FaSpinner className="w-8 h-8 animate-spin text-cyan-500" />
-                    <p className="text-white/60">Cargando tus dietas...</p>
-                </div>
-            </div>
-        );
-    }
+
+    
 
     return (
-        <div className="min-h-svh text-white">
-            <main className="max-w-screen-md mx-auto px-4 py-6 pb-[env(safe-area-inset-bottom)] space-y-6">
+        <div className="mt-10  ">
+            <main className=" mx-auto px-2 pt-6 space-y-2 ">
                 {/* Header */}
-                <div className="text-center space-y-2">
-                    <div className="flex items-center justify-center gap-3 mb-4">
-                        <div className="p-3 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500">
-                            <FaUtensils className="w-6 h-6 text-white" />
-                        </div>
-                        <h1 className="text-2xl font-bold">Mis Dietas</h1>
+                <div className=" mx-auto rounded-[10px] overflow-hidden relative">
+                    <img
+                        src={DietaSlider}
+                        alt="Imagen de dietas"
+                        className=" w-[380px] h-[161px] object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <h1 className="text-white text-[27px]">Mis dietas</h1>
                     </div>
-                    <p className="text-white/60 text-sm">
-                        Aquí encontrarás todas las dietas asignadas para ti
-                    </p>
                 </div>
+
 
                 {/* Lista de dietas */}
                 {dietas.length === 0 ? (
@@ -304,48 +298,22 @@ const DietasAlumno = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}
                                     transition={{ delay: index * 0.1 }}
-                                    className="rounded-2xl p-5 bg-white/[0.03] border border-white/10 backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.35)]"
+                                    className="rounded-[10px] px-2 py-4 bg-[#D9D9D9]"
                                 >
                                     {/* Header de la dieta */}
-                                    <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-start justify-between ">
                                         <div className="flex-1">
-                                            <h3 className="text-lg font-semibold mb-1">
+                                            <h3 className="text-[20px] text-[#000000] mb-1">
                                                 {dieta.nombre}
                                             </h3>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                {dieta.tipo && (
-                                                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${getTipoBadge(dieta.tipo).color}`}>
-                                                        <FaTag className="w-3 h-3" />
-                                                        {getTipoBadge(dieta.tipo).label}
-                                                    </span>
-                                                )}
-                                                {dieta.calorias && (
-                                                    <span className="text-xs text-white/60 bg-white/5 px-2 py-1 rounded-lg">
-                                                        {dieta.calorias} kcal
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className="flex items-center gap-2 text-xs text-white/60">
-                                                <FaCalendarAlt className="w-3 h-3" />
-                                                <span>
-                                                    Asignada el {formatearFecha(dieta.fecha_asignacion)}
-                                                </span>
-                                                <span className={`px-2 py-1 rounded-full text-xs ${
-                                                    dieta.tipo_asignacion === 'directa' 
-                                                        ? 'bg-cyan-500/20 text-cyan-400' 
-                                                        : 'bg-purple-500/20 text-purple-400'
-                                                }`}>
-                                                    {dieta.tipo_asignacion === 'directa' ? 'Personal' : 'Grupal'}
-                                                </span>
-                                            </div>
+                                    
+                                           
                                         </div>
                                     </div>
 
                                     {/* Archivos - Solo mostrar archivos múltiples */}
                                     <div className="space-y-3">
-                                        <h4 className="text-sm font-medium text-white/80 mb-3">
-                                            Archivos ({dieta.archivos?.length || 0})
-                                        </h4>
+                                      
                                         {dieta.archivos && dieta.archivos.length > 0 ? dieta.archivos.map((archivo, archivoIndex) => {
                                             const fileId = `${dieta.id}-${archivo?.name || archivo?.nombre || 'archivo'}`;
                                             const fileExtension = (archivo?.name || archivo?.nombre)?.split('.')?.pop()?.toLowerCase();
@@ -358,52 +326,27 @@ const DietasAlumno = () => {
                                                     whileTap={{ scale: 0.98 }}
                                                     onClick={() => descargarArchivo(dieta, archivo)}
                                                     disabled={downloadingFile === fileId}
-                                                    className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 hover:border-green-400/40 hover:from-green-500/20 hover:to-emerald-500/20 transition-all duration-300 disabled:opacity-50 group"
+                                                    className="w-full flex items-center justify-between p-4 rounded-[10px] bg-[#121212] "
                                                 >
                                                     <div className="flex items-center gap-4">
-                                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                                                            isPDF ? 'bg-red-500/20 text-red-400 group-hover:bg-red-500/30' :
-                                                            isImage ? 'bg-purple-500/20 text-purple-400 group-hover:bg-purple-500/30' :
-                                                            'bg-cyan-500/20 text-cyan-400 group-hover:bg-cyan-500/30'
-                                                        }`}>
-                                                            {isPDF ? (
-                                                                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                                                                </svg>
-                                                            ) : isImage ? (
-                                                                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                                                                </svg>
-                                                            ) : (
-                                                                <FaUtensils className="w-5 h-5" />
-                                                            )}
+                                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors`}>
+                                                        
+                                                                <img src={DocIcon} alt="Documento" className="w-[30px] h-[37px]" />
+                                                       
                                                         </div>
                                                         <div className="text-left flex-1">
-                                                            <p className="text-sm font-semibold text-white group-hover:text-white/90 transition-colors">
+                                                            <p className="text-[15px] text-[#b5b5b5] ">
                                                                 {archivo?.name || archivo?.nombre || 'Archivo sin nombre'}
                                                             </p>
-                                                            <div className="flex items-center gap-3 mt-1">
-                                                                {archivo?.size && (
-                                                                    <span className="text-xs text-white/60">
-                                                                        {(archivo.size / (1024 * 1024)).toFixed(1)} MB
-                                                                    </span>
-                                                                )}
-                                                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                                                    isPDF ? 'bg-red-500/20 text-red-300' :
-                                                                    isImage ? 'bg-purple-500/20 text-purple-300' :
-                                                                    'bg-cyan-500/20 text-cyan-300'
-                                                                }`}>
-                                                                    {fileExtension?.toUpperCase() || 'ARCHIVO'}
-                                                                </span>
-                                                            </div>
+                                                           
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center">
                                                         {downloadingFile === fileId ? (
                                                             <FaSpinner className="w-5 h-5 animate-spin text-green-400" />
                                                         ) : (
-                                                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-500/20 text-green-400 group-hover:bg-green-500/30 transition-colors">
-                                                                <FaDownload className="w-4 h-4" />
+                                                            <div className="flex items-center justify-center w-10 h-10 ">
+                                                                <img src={DownloadDietIcon} alt="Descargar" className="w-[40px] h-[40px]" />
                                                             </div>
                                                         )}
                                                     </div>
