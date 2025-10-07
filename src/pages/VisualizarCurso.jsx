@@ -11,7 +11,6 @@ import {
   CheckCircle,
   ChevronRight,
   ChevronDown,
-  ArrowLeft,
   Lock,
   ChevronLeft,
   ChevronsLeft,
@@ -25,6 +24,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
+import ArrowBackIcon from '../assets/arrow-back.svg';
 import SwipeBack from '../assets/swipe-back.svg';
 import SwipeForward from '../assets/swipe-forward.svg';
 
@@ -226,14 +226,14 @@ const VisualizarCurso = () => {
       <div className=" overflow-hidden mx-auto w-full flex flex-col gap-2">
         <button
           onClick={() => toggleModulo(modulo.id)}
-          className="p-4 border-[1px] rounded-[10px] border-[#92929] flex items-center justify-between text-left"
+          className="p-4 border-[1px] rounded-[10px] border-[#ffffff]/20 flex items-center justify-between text-left"
         >
           <div className="flex items-center gap-2 md:gap-3 ">
-            <div className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 bg-purple-600 rounded-lg text-white font-bold text-xs md:text-sm flex-shrink-0">
+            <div className="flex items-center justify-center w-[42px] h-[42px] md:w-8 md:h-8 bg-[#FF0000] rounded-[5px] text-[#000000] font-bold text-[33px]  flex-shrink-0">
               {index + 1}
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-white font-semibold text-sm md:text-base truncate">{modulo.titulo}</h3>
+              <h3 className="text-white font-semibold text-[20px] leading-none">{modulo.titulo}</h3>
               <p className="text-gray-400 text-xs md:text-sm">
                 {leccionesCompletadas}/{totalLecciones} lecciones
               </p>
@@ -274,42 +274,27 @@ const VisualizarCurso = () => {
                         seleccionarLeccion(leccion);
                         if (onLeccionSelect) onLeccionSelect();
                       }}
-                      className={` w-full p-3 md:p-4 text-left hover:bg-gray-700/30 transition-colors  flex items-center gap-3 ${
-                        isActive ? 'bg-purple-600/20 border-l-4 border-l-purple-500' : ''
+                      className={` w-full p-3 md:p-4 text-left  transition-colors  flex items-center gap-3 mb-2 ${
+                        isActive ? 'bg-[#F84B4B]/20 border-[1px] border-[#FFFFFF]/20 rounded-[10px] ' : 'bg-[#F84B4B]/20 border-[1px] border-[#FFFFFF]/20 rounded-[10px]'
                       }`}
                     >
-                      <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        isCompleted ? 'bg-green-500' : isActive ? 'bg-purple-500' : 'bg-gray-600'
+                      <div className={`w-[42px] h-[42px] rounded-[5px] flex items-center justify-center flex-shrink-0 ${
+                        isCompleted ? 'bg-green-500' : isActive ? 'bg-[#FF0000] ' : 'bg-[#FF0000]'
                       }`}>
                         {isCompleted ? (
-                          <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                          <CheckCircle className="w-[20px] h-[20px] text-black" />
                         ) : (
-                          <Play className="w-2.5 h-2.5 md:w-3 md:h-3 text-white ml-0.5" />
+                            <Play className="w-[20px] h-[20px] text-black " />
                         )}
                       </div>
                       
                       <div className="flex-1 min-w-0">
                         <h4 className="text-white font-medium text-sm md:text-base truncate">{leccion.titulo}</h4>
-                        <div className="flex items-center gap-2 text-xs md:text-sm text-gray-400 flex-wrap">
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            <span>
-                              {leccion.duracion_segundos ? 
-                                `${Math.ceil(leccion.duracion_segundos / 60)} min` : 
-                                'N/A'
-                              }
-                            </span>
-                          </div>
-                          {leccion.es_preview && (
-                            <span className="text-green-400 bg-green-500/20 px-2 py-0.5 rounded-full text-xs">
-                              Preview
-                            </span>
-                          )}
-                        </div>
+                    
                       </div>
                       
                       {isActive && (
-                        <ChevronRight className="w-3 h-3 md:w-4 md:h-4 text-purple-400 flex-shrink-0" />
+                        <ChevronRight className="w-[20px] h-[20px] text-[#FF0000] flex-shrink-0" />
                       )}
                     </button>
                   );
@@ -349,18 +334,17 @@ const VisualizarCurso = () => {
   }
 
   return (
-    <div className="min-h-screen pt-20 ">
+    <div className="min-h-screen pt-10 ">
       {/* Header Responsive */}
       <div className="sticky top-0 z-30">
-        <div className="px-4 md:px-6 py-3 md:py-4">
+        <div className="w-full justify-center flex flex-col m-auto">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+            <div className="flex items-center ">
               <button
                 onClick={() => navigate('/mis-cursos')}
-                className="flex items-center gap-1 md:gap-2 text-gray-400 hover:text-white transition-colors flex-shrink-0"
+                className="flex p-6 "
               >
-                <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
-                <span className="hidden sm:inline text-sm md:text-base">Mis Cursos</span>
+                <img src={ArrowBackIcon} alt="Mis Cursos" className= " w-[25px] h-[25px] " />
               </button>
             </div>
             
@@ -408,7 +392,7 @@ const VisualizarCurso = () => {
       </div>
 
       {/* Área principal de contenido */}
-      <div className={`flex-1 min-h-0 transition-all duration-300 ${sidebarColapsado ? '' : 'lg:mr-96'}`}>
+      <div className={`flex-1 min-h-0 transition-all duration-300 w-full ${sidebarColapsado ? '' : 'lg:mr-96'}`}>
         {/* Video Player Responsive */}
         <div className="relative">
           <div className="aspect-video ">
@@ -467,7 +451,7 @@ const VisualizarCurso = () => {
             </button>
           </div>
 
-          <div className="mt-[50px] w-[261px] justify-center flex flex-col text-center mx-auto">
+          <div className="mt-[50px] md:mt-[20px] w-[261px] justify-center flex flex-col text-center mx-auto">
 
             <button
               onClick={() => marcarLeccionCompletada(leccionActual.id, !progreso[leccionActual.id]?.completada)}
@@ -485,6 +469,56 @@ const VisualizarCurso = () => {
 
 
       </div>
+
+      {/* Drawer de lecciones para móvil */}
+      <AnimatePresence>
+        {menuMovilAbierto && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMenuMovilAbierto(false)}
+              className="fixed inset-0 bg-black/50 z-50"
+            />
+            
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'tween', duration: 0.3 }}
+              className="fixed top-0 pt-10 right-0 h-full w-full max-w-md bg-[#191919]/90 backdrop-blur-md z-50 flex flex-col"
+            >
+              {/* Header del drawer */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-700/50">
+              
+                <button
+                  onClick={() => setMenuMovilAbierto(false)}
+                  className="w-10  h-10 flex items-center justify-center "
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+
+              {/* Contenido scrolleable */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {modulos.map((modulo, index) => (
+                  <ModuloItem
+                    key={modulo.id}
+                    modulo={modulo}
+                    index={index}
+                    onLeccionSelect={() => setMenuMovilAbierto(false)}
+                  />
+                ))}
+              </div>
+
+          
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

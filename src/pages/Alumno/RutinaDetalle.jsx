@@ -198,7 +198,7 @@ const RutinaDetalle = () => {
                 )}
 
                 {/* Modales y paneles */}
-                <Drawer isOpen={showExitModal} onClose={handleCancelExit} panelClassName=" bg-[url('/src/assets/bg-noise.png')]">
+                <Drawer isOpen={showExitModal} onClose={handleCancelExit} panelClassName="max-w-[420px] bg-[url('/src/assets/bg-noise.png')]">
                     <div className="p-6 h-full flex flex-col items-center justify-center pb-safe font-product min-w-[220px]">
                         <div className="text-center mb-6 max-w-xs">
                             <h3 className="text-[27px] text-[#FF0000] mb-2 leading-none">

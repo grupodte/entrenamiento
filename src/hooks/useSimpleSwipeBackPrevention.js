@@ -58,6 +58,47 @@ const useIOSBackSwipeBlock = ({
     const isNearRightEdge = touchX >= screenWidth - edgePixels;
     
     if (isNearLeftEdge || isNearRightEdge) {
+      // Check if the touch target is an interactive element
+      const target = event.target;
+      const isInteractiveElement = target && (
+        target.tagName === 'BUTTON' ||
+        target.tagName === 'A' ||
+        target.tagName === 'INPUT' ||
+        target.tagName === 'SELECT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.getAttribute('role') === 'button' ||
+        target.getAttribute('onclick') !== null ||
+        target.classList.contains('clickable') ||
+        target.classList.contains('touch-action-manipulation') ||
+        target.closest('button') !== null ||
+        target.closest('a') !== null ||
+        target.closest('[role="button"]') !== null ||
+        target.closest('.clickable') !== null
+      );
+      
+      // Don't prevent default if touching an interactive element
+      if (isInteractiveElement) {
+        if (debugLog) {
+          console.log(`[iOS Swipe Block] Skipped blocking - interactive element detected:`, target.tagName, target.className);
+        }
+        return;
+      }
+      
+      // Also check if we're in a specific container that should allow interactions
+      const isInAllowedContainer = target && (
+        target.closest('.drawer') !== null ||
+        target.closest('.modal') !== null ||
+        target.closest('.navigation') !== null ||
+        target.closest('[data-allow-edge-touch]') !== null
+      );
+      
+      if (isInAllowedContainer) {
+        if (debugLog) {
+          console.log(`[iOS Swipe Block] Skipped blocking - in allowed container`);
+        }
+        return;
+      }
+      
       // Prevent the default browser navigation gesture
       event.preventDefault();
       statsRef.current.blockedCount++;

@@ -34,7 +34,7 @@ const getYouTubeEmbedUrl = (url) => {
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
   const match = url.match(regExp);
   if (match && match[2].length === 11) {
-    return `https://www.youtube.com/embed/${match[2]}?autoplay=0&rel=0`;
+    return `https://www.youtube.com/embed/${match[2]}?autoplay=0&rel=0&modestbranding=1&iv_load_policy=3`;
   }
   return url;
 };
@@ -362,6 +362,7 @@ const VideoPlayer = ({
         onCanPlay={handleCanPlay}
         preload="metadata"
         crossOrigin="anonymous"
+        controlsList="nodownload"
       />
     );
   };
@@ -372,6 +373,7 @@ const VideoPlayer = ({
       className={`relative bg-black rounded-lg overflow-hidden group ${className}`}
       onMouseMove={videoType === 'direct' ? showControlsTemporarily : undefined}
       onMouseLeave={videoType === 'direct' ? () => isPlaying && setShowControls(false) : undefined}
+      onContextMenu={(e) => e.preventDefault()}
       tabIndex={0}
     >
       {/* Video Content */}

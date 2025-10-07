@@ -123,7 +123,7 @@ const MisCursos = () => {
 
 
   return (
-    <div className={`min-h-screen mt-10 p-3 sm:p-4 md:p-6 transition-all flex flex-col  duration-300 ${loading ? 'blur-[20px] pointer-events-none' : 'blur-0'}`}>
+    <div className={`min-h-screen mt-8  p-3 sm:p-4 md:p-6 transition-all flex flex-col  duration-300 ${loading ? 'blur-[20px] pointer-events-none' : 'blur-0'}`}>
       <div className="max-w-7xl mx-auto">
 
 
