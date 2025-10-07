@@ -862,3 +862,10 @@ ol::-webkit-scrollbar,
   height: calc(min(85vh, var(--safe-viewport-height) * 0.85));
   max-height: var(--safe-viewport-height);
 }
+
+
+.hide-calendar-icon::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+  
+}

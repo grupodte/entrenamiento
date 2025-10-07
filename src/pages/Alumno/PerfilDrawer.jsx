@@ -146,7 +146,7 @@ const PerfilDrawer = ({  isOpen, onClose, onEdit }) => {
     };
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose} panelClassName=" bg-[url('/src/assets/bg-noise-white.png')] backdrop-blur-[15px] ">
+        <Drawer isOpen={isOpen} onClose={onClose} panelClassName=" bg-[url('/src/assets/bg-noise-white.png')] backdrop-blur-[15px]">
             <div className="h-full flex flex-col font-product ">
                 {/* Botón de editar */}
                 <button

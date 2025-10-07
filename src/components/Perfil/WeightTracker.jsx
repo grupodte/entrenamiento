@@ -74,31 +74,31 @@ const WeightTracker = ({ userId }) => {
     }, [progreso]);
 
     return (
-        <div className="bg-[#000000] border border-white/10 rounded-xl p-4 text-white">
+        <div className="bg-[#000000] border  rounded-[10px] flex flex-col justify-center px-4 h-[211px] text-white">
             <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-white/90">Control de peso</h3>
+                <h3 className="text-[15px] text-[#FFFFFF]">Control de peso</h3>
             </div>
 
             {/* Resumen */}
-            <div className="grid grid-cols-3 gap-3 mb-3">
-                <div className="bg-white/5 border border-white/10 rounded-lg p-2 text-center">
-                    <div className="text-[11px] text-white/60">
+            <div className="grid grid-cols-3 gap-1 mb-3">
+                <div className="bg-[#191919] max-w-[110px] h-[81px] flex flex-col justify-center rounded-[17px] text-center">
+                    <div className="text-[15px] text-[#FFFFFF] ">
                         Inicial 
                     </div>
-                    <div className="text-base font-semibold">{progreso?.peso_inicial ?? '–'} kg</div>
+                    <div className="text-[25px] font-bold text-[#FFFFFF]">{progreso?.peso_inicial ?? '–'} kg</div>
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-lg p-2 text-center">
-                    <div className="text-[11px] text-white/60">
+                <div className="bg-[#191919] max-w-[110px] h-[81px] flex flex-col justify-center rounded-[17px] text-center">
+                    <div className="text-[15px] text-[#FFFFFF] ">
                         Actual 
                     </div>
-                    <div className="text-base font-semibold">{progreso?.peso_actual ?? '–'} kg</div>
+                    <div className="text-[25px] font-bold text-[#FFFFFF] ">{progreso?.peso_actual ?? '–'} kg</div>
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-lg p-2 text-center">
-                    <div className="text-[11px] text-white/60">Cambio</div>
-                    <div className={`text-base font-semibold ${
-                        progreso?.diferencia < 0 ? 'text-green-400' : 
-                        progreso?.diferencia > 0 ? 'text-red-400' : 
-                        'text-white'
+                <div className="bg-[#191919] max-w-[110px] h-[81px] flex flex-col justify-center rounded-[17px] text-center">
+                    <div className="text-[15px] text-[#FFFFFF]">Cambio</div>
+                    <div className={`text-[25px] font-bold ${
+                        progreso?.diferencia < 0 ? 'text-[#2100D9]' : 
+                        progreso?.diferencia > 0 ? 'text-[#FF0000]' : 
+                        'text-[#FFFFFF]'
                     }`}>
                         {diffText}
                     </div>
@@ -106,13 +106,12 @@ const WeightTracker = ({ userId }) => {
             </div>
 
             {/* Form de carga */}
-            <div className="flex    items-center gap-2 mb-3">
+            <div className="flex items-center gap-1  w-full">
                 <input
                     type="date"
                     value={fechaInput}
                     onChange={(e) => setFechaInput(e.target.value)}
-                    className="bg-white/10 text-white text-xs rounded px-2 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-cyan-400/70"
-                    style={{ width: 120 }}
+                    className="bg-[#191919] text-[#FFFFFF] text-[16px] rounded-[17px] border-none max-w-[160px] hide-calendar-icon"
                 />
                 <input
                     type="number"
@@ -122,7 +121,7 @@ const WeightTracker = ({ userId }) => {
                     placeholder="Peso (kg)"
                     value={pesoInput}
                     onChange={(e) => setPesoInput(e.target.value)}
-                    className="flex-1 bg-white/10 w-[50px] text-white text-sm rounded px-2 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-cyan-400/70"
+                    className="bg-[#191919] text-[#515151] text-[16px] rounded-[17px] border-none w-[100px]"
                 />
                 <button
                     onClick={onSave}

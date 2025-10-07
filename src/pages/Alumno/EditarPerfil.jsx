@@ -3,11 +3,12 @@ import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
 import { 
-    FaArrowLeft, FaSave, FaUserCircle, FaChevronDown, FaChevronUp, FaUser, 
+    FaSave, FaUserCircle, FaChevronDown, FaChevronUp, FaUser, 
     FaWeight, FaBullseye, FaHeartbeat, FaMedkit, FaCamera, FaUtensils
 } from 'react-icons/fa';
 import Drawer from '../../components/Drawer';
 import CustomSelect from '../../components/Onboarding/CustomSelect';
+import arrowBack from '../../assets/arrow-back.svg';
 
 // Componente simple para input (movido fuera para evitar recreación)
 const SimpleInput = ({ label, name, type = "text", placeholder, value, onChange, options = null, rows = null, inputMode, min, max, step }) => {
@@ -143,7 +144,7 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
     
     // Estados para secciones expandibles
     const [expandedSections, setExpandedSections] = useState({
-        personal: true,
+        personal: false,
         fitness: false,
         metrics: false,
         goals: false,
@@ -535,7 +536,11 @@ const EditarPerfilDrawer = ({ isOpen, onClose, onBack, onProfileUpdate }) => {
                         onClick={onBack} 
                         className="p-4 "
                     >
-                        <FaArrowLeft className="text-[#000000]" />
+                        <img 
+                            src={arrowBack} 
+                            alt="arrow back" 
+                            className="w-5 h-5" 
+                        />
                     </button>
                     <h1 className="text-[20px] text-[#000000]">Editar Perfil</h1>
                     <div className="w-10" /> {/* Spacer */}
