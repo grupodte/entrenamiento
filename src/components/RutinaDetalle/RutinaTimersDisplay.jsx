@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Minimize2, Maximize2 } from 'lucide-react';
-import ClockRestImg from '../../assets/clock-rest-time.png';
+import ClockRestImg from '../../assets/rest-timer.svg';
 
 // Helper para formatear pantalla grande con JSX (ej. "30s" o "1:05")
 const formatBig = (seconds) => {
@@ -91,7 +91,7 @@ const FullScreenRest = ({ visible, timeLeft, duration, exerciseName, onSkip, onM
             </div>
             <div className="  text-[25px]  font-bold">Pausa</div>
 
-            <div className="mt-10 text-white/85 text-sm">Respirá, profundo y descansá</div>
+            <div className="mt-10 text-white/85 text-sm">Respirá profundo y descansá</div>
           </div>
         </motion.div>
       )}
