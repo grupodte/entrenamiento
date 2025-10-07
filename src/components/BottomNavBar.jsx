@@ -127,7 +127,7 @@ const BottomNavBar = ({
             <motion.button
               onClick={handleProfileClick}
               disabled={isProfileDisabled}
-              className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-gray-300 transition-all duration-200 hover:border-gray-400 cursor-pointer disabled:opacity-70 fast-tap"
+              className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden cursor-pointer"
               whileTap={{ scale: 0.95 }}
               style={{ 
                 WebkitTapHighlightColor: 'transparent',
@@ -193,7 +193,7 @@ const BottomNavBar = ({
             <motion.button
               onClick={handleProfileClick}
               disabled={isProfileDisabled}
-              className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden border-2 border-gray-300 transition-all duration-200 hover:border-gray-400 cursor-pointer disabled:opacity-70 fast-tap"
+              className="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden cursor-pointer "
               whileTap={{ scale: 0.95 }}
               style={{ 
                 WebkitTapHighlightColor: 'transparent',
@@ -223,7 +223,7 @@ const BottomNavBar = ({
             <motion.button
               onClick={handleMenuClick}
               disabled={isMenuDisabled}
-              className="flex items-center justify-center w-12 h-12 cursor-pointer disabled:opacity-70 critical-button"
+              className="flex items-center justify-center w-12 h-12 cursor-pointer"
               whileTap={{ scale: 0.95 }}
               style={{ 
                 WebkitTapHighlightColor: 'transparent',

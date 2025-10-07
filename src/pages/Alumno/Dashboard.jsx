@@ -231,17 +231,28 @@ const Dashboard = () => {
                         >
                             {/* Contenido izquierda */}
                             <div className="flex flex-col justify-center">
-                                <p className="text-[15px] tracking-wide text-[#B5B5B5] mb-1">
-                                    {diasSemana[rutinaHoy.dia]}
-                                </p>
-                                <h4 className="text-[27px] font-bold text-[#FF0000]">{rutinaHoy.nombre}</h4>
+                                {rutinaHoy.isCompleted ? (
+                                    <>
+                                        <p className="text-[15px] tracking-wide text-[#50E182] mb-1">
+                                            {diasSemana[rutinaHoy.dia]}
+                                        </p>
+                                        <h4 className="text-[27px] font-bold text-[#50E182]">{rutinaHoy.nombre}</h4>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="text-[15px] tracking-wide text-[#B5B5B5] mb-1">
+                                            {diasSemana[rutinaHoy.dia]}
+                                        </p>
+                                        <h4 className="text-[27px] font-bold text-[#FF0000]">{rutinaHoy.nombre}</h4>
+                                    </>
+                                )}
                             </div>
 
                             {/* Contenido derecha */}
                             <div className="flex items-center">
                                 {rutinaHoy.isCompleted ? (
-                                    <span className="text-[15px] text-[#4ADE80] flex items-center gap-2">
-                                        <FaCheckCircle /> Completado
+                                    <span className="text-[15px] text-[#50E182] flex items-center gap-2">
+                                        Completado
                                     </span>
                                 ) : (
                                     <motion.button
