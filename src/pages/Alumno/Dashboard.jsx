@@ -6,10 +6,12 @@ import {
     FaUserCircle,
 } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 
 import SeleccionOrdenBloques from './SeleccionOrdenBloques';
 import { useRutinaCache } from '../../hooks/useRutinaCache';
 import { useRutinaPrefetch } from '../../hooks/useRutinaPrefetch';
+import { shouldEnableIOSSwipeBlock, getFeatureSettings } from '../../config/features';
 
 import arrow from '../../assets/arrow.svg';
 import dashboardBg from '../../assets/dashboard-bg-entrenamientos.png';
@@ -27,6 +29,7 @@ const getSaludo = () => {
 
 const Dashboard = () => {
     const { user } = useAuth();
+    const location = useLocation();
     const { clearAllCache } = useRutinaCache();
     const [nombre, setNombre] = useState('');
     const [rutinas, setRutinas] = useState([]);
@@ -36,6 +39,7 @@ const Dashboard = () => {
     const [totalWorkoutsThisWeek, setTotalWorkoutsThisWeek] = useState(0);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedRutina, setSelectedRutina] = useState(null);
+    const [isReady, setIsReady] = useState(false);
 
 
 
@@ -141,6 +145,7 @@ const Dashboard = () => {
             setCompletedWorkoutsThisWeek(sesionesSemana?.length || 0);
             setTotalWorkoutsThisWeek((asignaciones || []).length);
             setLoading(false);
+            setIsReady(true);
         };
 
         fetchPerfilYRutinas();

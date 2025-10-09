@@ -16,7 +16,7 @@ const FEATURES = {
       // Specific routes where the feature should be active
       enabledRoutes: [
         '/rutina-detalle', // Full-screen workout views
-        // '/dashboard', // Uncomment to enable on dashboard (with carousels)
+        '/dashboard', // Enable on dashboard
         // Add other routes as needed during gradual rollout
       ]
     }
