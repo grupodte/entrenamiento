@@ -13,6 +13,7 @@ import { useRutinaPrefetch } from '../../hooks/useRutinaPrefetch';
 
 import arrow from '../../assets/arrow.svg';
 import dashboardBg from '../../assets/dashboard-bg-entrenamientos.png';
+import useIOSBackSwipeBlock from "../../hooks/useSimpleSwipeBackPrevention"; // Enhanced iOS swipe prevention
 
 
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -36,6 +37,31 @@ const Dashboard = () => {
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedRutina, setSelectedRutina] = useState(null);
 
+
+
+
+
+        // iOS swipe gesture prevention for full-screen workout experience
+        const shouldBlockSwipes = shouldEnableIOSSwipeBlock(location.pathname);
+        const iosSwipeSettings = getFeatureSettings('IOS_SWIPE_BLOCK');
+        
+        const swipeBlockStatus = useIOSBackSwipeBlock({
+            enabled: shouldBlockSwipes && isReady, // Only enable when workout is loaded
+            edgeThreshold: iosSwipeSettings.edgeThreshold || 0.1,
+            debugLog: iosSwipeSettings.debugLog || false
+        });
+        
+        // Log iOS swipe block status in development
+        useEffect(() => {
+            if (iosSwipeSettings.debugLog && swipeBlockStatus.isActive) {
+                console.log('[RutinaDetalle] iOS swipe blocking active', {
+                    route: location.pathname,
+                    isIOSDetected: swipeBlockStatus.isIOSDetected,
+                    stats: swipeBlockStatus.stats
+                });
+            }
+        }, [swipeBlockStatus, location.pathname, iosSwipeSettings.debugLog]);
+        
     // valores de ejemplo
     // const completedWorkoutsThisWeek = 1;
     // const totalWorkoutsThisWeek = 3;
