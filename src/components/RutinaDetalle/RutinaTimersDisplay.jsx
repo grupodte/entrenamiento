@@ -130,7 +130,7 @@ const MiniRest = ({ visible, timeLeft, duration, exerciseName, onSkip, onExpand 
       transition={{ type: 'spring', stiffness: 300, damping: 24 }}
     >
       <div className="pointer-events-auto">
-        <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-gray-900/90 text-white shadow-lg backdrop-blur-md border border-white/10">
+        <div className="flex items-center gap-3 px-4 py-2 rounded-[10px] bg-[#000000] text-[#FFFFF] ">
           {/* Indicador circular */}
           <div className="relative w-8 h-8">
             <svg className="absolute inset-0 w-8 h-8 -rotate-90" viewBox="0 0 36 36">

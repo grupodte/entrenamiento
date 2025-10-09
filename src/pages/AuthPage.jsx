@@ -4,6 +4,11 @@ import { toast } from 'react-hot-toast';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
+import bgWeb from '../assets/bg-auth-web.png';
+import bgMov from '../assets/bg-auth-mov.png';
+import imgWeb from '../assets/img-auth-w.png';
+import googleIcon from '../assets/google.svg';
+
 
 const AuthPage = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -70,90 +75,108 @@ const AuthPage = () => {
     };
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center">
-            {/* Video de fondo */}
-            <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover">
-                <source src="/backgrounds/loginbg.mp4" type="video/mp4" />
-            </video>
+        <div className="fixed inset-0 ">
+            {/* Fondos distintos para móvil y desktop */}
+            <img src={bgMov} alt="Fondo móvil" className="absolute inset-0 w-full h-full object-cover md:hidden" />
+            <img src={bgWeb} alt="Fondo web" className="absolute inset-0 w-full h-full object-cover hidden md:block" />
 
-            {/* Capa oscura */}
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-            {/* Modal con animación */}
-            <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.7, ease: 'easeOut' }}
-                className="relative z-10 p-8 rounded-2xl bg-gray-900/20 w-[325px] max-w-md text-white border border-gray-700/10 shadow-2xl backdrop-blur-md"
-            >
-                <h2 className="text-2xl font-bold text-center mb-6">
-                    {isLogin ? 'Iniciar sesión' : 'Crear cuenta'}
-                </h2>
+            {/* Contenido */}
+            <div className="relative z-10 h-full flex flex-col md:flex-row items-center  justify-between md:w-[1440px] mx-auto ">
+                {/* Encabezado móvil */}
+                <div className="w-full md:hidden pt-10 items-center justify-center  flex">
+                    <h1 className="text-[#FFFFFF] leading-none mt-[50px] text-[43px] w-[288px] ">
+                        La app para entrar que necesitabas
+                    </h1>
+                </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-4 py-3 rounded-2xl bg-gray-900/20 text-white border border-gray-700/10 backdrop-blur-md placeholder-gray-400 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-colors duration-200"
-                        placeholder="Correo electrónico"
-                        required
-                        disabled={isLoading}
+                {/* Lado izquierdo (solo web): imagen + título grande */}
+                <div className="hidden md:flex items-center ">
+                    <img
+                        src={imgWeb}
+                        alt="Atleta"
+                        className="w-[663px] h-[899px] select-none pointer-events-none "
                     />
+                    <h1 className=" -ml-[200px] text-[#FFFFFF]  leading-none  text-[83px] max-w-[500px] ">
+                        La app para entrar que necesitabas
+                    </h1>
+                </div>
 
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full px-4 py-3 rounded-2xl bg-gray-900/20 text-white border border-gray-700/10 backdrop-blur-md placeholder-gray-400 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-colors duration-200"
-                        placeholder="Contraseña"
-                        required
-                        disabled={isLoading}
-                    />
-
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className={`w-full px-4 py-3 rounded-2xl font-bold text-lg transition-all duration-200 ${isLoading
-                                ? "bg-cyan-600/20 text-white cursor-not-allowed"
-                                : "bg-cyan-600/60 hover:bg-cyan-500 text-white hover:shadow-lg"
-                            }`}
-                    >
-                        {isLoading ? (
-                            <div className="flex items-center justify-center gap-2">
-                                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                </svg>
-                                Procesando...
-                            </div>
-                        ) : (
-                            isLogin ? 'Ingresar' : 'Registrarme'
-                        )}
-                    </button>
-                </form>
-
-                <div className="my-4 text-center text-gray-400 text-sm">o</div>
-
-                <button
-                    onClick={handleGoogle}
-                    disabled={isLoading}
-                    className="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold flex items-center justify-center gap-3 transition-colors duration-200 disabled:opacity-50 border border-gray-700/20 backdrop-blur-md"
+                {/* Formulario */}
+                <motion.div
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.6, ease: 'easeOut' }}
+                    className="w-full md:w-[380px] lg:w-[420px] md:ml-auto mb-8 md:mb-0 flex items-center justify-center"
                 >
-                    <img src="/backgrounds/google.webp" alt="Google" className="w-6 h-6" />
-                    Iniciar rápido
-                </button>
+                    <div className=" w-[288px] pb-[20px]">
+                        <h2 className="text-[23px] text-[#FFFFFF] mb-4">{isLogin ? 'Inicia sesión' : 'Registrate'}</h2>
 
-                <p className="text-sm text-center mt-6 text-gray-400">
-                    {isLogin ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
-                    <button
-                        onClick={() => setIsLogin(!isLogin)}
-                        className="text-cyan-400 font-semibold ml-1 hover:underline transition-colors duration-200"
-                    >
-                        {isLogin ? 'Registrate' : 'Iniciar sesión'}
-                    </button>
-                </p>
-            </motion.div>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full px-4 py-3 bg-[#000000]/50 rounded-[10px] border-none placeholder-[#FFFFFF]/50 text-[#FFFFFF] focus:border-none focus:ring-0 "
+                                placeholder="Correo electrónico"
+                                required
+                                disabled={isLoading}
+                            />
+
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full px-4 py-3 bg-[#000000]/50 rounded-[10px] border-none placeholder-[#FFFFFF]/50 text-[#FFFFFF] focus:border-none focus:ring-0 "
+                                placeholder="Contraseña"
+                                required
+                                disabled={isLoading}
+                            />
+
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className={`w-full px-4 py-3 rounded-[10px] text-[15px]  ${isLoading
+                                    ? 'bg-[#0037FF] text-[#000000]'
+                                    : 'bg-[#0037FF] text-[#000000]'
+                                    }`}
+                            >
+                                {isLoading ? (
+                                    <div className="flex items-center justify-center gap-2">
+                                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                        </svg>
+                                        Procesando...
+                                    </div>
+                                ) : (
+                                    isLogin ? 'Ingresar' : 'Registrarme'
+                                )}
+                            </button>
+                        </form>
+
+
+                        <button
+                            onClick={handleGoogle}
+                            disabled={isLoading}
+                            className=" mt-4 w-full py-3 rounded-[10px] bg-[#0037FF] text-[#000000] flex items-center justify-center gap-3 transition-colors duration-200 disabled:opacity-50 border border-white/10 backdrop-blur-md"
+                        >
+                            <img src={googleIcon} alt="Google" className="w-6 h-6 absolute left-8" />
+                            Iniciar rápido
+                        </button>
+
+                        <p className="text-[15px] text-center mt-12 text-[#FFFFFF]">
+                            {isLogin ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
+                            <button
+                                onClick={() => setIsLogin(!isLogin)}
+                                className="text-[#000000] font-semibold ml-1 hover:underline hover:text-[#0037FF] transition-colors duration-200"
+                            >
+                                {isLogin ? 'Registrate' : 'Iniciar sesión'}
+                            </button>
+                        </p>
+                    </div>
+                </motion.div>
+            </div>
         </div>
     );
 };

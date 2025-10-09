@@ -275,13 +275,13 @@ const Drawer = ({ isOpen, onClose, children, panelClassName }) => {
                                 <div className="relative h-[20px] w-full flex items-start justify-center pt-3">
                                     {/* handle */}
                                     <div
-                                        className="w-[25px] h-[5px] bg-[#D9D9D9] rounded-full"
+                                        className="w-[25px] h-[5px] bg-[#000000]/50 rounded-full"
                                         aria-hidden="true"
                                     />
                                     
                                     {/* Invisible drag area for better UX */}
                                     <div 
-                                        className="absolute inset-0 cursor-grab active:cursor-grabbing"
+                                        className="absolute inset-0 cursor-grab active:cursor-grabbing "
                                         style={{
                                             touchAction: 'pan-y'
                                         }}

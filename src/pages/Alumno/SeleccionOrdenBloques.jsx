@@ -7,8 +7,8 @@ import { useRutinaCache } from '../../hooks/useRutinaCache';
 
 // Importar imágenes correctamente
 import arrow from '../../assets/arrow.svg';
-import select1Image from '../../assets/select1.webp';
-import select2Image from '../../assets/select2.webp';
+import select1Image from '../../assets/select1.png';
+import select2Image from '../../assets/select3.png';
 
 
 const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
@@ -85,8 +85,8 @@ const SeleccionOrdenBloques = ({ rutinaId, tipo, isOpen, onClose }) => {
     const isLoading = loading || cacheLoading;
 
     return (
-        <Drawer isOpen={isOpen} onClose={onClose}>
-            <div className="h-full flex flex-col">
+        <Drawer isOpen={isOpen} onClose={onClose} panelClassName="max-w-[420px] bg-[url('/src/assets/bg-noise-white.png')] backdrop-blur-[15px] bg-cover bg-center" >
+            <div className="h-full flex flex-col mt-10">
                 {rutinaData ? (
                     <>
                         {/* Header fijo */}

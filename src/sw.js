@@ -4,6 +4,17 @@ import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from 'workbox-strategi
 import { ExpirationPlugin } from 'workbox-expiration';
 import { BackgroundSyncPlugin } from 'workbox-background-sync';
 
+// Activación instantánea del nuevo Service Worker
+self.addEventListener('install', (event) => {
+  // Tomar control sin esperar al cierre de las pestañas antiguas
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  // Reclamar inmediatamente los clientes abiertos
+  event.waitUntil(self.clients.claim());
+});
+
 // Precachear archivos estáticos generados por Vite
 precacheAndRoute(self.__WB_MANIFEST);
 
@@ -209,6 +220,12 @@ registerRoute(navigationRoute);
 self.addEventListener('message', (event) => {
   const { data } = event;
   
+  // Permitir saltar la espera cuando la app lo solicite
+  if (data && data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+    return;
+  }
+
   // Solo mantener respuesta de estado básica
   if (data && data.type === 'SW_STATUS') {
     event.ports[0].postMessage({
