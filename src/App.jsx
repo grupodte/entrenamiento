@@ -75,12 +75,8 @@ const AppContent = () => {
   const { user, rol } = useAuth();
   const location = useLocation();
   
-  // Prevención mejorada de swipe back que respeta elementos interactivos
-  useSimpleSwipeBackPrevention({
-    enabled: true,
-    edgeThreshold: 0.05, // Reducir umbral del borde del 10% al 5%
-    debugLog: false // Cambiar a true si necesitas debuggear
-  });
+  // Prevención simple y no intrusiva de swipe back
+  useSimpleSwipeBackPrevention(true);
 
   return (
     <WidgetGuideProvider>
