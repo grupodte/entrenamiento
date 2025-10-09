@@ -12,11 +12,14 @@ const FEATURES = {
     // Additional settings for the iOS swipe block feature
     settings: {
       edgeThreshold: 0.1, // 10% of screen width
-      debugLog: false, // Set to true for development debugging
+      debugLog: true, // Set to true for development debugging
       // Specific routes where the feature should be active
       enabledRoutes: [
-        '/rutina-detalle', // Full-screen workout views
+        '/rutina/', // Full-screen workout views (matches /rutina/:id)
         '/dashboard', // Enable on dashboard
+        '/mis-cursos', // Enable on courses
+        '/mis-dietas', // Enable on diets
+        '/admin', // Enable on admin pages
         // Add other routes as needed during gradual rollout
       ]
     }

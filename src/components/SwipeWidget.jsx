@@ -5,9 +5,9 @@ import arrow from '../assets/arrow.svg';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 // Import background images
-import rutinaImage from '../assets/rutina.png';
-import cursoImage from '../assets/curso.png';
-import dietaImage from '../assets/dieta.png';
+import rutinaImage from '../assets/rutina.webp';
+import cursoImage from '../assets/curso.webp';
+import dietaImage from '../assets/dieta.webp';
 
 const SwipeWidget = ({ isOpen, onClose }) => {
   const navigate = useNavigate();

@@ -10,6 +10,8 @@ import useScrollToTop from './hooks/useScrollToTop';
 import useSimpleSwipeBackPrevention from './hooks/useSimpleSwipeBackPrevention';
 import { useLocation } from 'react-router-dom';
 import { WidgetGuideProvider } from './context/WidgetGuideContext';
+import { shouldEnableIOSSwipeBlock, getFeatureSettings } from './config/features';
+import useIOSBackSwipeBlock from './hooks/useSimpleSwipeBackPrevention';
 
 // --- LAZY LOADING DE COMPONENTES GRANDES ---
 // Layouts
@@ -77,6 +79,27 @@ const AppContent = () => {
   
   // Prevención simple y no intrusiva de swipe back
   useSimpleSwipeBackPrevention(true);
+  
+  // iOS swipe gesture prevention - funciona globalmente
+  const shouldBlockSwipes = shouldEnableIOSSwipeBlock(location.pathname);
+  const iosSwipeSettings = getFeatureSettings('IOS_SWIPE_BLOCK');
+  
+  const swipeBlockStatus = useIOSBackSwipeBlock({
+    enabled: shouldBlockSwipes, // Siempre activo cuando la ruta lo permite
+    edgeThreshold: iosSwipeSettings.edgeThreshold || 0.1,
+    debugLog: iosSwipeSettings.debugLog || false
+  });
+  
+  // Log iOS swipe block status en desarrollo
+  useEffect(() => {
+    if (iosSwipeSettings.debugLog && swipeBlockStatus.isActive) {
+      console.log('[App] iOS swipe blocking active', {
+        route: location.pathname,
+        isIOSDetected: swipeBlockStatus.isIOSDetected,
+        stats: swipeBlockStatus.stats
+      });
+    }
+  }, [swipeBlockStatus, location.pathname, iosSwipeSettings.debugLog]);
 
   return (
     <WidgetGuideProvider>
