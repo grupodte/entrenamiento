@@ -141,19 +141,19 @@ const SwipeWidget = ({ isOpen, onClose }) => {
     {
       action: 'rutinas',
       icon: Dumbbell,
-      title: rol === 'admin' ? 'Rutinas' : 'Mis rutinas',
+      title: rol === 'admin' ? 'Rutinas' : 'Rutinas',
       backgroundImage: rutinaImage,
     },
     {
       action: 'mis-cursos',
       icon: BookOpen,
-      title: rol === 'admin' ? 'Cursos' : 'Mis cursos',
+      title: rol === 'admin' ? 'Cursos' : 'Cursos',
       backgroundImage: cursoImage,
     },
     {
       action: 'dietas',
       icon: Utensils,
-      title: rol === 'admin' ? 'Dietas' : 'Mi dieta',
+      title: rol === 'admin' ? 'Dietas' : 'Dieta',
       backgroundImage: dietaImage,
     }
   ], [rol]);

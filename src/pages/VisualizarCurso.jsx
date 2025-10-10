@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import VideoPlayer from '../components/VideoPlayer/VideoPlayer';
+import useMuxSignedUrl from '../hooks/useMuxSignedUrl';
 import { 
   Play, 
   Book,
@@ -22,7 +23,8 @@ import {
   FileText,
   Download,
   Menu,
-  X
+  X,
+  AlertCircle
 } from 'lucide-react';
 import ArrowBackIcon from '../assets/arrow-back.svg';
 import SwipeBack from '../assets/swipe-back.svg';
@@ -42,6 +44,11 @@ const VisualizarCurso = () => {
   const [modulosExpandidos, setModulosExpandidos] = useState({});
   const [sidebarColapsado, setSidebarColapsado] = useState(false);
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
+  const [videoUrl, setVideoUrl] = useState(null);
+  const [loadingVideo, setLoadingVideo] = useState(false);
+  
+  // Hook para manejar URLs firmadas de Mux
+  const { getSignedUrl, loadingUrls, errors: urlErrors } = useMuxSignedUrl();
 
   useEffect(() => {
     if (user && cursoId && rol) {
@@ -119,7 +126,8 @@ const VisualizarCurso = () => {
       // Establecer primera lección como actual si no hay progreso
       if (modulosData && modulosData.length > 0 && modulosData[0].lecciones.length > 0) {
         const primeraLeccion = modulosData[0].lecciones[0];
-        setLeccionActual(primeraLeccion);
+        // Usar seleccionarLeccion para cargar también el video
+        seleccionarLeccion(primeraLeccion);
         
         // Expandir el primer módulo por defecto
         setModulosExpandidos({ [modulosData[0].id]: true });
@@ -132,13 +140,31 @@ const VisualizarCurso = () => {
     }
   };
 
-  const seleccionarLeccion = (leccion) => {
+  const seleccionarLeccion = async (leccion) => {
     setLeccionActual(leccion);
+    setLoadingVideo(true);
+    setVideoUrl(null);
     
     // Marcar como primera vista si es necesario
     if (!progreso[leccion.id]?.fecha_primera_vista) {
       actualizarProgreso(leccion.id, { fecha_primera_vista: new Date().toISOString() });
     }
+
+    // Obtener URL firmada de Mux para el video
+    if (leccion.video_url) {
+      try {
+        const signedUrl = await getSignedUrl(leccion.id, user.id, cursoId);
+        if (signedUrl) {
+          setVideoUrl(signedUrl);
+        } else {
+          console.error('No se pudo obtener la URL firmada para la lección:', leccion.id);
+        }
+      } catch (error) {
+        console.error('Error al obtener URL firmada:', error);
+      }
+    }
+    
+    setLoadingVideo(false);
   };
 
   const actualizarProgreso = async (leccionId, datos) => {
@@ -396,20 +422,41 @@ const VisualizarCurso = () => {
         {/* Video Player Responsive */}
         <div className="relative">
           <div className="aspect-video ">
-            {leccionActual?.video_url ? (
+            {loadingVideo ? (
+              <div className="w-full h-full flex items-center justify-center bg-black">
+                <div className="text-center p-4">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF0000] mx-auto mb-4"></div>
+                  <p className="text-sm md:text-base text-white">Cargando video seguro...</p>
+                </div>
+              </div>
+            ) : videoUrl && leccionActual ? (
               <VideoPlayer
-                src={leccionActual.video_url}
+                src={videoUrl}
                 title={leccionActual.titulo}
                 onProgressUpdate={handleVideoProgress}
                 onVideoComplete={() => marcarLeccionCompletada(leccionActual.id, true)}
                 allowDownload={false}
                 className="w-full h-full rounded-none "
               />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
+            ) : urlErrors[leccionActual?.id] ? (
+              <div className="w-full h-full flex items-center justify-center bg-black">
                 <div className="text-center p-4">
-                  <Play className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-sm md:text-base">Selecciona una lección para comenzar</p>
+                  <AlertCircle className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 text-red-500" />
+                  <p className="text-sm md:text-base text-white mb-2">Error al cargar el video</p>
+                  <p className="text-xs text-gray-400">{urlErrors[leccionActual?.id]}</p>
+                  <button 
+                    onClick={() => leccionActual && seleccionarLeccion(leccionActual)}
+                    className="mt-4 px-4 py-2 bg-[#FF0000] text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
+                  >
+                    Reintentar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-black">
+                <div className="text-center p-4">
+                  <Play className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 opacity-50 text-white" />
+                  <p className="text-sm md:text-base text-white">Selecciona una lección para comenzar</p>
                 </div>
               </div>
             )}
