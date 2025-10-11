@@ -10,7 +10,7 @@ import useScrollToTop from './hooks/useScrollToTop';
 import useSimpleSwipeBackPrevention from './hooks/useSimpleSwipeBackPrevention';
 import { useLocation } from 'react-router-dom';
 import { WidgetGuideProvider } from './context/WidgetGuideContext';
-import { shouldEnableIOSSwipeBlock, getFeatureSettings } from './config/features';
+import { shouldEnableIOSSwipeBlock, getFeatureSettings, getSwipeThresholdForRoute } from './config/features';
 import useIOSBackSwipeBlock from './hooks/useSimpleSwipeBackPrevention';
 
 // --- LAZY LOADING DE COMPONENTES GRANDES ---
@@ -80,13 +80,14 @@ const AppContent = () => {
   // Prevención simple y no intrusiva de swipe back
   useSimpleSwipeBackPrevention(true);
   
-  // iOS swipe gesture prevention - funciona globalmente
+  // iOS swipe gesture prevention - funciona globalmente con threshold dinámico
   const shouldBlockSwipes = shouldEnableIOSSwipeBlock(location.pathname);
   const iosSwipeSettings = getFeatureSettings('IOS_SWIPE_BLOCK');
+  const dynamicThreshold = getSwipeThresholdForRoute(location.pathname);
   
   const swipeBlockStatus = useIOSBackSwipeBlock({
     enabled: shouldBlockSwipes, // Siempre activo cuando la ruta lo permite
-    edgeThreshold: iosSwipeSettings.edgeThreshold || 0.1,
+    edgeThreshold: dynamicThreshold, // Threshold dinámico según la ruta
     debugLog: iosSwipeSettings.debugLog || false
   });
   
@@ -95,11 +96,13 @@ const AppContent = () => {
     if (iosSwipeSettings.debugLog && swipeBlockStatus.isActive) {
       console.log('[App] iOS swipe blocking active', {
         route: location.pathname,
+        edgeThreshold: `${(dynamicThreshold * 100).toFixed(1)}%`,
+        edgePixels: `~${Math.round(window.innerWidth * dynamicThreshold)}px`,
         isIOSDetected: swipeBlockStatus.isIOSDetected,
         stats: swipeBlockStatus.stats
       });
     }
-  }, [swipeBlockStatus, location.pathname, iosSwipeSettings.debugLog]);
+  }, [swipeBlockStatus, location.pathname, iosSwipeSettings.debugLog, dynamicThreshold]);
 
   return (
     <WidgetGuideProvider>
