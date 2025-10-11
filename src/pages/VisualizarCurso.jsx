@@ -168,29 +168,78 @@ const VisualizarCurso = () => {
   };
 
   const actualizarProgreso = async (leccionId, datos) => {
-    const maxRetries = 3;
-    let attempt = 0;
-    
-    while (attempt < maxRetries) {
-      try {
-        // Intentar upsert con on_conflict para manejar duplicados
-        const { data, error } = await supabase
-          .from('progreso_lecciones')
-          .upsert({
-            usuario_id: user.id,
-            leccion_id: leccionId,
-            curso_id: cursoId,
+    try {
+      // Intentar upsert primero (funciona si existe la constraint única)
+      const { data, error } = await supabase
+        .from('progreso_lecciones')
+        .upsert({
+          usuario_id: user.id,
+          leccion_id: leccionId,
+          curso_id: cursoId,
+          ...datos,
+          fecha_ultima_vista: new Date().toISOString()
+        }, {
+          onConflict: 'usuario_id,leccion_id,curso_id'
+        })
+        .select()
+        .single();
+
+      if (!error) {
+        // Si upsert funciona, actualizar estado local
+        setProgreso(prev => ({
+          ...prev,
+          [leccionId]: { 
+            ...prev[leccionId], 
             ...datos,
             fecha_ultima_vista: new Date().toISOString()
-          }, {
-            onConflict: 'usuario_id,leccion_id,curso_id',
-            ignoreDuplicates: false
-          })
-          .select()
-          .single();
+          }
+        }));
+        return;
+      }
 
-        if (!error) {
-          // Actualizar estado local solo si la operación fue exitosa
+      // Si upsert falla (no existe constraint), usar método alternativo
+      if (error.code === '42P10') {
+        console.log('Constraint única no existe, usando método alternativo');
+        
+        // Verificar si existe el registro primero
+        const { data: existingProgress } = await supabase
+          .from('progreso_lecciones')
+          .select('*')
+          .eq('usuario_id', user.id)
+          .eq('leccion_id', leccionId)
+          .eq('curso_id', cursoId)
+          .maybeSingle();
+
+        let result;
+        if (existingProgress) {
+          // Si existe, actualizar
+          result = await supabase
+            .from('progreso_lecciones')
+            .update({
+              ...datos,
+              fecha_ultima_vista: new Date().toISOString()
+            })
+            .eq('usuario_id', user.id)
+            .eq('leccion_id', leccionId)
+            .eq('curso_id', cursoId)
+            .select()
+            .single();
+        } else {
+          // Si no existe, insertar
+          result = await supabase
+            .from('progreso_lecciones')
+            .insert({
+              usuario_id: user.id,
+              leccion_id: leccionId,
+              curso_id: cursoId,
+              ...datos,
+              fecha_ultima_vista: new Date().toISOString()
+            })
+            .select()
+            .single();
+        }
+
+        if (!result.error) {
           setProgreso(prev => ({
             ...prev,
             [leccionId]: { 
@@ -199,55 +248,15 @@ const VisualizarCurso = () => {
               fecha_ultima_vista: new Date().toISOString()
             }
           }));
-          return; // Salir del bucle si fue exitoso
+        } else {
+          console.error('Error en método alternativo:', result.error);
         }
-
-        // Si es un error 409 (conflict), intentar con UPDATE directo
-        if (error.code === '23505' || error.message?.includes('duplicate')) {
-          console.log(`Intento ${attempt + 1}: Conflicto detectado, intentando UPDATE directo`);
-          
-          const { error: updateError } = await supabase
-            .from('progreso_lecciones')
-            .update({
-              ...datos,
-              fecha_ultima_vista: new Date().toISOString()
-            })
-            .eq('usuario_id', user.id)
-            .eq('leccion_id', leccionId)
-            .eq('curso_id', cursoId);
-
-          if (!updateError) {
-            setProgreso(prev => ({
-              ...prev,
-              [leccionId]: { 
-                ...prev[leccionId], 
-                ...datos,
-                fecha_ultima_vista: new Date().toISOString()
-              }
-            }));
-            return; // Salir si el UPDATE fue exitoso
-          }
-        }
-
-        console.error(`Intento ${attempt + 1} falló:`, error);
-        attempt++;
-        
-        // Esperar antes del siguiente intento
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-        }
-        
-      } catch (error) {
-        console.error(`Error en intento ${attempt + 1}:`, error);
-        attempt++;
-        
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-        }
+      } else {
+        console.error('Error al actualizar progreso:', error);
       }
+    } catch (error) {
+      console.error('Error al actualizar progreso:', error);
     }
-    
-    console.error('No se pudo actualizar el progreso después de', maxRetries, 'intentos');
   };
 
   const marcarLeccionCompletada = (leccionId, completada = true) => {

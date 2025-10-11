@@ -1,6 +1,6 @@
-import Mux from '@mux/mux-node';
-import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
+const Mux = require('@mux/mux-node');
+const { createClient } = require('@supabase/supabase-js');
+const jwt = require('jsonwebtoken');
 
 // Initialize Mux with signing key
 const mux = new Mux({
@@ -14,7 +14,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 );
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -125,19 +125,24 @@ export default async function handler(req, res) {
     const finalSignedUrl = `https://stream.mux.com/${playbackId}.m3u8?token=${token}`;
 
     // 5. Log access for analytics (optional)
-    await supabase
-      .from('video_access_logs')
-      .insert({
-        usuario_id: userId,
-        leccion_id: leccionId,
-        curso_id: cursoId,
-        playback_id: playbackId,
-        ip_address: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
-        user_agent: req.headers['user-agent'],
-        accessed_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+    try {
+      await supabase
+        .from('video_access_logs')
+        .insert({
+          usuario_id: userId,
+          leccion_id: leccionId,
+          curso_id: cursoId,
+          playback_id: playbackId,
+          ip_address: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+          user_agent: req.headers['user-agent'],
+          accessed_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+    } catch (logError) {
+      // Si falla el logging, no interrumpir el flujo principal
+      console.warn('Failed to log video access (table may not exist):', logError.message);
+    }
 
     // Return the signed URL
     res.status(200).json({
@@ -151,9 +156,9 @@ export default async function handler(req, res) {
     console.error('Error generating Mux signed URL:', {
       error: error.message,
       stack: error.stack,
-      leccionId,
-      userId,
-      cursoId,
+      leccionId: req.body?.leccionId,
+      userId: req.body?.userId,
+      cursoId: req.body?.cursoId,
       timestamp: new Date().toISOString()
     });
     
@@ -167,4 +172,4 @@ export default async function handler(req, res) {
       } : undefined
     });
   }
-}
+};
