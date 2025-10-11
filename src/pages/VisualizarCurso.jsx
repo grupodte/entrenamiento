@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import VideoPlayer from '../components/VideoPlayer/VideoPlayer';
+import MuxVideoPlayer from '../components/VideoPlayer/MuxVideoPlayer';
 import useMuxSignedUrl from '../hooks/useMuxSignedUrl';
 import { 
   Play, 
@@ -508,13 +508,14 @@ const VisualizarCurso = () => {
                 </div>
               </div>
             ) : videoUrl && leccionActual ? (
-              <VideoPlayer
+              <MuxVideoPlayer
                 src={videoUrl}
                 title={leccionActual.titulo}
                 onProgressUpdate={handleVideoProgress}
                 onVideoComplete={() => marcarLeccionCompletada(leccionActual.id, true)}
-                allowDownload={false}
-                className="w-full h-full rounded-none "
+                className="w-full h-full rounded-none"
+                autoplay={false}
+                muted={false}
               />
             ) : urlErrors[leccionActual?.id] ? (
               <div className="w-full h-full flex items-center justify-center bg-black">
