@@ -504,8 +504,8 @@ const VisualizarCurso = () => {
       {/* Área principal de contenido */}
       <div className={`flex-1 min-h-0 transition-all duration-300 w-full ${sidebarColapsado ? '' : 'lg:mr-96'}`}>
         {/* Video Player Responsive */}
-        <div className="relative">
-          <div className="aspect-video ">
+        <div className="relative bg-black">
+          <div className="aspect-video relative overflow-hidden">
             {loadingVideo ? (
               <div className="w-full h-full flex items-center justify-center bg-black">
                 <div className="text-center p-4">
@@ -524,15 +524,31 @@ const VisualizarCurso = () => {
                 theme="classic"
                 primaryColor="#ef4444"
                 accentColor="#ef4444"
+                // Configuraciones específicas para móvil
+                playsInline={true}
+                controls={true}
+                crossOrigin="anonymous"
+                preload="metadata"
+                // Configuración responsive
                 style={{
                   width: '100%',
                   height: '100%',
-                  aspectRatio: '16/9'
+                  aspectRatio: '16/9',
+                  display: 'block'
                 }}
                 metadata={{
                   video_title: leccionActual.titulo,
                   viewer_user_id: user?.id || 'unknown'
                 }}
+                // Event handlers adicionales para móvil
+                onLoadStart={() => console.log('Video load started')}
+                onLoadedMetadata={() => console.log('Video metadata loaded')}
+                onCanPlay={() => console.log('Video can play')}
+                onError={(e) => {
+                  console.error('Video error:', e);
+                  console.error('Error details:', e.target?.error);
+                }}
+                onLoadedData={() => console.log('Video data loaded')}
               />
             ) : urlErrors[leccionActual?.id] ? (
               <div className="w-full h-full flex items-center justify-center bg-black">

@@ -8,27 +8,37 @@
 const FEATURES = {
   // iOS gesture control feature flag
   IOS_SWIPE_BLOCK: {
-    enabled: true, // Set to false to disable globally
+    enabled: true, // Habilitado para BLOQUEAR completamente el swipe back
     // Additional settings for the iOS swipe block feature
     settings: {
-      edgeThreshold: 0.05, // 5% of screen width por defecto (~18px en móvil)
-      debugLog: true, // Set to true for development debugging
-      // Configuración específica por ruta
+      edgeThreshold: 0.15, // 15% of screen width - zona más amplia de bloqueo
+      debugLog: true, // Habilitado temporalmente para verificar
+      // Configuración específica por ruta - todas con bloqueo amplio
       routeSettings: {
-        '/curso/': { edgeThreshold: 0.03 }, // 3% para páginas con video
-        '/rutina/': { edgeThreshold: 0.08 }, // 8% para rutinas (fullscreen)
-        '/dashboard': { edgeThreshold: 0.05 }, // 5% por defecto
-        '/admin': { edgeThreshold: 0.06 } // 6% para admin
+        '/curso/': { edgeThreshold: 0.15 }, // 15% bloqueo completo
+        '/rutina/': { edgeThreshold: 0.15 }, // 15% bloqueo completo
+        '/dashboard': { edgeThreshold: 0.15 }, // 15% bloqueo completo
+        '/admin': { edgeThreshold: 0.15 }, // 15% bloqueo completo
+        '/': { edgeThreshold: 0.15 } // 15% bloqueo completo para todas las rutas
       },
-      // Specific routes where the feature should be active
+      // Specific routes where the feature should be active - TODAS LAS RUTAS
       enabledRoutes: [
-        '/rutina/', // Full-screen workout views (matches /rutina/:id)
-        '/dashboard', // Enable on dashboard
-        '/mis-cursos', // Enable on courses
-        '/mis-dietas', // Enable on diets
-        '/curso/', // Enable on video courses
-        '/admin', // Enable on admin pages
-        // Add other routes as needed during gradual rollout
+        '/', // Ruta raíz
+        '/dashboard', // Dashboard de alumno
+        '/rutina/', // Detalles de rutina (matches /rutina/:id)
+        '/mis-cursos', // Cursos del alumno
+        '/mis-dietas', // Dietas del alumno
+        '/curso/', // Visualizar curso (matches /curso/:id)
+        '/onboarding', // Proceso de onboarding
+        '/admin', // Panel de administración
+        '/admin/', // Todas las sub-rutas de admin
+        '/login', // Login
+        '/register', // Registro
+        '/cursos', // Catálogo público
+        '/instalar', // Instalación PWA
+        '/tyc', // Términos y condiciones
+        '/privacidad', // Política de privacidad
+        '/callback' // Callbacks (Spotify, etc.)
       ]
     }
   },
@@ -90,11 +100,15 @@ export const shouldEnableIOSSwipeBlock = (currentPath) => {
     return false;
   }
   
+  // BLOQUEAR EN TODAS LAS RUTAS - solo excluir rutas específicas si es necesario
   const settings = getFeatureSettings('IOS_SWIPE_BLOCK');
-  const enabledRoutes = settings.enabledRoutes || [];
+  const disabledRoutes = settings.disabledRoutes || []; // Rutas donde NO bloquear
   
-  // Check if current path matches any enabled route
-  return enabledRoutes.some(route => currentPath.includes(route));
+  // Si hay rutas deshabilitadas específicas, verificar si la ruta actual está en esa lista
+  const isDisabled = disabledRoutes.some(route => currentPath.includes(route));
+  
+  // Bloquear en todas las rutas EXCEPTO las específicamente deshabilitadas
+  return !isDisabled;
 };
 
 export default FEATURES;

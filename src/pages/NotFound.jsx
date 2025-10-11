@@ -45,8 +45,9 @@ const NotFound = () => {
   };
 
   const handleGoBack = () => {
+    // Usar navigate en lugar de window.history.back() para evitar conflicto con el bloqueo
     if (window.history.length > 1) {
-      window.history.back();
+      navigate(-1); // React Router navigate hacia atrás
     } else {
       // Si no hay historial, redirigir al inicio
       handleRedirectNow();

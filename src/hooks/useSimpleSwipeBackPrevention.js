@@ -93,22 +93,22 @@ const useIOSBackSwipeBlock = ({
     const deltaY = Math.abs(touch.clientY - startY);
     const deltaTime = Date.now() - startTime;
     
-    // Define thresholds for swipe detection
-    const MIN_SWIPE_DISTANCE = 50; // minimum horizontal movement (increased)
-    const MAX_SWIPE_TIME = 500; // maximum time for swipe gesture
-    const MAX_VERTICAL_DRIFT = 75; // maximum vertical movement allowed
+    // Define thresholds for swipe detection - MÁS AGRESIVO
+    const MIN_SWIPE_DISTANCE = 20; // minimum horizontal movement (más sensible)
+    const MAX_SWIPE_TIME = 800; // maximum time for swipe gesture (más tiempo)
+    const MAX_VERTICAL_DRIFT = 100; // maximum vertical movement allowed
     const MIN_SWIPE_VELOCITY = MIN_SWIPE_DISTANCE / deltaTime; // pixels per ms
     
     // Calculate velocity and direction
     const horizontalVelocity = deltaX / deltaTime;
-    const isMovingHorizontally = deltaX > deltaY * 2; // horizontal movement is dominant
+    const isMovingHorizontally = deltaX > deltaY; // movimiento horizontal (menos estricto)
     
-    // Detect horizontal swipe gesture (fast horizontal movement with limited vertical drift)
+    // Detect horizontal swipe gesture - BLOQUEO MÁS AGRESIVO
     const isHorizontalSwipe = deltaX > MIN_SWIPE_DISTANCE && 
                              deltaTime < MAX_SWIPE_TIME && 
                              deltaY < MAX_VERTICAL_DRIFT &&
                              isMovingHorizontally &&
-                             horizontalVelocity > 0.15; // minimum velocity threshold
+                             horizontalVelocity > 0.05; // minimum velocity threshold (más bajo)
     
     if (isHorizontalSwipe) {
       // This looks like a swipe gesture - block it

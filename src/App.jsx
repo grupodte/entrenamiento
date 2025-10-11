@@ -11,7 +11,7 @@ import useSimpleSwipeBackPrevention from './hooks/useSimpleSwipeBackPrevention';
 import { useLocation } from 'react-router-dom';
 import { WidgetGuideProvider } from './context/WidgetGuideContext';
 import { shouldEnableIOSSwipeBlock, getFeatureSettings, getSwipeThresholdForRoute } from './config/features';
-import useIOSBackSwipeBlock from './hooks/useSimpleSwipeBackPrevention';
+import useCompleteSwipeBlockade from './hooks/useCompleteSwipeBlockade';
 
 // --- LAZY LOADING DE COMPONENTES GRANDES ---
 // Layouts
@@ -80,25 +80,25 @@ const AppContent = () => {
   // Prevención simple y no intrusiva de swipe back
   useSimpleSwipeBackPrevention(true);
   
-  // iOS swipe gesture prevention - funciona globalmente con threshold dinámico
+  // BLOQUEO COMPLETO de swipe back y navegación hacia atrás
   const shouldBlockSwipes = shouldEnableIOSSwipeBlock(location.pathname);
   const iosSwipeSettings = getFeatureSettings('IOS_SWIPE_BLOCK');
   const dynamicThreshold = getSwipeThresholdForRoute(location.pathname);
   
-  const swipeBlockStatus = useIOSBackSwipeBlock({
-    enabled: shouldBlockSwipes, // Siempre activo cuando la ruta lo permite
+  const swipeBlockStatus = useCompleteSwipeBlockade({
+    enabled: shouldBlockSwipes, // Bloqueo completo cuando está habilitado
     edgeThreshold: dynamicThreshold, // Threshold dinámico según la ruta
     debugLog: iosSwipeSettings.debugLog || false
   });
   
-  // Log iOS swipe block status en desarrollo
+  // Log complete swipe block status en desarrollo
   useEffect(() => {
     if (iosSwipeSettings.debugLog && swipeBlockStatus.isActive) {
-      console.log('[App] iOS swipe blocking active', {
+      console.log('[App] 🛡️ Complete swipe blockade active', {
         route: location.pathname,
         edgeThreshold: `${(dynamicThreshold * 100).toFixed(1)}%`,
         edgePixels: `~${Math.round(window.innerWidth * dynamicThreshold)}px`,
-        isIOSDetected: swipeBlockStatus.isIOSDetected,
+        isMobile: swipeBlockStatus.isMobile,
         stats: swipeBlockStatus.stats
       });
     }
