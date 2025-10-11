@@ -169,6 +169,15 @@ const VisualizarCurso = () => {
 
   const actualizarProgreso = async (leccionId, datos) => {
     try {
+      // Limpiar datos y convertir números a enteros donde sea necesario
+      const datosLimpios = { ...datos };
+      if (datosLimpios.tiempo_visto_segundos !== undefined) {
+        datosLimpios.tiempo_visto_segundos = Math.floor(Number(datosLimpios.tiempo_visto_segundos));
+      }
+      if (datosLimpios.ultima_posicion_segundos !== undefined) {
+        datosLimpios.ultima_posicion_segundos = Math.floor(Number(datosLimpios.ultima_posicion_segundos));
+      }
+      
       // Intentar upsert primero (funciona si existe la constraint única)
       const { data, error } = await supabase
         .from('progreso_lecciones')
@@ -176,7 +185,7 @@ const VisualizarCurso = () => {
           usuario_id: user.id,
           leccion_id: leccionId,
           curso_id: cursoId,
-          ...datos,
+          ...datosLimpios,
           fecha_ultima_vista: new Date().toISOString()
         }, {
           onConflict: 'usuario_id,leccion_id,curso_id'
@@ -190,7 +199,7 @@ const VisualizarCurso = () => {
           ...prev,
           [leccionId]: { 
             ...prev[leccionId], 
-            ...datos,
+            ...datosLimpios,
             fecha_ultima_vista: new Date().toISOString()
           }
         }));
@@ -216,7 +225,7 @@ const VisualizarCurso = () => {
           result = await supabase
             .from('progreso_lecciones')
             .update({
-              ...datos,
+              ...datosLimpios,
               fecha_ultima_vista: new Date().toISOString()
             })
             .eq('usuario_id', user.id)
@@ -232,7 +241,7 @@ const VisualizarCurso = () => {
               usuario_id: user.id,
               leccion_id: leccionId,
               curso_id: cursoId,
-              ...datos,
+              ...datosLimpios,
               fecha_ultima_vista: new Date().toISOString()
             })
             .select()
@@ -244,7 +253,7 @@ const VisualizarCurso = () => {
             ...prev,
             [leccionId]: { 
               ...prev[leccionId], 
-              ...datos,
+              ...datosLimpios,
               fecha_ultima_vista: new Date().toISOString()
             }
           }));
@@ -279,9 +288,9 @@ const VisualizarCurso = () => {
       actualizarProgreso(leccionActual.id, {
         tiempo_visto_segundos: Math.max(
           progreso[leccionActual.id]?.tiempo_visto_segundos || 0,
-          progressData.currentTime
+          Math.floor(progressData.currentTime) // Convertir a entero
         ),
-        ultima_posicion_segundos: progressData.currentTime
+        ultima_posicion_segundos: Math.floor(progressData.currentTime) // Convertir a entero
       });
 
       // Marcar como completada si vio más del 90%
