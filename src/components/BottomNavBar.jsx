@@ -111,7 +111,7 @@ const BottomNavBar = ({
 
   return (
     <motion.nav
-      className="max-w-[380px]  fixed bottom-0 left-0 right-0 h-[75px] z-navbar bg-[#D9D9D9/80] backdrop-blur-md "
+      className="  fixed bottom-0 left-0 right-0 h-[75px] z-navbar bg-[#D9D9D9/80] backdrop-blur-md "
       style={{ paddingBottom: `${safeAreaInsets.bottom}px` }}
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}

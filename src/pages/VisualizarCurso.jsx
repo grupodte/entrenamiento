@@ -467,7 +467,7 @@ const VisualizarCurso = () => {
           {leccionActual && (
           <div className="p-4 md:p-6  bg-[#000000]">
               <div className="max-w-4xl">
-              <h2 className="text-[27px]  leading-none font-bold text-[#F04444] mb-2">
+              <h2 className="text-[14px]  leading-none font-bold text-[#F04444] mb-2">
                   {leccionActual.titulo}
                 </h2>
                 

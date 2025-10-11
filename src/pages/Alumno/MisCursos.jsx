@@ -123,53 +123,56 @@ const MisCursos = () => {
 
 
   return (
-    <div className={`min-h-screen mt-8  p-3 sm:p-4 md:p-6 transition-all flex flex-col  duration-300 ${loading ? 'blur-[20px] pointer-events-none' : 'blur-0'}`}>
+    <div className="min-h-screen mt-8 p-3 sm:p-4 md:p-6 transition-all flex flex-col duration-300">
       <div className="max-w-7xl mx-auto">
-
-
-
-
-        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
-          <AnimatePresence>
-            {cursosFiltrados.length > 0 ? (
-              cursosFiltrados.map((acceso) => (
-                <CursoCard 
-                  key={acceso.id}
-                  acceso={acceso}
-                  curso={acceso.curso}
-                />
-              ))
-            ) : cursos.length === 0 ? (
-              <motion.div 
-                className="col-span-full text-center py-8 md:py-12"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <BookOpen className="w-12 h-12 md:w-16 md:h-16 text-gray-600 mx-auto mb-3 md:mb-4" />
-                <p className="text-gray-400 text-base md:text-lg mb-1 md:mb-2">No tienes cursos disponibles</p>
-                <p className="text-gray-500 mb-4 md:mb-6 text-sm md:text-base px-4">Explora nuestro catálogo y encuentra el curso perfecto para ti</p>
-                <motion.button
-                  onClick={() => navigate('/cursos')}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-2.5 md:py-3 px-4 md:px-6 rounded-lg transition-all duration-300 flex items-center gap-2 mx-auto text-sm md:text-base"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+        {loading ? (
+          // Mostrar un loader simple mientras carga
+          <div className="flex justify-center items-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F84B4B]"></div>
+          </div>
+        ) : (
+          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
+            <AnimatePresence>
+              {cursosFiltrados.length > 0 ? (
+                cursosFiltrados.map((acceso) => (
+                  <CursoCard 
+                    key={acceso.id}
+                    acceso={acceso}
+                    curso={acceso.curso}
+                  />
+                ))
+              ) : cursos.length === 0 ? (
+                <motion.div 
+                  className="col-span-full text-center py-8 md:py-12"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                 >
-                  Ver Catálogo <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
-                </motion.button>
-              </motion.div>
-            ) : (
-              <motion.div 
-                className="col-span-full text-center py-8 md:py-12"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <Search className="w-12 h-12 md:w-16 md:h-16 text-gray-600 mx-auto mb-3 md:mb-4" />
-                <p className="text-gray-400 text-base md:text-lg mb-1 md:mb-2">No se encontraron cursos</p>
-                <p className="text-gray-500 text-sm md:text-base">Intenta ajustar la búsqueda</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+                  <BookOpen className="w-12 h-12 md:w-16 md:h-16 text-gray-600 mx-auto mb-3 md:mb-4" />
+                  <p className="text-gray-400 text-base md:text-lg mb-1 md:mb-2">No tienes cursos disponibles</p>
+                  <p className="text-gray-500 mb-4 md:mb-6 text-sm md:text-base px-4">Explora nuestro catálogo y encuentra el curso perfecto para ti</p>
+                  <motion.button
+                    onClick={() => navigate('/cursos')}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-2.5 md:py-3 px-4 md:px-6 rounded-lg transition-all duration-300 flex items-center gap-2 mx-auto text-sm md:text-base"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Ver Catálogo <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
+                  </motion.button>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  className="col-span-full text-center py-8 md:py-12"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Search className="w-12 h-12 md:w-16 md:h-16 text-gray-600 mx-auto mb-3 md:mb-4" />
+                  <p className="text-gray-400 text-base md:text-lg mb-1 md:mb-2">No se encontraron cursos</p>
+                  <p className="text-gray-500 text-sm md:text-base">Intenta ajustar la búsqueda</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
       </div>
     </div>
   );

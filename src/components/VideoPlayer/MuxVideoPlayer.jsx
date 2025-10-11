@@ -62,40 +62,76 @@ const MuxVideoPlayer = ({
 
   // Initialize Google Cast SDK
   useEffect(() => {
-    // Cargar Google Cast SDK si no está ya cargado
-    if (!window.chrome?.cast) {
-      const script = document.createElement('script');
-      script.src = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
-      script.onload = initializeCast;
-      document.head.appendChild(script);
-    } else {
-      initializeCast();
-    }
-
-    function initializeCast() {
+    let scriptLoaded = false;
+    
+    const initializeCast = () => {
+      console.log('🎭 Initializing Google Cast SDK...');
+      
       window['__onGCastApiAvailable'] = (isAvailable) => {
-        if (isAvailable) {
-          const context = cast.framework.CastContext.getInstance();
-          context.setOptions({
-            receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-            autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-          });
+        console.log('🎭 Google Cast API available:', isAvailable);
+        
+        if (isAvailable && window.cast?.framework) {
+          try {
+            const context = cast.framework.CastContext.getInstance();
+            
+            context.setOptions({
+              receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+              autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+            });
+            
+            console.log('🎭 Cast context configured');
 
-          // Listener para cambios de estado del cast
-          context.addEventListener(
-            cast.framework.CastContextEventType.CAST_STATE_CHANGED,
-            (event) => {
-              const castState = event.castState;
-              setIsCasting(castState === cast.framework.CastState.CONNECTED);
-              setCastAvailable(castState !== cast.framework.CastState.NO_DEVICES_AVAILABLE);
-            }
-          );
+            // Listener para cambios de estado del cast
+            context.addEventListener(
+              cast.framework.CastContextEventType.CAST_STATE_CHANGED,
+              (event) => {
+                const castState = event.castState;
+                console.log('🎭 Cast state changed:', castState);
+                
+                setIsCasting(castState === cast.framework.CastState.CONNECTED);
+                setCastAvailable(castState !== cast.framework.CastState.NO_DEVICES_AVAILABLE);
+              }
+            );
 
-          // Verificar estado inicial
-          setCastAvailable(context.getCastState() !== cast.framework.CastState.NO_DEVICES_AVAILABLE);
-          setIsCasting(context.getCastState() === cast.framework.CastState.CONNECTED);
+            // Verificar estado inicial
+            const initialState = context.getCastState();
+            console.log('🎭 Initial cast state:', initialState);
+            
+            setCastAvailable(initialState !== cast.framework.CastState.NO_DEVICES_AVAILABLE);
+            setIsCasting(initialState === cast.framework.CastState.CONNECTED);
+          } catch (error) {
+            console.error('🎭 Error setting up Cast context:', error);
+          }
+        } else {
+          console.warn('🎭 Cast framework not available');
         }
       };
+    };
+
+    // Cargar Google Cast SDK si no está ya cargado
+    if (!window.chrome?.cast && !scriptLoaded) {
+      console.log('🎭 Loading Google Cast SDK...');
+      
+      const script = document.createElement('script');
+      script.src = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
+      
+      script.onload = () => {
+        console.log('🎭 Cast SDK script loaded');
+        scriptLoaded = true;
+        // Dar tiempo al SDK para inicializarse
+        setTimeout(initializeCast, 100);
+      };
+      
+      script.onerror = () => {
+        console.error('🎭 Failed to load Cast SDK script');
+      };
+      
+      document.head.appendChild(script);
+    } else if (window.chrome?.cast) {
+      console.log('🎭 Cast SDK already available');
+      initializeCast();
+    } else {
+      console.log('🎭 Cast not supported or already loading');
     }
   }, []);
 
@@ -319,11 +355,38 @@ const MuxVideoPlayer = ({
     }
   }, []);
 
-  const toggleFullscreen = useCallback(() => {
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen?.();
-    } else {
-      document.exitFullscreen?.();
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      if (!document.fullscreenElement) {
+        // Entrar en pantalla completa
+        const element = containerRef.current;
+        if (element) {
+          if (element.requestFullscreen) {
+            await element.requestFullscreen();
+          } else if (element.webkitRequestFullscreen) {
+            await element.webkitRequestFullscreen();
+          } else if (element.mozRequestFullScreen) {
+            await element.mozRequestFullScreen();
+          } else if (element.msRequestFullscreen) {
+            await element.msRequestFullscreen();
+          } else {
+            console.warn('Fullscreen API not supported');
+          }
+        }
+      } else {
+        // Salir de pantalla completa
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          await document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          await document.msExitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.error('Error toggling fullscreen:', err);
     }
   }, []);
 
@@ -339,59 +402,92 @@ const MuxVideoPlayer = ({
 
   // Cast functions
   const handleCastToggle = useCallback(() => {
+    console.log('🎭 Cast toggle clicked. Current state:', { isCasting, castAvailable });
+    
     if (!window.cast?.framework) {
-      console.warn('Google Cast SDK not loaded');
+      console.warn('🎭 Google Cast SDK not loaded');
+      alert('Google Cast no está disponible. Asegúrate de estar usando Chrome.');
       return;
     }
 
-    const context = cast.framework.CastContext.getInstance();
-    
-    if (isCasting) {
-      // Desconectar del Cast
-      context.endCurrentSession(true);
-    } else {
-      // Iniciar Cast
-      if (src && title) {
+    try {
+      const context = cast.framework.CastContext.getInstance();
+      console.log('🎭 Cast context obtained:', context);
+      
+      if (isCasting) {
+        // Desconectar del Cast
+        console.log('🎭 Disconnecting from Cast...');
+        context.endCurrentSession(true);
+      } else {
+        // Iniciar Cast
+        console.log('🎭 Starting Cast session...', { src, title });
+        
+        if (!src) {
+          console.error('🎭 No video source available for casting');
+          return;
+        }
+        
         const castSession = context.getCurrentSession();
         if (castSession) {
+          console.log('🎭 Using existing Cast session');
           loadMediaToCast(castSession);
         } else {
+          console.log('🎭 Requesting new Cast session...');
           context.requestSession().then(() => {
+            console.log('🎭 Cast session established');
             const newSession = context.getCurrentSession();
             if (newSession) {
               loadMediaToCast(newSession);
             }
           }).catch(err => {
-            console.error('Error starting cast session:', err);
+            console.error('🎭 Error starting cast session:', err);
+            if (err.code === 'cancel') {
+              console.log('🎭 User cancelled Cast session');
+            } else {
+              alert('No se pudo conectar con el dispositivo Cast. Verifica que esté encendido.');
+            }
           });
         }
       }
+    } catch (error) {
+      console.error('🎭 Error in handleCastToggle:', error);
     }
   }, [isCasting, src, title, currentTime]);
 
   const loadMediaToCast = useCallback((session) => {
-    const mediaInfo = new chrome.cast.media.MediaInfo(src, 'application/x-mpegURL');
-    mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
-    mediaInfo.metadata.title = title;
-    mediaInfo.metadata.subtitle = 'Video de curso';
+    console.log('🎭 Loading media to Cast device...', { src, title, currentTime });
     
-    // Si hay una imagen thumbnail disponible, agregarla
-    // mediaInfo.metadata.images = [new chrome.cast.Image('thumbnail-url')];
-    
-    const request = new chrome.cast.media.LoadRequest(mediaInfo);
-    request.currentTime = currentTime; // Continuar desde donde se quedó
-    request.autoplay = isPlaying;
-    
-    session.loadMedia(request).then(() => {
-      console.log('✅ Media loaded to Cast device');
+    try {
+      const mediaInfo = new chrome.cast.media.MediaInfo(src, 'application/x-mpegURL');
+      mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
+      mediaInfo.metadata.title = title || 'Video de curso';
+      mediaInfo.metadata.subtitle = 'Streaming desde tu curso';
       
-      // Pausar el video local cuando inicie el casting
-      if (videoRef.current && isPlaying) {
-        videoRef.current.pause();
-      }
-    }).catch(err => {
-      console.error('❌ Error loading media to Cast:', err);
-    });
+      // Si hay una imagen thumbnail disponible, agregarla
+      // mediaInfo.metadata.images = [new chrome.cast.Image('thumbnail-url')];
+      
+      const request = new chrome.cast.media.LoadRequest(mediaInfo);
+      request.currentTime = Math.max(0, currentTime); // Continuar desde donde se quedó
+      request.autoplay = isPlaying;
+      
+      console.log('🎭 Media info created:', mediaInfo);
+      console.log('🎭 Load request:', request);
+      
+      session.loadMedia(request).then(() => {
+        console.log('✅ Media loaded to Cast device successfully');
+        
+        // Pausar el video local cuando inicie el casting
+        if (videoRef.current && isPlaying) {
+          console.log('🎭 Pausing local video');
+          videoRef.current.pause();
+        }
+      }).catch(err => {
+        console.error('❌ Error loading media to Cast:', err);
+        alert('Error al enviar el video al Cast. El video podría no ser compatible.');
+      });
+    } catch (error) {
+      console.error('🎭 Error in loadMediaToCast:', error);
+    }
   }, [src, title, currentTime, isPlaying]);
 
   // Show/hide controls
@@ -466,11 +562,26 @@ const MuxVideoPlayer = ({
   // Fullscreen handler
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isFullscreenNow = !!(document.fullscreenElement || 
+                                 document.webkitFullscreenElement || 
+                                 document.mozFullScreenElement || 
+                                 document.msFullscreenElement);
+      console.log('📺 Fullscreen state changed:', isFullscreenNow);
+      setIsFullscreen(isFullscreenNow);
     };
 
+    // Añadir todos los event listeners para compatibilidad
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
   }, []);
 
   // Cleanup
@@ -713,8 +824,8 @@ const MuxVideoPlayer = ({
                       </span>
                     </div>
                     
-                    {/* Cast Button */}
-                    {castAvailable && (
+                    {/* Cast Button - Mostrar siempre para debugging */}
+                    {(castAvailable || true) && (
                       <button
                         onClick={handleCastToggle}
                         className={`group p-1.5 sm:p-2 rounded-lg transition-all duration-200 ${
