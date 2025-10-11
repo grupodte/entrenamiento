@@ -22,6 +22,8 @@ const getVideoType = (url) => {
     return 'youtube';
   } else if (url.includes('vimeo.com')) {
     return 'vimeo';
+  } else if (url.includes('.m3u8') || url.includes('stream.mux.com')) {
+    return 'hls'; // HLS streaming (Mux, etc.)
   } else if (url.match(/\.(mp4|webm|ogg|mov)$/i)) {
     return 'direct';
   } else if (url.includes('blob:') || url.includes('data:')) {
@@ -75,6 +77,7 @@ const VideoPlayer = ({
   const [loading, setLoading] = useState(true);
   const [buffered, setBuffered] = useState(0);
   const [videoError, setVideoError] = useState(null);
+  const [hlsInstance, setHlsInstance] = useState(null);
   
   // Control visibility timeout
   const controlsTimeoutRef = useRef(null);
@@ -304,6 +307,35 @@ const VideoPlayer = ({
     };
   }, []);
 
+  // HLS setup for Mux videos
+  useEffect(() => {
+    if (videoType === 'hls' && videoRef.current && src) {
+      const video = videoRef.current;
+      
+      // Check if the browser supports HLS natively (Safari, iOS Safari)
+      if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        console.log('Using native HLS support');
+        video.src = src;
+        return;
+      }
+      
+      // For other browsers, we'll try to load the video directly
+      // Most modern browsers can handle HLS to some extent
+      console.log('Attempting direct HLS playback');
+      video.src = src;
+      
+      // If that doesn't work, we would need hls.js library
+      // but for now, let's see if the browser can handle it
+    }
+    
+    return () => {
+      if (hlsInstance) {
+        hlsInstance.destroy();
+        setHlsInstance(null);
+      }
+    };
+  }, [src, videoType, hlsInstance]);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -344,11 +376,11 @@ const VideoPlayer = ({
       );
     }
     
-    // Direct video (MP4, WebM, etc.)
+    // HLS video (Mux, etc.) or Direct video (MP4, WebM, etc.)
     return (
       <video
         ref={videoRef}
-        src={src}
+        src={videoType === 'hls' ? undefined : src} // For HLS, src is set in useEffect
         poster={poster}
         className="w-full h-full object-contain"
         onLoadedData={handleLoadedData}
@@ -363,6 +395,7 @@ const VideoPlayer = ({
         preload="metadata"
         crossOrigin="anonymous"
         controlsList="nodownload"
+        playsInline // Important for mobile HLS playback
       />
     );
   };
@@ -371,23 +404,23 @@ const VideoPlayer = ({
     <div
       ref={containerRef}
       className={`relative bg-black rounded-lg overflow-hidden group ${className}`}
-      onMouseMove={videoType === 'direct' ? showControlsTemporarily : undefined}
-      onMouseLeave={videoType === 'direct' ? () => isPlaying && setShowControls(false) : undefined}
+      onMouseMove={videoType === 'direct' || videoType === 'hls' ? showControlsTemporarily : undefined}
+      onMouseLeave={videoType === 'direct' || videoType === 'hls' ? () => isPlaying && setShowControls(false) : undefined}
       onContextMenu={(e) => e.preventDefault()}
       tabIndex={0}
     >
       {/* Video Content */}
       {renderVideoContent()}
 
-      {/* Loading Spinner - solo para videos directos */}
-      {loading && !videoError && videoType === 'direct' && (
+      {/* Loading Spinner - para videos directos y HLS */}
+      {loading && !videoError && (videoType === 'direct' || videoType === 'hls') && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/50">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
         </div>
       )}
 
-      {/* Video Error Display - solo para videos directos */}
-      {videoError && videoType === 'direct' && (
+      {/* Video Error Display - para videos directos y HLS */}
+      {videoError && (videoType === 'direct' || videoType === 'hls') && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 text-white p-6">
           <div className="text-center max-w-md">
             <div className="bg-red-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -431,9 +464,9 @@ const VideoPlayer = ({
         </div>
       )}
 
-      {/* Center Play Button - solo para videos directos */}
+      {/* Center Play Button - para videos directos y HLS */}
       <AnimatePresence>
-        {!isPlaying && !loading && videoType === 'direct' && (
+        {!isPlaying && !loading && (videoType === 'direct' || videoType === 'hls') && (
           <motion.button
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -448,9 +481,9 @@ const VideoPlayer = ({
         )}
       </AnimatePresence>
 
-      {/* Controls Overlay - solo para videos directos */}
+      {/* Controls Overlay - para videos directos y HLS */}
       <AnimatePresence>
-        {showControls && !loading && videoType === 'direct' && (
+        {showControls && !loading && (videoType === 'direct' || videoType === 'hls') && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

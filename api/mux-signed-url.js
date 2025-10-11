@@ -92,20 +92,32 @@ export default async function handler(req, res) {
     // Expected formats:
     // https://stream.mux.com/{PLAYBACK_ID}.m3u8
     // https://stream.mux.com/{PLAYBACK_ID}
+    // mux:{PLAYBACK_ID}
+    // {PLAYBACK_ID}
     let playbackId;
-    const muxUrlPattern = /https?:\/\/stream\.mux\.com\/([a-zA-Z0-9]+)/;
-    const match = videoUrl.match(muxUrlPattern);
     
-    if (match) {
-      playbackId = match[1].replace('.m3u8', ''); // Remove .m3u8 if present
+    // First try to extract from full URL
+    const muxUrlPattern = /https?:\/\/stream\.mux\.com\/([a-zA-Z0-9:]+)/;
+    const urlMatch = videoUrl.match(muxUrlPattern);
+    
+    if (urlMatch) {
+      playbackId = urlMatch[1].replace('.m3u8', ''); // Remove .m3u8 if present
     } else {
-      // If it's already just a playback ID
+      // If it's not a full URL, treat as playback ID directly
       playbackId = videoUrl;
+    }
+    
+    // Remove 'mux:' prefix if present
+    if (playbackId.startsWith('mux:')) {
+      playbackId = playbackId.replace('mux:', '');
     }
 
     if (!playbackId) {
       return res.status(400).json({ error: 'Invalid Mux video URL format' });
     }
+    
+    console.log('Original videoUrl:', videoUrl);
+    console.log('Extracted playbackId:', playbackId);
 
     // 4. Generate signed URL with Mux JWT
     
