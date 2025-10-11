@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Hls from 'hls.js';
+import './MuxVideoPlayer.css';
 import { 
   Play, 
   Pause, 
@@ -12,7 +13,8 @@ import {
   SkipBack,
   Settings,
   RotateCcw,
-  AlertCircle
+  AlertCircle,
+  Cast
 } from 'lucide-react';
 
 /**
@@ -50,10 +52,52 @@ const MuxVideoPlayer = ({
   const [buffered, setBuffered] = useState(0);
   const [error, setError] = useState(null);
   const [hlsError, setHlsError] = useState(null);
+  const [isCasting, setIsCasting] = useState(false);
+  const [castAvailable, setCastAvailable] = useState(false);
+  const castRef = useRef(null);
   
   // Control visibility timeout
   const controlsTimeoutRef = useRef(null);
   const hideControlsDelay = 3000;
+
+  // Initialize Google Cast SDK
+  useEffect(() => {
+    // Cargar Google Cast SDK si no está ya cargado
+    if (!window.chrome?.cast) {
+      const script = document.createElement('script');
+      script.src = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
+      script.onload = initializeCast;
+      document.head.appendChild(script);
+    } else {
+      initializeCast();
+    }
+
+    function initializeCast() {
+      window['__onGCastApiAvailable'] = (isAvailable) => {
+        if (isAvailable) {
+          const context = cast.framework.CastContext.getInstance();
+          context.setOptions({
+            receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+            autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+          });
+
+          // Listener para cambios de estado del cast
+          context.addEventListener(
+            cast.framework.CastContextEventType.CAST_STATE_CHANGED,
+            (event) => {
+              const castState = event.castState;
+              setIsCasting(castState === cast.framework.CastState.CONNECTED);
+              setCastAvailable(castState !== cast.framework.CastState.NO_DEVICES_AVAILABLE);
+            }
+          );
+
+          // Verificar estado inicial
+          setCastAvailable(context.getCastState() !== cast.framework.CastState.NO_DEVICES_AVAILABLE);
+          setIsCasting(context.getCastState() === cast.framework.CastState.CONNECTED);
+        }
+      };
+    }
+  }, []);
 
   // Initialize HLS player
   useEffect(() => {
@@ -293,6 +337,63 @@ const MuxVideoPlayer = ({
     }
   }, []);
 
+  // Cast functions
+  const handleCastToggle = useCallback(() => {
+    if (!window.cast?.framework) {
+      console.warn('Google Cast SDK not loaded');
+      return;
+    }
+
+    const context = cast.framework.CastContext.getInstance();
+    
+    if (isCasting) {
+      // Desconectar del Cast
+      context.endCurrentSession(true);
+    } else {
+      // Iniciar Cast
+      if (src && title) {
+        const castSession = context.getCurrentSession();
+        if (castSession) {
+          loadMediaToCast(castSession);
+        } else {
+          context.requestSession().then(() => {
+            const newSession = context.getCurrentSession();
+            if (newSession) {
+              loadMediaToCast(newSession);
+            }
+          }).catch(err => {
+            console.error('Error starting cast session:', err);
+          });
+        }
+      }
+    }
+  }, [isCasting, src, title, currentTime]);
+
+  const loadMediaToCast = useCallback((session) => {
+    const mediaInfo = new chrome.cast.media.MediaInfo(src, 'application/x-mpegURL');
+    mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
+    mediaInfo.metadata.title = title;
+    mediaInfo.metadata.subtitle = 'Video de curso';
+    
+    // Si hay una imagen thumbnail disponible, agregarla
+    // mediaInfo.metadata.images = [new chrome.cast.Image('thumbnail-url')];
+    
+    const request = new chrome.cast.media.LoadRequest(mediaInfo);
+    request.currentTime = currentTime; // Continuar desde donde se quedó
+    request.autoplay = isPlaying;
+    
+    session.loadMedia(request).then(() => {
+      console.log('✅ Media loaded to Cast device');
+      
+      // Pausar el video local cuando inicie el casting
+      if (videoRef.current && isPlaying) {
+        videoRef.current.pause();
+      }
+    }).catch(err => {
+      console.error('❌ Error loading media to Cast:', err);
+    });
+  }, [src, title, currentTime, isPlaying]);
+
   // Show/hide controls
   const showControlsTemporarily = useCallback(() => {
     setShowControls(true);
@@ -505,94 +606,163 @@ const MuxVideoPlayer = ({
             </div>
 
             {/* Bottom Controls */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 pointer-events-auto">
-              {/* Progress Bar */}
-              <div className="mb-4">
-                <div
-                  ref={progressBarRef}
-                  className="w-full h-1 bg-white/30 rounded-full cursor-pointer hover:h-2 transition-all"
-                  onClick={handleSeek}
-                >
+            <div className="absolute bottom-0 left-0 right-0 pointer-events-auto">
+              {/* Progress Bar Container */}
+              <div className="px-4 pb-2">
+                <div className="relative group">
                   <div
-                    className="absolute h-full bg-white/50 rounded-full"
-                    style={{ width: `${buffered}%` }}
-                  />
-                  <div
-                    className="h-full bg-red-500 rounded-full relative"
-                    style={{ width: `${progressPercentage}%` }}
+                    ref={progressBarRef}
+                    className="w-full h-1 bg-white/20 rounded-full cursor-pointer group-hover:h-1.5 transition-all duration-200 backdrop-blur-sm"
+                    onClick={handleSeek}
                   >
-                    <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-red-500 rounded-full opacity-0 hover:opacity-100 transition-opacity" />
+                    {/* Buffered Progress */}
+                    <div
+                      className="absolute h-full bg-white/30 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(buffered, 100)}%` }}
+                    />
+                    
+                    {/* Current Progress */}
+                    <div
+                      className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full relative shadow-sm transition-all duration-200"
+                      style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+                    >
+                      {/* Progress Handle */}
+                      <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-red-500 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 border-2 border-white/50" />
+                    </div>
+                  </div>
+                  
+                  {/* Time tooltip on hover */}
+                  <div className="absolute -top-8 left-0 right-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div className="text-xs text-white bg-black/70 backdrop-blur-sm px-2 py-1 rounded text-center">
+                      {formatTime(currentTime)} / {formatTime(duration)}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Control Buttons */}
-              <div className="flex items-center justify-between text-white">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => skipTime(-10)}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                    title="Retroceder 10s"
-                  >
-                    <SkipBack className="w-5 h-5" />
-                  </button>
-
-                  <button
-                    onClick={togglePlay}
-                    className="p-3 hover:bg-white/20 rounded-full transition-colors"
-                  >
-                    {isPlaying ? 
-                      <Pause className="w-6 h-6" fill="currentColor" /> : 
-                      <Play className="w-6 h-6 ml-0.5" fill="currentColor" />
-                    }
-                  </button>
-
-                  <button
-                    onClick={() => skipTime(10)}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                    title="Avanzar 10s"
-                  >
-                    <SkipForward className="w-5 h-5" />
-                  </button>
-
-                  <div className="flex items-center gap-2">
+              {/* Control Buttons Container */}
+              <div className="bg-gradient-to-t from-black/90 via-black/60 to-transparent px-4 pt-3 pb-4 backdrop-blur-sm">
+                <div className="flex items-center justify-between text-white">
+                  {/* Left Controls */}
+                  <div className="flex items-center gap-1 sm:gap-3">
+                    {/* Skip Back */}
                     <button
-                      onClick={toggleMute}
-                      className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                      onClick={() => skipTime(-10)}
+                      className="group p-2 sm:p-2.5 hover:bg-white/15 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                      title="Retroceder 10s"
                     >
-                      {isMuted || volume === 0 ? 
-                        <VolumeX className="w-5 h-5" /> : 
-                        <Volume2 className="w-5 h-5" />
+                      <SkipBack className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-red-400 transition-colors" />
+                      <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 px-2 py-1 rounded whitespace-nowrap">10s</span>
+                    </button>
+
+                    {/* Play/Pause */}
+                    <button
+                      onClick={togglePlay}
+                      className="group p-3 sm:p-4 hover:bg-white/15 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 mx-1 sm:mx-2"
+                    >
+                      {isPlaying ? 
+                        <Pause className="w-5 h-5 sm:w-6 sm:h-6 group-hover:text-red-400 transition-colors" fill="currentColor" /> : 
+                        <Play className="w-5 h-5 sm:w-6 sm:h-6 ml-0.5 group-hover:text-red-400 transition-colors" fill="currentColor" />
                       }
                     </button>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.1"
-                      value={isMuted ? 0 : volume}
-                      onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                      className="w-20 h-1 bg-white/30 rounded-full appearance-none slider"
-                    />
+
+                    {/* Skip Forward */}
+                    <button
+                      onClick={() => skipTime(10)}
+                      className="group p-2 sm:p-2.5 hover:bg-white/15 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                      title="Avanzar 10s"
+                    >
+                      <SkipForward className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-red-400 transition-colors" />
+                      <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 px-2 py-1 rounded whitespace-nowrap">10s</span>
+                    </button>
+
+                    {/* Volume Control */}
+                    <div className="flex items-center gap-2 ml-2 sm:ml-4 group">
+                      <button
+                        onClick={toggleMute}
+                        className="p-2 hover:bg-white/15 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
+                      >
+                        {isMuted || volume === 0 ? 
+                          <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" /> : 
+                          <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                        }
+                      </button>
+                      
+                      {/* Volume Slider - Hidden on mobile */}
+                      <div className="hidden sm:flex items-center relative group">
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.1"
+                          value={isMuted ? 0 : volume}
+                          onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                          className="w-20 h-1 bg-white/20 rounded-full appearance-none cursor-pointer slider-custom"
+                          style={{
+                            background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.2) ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.2) 100%)`
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Time Display - Hidden on small screens */}
+                    <div className="hidden md:flex items-center ml-3">
+                      <div className="text-xs sm:text-sm font-mono bg-black/30 backdrop-blur-sm px-2 py-1 rounded">
+                        <span className="text-red-400">{formatTime(currentTime)}</span>
+                        <span className="text-white/60 mx-1">/</span>
+                        <span className="text-white/80">{formatTime(duration)}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="text-sm font-mono">
-                    {formatTime(currentTime)} / {formatTime(duration)}
+                  {/* Right Controls */}
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    {/* Playback Speed - Hidden on mobile */}
+                    <div className="hidden sm:flex items-center">
+                      <span className="text-xs font-mono bg-black/30 backdrop-blur-sm px-2 py-1 rounded text-white/80">
+                        {playbackRate}x
+                      </span>
+                    </div>
+                    
+                    {/* Cast Button */}
+                    {castAvailable && (
+                      <button
+                        onClick={handleCastToggle}
+                        className={`group p-2 sm:p-2.5 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
+                          isCasting 
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25' 
+                            : 'hover:bg-white/15 text-white'
+                        }`}
+                        title={isCasting ? 'Desconectar de Cast' : 'Enviar a Cast'}
+                      >
+                        <Cast className="w-4 h-4 sm:w-5 sm:h-5" />
+                        {isCasting && (
+                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                        )}
+                      </button>
+                    )}
+                    
+                    {/* Fullscreen */}
+                    <button
+                      onClick={toggleFullscreen}
+                      className="group p-2 sm:p-2.5 hover:bg-white/15 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                      title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+                    >
+                      {isFullscreen ? 
+                        <Minimize className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-red-400 transition-colors" /> : 
+                        <Maximize className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-red-400 transition-colors" />
+                      }
+                    </button>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-mono">{playbackRate}x</span>
-                  
-                  <button
-                    onClick={toggleFullscreen}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                  >
-                    {isFullscreen ? 
-                      <Minimize className="w-5 h-5" /> : 
-                      <Maximize className="w-5 h-5" />
-                    }
-                  </button>
+                
+                {/* Mobile Time Display */}
+                <div className="flex md:hidden justify-center mt-2">
+                  <div className="text-xs font-mono bg-black/30 backdrop-blur-sm px-3 py-1 rounded">
+                    <span className="text-red-400">{formatTime(currentTime)}</span>
+                    <span className="text-white/60 mx-2">/</span>
+                    <span className="text-white/80">{formatTime(duration)}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -604,6 +774,14 @@ const MuxVideoPlayer = ({
       <div className="absolute top-2 right-2 opacity-30 text-xs text-white bg-black/50 px-2 py-1 rounded">
         🔒 Mux
       </div>
+
+      {/* Cast Status Indicator */}
+      {isCasting && (
+        <div className="absolute top-2 left-2 bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium flex items-center gap-2">
+          <Cast className="w-4 h-4" />
+          Reproduciendo en TV
+        </div>
+      )}
     </div>
   );
 };

@@ -1,0 +1,132 @@
+/* Estilos personalizados para MuxVideoPlayer */
+
+/* Slider de volumen personalizado */
+.slider-custom::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider-custom::-webkit-slider-thumb:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.slider-custom::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.slider-custom::-moz-range-thumb:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+/* Ocultar track por defecto en Firefox */
+.slider-custom::-moz-range-track {
+  background: transparent;
+}
+
+/* Animación sutil para los botones */
+@keyframes buttonPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.button-pulse {
+  animation: buttonPulse 0.15s ease-in-out;
+}
+
+/* Estilo para el tooltip de tiempo en hover */
+.time-tooltip {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+}
+
+/* Mejoras para el progreso bar */
+.progress-container:hover .progress-handle {
+  opacity: 1;
+  transform: translate(50%, -50%) scale(1.1);
+}
+
+/* Estilo para indicadores de estado */
+.cast-indicator {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.cast-pulse::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: inherit;
+  border-radius: inherit;
+  opacity: 0.5;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+/* Estilos responsivos adicionales */
+@media (max-width: 640px) {
+  .control-button {
+    padding: 8px;
+  }
+  
+  .control-button-large {
+    padding: 12px;
+  }
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+  .slider-custom::-webkit-slider-thumb {
+    border-color: rgba(255, 255, 255, 0.9);
+  }
+  
+  .time-tooltip {
+    background: rgba(0, 0, 0, 0.9);
+  }
+}
+
+/* Smooth transitions para todos los elementos interactivos */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
