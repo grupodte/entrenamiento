@@ -1,4 +1,6 @@
 import MuxPlayer from '@mux/mux-player-react';
+import PWAVideoPlayer from './PWAVideoPlayer';
+import { useState, useEffect } from 'react';
 
 /**
  * A reusable Mux video player component with responsive design and customizable styling
@@ -28,6 +30,54 @@ const MuxVideoPlayer = ({
   style = {},
   ...props
 }) => {
+  const [isPWA, setIsPWA] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Detectar PWA y móvil
+  useEffect(() => {
+    const detectEnvironment = () => {
+      // Detectar PWA
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                          window.navigator.standalone ||
+                          document.referrer.includes('android-app://');
+      setIsPWA(isStandalone);
+      
+      // Detectar móvil
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                            window.matchMedia('(max-width: 768px)').matches;
+      setIsMobile(isMobileDevice);
+    };
+
+    detectEnvironment();
+    
+    // Escuchar cambios en el tamaño de ventana
+    const handleResize = () => {
+      const isMobileDevice = window.matchMedia('(max-width: 768px)').matches;
+      setIsMobile(isMobileDevice);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Si es PWA móvil, usar el componente especializado
+  if (isPWA && isMobile) {
+    console.log('Using PWAVideoPlayer for mobile PWA');
+    return (
+      <PWAVideoPlayer
+        playbackId={playbackId}
+        metadata={metadata}
+        className={className}
+        autoPlay={autoPlay}
+        muted={muted}
+        controls={controls}
+        poster={poster}
+        style={style}
+        {...props}
+      />
+    );
+  }
+
   // Default responsive styling with Tailwind
   const defaultClasses = 'w-full aspect-video rounded-lg shadow-lg';
   const combinedClasses = `${defaultClasses} ${className}`.trim();

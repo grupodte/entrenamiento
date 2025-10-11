@@ -83,15 +83,42 @@ registerRoute(
   })
 );
 
-// 5. CDNs externos - StaleWhileRevalidate
+// 5. CDNs externos - StaleWhileRevalidate (EXCLUYENDO videos de streaming)
 registerRoute(
-  ({ url }) => /(?:vimeo|youtube|amazonaws)\.com/.test(url.hostname),
+  ({ url, request }) => {
+    // Solo cachear recursos que NO sean videos de streaming
+    const isStreamingVideo = url.hostname.includes('stream.mux.com') || 
+                           url.pathname.includes('.m3u8') ||
+                           url.pathname.includes('/video/') ||
+                           request.destination === 'video';
+    
+    return /(?:vimeo|youtube|amazonaws)\.com/.test(url.hostname) && !isStreamingVideo;
+  },
   new StaleWhileRevalidate({
     cacheName: 'external-assets-cache',
     plugins: [
       new ExpirationPlugin({
         maxEntries: 50,
         maxAgeSeconds: 24 * 60 * 60, // 1 día
+      }),
+    ],
+  })
+);
+
+// 6. Rutas de video de Mux - NetworkFirst (NUNCA cachear)
+registerRoute(
+  ({ url, request }) => {
+    return url.hostname.includes('stream.mux.com') || 
+           url.pathname.includes('.m3u8') ||
+           request.destination === 'video';
+  },
+  new NetworkFirst({
+    cacheName: 'video-streaming-cache',
+    networkTimeoutSeconds: 10, // Timeout rápido
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 0, // No cachear videos
+        maxAgeSeconds: 0,
       }),
     ],
   })

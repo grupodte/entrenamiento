@@ -79,10 +79,63 @@ const VideoPlayer = ({
   const [buffered, setBuffered] = useState(0);
   const [videoError, setVideoError] = useState(null);
   const [hlsInstance, setHlsInstance] = useState(null);
+  const [isPWA, setIsPWA] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   
   // Control visibility timeout
   const controlsTimeoutRef = useRef(null);
   const hideControlsDelay = 3000;
+  
+  // Detectar PWA
+  useEffect(() => {
+    const detectPWA = () => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                          window.navigator.standalone ||
+                          document.referrer.includes('android-app://');
+      setIsPWA(isStandalone);
+    };
+    
+    detectPWA();
+  }, []);
+  
+  // Manejar visibilidad para PWAs
+  useEffect(() => {
+    if (!isPWA) return;
+    
+    const handleVisibilityChange = () => {
+      const isCurrentlyVisible = !document.hidden;
+      setIsVisible(isCurrentlyVisible);
+      
+      if (videoRef.current) {
+        if (isCurrentlyVisible) {
+          // PWA volvió a estar visible
+          console.log('PWA VideoPlayer: App visible');
+          // Recargar el video si había un error o estaba pausado
+          setTimeout(() => {
+            if (videoRef.current && videoError) {
+              videoRef.current.load();
+            }
+          }, 200);
+        } else {
+          // PWA se ocultó
+          console.log('PWA VideoPlayer: App hidden - pausing');
+          if (isPlaying) {
+            videoRef.current.pause();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+    window.addEventListener('blur', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+      window.removeEventListener('blur', handleVisibilityChange);
+    };
+  }, [isPWA, isPlaying, videoError]);
 
   // Handle play/pause
   const togglePlay = useCallback(() => {
@@ -436,10 +489,13 @@ const VideoPlayer = ({
         onError={handleVideoError}
         onLoadStart={handleLoadStart}
         onCanPlay={handleCanPlay}
-        preload="metadata"
+        preload={isPWA ? "none" : "metadata"} // En PWA, carga bajo demanda
         crossOrigin="anonymous"
         controlsList="nodownload"
         playsInline // Important for mobile HLS playback
+        webkit-playsinline="true" // iOS Safari específico
+        x5-video-player-type="h5" // WeChat específico
+        x5-video-player-fullscreen="false" // WeChat específico
       />
     );
   };
