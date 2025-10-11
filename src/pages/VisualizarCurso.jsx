@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import MuxVideoPlayer from '../components/VideoPlayer/MuxVideoPlayer';
+import MuxPlayer from "@mux/mux-player-react";
+import "@mux/mux-player/themes/classic";
+
 import useMuxSignedUrl from '../hooks/useMuxSignedUrl';
 import { 
   Play, 
@@ -283,18 +285,22 @@ const VisualizarCurso = () => {
     }));
   };
 
-  const handleVideoProgress = (progressData) => {
-    if (leccionActual) {
+  const handleVideoProgress = (e) => {
+    if (leccionActual && e.target) {
+      const currentTime = e.target.currentTime;
+      const duration = e.target.duration;
+      const percentComplete = duration > 0 ? (currentTime / duration) * 100 : 0;
+
       actualizarProgreso(leccionActual.id, {
         tiempo_visto_segundos: Math.max(
           progreso[leccionActual.id]?.tiempo_visto_segundos || 0,
-          Math.floor(progressData.currentTime) // Convertir a entero
+          Math.floor(currentTime) // Convertir a entero
         ),
-        ultima_posicion_segundos: Math.floor(progressData.currentTime) // Convertir a entero
+        ultima_posicion_segundos: Math.floor(currentTime) // Convertir a entero
       });
 
       // Marcar como completada si vio más del 90%
-      if (progressData.percentComplete > 90 && !progreso[leccionActual.id]?.completada) {
+      if (percentComplete > 90 && !progreso[leccionActual.id]?.completada) {
         marcarLeccionCompletada(leccionActual.id, true);
       }
     }
@@ -508,14 +514,26 @@ const VisualizarCurso = () => {
                 </div>
               </div>
             ) : videoUrl && leccionActual ? (
-              <MuxVideoPlayer
+              <MuxPlayer
                 src={videoUrl}
                 title={leccionActual.titulo}
-                onProgressUpdate={handleVideoProgress}
-                onVideoComplete={() => marcarLeccionCompletada(leccionActual.id, true)}
+                onTimeUpdate={handleVideoProgress}
+                onEnded={() => marcarLeccionCompletada(leccionActual.id, true)}
                 className="w-full h-full rounded-none"
-                autoplay={false}
+                autoPlay={false}
                 muted={false}
+                theme="classic"
+                primaryColor="#ef4444"
+                accentColor="#ef4444"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  aspectRatio: '16/9'
+                }}
+                metadata={{
+                  video_title: leccionActual.titulo,
+                  viewer_user_id: user?.id || 'unknown'
+                }}
               />
             ) : urlErrors[leccionActual?.id] ? (
               <div className="w-full h-full flex items-center justify-center bg-black">
