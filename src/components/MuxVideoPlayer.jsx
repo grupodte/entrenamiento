@@ -1,5 +1,6 @@
 import MuxPlayer from '@mux/mux-player-react';
 import PWAVideoPlayer from './PWAVideoPlayer';
+import usePWAVideoFix from '../hooks/usePWAVideoFix';
 import { useState, useEffect } from 'react';
 
 /**
@@ -32,6 +33,9 @@ const MuxVideoPlayer = ({
 }) => {
   const [isPWA, setIsPWA] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Hook para solucionar problemas de PWA
+  const pwaFix = usePWAVideoFix();
   
   // Detectar PWA y móvil
   useEffect(() => {
@@ -92,7 +96,15 @@ const MuxVideoPlayer = ({
 
   return (
     <div className="relative">
+      {/* Debug info para PWA (solo en desarrollo) */}
+      {process.env.NODE_ENV === 'development' && pwaFix.isPWA && (
+        <div className="absolute top-2 left-2 z-10 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+          PWA Fix: {pwaFix.forceReload} {pwaFix.isAppReopen && '- REOPEN'}
+        </div>
+      )}
+      
       <MuxPlayer
+        key={pwaFix.videoProps.key} // Usar key del hook para forzar remount
         playbackId={playbackId}
         metadata={playerMetadata}
         className={combinedClasses}
@@ -101,6 +113,7 @@ const MuxVideoPlayer = ({
         controls={controls}
         poster={poster}
         style={style}
+        {...pwaFix.videoProps}
         {...props}
       />
     </div>
