@@ -516,7 +516,6 @@ const VisualizarCurso = () => {
             ) : videoUrl && leccionActual ? (
               <MuxPlayer
                 src={videoUrl}
-                title={leccionActual.titulo}
                 onTimeUpdate={handleVideoProgress}
                 onEnded={() => marcarLeccionCompletada(leccionActual.id, true)}
                 className="w-full h-full rounded-none"
