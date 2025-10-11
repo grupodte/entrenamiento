@@ -1,5 +1,6 @@
 import MuxPlayer from '@mux/mux-player-react';
 import PWAVideoPlayer from './PWAVideoPlayer';
+import PWAVideoManager from './PWAVideoManager';
 import usePWAVideoFix from '../hooks/usePWAVideoFix';
 import { useState, useEffect } from 'react';
 
@@ -64,11 +65,11 @@ const MuxVideoPlayer = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Si es PWA móvil, usar el componente especializado
-  if (isPWA && isMobile) {
-    console.log('Using PWAVideoPlayer for mobile PWA');
+  // Para PWAs (especialmente móviles), usar el manager especializado
+  if (pwaFix.isPWA) {
+    console.log('Using PWAVideoManager for PWA');
     return (
-      <PWAVideoPlayer
+      <PWAVideoManager
         playbackId={playbackId}
         metadata={metadata}
         className={className}
