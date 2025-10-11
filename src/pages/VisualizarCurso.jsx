@@ -7,8 +7,8 @@ import MuxPlayer from "@mux/mux-player-react";
 import "@mux/mux-player/themes/classic";
 
 import useMuxSignedUrl from '../hooks/useMuxSignedUrl';
-import { 
-  Play, 
+import {
+  Play,
   Book,
   Clock,
   CheckCircle,
@@ -36,7 +36,7 @@ const VisualizarCurso = () => {
   const { cursoId } = useParams();
   const { user, rol } = useAuth();
   const navigate = useNavigate();
-  
+
   const [curso, setCurso] = useState(null);
   const [modulos, setModulos] = useState([]);
   const [leccionActual, setLeccionActual] = useState(null);
@@ -48,7 +48,7 @@ const VisualizarCurso = () => {
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
   const [videoUrl, setVideoUrl] = useState(null);
   const [loadingVideo, setLoadingVideo] = useState(false);
-  
+
   // Hook para manejar URLs firmadas de Mux
   const { getSignedUrl, loadingUrls, errors: urlErrors } = useMuxSignedUrl();
 
@@ -61,14 +61,14 @@ const VisualizarCurso = () => {
   const verificarAccesoYCargarCurso = async () => {
     try {
       setLoading(true);
-      
+
       // Verificar que el usuario tenga rol apropiado
       if (rol !== 'alumno' && rol !== 'admin') {
         setTieneAcceso(false);
         setLoading(false);
         return;
       }
-      
+
       // Los admins tienen acceso automático
       if (rol === 'admin') {
         setTieneAcceso(true);
@@ -87,7 +87,7 @@ const VisualizarCurso = () => {
           setLoading(false);
           return;
         }
-        
+
         setTieneAcceso(true);
       }
 
@@ -130,7 +130,7 @@ const VisualizarCurso = () => {
         const primeraLeccion = modulosData[0].lecciones[0];
         // Usar seleccionarLeccion para cargar también el video
         seleccionarLeccion(primeraLeccion);
-        
+
         // Expandir el primer módulo por defecto
         setModulosExpandidos({ [modulosData[0].id]: true });
       }
@@ -146,7 +146,7 @@ const VisualizarCurso = () => {
     setLeccionActual(leccion);
     setLoadingVideo(true);
     setVideoUrl(null);
-    
+
     // Marcar como primera vista si es necesario
     if (!progreso[leccion.id]?.fecha_primera_vista) {
       actualizarProgreso(leccion.id, { fecha_primera_vista: new Date().toISOString() });
@@ -165,7 +165,7 @@ const VisualizarCurso = () => {
         console.error('Error al obtener URL firmada:', error);
       }
     }
-    
+
     setLoadingVideo(false);
   };
 
@@ -179,7 +179,7 @@ const VisualizarCurso = () => {
       if (datosLimpios.ultima_posicion_segundos !== undefined) {
         datosLimpios.ultima_posicion_segundos = Math.floor(Number(datosLimpios.ultima_posicion_segundos));
       }
-      
+
       // Intentar upsert primero (funciona si existe la constraint única)
       const { data, error } = await supabase
         .from('progreso_lecciones')
@@ -199,8 +199,8 @@ const VisualizarCurso = () => {
         // Si upsert funciona, actualizar estado local
         setProgreso(prev => ({
           ...prev,
-          [leccionId]: { 
-            ...prev[leccionId], 
+          [leccionId]: {
+            ...prev[leccionId],
             ...datosLimpios,
             fecha_ultima_vista: new Date().toISOString()
           }
@@ -211,7 +211,7 @@ const VisualizarCurso = () => {
       // Si upsert falla (no existe constraint), usar método alternativo
       if (error.code === '42P10') {
         console.log('Constraint única no existe, usando método alternativo');
-        
+
         // Verificar si existe el registro primero
         const { data: existingProgress } = await supabase
           .from('progreso_lecciones')
@@ -253,8 +253,8 @@ const VisualizarCurso = () => {
         if (!result.error) {
           setProgreso(prev => ({
             ...prev,
-            [leccionId]: { 
-              ...prev[leccionId], 
+            [leccionId]: {
+              ...prev[leccionId],
               ...datosLimpios,
               fecha_ultima_vista: new Date().toISOString()
             }
@@ -271,7 +271,7 @@ const VisualizarCurso = () => {
   };
 
   const marcarLeccionCompletada = (leccionId, completada = true) => {
-    const datos = { 
+    const datos = {
       completada,
       fecha_completada: completada ? new Date().toISOString() : null
     };
@@ -309,16 +309,16 @@ const VisualizarCurso = () => {
   // Obtener lección anterior y siguiente para navegación móvil
   const obtenerLeccionesNavegacion = () => {
     if (!leccionActual || !modulos.length) return { anterior: null, siguiente: null };
-    
+
     let todasLecciones = [];
     modulos.forEach(modulo => {
       if (modulo.lecciones) {
         todasLecciones.push(...modulo.lecciones);
       }
     });
-    
+
     const indiceActual = todasLecciones.findIndex(l => l.id === leccionActual.id);
-    
+
     return {
       anterior: indiceActual > 0 ? todasLecciones[indiceActual - 1] : null,
       siguiente: indiceActual < todasLecciones.length - 1 ? todasLecciones[indiceActual + 1] : null
@@ -356,10 +356,9 @@ const VisualizarCurso = () => {
             <div className="text-xs md:text-sm text-gray-400">
               {Math.round((leccionesCompletadas / totalLecciones) * 100) || 0}%
             </div>
-            <ChevronDown 
-              className={`w-4 h-4 md:w-5 md:h-5 text-gray-400 transition-transform ${
-                isExpanded ? 'rotate-180' : ''
-              }`} 
+            <ChevronDown
+              className={`w-4 h-4 md:w-5 md:h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''
+                }`}
             />
           </div>
         </button>
@@ -376,7 +375,7 @@ const VisualizarCurso = () => {
                 {modulo.lecciones?.map((leccion, leccionIndex) => {
                   const isCompleted = progreso[leccion.id]?.completada;
                   const isActive = leccionActual?.id === leccion.id;
-                  
+
                   return (
                     <button
                       key={leccion.id}
@@ -384,25 +383,23 @@ const VisualizarCurso = () => {
                         seleccionarLeccion(leccion);
                         if (onLeccionSelect) onLeccionSelect();
                       }}
-                      className={` w-full p-3 md:p-4 text-left  transition-colors  flex items-center gap-3 mb-2 ${
-                        isActive ? 'bg-[#F84B4B]/20 border-[1px] border-[#FFFFFF]/20 rounded-[10px] ' : 'bg-[#F84B4B]/20 border-[1px] border-[#FFFFFF]/20 rounded-[10px]'
-                      }`}
+                      className={` w-full p-3 md:p-4 text-left  transition-colors  flex items-center gap-3 mb-2 ${isActive ? 'bg-[#F84B4B]/20 border-[1px] border-[#FFFFFF]/20 rounded-[10px] ' : 'bg-[#F84B4B]/20 border-[1px] border-[#FFFFFF]/20 rounded-[10px]'
+                        }`}
                     >
-                      <div className={`w-[42px] h-[42px] rounded-[5px] flex items-center justify-center flex-shrink-0 ${
-                        isCompleted ? 'bg-green-500' : isActive ? 'bg-[#FF0000] ' : 'bg-[#FF0000]'
-                      }`}>
+                      <div className={`w-[42px] h-[42px] rounded-[5px] flex items-center justify-center flex-shrink-0 ${isCompleted ? 'bg-green-500' : isActive ? 'bg-[#FF0000] ' : 'bg-[#FF0000]'
+                        }`}>
                         {isCompleted ? (
                           <CheckCircle className="w-[20px] h-[20px] text-black" />
                         ) : (
-                            <Play className="w-[20px] h-[20px] text-black " />
+                          <Play className="w-[20px] h-[20px] text-black " />
                         )}
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <h4 className="text-white font-medium text-sm md:text-base truncate">{leccion.titulo}</h4>
-                    
+
                       </div>
-                      
+
                       {isActive && (
                         <ChevronRight className="w-[20px] h-[20px] text-[#FF0000] flex-shrink-0" />
                       )}
@@ -454,13 +451,13 @@ const VisualizarCurso = () => {
                 onClick={() => navigate('/mis-cursos')}
                 className="flex p-6 "
               >
-                <img src={ArrowBackIcon} alt="Mis Cursos" className= " w-[25px] h-[25px] " />
+                <img src={ArrowBackIcon} alt="Mis Cursos" className=" w-[25px] h-[25px] " />
               </button>
             </div>
-            
-        
-            
-        
+
+
+
+
           </div>
         </div>
       </div>
@@ -468,44 +465,44 @@ const VisualizarCurso = () => {
       {/* Layout Responsive */}
       <div className="flex flex-col w-auto mx-auto ">
 
-    
-          {/* Información de la lección actual */}
-          {leccionActual && (
+
+        {/* Información de la lección actual */}
+        {leccionActual && (
           <div className="p-4 md:p-6  bg-[#000000]">
-              <div className="max-w-4xl">
+            <div className="max-w-4xl">
               <h2 className="text-[14px]  leading-none font-bold text-[#F04444] mb-2">
-                  {leccionActual.titulo}
-                </h2>
-                
-                {leccionActual.descripcion && (
-                  <p className="text-[#FFFFFF]  mb-4 text-[13px]">
-                    {leccionActual.descripcion}
-                  </p>
-                )}
+                {leccionActual.titulo}
+              </h2>
 
-              
+              {leccionActual.descripcion && (
+                <p className="text-[#FFFFFF]  mb-4 text-[13px]">
+                  {leccionActual.descripcion}
+                </p>
+              )}
 
-                {leccionActual.contenido && (
-                  <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
-                    <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-                      <FileText className="w-4 h-4" />
-                      Contenido de la lección
-                    </h3>
-                    <p className="text-gray-300 text-sm md:text-base leading-relaxed">{leccionActual.contenido}</p>
-                  </div>
-                )}
-              </div>
+
+
+              {leccionActual.contenido && (
+                <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
+                  <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Contenido de la lección
+                  </h3>
+                  <p className="text-gray-300 text-sm md:text-base leading-relaxed">{leccionActual.contenido}</p>
+                </div>
+              )}
             </div>
-          )}
-          
+          </div>
+        )}
+
 
       </div>
 
       {/* Área principal de contenido */}
       <div className={`flex-1 min-h-0 transition-all duration-300 w-full ${sidebarColapsado ? '' : 'lg:mr-96'}`}>
         {/* Video Player Responsive */}
-        <div className="relative bg-black">
-          <div className="aspect-video relative overflow-hidden">
+        <div className="relative">
+          <div className="aspect-video ">
             {loadingVideo ? (
               <div className="w-full h-full flex items-center justify-center bg-black">
                 <div className="text-center p-4">
@@ -516,6 +513,7 @@ const VisualizarCurso = () => {
             ) : videoUrl && leccionActual ? (
               <MuxPlayer
                 src={videoUrl}
+                title={leccionActual.titulo}
                 onTimeUpdate={handleVideoProgress}
                 onEnded={() => marcarLeccionCompletada(leccionActual.id, true)}
                 className="w-full h-full rounded-none"
@@ -524,31 +522,15 @@ const VisualizarCurso = () => {
                 theme="classic"
                 primaryColor="#ef4444"
                 accentColor="#ef4444"
-                // Configuraciones específicas para móvil
-                playsInline={true}
-                controls={true}
-                crossOrigin="anonymous"
-                preload="metadata"
-                // Configuración responsive
                 style={{
                   width: '100%',
                   height: '100%',
-                  aspectRatio: '16/9',
-                  display: 'block'
+                  aspectRatio: '16/9'
                 }}
                 metadata={{
                   video_title: leccionActual.titulo,
                   viewer_user_id: user?.id || 'unknown'
                 }}
-                // Event handlers adicionales para móvil
-                onLoadStart={() => console.log('Video load started')}
-                onLoadedMetadata={() => console.log('Video metadata loaded')}
-                onCanPlay={() => console.log('Video can play')}
-                onError={(e) => {
-                  console.error('Video error:', e);
-                  console.error('Error details:', e.target?.error);
-                }}
-                onLoadedData={() => console.log('Video data loaded')}
               />
             ) : urlErrors[leccionActual?.id] ? (
               <div className="w-full h-full flex items-center justify-center bg-black">
@@ -556,7 +538,7 @@ const VisualizarCurso = () => {
                   <AlertCircle className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 text-red-500" />
                   <p className="text-sm md:text-base text-white mb-2">Error al cargar el video</p>
                   <p className="text-xs text-gray-400">{urlErrors[leccionActual?.id]}</p>
-                  <button 
+                  <button
                     onClick={() => leccionActual && seleccionarLeccion(leccionActual)}
                     className="mt-4 px-4 py-2 bg-[#FF0000] text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
                   >
@@ -582,8 +564,8 @@ const VisualizarCurso = () => {
               onClick={() => anterior && seleccionarLeccion(anterior)}
               disabled={!anterior}
               className={`flex items-center justify-center gap-2 h-[41px] w-[124px] rounded-[10px]  transition-colors ${anterior
-                  ? 'bg-[#D9D9D9] hover:bg-gray-600 text-[#222020]'
-                  : 'bg-[#D9D9D9] text-[#222020] cursor-not-allowed'
+                ? 'bg-[#D9D9D9] hover:bg-gray-600 text-[#222020]'
+                : 'bg-[#D9D9D9] text-[#222020] cursor-not-allowed'
                 }`}
             >
               <img src={SwipeBack} alt="Anterior" className="w-4 h-4" />
@@ -601,8 +583,8 @@ const VisualizarCurso = () => {
               onClick={() => siguiente && seleccionarLeccion(siguiente)}
               disabled={!siguiente}
               className={` flex items-center justify-center gap-2 h-[41px] w-[124px] rounded-[10px]  transition-colors ${siguiente
-                  ? 'bg-[#D9D9D9] hover:bg-gray-600 text-[#222020]'
-                  : 'bg-[#D9D9D9] text-[#222020] cursor-not-allowed'
+                ? 'bg-[#D9D9D9] hover:bg-gray-600 text-[#222020]'
+                : 'bg-[#D9D9D9] text-[#222020] cursor-not-allowed'
                 }`}
             >
               <span className="text-sm">Siguiente</span>
@@ -641,7 +623,7 @@ const VisualizarCurso = () => {
               onClick={() => setMenuMovilAbierto(false)}
               className="fixed inset-0 bg-black/50 z-50"
             />
-            
+
             {/* Drawer */}
             <motion.div
               initial={{ x: '100%' }}
@@ -652,7 +634,7 @@ const VisualizarCurso = () => {
             >
               {/* Header del drawer */}
               <div className="flex items-center justify-between p-6 border-b border-gray-700/50">
-              
+
                 <button
                   onClick={() => setMenuMovilAbierto(false)}
                   className="w-10  h-10 flex items-center justify-center "
@@ -673,7 +655,7 @@ const VisualizarCurso = () => {
                 ))}
               </div>
 
-          
+
             </motion.div>
           </>
         )}
@@ -683,3 +665,4 @@ const VisualizarCurso = () => {
 };
 
 export default VisualizarCurso;
+
