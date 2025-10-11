@@ -504,8 +504,8 @@ const VisualizarCurso = () => {
       {/* Área principal de contenido */}
       <div className={`flex-1 min-h-0 transition-all duration-300 w-full ${sidebarColapsado ? '' : 'lg:mr-96'}`}>
         {/* Video Player Responsive */}
-        <div className="relative">
-          <div className="aspect-video ">
+        <div className="relative flex justify-center">
+          <div className="aspect-video w-[80%] md:w-full">
             {loadingVideo ? (
               <div className="w-full h-full flex items-center justify-center bg-black">
                 <div className="text-center p-4">
