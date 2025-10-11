@@ -41,8 +41,25 @@ export const useMuxSignedUrl = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to get signed URL');
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+          
+          // Log adicional para debugging
+          console.error('API Error Details:', {
+            status: response.status,
+            statusText: response.statusText,
+            errorData,
+            url: response.url
+          });
+          
+        } catch (jsonError) {
+          console.error('Could not parse error response as JSON:', jsonError);
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();

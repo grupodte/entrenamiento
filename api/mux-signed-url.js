@@ -1,5 +1,6 @@
 import Mux from '@mux/mux-node';
 import { createClient } from '@supabase/supabase-js';
+import jwt from 'jsonwebtoken';
 
 // Initialize Mux with signing key
 const mux = new Mux({
@@ -107,7 +108,6 @@ export default async function handler(req, res) {
     }
 
     // 4. Generate signed URL with Mux JWT
-    const jwt = require('jsonwebtoken');
     
     // Create JWT payload for Mux signed URL
     const payload = {
@@ -148,12 +148,23 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Error generating Mux signed URL:', error);
+    console.error('Error generating Mux signed URL:', {
+      error: error.message,
+      stack: error.stack,
+      leccionId,
+      userId,
+      cursoId,
+      timestamp: new Date().toISOString()
+    });
     
     // Don't expose internal errors to client
     res.status(500).json({ 
       error: 'Failed to generate signed video URL',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      details: process.env.NODE_ENV === 'development' ? {
+        message: error.message,
+        type: error.constructor.name,
+        timestamp: new Date().toISOString()
+      } : undefined
     });
   }
 }
