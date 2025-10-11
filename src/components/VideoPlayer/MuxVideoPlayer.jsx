@@ -3,9 +3,9 @@ import MuxPlayer from "@mux/mux-player-react";
 
 /**
  * Reproductor de video simplificado usando @mux/mux-player-react
+ * - Funciona con URLs firmadas de Mux (signed URLs)
  * - Incluye cast, fullscreen y controles nativos
- * - Mucho más simple y mantenible
- * - Todas las funcionalidades incluidas por defecto
+ * - Compatible con el sistema de seguridad existente
  */
 const MuxVideoPlayer = ({ 
   src, 
@@ -19,21 +19,17 @@ const MuxVideoPlayer = ({
 }) => {
   const playerRef = useRef(null);
 
-  // Extraer playback ID de la URL de Mux
-  const getPlaybackId = (url) => {
+  // Determinar si tenemos una URL firmada o un playback ID
+  const isSignedUrl = src && (src.includes('http') || src.includes('.m3u8'));
+  
+  // Si es una URL firmada, extraer el playback ID para metadata
+  const getPlaybackIdFromUrl = (url) => {
     if (!url) return null;
-    
-    // Si ya es solo un playback ID
-    if (url && !url.includes('http') && !url.includes('.m3u8')) {
-      return url;
-    }
-    
-    // Extraer de URL completa de Mux
     const match = url.match(/(?:stream\.mux\.com\/)([^\/.\?]+)/);
     return match ? match[1] : null;
   };
 
-  const playbackId = getPlaybackId(src);
+  const playbackId = isSignedUrl ? getPlaybackIdFromUrl(src) : src;
 
   // Manejadores de eventos del reproductor
   const handleTimeUpdate = useCallback((e) => {
@@ -62,8 +58,8 @@ const MuxVideoPlayer = ({
     }
   }, [onVideoError]);
 
-  // Si no hay playbackId, mostrar mensaje de error
-  if (!playbackId) {
+  // Si no hay src, mostrar mensaje de error
+  if (!src) {
     return (
       <div className={`bg-black rounded-lg flex items-center justify-center p-8 ${className}`}>
         <div className="text-center text-white">
@@ -75,11 +71,14 @@ const MuxVideoPlayer = ({
     );
   }
 
+  console.log('[MuxPlayer] Using:', { isSignedUrl, src, playbackId });
+
   return (
     <div className={`mux-video-player ${className}`}>
       <MuxPlayer
         ref={playerRef}
-        playbackId={playbackId}
+        // Usar URL firmada directamente si la tenemos, sino usar playbackId
+        {...(isSignedUrl ? { src } : { playbackId })}
         title={title}
         autoPlay={autoplay ? "muted" : false}
         muted={muted}
@@ -98,6 +97,7 @@ const MuxVideoPlayer = ({
         nohotkeys={false}
         // Metadatos para Cast y otras funciones
         metadata={{
+          video_id: playbackId || 'unknown',
           video_title: title,
           viewer_user_id: "user-id"
         }}
