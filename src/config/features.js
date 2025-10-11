@@ -15,11 +15,10 @@ const FEATURES = {
       debugLog: true, // Set to true for development debugging
       // Configuración específica por ruta
       routeSettings: {
-        '/curso/': { edgeThreshold: 0 }, // 3% para páginas con video
+        '/curso/': { edgeThreshold: 0.03 }, // 3% para páginas con video
         '/rutina/': { edgeThreshold: 0.08 }, // 8% para rutinas (fullscreen)
         '/dashboard': { edgeThreshold: 0.05 }, // 5% por defecto
         '/admin': { edgeThreshold: 0.06 } // 6% para admin
-        
       },
       // Specific routes where the feature should be active
       enabledRoutes: [
