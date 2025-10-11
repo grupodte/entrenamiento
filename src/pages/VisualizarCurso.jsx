@@ -169,21 +169,47 @@ const VisualizarCurso = () => {
 
   const actualizarProgreso = async (leccionId, datos) => {
     try {
-      const { error } = await supabase
+      // Primero intentamos actualizar si existe un registro
+      const { data: existingProgress } = await supabase
         .from('progreso_lecciones')
-        .upsert({
-          usuario_id: user.id,
-          leccion_id: leccionId,
-          curso_id: cursoId,
-          ...datos,
-          fecha_ultima_vista: new Date().toISOString()
-        });
+        .select('*')
+        .eq('usuario_id', user.id)
+        .eq('leccion_id', leccionId)
+        .eq('curso_id', cursoId)
+        .maybeSingle();
 
-      if (!error) {
+      let result;
+      if (existingProgress) {
+        // Actualizar registro existente
+        result = await supabase
+          .from('progreso_lecciones')
+          .update({
+            ...datos,
+            fecha_ultima_vista: new Date().toISOString()
+          })
+          .eq('usuario_id', user.id)
+          .eq('leccion_id', leccionId)
+          .eq('curso_id', cursoId);
+      } else {
+        // Crear nuevo registro
+        result = await supabase
+          .from('progreso_lecciones')
+          .insert({
+            usuario_id: user.id,
+            leccion_id: leccionId,
+            curso_id: cursoId,
+            ...datos,
+            fecha_ultima_vista: new Date().toISOString()
+          });
+      }
+
+      if (!result.error) {
         setProgreso(prev => ({
           ...prev,
           [leccionId]: { ...prev[leccionId], ...datos }
         }));
+      } else {
+        console.error('Error al actualizar progreso:', result.error);
       }
     } catch (error) {
       console.error('Error al actualizar progreso:', error);
