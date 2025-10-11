@@ -608,11 +608,11 @@ const MuxVideoPlayer = ({
             {/* Bottom Controls */}
             <div className="absolute bottom-0 left-0 right-0 pointer-events-auto">
               {/* Progress Bar Container */}
-              <div className="px-4 pb-2">
+              <div className="px-3 pb-1">
                 <div className="relative group">
                   <div
                     ref={progressBarRef}
-                    className="w-full h-1 bg-white/20 rounded-full cursor-pointer group-hover:h-1.5 transition-all duration-200 backdrop-blur-sm"
+                    className="w-full h-0.5 bg-white/20 rounded-full cursor-pointer group-hover:h-1 transition-all duration-200"
                     onClick={handleSeek}
                   >
                     {/* Buffered Progress */}
@@ -627,99 +627,88 @@ const MuxVideoPlayer = ({
                       style={{ width: `${Math.min(progressPercentage, 100)}%` }}
                     >
                       {/* Progress Handle */}
-                      <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-red-500 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 border-2 border-white/50" />
-                    </div>
-                  </div>
-                  
-                  {/* Time tooltip on hover */}
-                  <div className="absolute -top-8 left-0 right-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <div className="text-xs text-white bg-black/70 backdrop-blur-sm px-2 py-1 rounded text-center">
-                      {formatTime(currentTime)} / {formatTime(duration)}
+                      <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-red-500 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 border border-white/70" />
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Control Buttons Container */}
-              <div className="bg-gradient-to-t from-black/90 via-black/60 to-transparent px-4 pt-3 pb-4 backdrop-blur-sm">
+              <div className="bg-gradient-to-t from-black/80 via-black/40 to-transparent px-3 pt-1 pb-2 backdrop-blur-sm">
                 <div className="flex items-center justify-between text-white">
                   {/* Left Controls */}
-                  <div className="flex items-center gap-1 sm:gap-3">
+                  <div className="flex items-center gap-0.5 sm:gap-2">
                     {/* Skip Back */}
                     <button
                       onClick={() => skipTime(-10)}
-                      className="group p-2 sm:p-2.5 hover:bg-white/15 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
-                      title="Retroceder 10s"
+                      className="group p-1.5 sm:p-2 hover:bg-white/15 rounded-lg transition-all duration-200"
+                      title="-10s"
                     >
-                      <SkipBack className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-red-400 transition-colors" />
-                      <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 px-2 py-1 rounded whitespace-nowrap">10s</span>
+                      <SkipBack className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:text-red-400 transition-colors" />
                     </button>
 
                     {/* Play/Pause */}
                     <button
                       onClick={togglePlay}
-                      className="group p-3 sm:p-4 hover:bg-white/15 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 mx-1 sm:mx-2"
+                      className="group p-2 sm:p-2.5 hover:bg-white/15 rounded-full transition-all duration-200 mx-1"
                     >
                       {isPlaying ? 
-                        <Pause className="w-5 h-5 sm:w-6 sm:h-6 group-hover:text-red-400 transition-colors" fill="currentColor" /> : 
-                        <Play className="w-5 h-5 sm:w-6 sm:h-6 ml-0.5 group-hover:text-red-400 transition-colors" fill="currentColor" />
+                        <Pause className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-red-400 transition-colors" fill="currentColor" /> : 
+                        <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5 group-hover:text-red-400 transition-colors" fill="currentColor" />
                       }
                     </button>
 
                     {/* Skip Forward */}
                     <button
                       onClick={() => skipTime(10)}
-                      className="group p-2 sm:p-2.5 hover:bg-white/15 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
-                      title="Avanzar 10s"
+                      className="group p-1.5 sm:p-2 hover:bg-white/15 rounded-lg transition-all duration-200"
+                      title="+10s"
                     >
-                      <SkipForward className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-red-400 transition-colors" />
-                      <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 px-2 py-1 rounded whitespace-nowrap">10s</span>
+                      <SkipForward className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:text-red-400 transition-colors" />
                     </button>
 
                     {/* Volume Control */}
-                    <div className="flex items-center gap-2 ml-2 sm:ml-4 group">
-                      <button
-                        onClick={toggleMute}
-                        className="p-2 hover:bg-white/15 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
-                      >
-                        {isMuted || volume === 0 ? 
-                          <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" /> : 
-                          <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                        }
-                      </button>
-                      
-                      {/* Volume Slider - Hidden on mobile */}
-                      <div className="hidden sm:flex items-center relative group">
-                        <input
-                          type="range"
-                          min="0"
-                          max="1"
-                          step="0.1"
-                          value={isMuted ? 0 : volume}
-                          onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                          className="w-20 h-1 bg-white/20 rounded-full appearance-none cursor-pointer slider-custom"
-                          style={{
-                            background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.2) ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.2) 100%)`
-                          }}
-                        />
-                      </div>
+                    <button
+                      onClick={toggleMute}
+                      className="p-1.5 sm:p-2 hover:bg-white/15 rounded-lg transition-all duration-200 ml-1 sm:ml-2"
+                    >
+                      {isMuted || volume === 0 ? 
+                        <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" /> : 
+                        <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      }
+                    </button>
+                    
+                    {/* Volume Slider - Hidden on mobile */}
+                    <div className="hidden sm:flex items-center ml-2">
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value={isMuted ? 0 : volume}
+                        onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                        className="w-16 h-0.5 bg-white/20 rounded-full appearance-none cursor-pointer slider-custom"
+                        style={{
+                          background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.2) ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.2) 100%)`
+                        }}
+                      />
                     </div>
 
-                    {/* Time Display - Hidden on small screens */}
-                    <div className="hidden md:flex items-center ml-3">
-                      <div className="text-xs sm:text-sm font-mono bg-black/30 backdrop-blur-sm px-2 py-1 rounded">
+                    {/* Time Display - Compact */}
+                    <div className="flex items-center ml-2 sm:ml-4">
+                      <div className="text-xs font-mono text-white/90">
                         <span className="text-red-400">{formatTime(currentTime)}</span>
-                        <span className="text-white/60 mx-1">/</span>
-                        <span className="text-white/80">{formatTime(duration)}</span>
+                        <span className="text-white/50 mx-0.5">/</span>
+                        <span className="text-white/70">{formatTime(duration)}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Right Controls */}
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    {/* Playback Speed - Hidden on mobile */}
-                    <div className="hidden sm:flex items-center">
-                      <span className="text-xs font-mono bg-black/30 backdrop-blur-sm px-2 py-1 rounded text-white/80">
+                  <div className="flex items-center gap-0.5 sm:gap-1">
+                    {/* Playback Speed - Compact */}
+                    <div className="hidden sm:flex items-center mr-1">
+                      <span className="text-xs font-mono text-white/70">
                         {playbackRate}x
                       </span>
                     </div>
@@ -728,16 +717,16 @@ const MuxVideoPlayer = ({
                     {castAvailable && (
                       <button
                         onClick={handleCastToggle}
-                        className={`group p-2 sm:p-2.5 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
+                        className={`group p-1.5 sm:p-2 rounded-lg transition-all duration-200 ${
                           isCasting 
-                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25' 
+                            ? 'bg-blue-600 text-white shadow-md' 
                             : 'hover:bg-white/15 text-white'
                         }`}
-                        title={isCasting ? 'Desconectar de Cast' : 'Enviar a Cast'}
+                        title={isCasting ? 'Cast OFF' : 'Cast ON'}
                       >
-                        <Cast className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <Cast className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         {isCasting && (
-                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                          <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>
                         )}
                       </button>
                     )}
@@ -745,23 +734,14 @@ const MuxVideoPlayer = ({
                     {/* Fullscreen */}
                     <button
                       onClick={toggleFullscreen}
-                      className="group p-2 sm:p-2.5 hover:bg-white/15 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
-                      title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+                      className="group p-1.5 sm:p-2 hover:bg-white/15 rounded-lg transition-all duration-200"
+                      title={isFullscreen ? 'Exit' : 'Full'}
                     >
                       {isFullscreen ? 
-                        <Minimize className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-red-400 transition-colors" /> : 
-                        <Maximize className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-red-400 transition-colors" />
+                        <Minimize className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:text-red-400 transition-colors" /> : 
+                        <Maximize className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:text-red-400 transition-colors" />
                       }
                     </button>
-                  </div>
-                </div>
-                
-                {/* Mobile Time Display */}
-                <div className="flex md:hidden justify-center mt-2">
-                  <div className="text-xs font-mono bg-black/30 backdrop-blur-sm px-3 py-1 rounded">
-                    <span className="text-red-400">{formatTime(currentTime)}</span>
-                    <span className="text-white/60 mx-2">/</span>
-                    <span className="text-white/80">{formatTime(duration)}</span>
                   </div>
                 </div>
               </div>
