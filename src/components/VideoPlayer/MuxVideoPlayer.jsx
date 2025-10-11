@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Hls from 'hls.js';
 import './MuxVideoPlayer.css';
+import './MuxVideoPlayer-mobile.css';
 import { 
   Play, 
   Pause, 
@@ -54,84 +55,180 @@ const MuxVideoPlayer = ({
   const [hlsError, setHlsError] = useState(null);
   const [isCasting, setIsCasting] = useState(false);
   const [castAvailable, setCastAvailable] = useState(false);
+  const [showMobileHint, setShowMobileHint] = useState(false);
   const castRef = useRef(null);
+  const mobileHintTimeoutRef = useRef(null);
   
   // Control visibility timeout
   const controlsTimeoutRef = useRef(null);
   const hideControlsDelay = 3000;
+  
+  // Detect mobile device (moved up to be available for other functions)
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isAndroid = /Android/.test(navigator.userAgent);
+  
+  // Show controls temporarily function
+  const showControlsTemporarily = useCallback(() => {
+    setShowControls(true);
+    
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    
+    // En móviles, mantener controles más tiempo
+    const delay = isMobile ? 5000 : hideControlsDelay;
+    
+    controlsTimeoutRef.current = setTimeout(() => {
+      if (isPlaying && !showSettings) {
+        setShowControls(false);
+      }
+    }, delay);
+  }, [isPlaying, showSettings, isMobile, hideControlsDelay]);
+  
+  // Show mobile hint temporarily for first-time mobile users
+  const showMobileHintTemporarily = useCallback(() => {
+    if (!isMobile) return;
+    
+    setShowMobileHint(true);
+    
+    if (mobileHintTimeoutRef.current) {
+      clearTimeout(mobileHintTimeoutRef.current);
+    }
+    
+    mobileHintTimeoutRef.current = setTimeout(() => {
+      setShowMobileHint(false);
+    }, 3000);
+  }, [isMobile]);
 
-  // Initialize Google Cast SDK
+  // Initialize Google Cast SDK (only for Chrome)
   useEffect(() => {
+    // Solo inicializar Cast en Chrome (desktop y móvil)
+    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    if (!isChrome) {
+      console.log('🎭 Google Cast only works in Chrome browser');
+      setCastAvailable(false);
+      return;
+    }
+    
     let scriptLoaded = false;
+    let castInitialized = false;
     
     const initializeCast = () => {
+      if (castInitialized) return;
+      
       console.log('🎭 Initializing Google Cast SDK...');
       
-      window['__onGCastApiAvailable'] = (isAvailable) => {
-        console.log('🎭 Google Cast API available:', isAvailable);
+      // Verificar que el API esté disponible
+      if (!window.chrome?.cast || !window.cast?.framework) {
+        console.warn('🎭 Cast API not fully loaded yet, retrying...');
+        setTimeout(initializeCast, 500);
+        return;
+      }
+      
+      try {
+        castInitialized = true;
+        const context = cast.framework.CastContext.getInstance();
         
-        if (isAvailable && window.cast?.framework) {
+        // Configuración más específica
+        context.setOptions({
+          receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
+          resumeSavedSession: true,
+          language: 'es',
+          androidReceiverCompatible: true
+        });
+        
+        console.log('🎭 Cast context configured successfully');
+
+        // Listener para cambios de estado del cast
+        const stateChangeHandler = (event) => {
+          const castState = event.castState;
+          console.log('🎭 Cast state changed to:', castState);
+          
+          switch (castState) {
+            case cast.framework.CastState.CONNECTED:
+              setIsCasting(true);
+              setCastAvailable(true);
+              break;
+            case cast.framework.CastState.NOT_CONNECTED:
+              setIsCasting(false);
+              setCastAvailable(true);
+              break;
+            case cast.framework.CastState.NO_DEVICES_AVAILABLE:
+              setIsCasting(false);
+              setCastAvailable(false);
+              break;
+            default:
+              setIsCasting(false);
+              setCastAvailable(false);
+          }
+        };
+        
+        context.addEventListener(
+          cast.framework.CastContextEventType.CAST_STATE_CHANGED,
+          stateChangeHandler
+        );
+
+        // Verificar estado inicial con retry
+        const checkInitialState = () => {
           try {
-            const context = cast.framework.CastContext.getInstance();
-            
-            context.setOptions({
-              receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-              autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-            });
-            
-            console.log('🎭 Cast context configured');
-
-            // Listener para cambios de estado del cast
-            context.addEventListener(
-              cast.framework.CastContextEventType.CAST_STATE_CHANGED,
-              (event) => {
-                const castState = event.castState;
-                console.log('🎭 Cast state changed:', castState);
-                
-                setIsCasting(castState === cast.framework.CastState.CONNECTED);
-                setCastAvailable(castState !== cast.framework.CastState.NO_DEVICES_AVAILABLE);
-              }
-            );
-
-            // Verificar estado inicial
             const initialState = context.getCastState();
             console.log('🎭 Initial cast state:', initialState);
             
-            setCastAvailable(initialState !== cast.framework.CastState.NO_DEVICES_AVAILABLE);
-            setIsCasting(initialState === cast.framework.CastState.CONNECTED);
-          } catch (error) {
-            console.error('🎭 Error setting up Cast context:', error);
+            stateChangeHandler({ castState: initialState });
+          } catch (err) {
+            console.warn('🎭 Error getting initial cast state, retrying...', err);
+            setTimeout(checkInitialState, 1000);
           }
-        } else {
-          console.warn('🎭 Cast framework not available');
-        }
-      };
+        };
+        
+        checkInitialState();
+        
+      } catch (error) {
+        console.error('🎭 Error setting up Cast context:', error);
+        castInitialized = false;
+      }
+    };
+
+    // Definir el callback global antes de cargar el script
+    window['__onGCastApiAvailable'] = (isAvailable) => {
+      console.log('🎭 Google Cast API callback - available:', isAvailable);
+      
+      if (isAvailable) {
+        // Esperar un poco más para que el framework se inicialice completamente
+        setTimeout(initializeCast, 1000);
+      } else {
+        console.warn('🎭 Cast API not available');
+        setCastAvailable(false);
+      }
     };
 
     // Cargar Google Cast SDK si no está ya cargado
     if (!window.chrome?.cast && !scriptLoaded) {
-      console.log('🎭 Loading Google Cast SDK...');
+      console.log('🎭 Loading Google Cast SDK script...');
       
       const script = document.createElement('script');
       script.src = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
+      script.async = true;
       
       script.onload = () => {
-        console.log('🎭 Cast SDK script loaded');
+        console.log('🎭 Cast SDK script loaded successfully');
         scriptLoaded = true;
-        // Dar tiempo al SDK para inicializarse
-        setTimeout(initializeCast, 100);
       };
       
-      script.onerror = () => {
-        console.error('🎭 Failed to load Cast SDK script');
+      script.onerror = (error) => {
+        console.error('🎭 Failed to load Cast SDK script:', error);
+        setCastAvailable(false);
       };
       
       document.head.appendChild(script);
-    } else if (window.chrome?.cast) {
-      console.log('🎭 Cast SDK already available');
-      initializeCast();
+    } else if (window.chrome?.cast && window.cast?.framework) {
+      console.log('🎭 Cast SDK already available, initializing...');
+      setTimeout(initializeCast, 100);
     } else {
-      console.log('🎭 Cast not supported or already loading');
+      console.log('🎭 Cast partially loaded, waiting...');
+      setTimeout(initializeCast, 1000);
     }
   }, []);
 
@@ -152,29 +249,57 @@ const MuxVideoPlayer = ({
 
     // Check if browser supports HLS natively (Safari, iOS)
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      console.log('🎥 Using native HLS support');
+      console.log('🍥 Using native HLS support', { isMobile, isIOS, isAndroid });
       video.src = src;
-      setLoading(false);
+      
+      // Para iOS, asegurar que el video esté listo
+      if (isIOS) {
+        video.addEventListener('loadedmetadata', () => {
+          console.log('🍥 iOS video metadata loaded');
+          setLoading(false);
+        }, { once: true });
+      } else {
+        setLoading(false);
+      }
       return;
     }
 
     // Use hls.js for other browsers
     if (Hls.isSupported()) {
-      console.log('🎥 Initializing hls.js for Mux playback');
+      console.log('🍥 Initializing hls.js for Mux playback', { isMobile, isIOS, isAndroid });
       
-      const hls = new Hls({
+      // Configuración optimizada para móviles
+      const hlsConfig = {
         debug: process.env.NODE_ENV === 'development',
-        enableWorker: true,
+        enableWorker: !isMobile, // Deshabilitar worker en móviles para mayor compatibilidad
         lowLatencyMode: false,
-        backBufferLength: 90,
-        maxBufferLength: 300,
-        maxMaxBufferLength: 600,
-        // Optimized for Mux
-        manifestLoadingTimeOut: 10000,
-        manifestLoadingMaxRetry: 4,
-        levelLoadingTimeOut: 10000,
-        fragLoadingTimeOut: 20000,
-      });
+        backBufferLength: isMobile ? 30 : 90, // Buffer menor en móviles
+        maxBufferLength: isMobile ? 60 : 300,
+        maxMaxBufferLength: isMobile ? 120 : 600,
+        // Timeouts más conservadores para móviles
+        manifestLoadingTimeOut: isMobile ? 20000 : 10000, // 20s para móviles
+        manifestLoadingMaxRetry: isMobile ? 4 : 6,
+        levelLoadingTimeOut: isMobile ? 20000 : 10000, // 20s para móviles
+        levelLoadingMaxRetry: isMobile ? 4 : 3,
+        fragLoadingTimeOut: isMobile ? 40000 : 20000, // 40s para móviles
+        fragLoadingMaxRetry: isMobile ? 6 : 4,
+        // Configuración específica para móviles
+        startLevel: isMobile ? 0 : -1, // Empezar con calidad baja en móviles
+        testBandwidth: !isMobile,
+        progressive: isMobile, // Habilitar descarga progresiva en móviles
+        liveSyncDurationCount: isMobile ? 2 : 3,
+        liveMaxLatencyDurationCount: isMobile ? 4 : 5,
+        // Configuración avanzada para recuperación de errores
+        xhrSetup: (xhr, url) => {
+          xhr.timeout = isMobile ? 45000 : 30000; // Timeout más largo para móviles
+          if (isMobile) {
+            xhr.withCredentials = false;
+          }
+        }
+      };
+      
+      console.log('🍥 HLS Config:', hlsConfig);
+      const hls = new Hls(hlsConfig);
       
       hlsRef.current = hls;
       
@@ -201,24 +326,49 @@ const MuxVideoPlayer = ({
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              console.log('🔄 Network error, attempting recovery...');
-              hls.startLoad();
+              console.log('🔄 Network error, attempting recovery...', data.details);
+              // Intentar recargar con reintentos graduales
+              setTimeout(() => {
+                if (hlsRef.current) {
+                  hls.startLoad();
+                }
+              }, isMobile ? 2000 : 1000);
               break;
               
             case Hls.ErrorTypes.MEDIA_ERROR:
-              console.log('🔄 Media error, attempting recovery...');
-              hls.recoverMediaError();
+              console.log('🔄 Media error, attempting recovery...', data.details);
+              // Intentar recuperar con más tiempo en móviles
+              setTimeout(() => {
+                if (hlsRef.current) {
+                  hls.recoverMediaError();
+                }
+              }, isMobile ? 3000 : 1500);
               break;
               
             default:
-              console.error('💀 Fatal error, destroying player');
+              console.error('💀 Fatal error, destroying player', data);
               setError({
                 type: 'fatal',
-                message: 'Error crítico de reproducción',
-                details: data.reason || 'Error desconocido'
+                message: isMobile 
+                  ? 'Error de conexión. Verifica tu red e intenta de nuevo.' 
+                  : 'Error crítico de reproducción',
+                details: data.reason || data.details || 'Error desconocido'
               });
-              hls.destroy();
-              hlsRef.current = null;
+              
+              // En móviles, intentar una recuperación final
+              if (isMobile) {
+                setTimeout(() => {
+                  console.log('🔄 Final recovery attempt on mobile...');
+                  setError(null);
+                  setLoading(true);
+                  if (videoRef.current) {
+                    videoRef.current.load();
+                  }
+                }, 5000);
+              } else {
+                hls.destroy();
+                hlsRef.current = null;
+              }
               break;
           }
         }
@@ -244,14 +394,27 @@ const MuxVideoPlayer = ({
   // Video event handlers
   const handleLoadedData = useCallback(() => {
     if (videoRef.current) {
-      setDuration(videoRef.current.duration);
+      const video = videoRef.current;
+      setDuration(video.duration);
       setLoading(false);
       
-      if (autoplay) {
-        videoRef.current.play().catch(console.error);
+      console.log('📱 Video loaded data:', {
+        duration: video.duration,
+        readyState: video.readyState,
+        networkState: video.networkState,
+        isMobile,
+        videoWidth: video.videoWidth,
+        videoHeight: video.videoHeight
+      });
+      
+      // En móviles, no hacer autoplay
+      if (autoplay && !isMobile) {
+        video.play().catch(err => {
+          console.warn('📱 Autoplay failed:', err);
+        });
       }
     }
-  }, [autoplay]);
+  }, [autoplay, isMobile]);
 
   const handleTimeUpdate = useCallback(() => {
     if (videoRef.current) {
@@ -294,15 +457,61 @@ const MuxVideoPlayer = ({
 
   // Control handlers
   const togglePlay = useCallback(async () => {
-    if (videoRef.current) {
-      try {
-        if (isPlaying) {
-          await videoRef.current.pause();
-        } else {
-          await videoRef.current.play();
+    if (!videoRef.current) return;
+
+    const video = videoRef.current;
+    
+    try {
+      if (isPlaying) {
+        console.log('📱 Pausing video...');
+        await video.pause();
+      } else {
+        console.log('📱 Attempting to play video...', {
+          readyState: video.readyState,
+          networkState: video.networkState,
+          src: video.src ? 'present' : 'missing'
+        });
+        
+        // Para móviles, intentar cargar primero si no está listo
+        if (video.readyState < 2) {
+          console.log('📱 Video not ready, loading...');
+          video.load();
+          await new Promise(resolve => {
+            const handleCanPlay = () => {
+              video.removeEventListener('canplay', handleCanPlay);
+              resolve();
+            };
+            video.addEventListener('canplay', handleCanPlay);
+          });
         }
-      } catch (err) {
-        console.error('Play/pause error:', err);
+        
+        // Intentar reproducir
+        const playPromise = video.play();
+        
+        if (playPromise !== undefined) {
+          await playPromise;
+          console.log('📱 Video playing successfully');
+        }
+      }
+    } catch (err) {
+      console.error('📱 Play/pause error:', err);
+      
+      // Manejar errores específicos de móviles
+      if (err.name === 'NotAllowedError') {
+        console.warn('📱 Autoplay prevented by browser. User interaction required.');
+        // En móviles, mostrar hint visual en lugar de alert
+        if (isMobile) {
+          showMobileHintTemporarily();
+        } else {
+          alert('Toca el botón de reproducción para iniciar el video.');
+        }
+      } else if (err.name === 'AbortError') {
+        console.warn('📱 Play request was interrupted');
+      } else if (err.name === 'NotSupportedError') {
+        console.error('📱 Video format not supported');
+        alert('Formato de video no soportado en este dispositivo.');
+      } else {
+        console.error('📱 Unknown playback error:', err.message);
       }
     }
   }, [isPlaying]);
@@ -457,53 +666,117 @@ const MuxVideoPlayer = ({
   const loadMediaToCast = useCallback((session) => {
     console.log('🎭 Loading media to Cast device...', { src, title, currentTime });
     
+    if (!src) {
+      console.error('🎭 No video source available for casting');
+      alert('No hay video disponible para enviar al Cast.');
+      return;
+    }
+    
     try {
+      // Verificar que session esté activa
+      if (!session || session.getSessionState() !== cast.framework.SessionState.SESSION_STARTED) {
+        console.error('🎭 Cast session not active');
+        return;
+      }
+      
+      // Crear MediaInfo con más configuraciones
       const mediaInfo = new chrome.cast.media.MediaInfo(src, 'application/x-mpegURL');
+      
+      // Configurar metadata
       mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
       mediaInfo.metadata.title = title || 'Video de curso';
-      mediaInfo.metadata.subtitle = 'Streaming desde tu curso';
+      mediaInfo.metadata.subtitle = 'Streaming desde DD Fitness';
       
-      // Si hay una imagen thumbnail disponible, agregarla
-      // mediaInfo.metadata.images = [new chrome.cast.Image('thumbnail-url')];
+      // Configuración de streaming
+      mediaInfo.streamType = chrome.cast.media.StreamType.BUFFERED;
+      mediaInfo.duration = duration || null;
       
-      const request = new chrome.cast.media.LoadRequest(mediaInfo);
-      request.currentTime = Math.max(0, currentTime); // Continuar desde donde se quedó
-      request.autoplay = isPlaying;
+      // Configuración de tracks (para HLS adaptativo)
+      mediaInfo.customData = {
+        hls: true,
+        adaptive: true
+      };
       
-      console.log('🎭 Media info created:', mediaInfo);
-      console.log('🎭 Load request:', request);
-      
-      session.loadMedia(request).then(() => {
-        console.log('✅ Media loaded to Cast device successfully');
-        
-        // Pausar el video local cuando inicie el casting
-        if (videoRef.current && isPlaying) {
-          console.log('🎭 Pausing local video');
-          videoRef.current.pause();
+      // Si hay una imagen thumbnail disponible
+      if (window.location.origin) {
+        try {
+          mediaInfo.metadata.images = [
+            new chrome.cast.Image(`${window.location.origin}/icons/icon-192x192.png`)
+          ];
+        } catch (e) {
+          console.log('🎭 Could not set cast image:', e);
         }
-      }).catch(err => {
-        console.error('❌ Error loading media to Cast:', err);
-        alert('Error al enviar el video al Cast. El video podría no ser compatible.');
+      }
+      
+      // Crear LoadRequest con más configuraciones
+      const request = new chrome.cast.media.LoadRequest(mediaInfo);
+      request.currentTime = Math.max(0, Math.floor(currentTime)); // Asegurar que sea entero
+      request.autoplay = true; // Siempre autoplay en cast
+      
+      // Configuración adicional
+      request.playbackRate = playbackRate;
+      request.activeTrackIds = [];
+      
+      console.log('🎭 Media info created:', {
+        src: mediaInfo.contentId,
+        contentType: mediaInfo.contentType,
+        duration: mediaInfo.duration,
+        currentTime: request.currentTime,
+        metadata: mediaInfo.metadata
       });
+      
+      // Enviar al Cast con mejor manejo de promesa
+      session.loadMedia(request)
+        .then(() => {
+          console.log('✅ Media loaded to Cast device successfully');
+          
+          // Pausar el video local cuando inicie el casting
+          if (videoRef.current && isPlaying) {
+            console.log('🎭 Pausing local video for cast');
+            videoRef.current.pause();
+          }
+          
+          // Agregar listener para eventos del media en cast
+          const castMedia = session.getMediaSession();
+          if (castMedia) {
+            const mediaUpdateHandler = (isAlive) => {
+              if (isAlive) {
+                console.log('🎭 Cast media update - still alive');
+              } else {
+                console.log('🎭 Cast media ended');
+              }
+            };
+            
+            castMedia.addUpdateListener(mediaUpdateHandler);
+          }
+          
+        })
+        .catch(err => {
+          console.error('❌ Error loading media to Cast:', {
+            code: err.code,
+            description: err.description,
+            details: err.details
+          });
+          
+          // Mensajes de error más específicos
+          let errorMessage = 'Error al enviar el video al Cast.';
+          if (err.code === 'LOAD_FAILED') {
+            errorMessage = 'El dispositivo Cast no puede reproducir este formato de video.';
+          } else if (err.code === 'INVALID_PARAMETER') {
+            errorMessage = 'Parámetros de video inválidos para Cast.';
+          } else if (err.code === 'LOAD_CANCELLED') {
+            errorMessage = 'Carga cancelada por el usuario.';
+          }
+          
+          alert(errorMessage);
+        });
+        
     } catch (error) {
       console.error('🎭 Error in loadMediaToCast:', error);
+      alert('Error técnico al configurar el Cast. Intenta de nuevo.');
     }
-  }, [src, title, currentTime, isPlaying]);
+  }, [src, title, currentTime, isPlaying, duration, playbackRate]);
 
-  // Show/hide controls
-  const showControlsTemporarily = useCallback(() => {
-    setShowControls(true);
-    
-    if (controlsTimeoutRef.current) {
-      clearTimeout(controlsTimeoutRef.current);
-    }
-    
-    controlsTimeoutRef.current = setTimeout(() => {
-      if (isPlaying) {
-        setShowControls(false);
-      }
-    }, hideControlsDelay);
-  }, [isPlaying]);
 
   // Utility functions
   const formatTime = useCallback((timeInSeconds) => {
@@ -534,12 +807,37 @@ const MuxVideoPlayer = ({
     const video = videoRef.current;
     if (!video) return;
 
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
+    const handlePlay = () => {
+      console.log('📱 Video started playing');
+      setIsPlaying(true);
+    };
+    
+    const handlePause = () => {
+      console.log('📱 Video paused');
+      setIsPlaying(false);
+    };
+    
     const handleEnded = () => {
+      console.log('📱 Video ended');
       setIsPlaying(false);
       setShowControls(true);
       if (onVideoComplete) onVideoComplete();
+    };
+
+    // Eventos específicos para móviles
+    const handleCanPlay = () => {
+      console.log('📱 Video can play - ready for interaction');
+      setLoading(false);
+    };
+    
+    const handleWaiting = () => {
+      console.log('📱 Video waiting for data...');
+      setLoading(true);
+    };
+    
+    const handleCanPlayThrough = () => {
+      console.log('📱 Video can play through without stopping');
+      setLoading(false);
     };
 
     video.addEventListener('play', handlePlay);
@@ -548,6 +846,11 @@ const MuxVideoPlayer = ({
     video.addEventListener('loadeddata', handleLoadedData);
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('error', handleVideoError);
+    
+    // Eventos adicionales para móviles
+    video.addEventListener('canplay', handleCanPlay);
+    video.addEventListener('waiting', handleWaiting);
+    video.addEventListener('canplaythrough', handleCanPlayThrough);
 
     return () => {
       video.removeEventListener('play', handlePlay);
@@ -556,6 +859,11 @@ const MuxVideoPlayer = ({
       video.removeEventListener('loadeddata', handleLoadedData);
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('error', handleVideoError);
+      
+      // Limpiar eventos adicionales para móviles
+      video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('waiting', handleWaiting);
+      video.removeEventListener('canplaythrough', handleCanPlayThrough);
     };
   }, [handleLoadedData, handleTimeUpdate, handleVideoError, onVideoComplete]);
 
@@ -590,6 +898,9 @@ const MuxVideoPlayer = ({
       if (controlsTimeoutRef.current) {
         clearTimeout(controlsTimeoutRef.current);
       }
+      if (mobileHintTimeoutRef.current) {
+        clearTimeout(mobileHintTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -599,9 +910,10 @@ const MuxVideoPlayer = ({
   return (
     <div
       ref={containerRef}
-      className={`relative bg-black rounded-lg overflow-hidden group ${className}`}
+      className={`mux-video-player relative bg-black rounded-lg overflow-hidden group ${className} ${isMobile ? 'mobile' : ''} ${isFullscreen ? 'fullscreen-mobile' : ''}`}
       onMouseMove={showControlsTemporarily}
       onMouseLeave={() => isPlaying && setShowControls(false)}
+      onTouchStart={() => isMobile && showControlsTemporarily()}
       onContextMenu={(e) => e.preventDefault()}
     >
       {/* Video Element */}
@@ -609,9 +921,25 @@ const MuxVideoPlayer = ({
         ref={videoRef}
         className="w-full h-full object-contain"
         onClick={togglePlay}
+        onTouchStart={(e) => {
+          // En iOS, el primer toque puede ser necesario para activar el video
+          if (videoRef.current && videoRef.current.paused && isMobile) {
+            e.preventDefault();
+            console.log('📱 iOS touch start - preparing video for play');
+            videoRef.current.load(); // Pre-cargar
+          }
+        }}
         preload="metadata"
         playsInline
+        webkit-playsinline="true"
         crossOrigin="anonymous"
+        controls={false}
+        muted={muted}
+        style={{
+          WebkitTouchCallout: 'none',
+          WebkitUserSelect: 'none',
+          touchAction: 'manipulation'
+        }}
       />
 
       {/* Loading Spinner */}
@@ -659,7 +987,7 @@ const MuxVideoPlayer = ({
             className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors"
             onClick={togglePlay}
           >
-            <div className="bg-white/10 backdrop-blur-sm rounded-full p-6 hover:bg-white/20 transition-colors">
+            <div className="center-play-button bg-white/10 backdrop-blur-sm rounded-full p-6 hover:bg-white/20 transition-colors">
               <Play className="w-12 h-12 text-white ml-1" fill="currentColor" />
             </div>
           </motion.button>
@@ -678,7 +1006,7 @@ const MuxVideoPlayer = ({
             {/* Top Bar */}
             <div className="absolute top-0 left-0 right-0 p-4 pointer-events-auto">
               <div className="flex items-center justify-between text-white">
-                <h3 className="font-medium truncate">{title}</h3>
+                <h3 className="video-title font-medium truncate">{title}</h3>
                 <div className="relative">
                   <button
                     onClick={() => setShowSettings(!showSettings)}
@@ -825,21 +1153,54 @@ const MuxVideoPlayer = ({
                     </div>
                     
                     {/* Cast Button - Mostrar siempre para debugging */}
-                    {(castAvailable || true) && (
+                    {(castAvailable || process.env.NODE_ENV === 'development') && (
                       <button
                         onClick={handleCastToggle}
                         className={`group p-1.5 sm:p-2 rounded-lg transition-all duration-200 ${
                           isCasting 
                             ? 'bg-blue-600 text-white shadow-md' 
-                            : 'hover:bg-white/15 text-white'
+                            : castAvailable 
+                              ? 'hover:bg-white/15 text-white'
+                              : 'hover:bg-red-500/20 text-red-400'
                         }`}
-                        title={isCasting ? 'Cast OFF' : 'Cast ON'}
+                        title={
+                          isCasting ? 'Desconectar Cast' : 
+                          castAvailable ? 'Conectar a Cast' : 
+                          'Cast no disponible (solo Chrome)'
+                        }
                       >
                         <Cast className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        {isCasting && (
-                          <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>
-                        )}
                       </button>
+                    )}
+                    
+                    {/* Debug Cast Button - Solo en desarrollo */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            console.log('🎭 CAST DEBUG INFO:');
+                            console.log('- castAvailable:', castAvailable);
+                            console.log('- isCasting:', isCasting);
+                            console.log('- Chrome Cast API:', !!window.chrome?.cast);
+                            console.log('- Cast Framework:', !!window.cast?.framework);
+                            console.log('- Browser:', navigator.userAgent);
+                            if (window.cast?.framework) {
+                              try {
+                                const context = cast.framework.CastContext.getInstance();
+                                console.log('- Cast State:', context.getCastState());
+                                console.log('- Session:', context.getCurrentSession());
+                              } catch (e) {
+                                console.error('- Error getting cast info:', e);
+                              }
+                            }
+                          }}
+                          className="p-1.5 sm:p-2 hover:bg-yellow-500/20 rounded-lg transition-all duration-200 text-yellow-400"
+                          title="Debug Cast Info"
+                        >
+                          <span className="text-xs font-mono">DEBUG</span>
+                        </button>
+                        <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>
+                      </div>
                     )}
                     
                     {/* Fullscreen */}
@@ -873,6 +1234,23 @@ const MuxVideoPlayer = ({
           Reproduciendo en TV
         </div>
       )}
+      
+      {/* Mobile Touch Hint */}
+      <AnimatePresence>
+        {showMobileHint && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 backdrop-blur-sm border border-white/20"
+          >
+            <div className="w-6 h-6 border-2 border-white/60 rounded-full flex items-center justify-center">
+              <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
+            </div>
+            Toca para reproducir el video
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
