@@ -71,7 +71,10 @@ const MuxVideoPlayer = ({
     );
   }
 
-  console.log('[MuxPlayer] Using:', { isSignedUrl, src, playbackId });
+  // Debug solo en desarrollo
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[MuxPlayer] Using:', { isSignedUrl, src, playbackId });
+  }
 
   return (
     <div className={`mux-video-player ${className}`}>
