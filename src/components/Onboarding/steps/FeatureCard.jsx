@@ -14,7 +14,7 @@ const FeatureCard = ({ icon, title, description, bullets }) => {
       </h2>
 
       {description && (
-        <p className="text-[#000000] leading-snug w-[272px] mx-auto  text-[20px]">
+        <p className="text-[#000000] leading-snug w-[300px]   text-[18px]">
           {description}
         </p>
       )}

@@ -376,8 +376,8 @@ Unas preguntas rápidas y comenzamos"
 
     return (
         <div
-            className="min-h-screen flex flex-col bg-center bg-no-repeat bg-cover "
-            style={{ backgroundImage: `url(${Bgonbording})` }}  
+            className={`min-h-screen flex flex-col ${currentStep === 1 ? '' : 'bg-center bg-no-repeat bg-cover'}`}
+            style={currentStep === 1 ? {} : { backgroundImage: `url(${Bgonbording})` }}  
         >
             <div className="min-h-screen flex flex-col">
                 <div className="flex-1 container mx-auto px-2 py-10 w-[320px] flex flex-col justify-between">

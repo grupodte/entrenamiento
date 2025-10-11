@@ -13,6 +13,7 @@ const StepContainer = ({
     isLoading = false,
     isFeatureStep = false // New prop
 }) => {
+    const isVideoStep = currentStep === 1;
     const slideVariants = {
         enter: (direction) => ({
             y: direction > 0 ? '50px' : '-50px',
@@ -32,11 +33,11 @@ const StepContainer = ({
         <motion.div
             key={currentStep}
             custom={1}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
+            variants={isVideoStep ? {} : slideVariants}
+            initial={isVideoStep ? false : "enter"}
+            animate={isVideoStep ? false : "center"}
+            exit={isVideoStep ? false : "exit"}
+            transition={isVideoStep ? {} : {
                 y: { type: "spring", stiffness: 300, damping: 30 },
                 opacity: { duration: 0.2 }
             }}

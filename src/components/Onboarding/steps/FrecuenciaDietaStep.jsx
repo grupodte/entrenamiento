@@ -3,10 +3,9 @@ import OptionCard from '../OptionCard'; // usa el OptionCard mejorado
 
 const FrecuenciaDietaStep = ({ value, comentario, onChange, onComentarioChange }) => {
     const opciones = [
-        { id: 'desayuno_almuerzo_cena', title: 'Desayuno • Almuerzo • Cena', description: '3 comidas principales al día' },
-        { id: 'almuerzo_cena', title: 'Almuerzo • Cena', description: '2 comidas principales al día' },
-        { id: '5_comidas', title: '5 comidas', description: 'Incluye colaciones o snacks' },
-        { id: 'otro', title: 'Otro patrón', description: 'Personalizado o variable' },
+        { id: 'desayuno', title: 'Desayuno • Almuerzo • Merienda • Cena', description: '4 comidas  al día' },
+        { id: 'sin_desayuno', title: 'Almuerzo • Merienda • Cena', description: '3 comidas al día' },
+       
     ];
 
     return (
