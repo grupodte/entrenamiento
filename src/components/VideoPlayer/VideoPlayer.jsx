@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Hls from 'hls.js';
 import { 
   Play, 
   Pause, 
@@ -312,6 +313,12 @@ const VideoPlayer = ({
     if (videoType === 'hls' && videoRef.current && src) {
       const video = videoRef.current;
       
+      // Cleanup previous HLS instance
+      if (hlsInstance) {
+        hlsInstance.destroy();
+        setHlsInstance(null);
+      }
+      
       // Check if the browser supports HLS natively (Safari, iOS Safari)
       if (video.canPlayType('application/vnd.apple.mpegurl')) {
         console.log('Using native HLS support');
@@ -319,13 +326,50 @@ const VideoPlayer = ({
         return;
       }
       
-      // For other browsers, we'll try to load the video directly
-      // Most modern browsers can handle HLS to some extent
-      console.log('Attempting direct HLS playback');
-      video.src = src;
+      // Use hls.js for other browsers
+      if (Hls.isSupported()) {
+        console.log('Using hls.js for HLS playback');
+        const hls = new Hls({
+          debug: process.env.NODE_ENV === 'development',
+          enableWorker: true,
+          lowLatencyMode: false,
+          backBufferLength: 90
+        });
+        
+        hls.loadSource(src);
+        hls.attachMedia(video);
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          console.log('HLS manifest parsed successfully');
+        });
+        
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.error('HLS error:', event, data);
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                console.log('Fatal network error encountered, trying to recover');
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                console.log('Fatal media error encountered, trying to recover');
+                hls.recoverMediaError();
+                break;
+              default:
+                console.log('Fatal error, cannot recover');
+                hls.destroy();
+                break;
+            }
+          }
+        });
+        
+        setHlsInstance(hls);
+        return;
+      }
       
-      // If that doesn't work, we would need hls.js library
-      // but for now, let's see if the browser can handle it
+      // Fallback: try direct playback
+      console.log('HLS not supported, attempting direct playback');
+      video.src = src;
     }
     
     return () => {
@@ -334,7 +378,7 @@ const VideoPlayer = ({
         setHlsInstance(null);
       }
     };
-  }, [src, videoType, hlsInstance]);
+  }, [src, videoType]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
