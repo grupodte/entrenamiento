@@ -1,6 +1,6 @@
-const Mux = require('@mux/mux-node');
-const { createClient } = require('@supabase/supabase-js');
-const jwt = require('jsonwebtoken');
+import Mux from '@mux/mux-node';
+import { createClient } from '@supabase/supabase-js';
+import jwt from 'jsonwebtoken';
 
 // Initialize Mux with signing key
 const mux = new Mux({
@@ -14,7 +14,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 );
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
