@@ -9,10 +9,26 @@ const DatosFisicosYObjetivosStep = ({ values, onChange, errors = {} }) => {
             return;
         }
         if (['altura', 'peso', 'porcentaje_grasa', 'cintura_cm', 'meta_peso', 'meta_grasa', 'meta_cintura'].includes(field)) {
-            const num = parseFloat(value);
-            if (isNaN(num) || num <= 0) return;
-            onChange(field, num);
-            return;
+            // Para campos que son enteros en la base de datos
+            if (['cintura_cm', 'meta_cintura'].includes(field)) {
+                const num = parseInt(value);
+                if (isNaN(num) || num <= 0) {
+                    onChange(field, null);
+                    return;
+                }
+                onChange(field, num);
+                return;
+            }
+            // Para campos que permiten decimales
+            else {
+                const num = parseFloat(value);
+                if (isNaN(num) || num <= 0) {
+                    onChange(field, null);
+                    return;
+                }
+                onChange(field, num);
+                return;
+            }
         }
         onChange(field, value);
     };
@@ -23,7 +39,7 @@ const DatosFisicosYObjetivosStep = ({ values, onChange, errors = {} }) => {
             label: 'Peso (kg)',
             icon: FaWeight,
             actual: { key: 'peso', placeholder: 'Ej: 70.5', step: 0.1, min: 30, max: 300, required: true },
-            objetivo: { key: 'meta_peso', placeholder: 'Ej: 65.0', step: 0.1, min: 30, max: 300 },
+            objetivo: { key: 'meta_peso', placeholder: 'Ej: 65.0', step: 0.1, min: 30, max: 300, required: true },
         },
         {
             key: 'grasa',
@@ -36,8 +52,8 @@ const DatosFisicosYObjetivosStep = ({ values, onChange, errors = {} }) => {
             key: 'cintura',
             label: 'Cintura (cm)',
             icon: FaSearchMinus,
-            actual: { key: 'cintura_cm', placeholder: 'Ej: 85', step: 0.1, min: 40, max: 250 },
-            objetivo: { key: 'meta_cintura', placeholder: 'Ej: 80', step: 0.1, min: 40, max: 250 },
+            actual: { key: 'cintura_cm', placeholder: 'Ej: 85', step: 1, min: 40, max: 250 },
+            objetivo: { key: 'meta_cintura', placeholder: 'Ej: 80', step: 1, min: 40, max: 250 },
         },
     ];
 
@@ -47,6 +63,9 @@ const DatosFisicosYObjetivosStep = ({ values, onChange, errors = {} }) => {
 
     return (
         <div className="space-y-8">
+            <p className="text-xs text-center text-gray-500 -mb-4">
+                Los campos marcados con <span className="text-[#FF0000] font-bold">*</span> son obligatorios.
+            </p>
             {/* Altura (solo Actual) */}
             <div className="space-y-2">
                 <label className="flex items-center text-[#000000] font-medium text-[16px] mb-2">
@@ -74,17 +93,19 @@ const DatosFisicosYObjetivosStep = ({ values, onChange, errors = {} }) => {
                         <div className="flex items-center gap-2">
                             <Icon className="w-5 h-5 text-[#FF0000]" />
                             <h4 className="text-[#000000] font-medium text-[16px] leading-none">{label}</h4>
+                            {(actual.required || objetivo.required) && <span className="text-[#FF0000] ml-1">*</span>}
                         </div>
 
                         {/* Encabezado columnas (solo en md+) */}
                         <div className="hidden md:grid md:grid-cols-2 md:gap-4 text-[13px]">
-                            <div className="text-[#000000] opacity-80">Actual</div>
-                            <div className="text-[#000000] opacity-80">Objetivo</div>
+                            <div className="text-[#000000] opacity-80">Actual {actual.required && <span className="text-[#FF0000]">*</span>}</div>
+                            <div className="text-[#000000] opacity-80">Objetivo {objetivo.required && <span className="text-[#FF0000]">*</span>}</div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 md:gap-4">                            {/* Actual */}
+                        <div className="grid grid-cols-2 gap-3 md:gap-4">
+                            {/* Actual */}
                             <div className="space-y-2">
-                                <label className="md:hidden text-[#000000] text-[13px]">Actual</label>
+                                <label className="md:hidden text-[#000000] text-[13px]">Actual {actual.required && <span className="text-[#FF0000]">*</span>}</label>
                                 <input
                                     type="number"
                                     inputMode="decimal"
@@ -103,7 +124,7 @@ const DatosFisicosYObjetivosStep = ({ values, onChange, errors = {} }) => {
 
                             {/* Objetivo */}
                             <div className="space-y-2">
-                                <label className="md:hidden text-[#000000] text-[13px]">Objetivo</label>
+                                <label className="md:hidden text-[#000000] text-[13px]">Objetivo {objetivo.required && <span className="text-[#FF0000]">*</span>}</label>
                                 <input
                                     type="number"
                                     inputMode="decimal"

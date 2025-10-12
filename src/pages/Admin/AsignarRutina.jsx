@@ -2,32 +2,67 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
+import { notificationService } from '../../services/notificationService';
+import { useAuth } from '../../context/AuthContext';
 import AdminLayout from '../../layouts/AdminLayout';
 
 
 const AsignarRutina = () => {
     const { id: alumnoId } = useParams();
+    const { user } = useAuth(); // Para obtener info del entrenador
     const [searchParams] = useSearchParams();
     const dia = parseInt(searchParams.get('dia'), 10);
     const navigate = useNavigate();
 
     const [rutinas, setRutinas] = useState([]);
+    const [alumno, setAlumno] = useState(null); // Para info del alumno
     const [loading, setLoading] = useState(true);
     const [mensaje, setMensaje] = useState('');
 
     useEffect(() => {
-        const fetchRutinas = async () => {
-            const { data, error } = await supabase.from('rutinas_base').select('*');
-            if (!error) setRutinas(data);
-            setLoading(false);
+        const fetchData = async () => {
+            try {
+                // Obtener rutinas
+                const { data: rutinasData, error: rutinasError } = await supabase
+                    .from('rutinas_base')
+                    .select('*');
+                
+                if (rutinasError) throw rutinasError;
+                setRutinas(rutinasData);
+
+                // Obtener datos del alumno para el email
+                const { data: alumnoData, error: alumnoError } = await supabase
+                    .from('perfiles')
+                    .select('nombre, apellido, email')
+                    .eq('id', alumnoId)
+                    .single();
+                
+                if (alumnoError) throw alumnoError;
+                setAlumno(alumnoData);
+                
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+            } finally {
+                setLoading(false);
+            }
         };
-        fetchRutinas();
-    }, []);
+        
+        if (alumnoId) {
+            fetchData();
+        }
+    }, [alumnoId]);
 
     const handleAsignar = async (rutinaBaseId) => {
         try {
             setMensaje('');
+            
+            // Obtener información de la rutina seleccionada
+            const rutinaSeleccionada = rutinas.find(r => r.id === rutinaBaseId);
+            if (!rutinaSeleccionada) {
+                throw new Error('Rutina no encontrada');
+            }
 
+            // Asignar la rutina en la base de datos
             const { error } = await supabase.from('asignaciones').insert({
                 alumno_id: alumnoId,
                 rutina_base_id: rutinaBaseId,
@@ -37,8 +72,36 @@ const AsignarRutina = () => {
 
             if (error) throw error;
 
-            setMensaje('✅ Rutina base asignada correctamente. Puede ser personalizada al editar.');
-            setTimeout(() => navigate(`/admin/alumno/${alumnoId}`), 1500);
+            setMensaje('✅ Rutina base asignada correctamente.');
+            
+            // Enviar notificación por email (no bloqueante)
+            if (alumno?.email && user?.nombre) {
+                try {
+                    console.log('📧 Enviando notificación de rutina asignada...');
+                    const notificationResult = await notificationService.sendRutinaAsignada({
+                        userEmail: alumno.email,
+                        userName: `${alumno.nombre} ${alumno.apellido || ''}`.trim(),
+                        rutinaName: rutinaSeleccionada.nombre,
+                        trainerName: user.nombre || 'Tu entrenador'
+                    });
+                    
+                    if (notificationResult.success) {
+                        console.log('✅ Notificación enviada exitosamente');
+                        setMensaje('✅ Rutina asignada y notificación enviada correctamente.');
+                    } else {
+                        console.warn('⚠️ Rutina asignada pero falló el envío de notificación:', notificationResult.error);
+                        setMensaje('✅ Rutina asignada correctamente (la notificación no pudo enviarse).');
+                    }
+                } catch (emailError) {
+                    console.warn('⚠️ Error enviando notificación:', emailError);
+                    setMensaje('✅ Rutina asignada correctamente (la notificación no pudo enviarse).');
+                }
+            } else {
+                console.warn('⚠️ No se puede enviar notificación: faltan datos del alumno o entrenador');
+            }
+            
+            // Navegar después de 2 segundos para mostrar el mensaje
+            setTimeout(() => navigate(`/admin/alumno/${alumnoId}`), 2000);
 
         } catch (error) {
             console.error('❌ Error durante la asignación:', error);

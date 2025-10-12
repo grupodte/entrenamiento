@@ -138,8 +138,6 @@ const Onboarding = () => {
                 break;
 
             case 7: // Datos físicos y objetivos
-                if (!onboardingData.objetivo)
-                    newErrors.objetivo = 'Debes seleccionar un objetivo';
                 if (!onboardingData.altura)
                     newErrors.altura = 'La altura es requerida';
                 else if (onboardingData.altura < 100 || onboardingData.altura > 250)
@@ -148,6 +146,10 @@ const Onboarding = () => {
                     newErrors.peso = 'El peso es requerido';
                 else if (onboardingData.peso < 30 || onboardingData.peso > 300)
                     newErrors.peso = 'El peso debe estar entre 30 y 300 kg';
+                if (!onboardingData.meta_peso)
+                    newErrors.meta_peso = 'El peso objetivo es requerido';
+                else if (onboardingData.meta_peso < 30 || onboardingData.meta_peso > 300)
+                    newErrors.meta_peso = 'El peso objetivo debe estar entre 30 y 300 kg';
                 if (onboardingData.porcentaje_grasa && (onboardingData.porcentaje_grasa < 1 || onboardingData.porcentaje_grasa > 50))
                     newErrors.porcentaje_grasa = 'El porcentaje de grasa debe estar entre 1% y 50%';
                 if (onboardingData.cintura_cm && (onboardingData.cintura_cm < 50 || onboardingData.cintura_cm > 200))
@@ -180,13 +182,23 @@ const Onboarding = () => {
             const dataToUpdate = {};
             Object.entries(onboardingData).forEach(([key, value]) => {
                 if (value !== '' && value !== null && value !== undefined) {
-                    if (['altura', 'peso', 'porcentaje_grasa', 'cintura_cm', 'edad'].includes(key)) {
+                    // Campos que son INTEGER en la base de datos
+                    if (['cintura_cm', 'edad', 'meta_cintura'].includes(key)) {
+                        dataToUpdate[key] = parseInt(value) || null;
+                    }
+                    // Campos que son NUMERIC (permiten decimales) en la base de datos
+                    else if (['altura', 'peso', 'porcentaje_grasa', 'meta_peso', 'meta_grasa'].includes(key)) {
                         dataToUpdate[key] = parseFloat(value) || null;
                     } else {
                         dataToUpdate[key] = value;
                     }
                 }
             });
+            
+            // Agregar objetivo por defecto si no existe
+            if (!dataToUpdate.objetivo && currentStep === 7) {
+                dataToUpdate.objetivo = 'perder_peso';
+            }
 
             const { error } = await supabase
                 .from('perfiles')
@@ -248,7 +260,12 @@ const Onboarding = () => {
             case 6:
                 return !!onboardingData.nombre && !!onboardingData.apellido && !!onboardingData.email && !!onboardingData.edad && !!onboardingData.genero && !!onboardingData.pais;
             case 7:
-                return !!onboardingData.objetivo && !!onboardingData.altura && !!onboardingData.peso;
+                // Requerir altura, peso actual y peso objetivo
+                const alturaOk = onboardingData.altura && parseFloat(onboardingData.altura) > 0;
+                const pesoOk = onboardingData.peso && parseFloat(onboardingData.peso) > 0;
+                const metaPesoOk = onboardingData.meta_peso && parseFloat(onboardingData.meta_peso) > 0;
+                const result = alturaOk && pesoOk && metaPesoOk;
+                return result;
             case 8:
                 return !!onboardingData.frecuencia_entrenamiento;
             case 9:

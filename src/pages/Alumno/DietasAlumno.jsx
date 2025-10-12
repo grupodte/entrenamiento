@@ -7,9 +7,9 @@ import {
     FaCalendarAlt,
     FaInfoCircle,
     FaTag,
+    FaUserCircle,
 } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
-import DietaSlider from '../../assets/dieta-slider.png';
 import DownloadDietIcon from '../../assets/download-diet.svg';
 import DocIcon from '../../assets/doc.svg';
 
@@ -261,33 +261,23 @@ const DietasAlumno = () => {
     return (
         <div className="mt-10  ">
             <main className=" mx-auto px-2 pt-6 space-y-2 ">
-                {/* Header */}
-                <div className=" mx-auto rounded-[10px] overflow-hidden relative">
-                    <img
-                        src={DietaSlider}
-                        alt="Imagen de dietas"
-                        className=" w-[380px] h-[161px] object-cover"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <h1 className="text-white text-[27px]">Mis dietas</h1>
-                    </div>
-                </div>
 
 
                 {/* Lista de dietas */}
                 {dietas.length === 0 ? (
-                    <div className="text-center py-16 space-y-4">
-                        <div className="w-20 h-20 mx-auto rounded-2xl bg-white/5 flex items-center justify-center">
-                            <FaUtensils className="w-8 h-8 text-white/40" />
+                    <section className="flex items-center justify-center mt-20">
+                        <div className="rounded-2xl p-6 bg-[#121212] text-center">
+                            <div className="mb-4">
+                                <FaUserCircle className="text-4xl text-[#FF0000] mx-auto mb-2" />
+                            </div>
+                            <h3 className="text-[18px] font-semibold text-white mb-2">
+                                Aún no tienes dietas asignadas
+                            </h3>
+                            <p className="text-[14px] text-[#B5B5B5]">
+                                Pronto un entrenador te asignará una
+                            </p>
                         </div>
-                        <h3 className="text-lg font-semibold text-white/80">
-                            No hay dietas con archivos disponibles
-                        </h3>
-                        <p className="text-white/50 text-sm max-w-sm mx-auto">
-                            No tienes dietas con archivos cargados disponibles para descargar. 
-                            Consulta con tu entrenador si esperas ver contenido aquí.
-                        </p>
-                    </div>
+                    </section>
                 ) : (
                     <div className="space-y-4">
                         <AnimatePresence>
