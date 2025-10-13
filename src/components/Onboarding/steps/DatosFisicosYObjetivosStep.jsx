@@ -63,7 +63,7 @@ const DatosFisicosYObjetivosStep = ({ values, onChange, errors = {} }) => {
 
     return (
         <div className="space-y-8">
-            <p className="text-xs text-center text-gray-500 -mb-4">
+            <p className="text-xs text-center text-[#000000] -mb-4">
                 Los campos marcados con <span className="text-[#FF0000] font-bold">*</span> son obligatorios.
             </p>
             {/* Altura (solo Actual) */}

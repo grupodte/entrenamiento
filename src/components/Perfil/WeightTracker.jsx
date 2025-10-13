@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { supabase } from '../../lib/supabaseClient';
 import saveIcon from '../../assets/save.svg';
 
@@ -22,8 +23,8 @@ const WeightTracker = ({ userId }) => {
                 .from('registros_peso')
                 .select('fecha_registro, peso_kg')
                 .eq('alumno_id', userId)
-                .order('fecha_registro', { ascending: false })
-                .limit(8);
+                .order('fecha_registro', { ascending: true })
+                .limit(15);
             if (registrosError) throw registrosError;
             setHistorial(registros || []);
         } catch (e) {
@@ -66,7 +67,7 @@ const WeightTracker = ({ userId }) => {
     };
 
     const diffText = useMemo(() => {
-        if (!progreso || progreso.total_registros === 0) return 'Sin registros';
+        if (!progreso || progreso.total_registros === 0) return '';
         const diff = progreso.diferencia;
         if (diff === null) return 'Sin cambios';
         if (diff > 0) return `+${diff.toFixed(1)} kg`;
@@ -74,8 +75,47 @@ const WeightTracker = ({ userId }) => {
         return 'Sin cambios';
     }, [progreso]);
 
+    // Función para formatear fecha
+    const formatDate = (dateString, includeYear = false) => {
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        
+        return includeYear ? `${day}/${month}/${year}` : `${day}/${month}`;
+    };
+
+    // Procesar datos para el gráfico
+    const chartData = useMemo(() => {
+        if (!historial || historial.length === 0) return [];
+        
+        return historial.map(registro => ({
+            fecha: registro.fecha_registro,
+            peso: registro.peso_kg,
+            fechaFormateada: formatDate(registro.fecha_registro)
+        }));
+    }, [historial]);
+
+    // Componente de tooltip personalizado
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            return (
+                <div className="bg-[#191919] p-2 rounded-lg border border-[#333]">
+                    <p className="text-white text-sm">
+                        {formatDate(label, true)}
+                    </p>
+                    <p className="text-[#FF0000] text-sm font-bold">
+                        {`${data.peso} kg`}
+                    </p>
+                </div>
+            );
+        }
+        return null;
+    };
+
     return (
-        <div className="bg-[#000000] border  rounded-[10px] flex flex-col justify-center px-4 h-[211px] text-white">
+        <div className="bg-[#000000] border rounded-[10px] flex flex-col px-4 py-4 text-white" style={{minHeight: '400px'}}>
             <div className="flex items-center justify-between mb-3">
                 <h3 className="text-[15px] text-[#FFFFFF]">Control de peso</h3>
             </div>
@@ -141,7 +181,42 @@ const WeightTracker = ({ userId }) => {
                 </button>
             </div>
 
-        
+            {/* Gráfico de progreso */}
+            {chartData.length > 0 && (
+                <div className="mt-4">
+                    <div className="h-48 focus:outline-none" style={{ outline: 'none' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart 
+                                data={chartData} 
+                                margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                                style={{ outline: 'none' }}
+                            >
+                                <XAxis 
+                                    dataKey="fechaFormateada"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#FFFFFF', fontSize: 12 }}
+                                />
+                                <YAxis 
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#FFFFFF', fontSize: 12 }}
+                                    domain={['dataMin - 2', 'dataMax + 2']}
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Line 
+                                    type="monotone" 
+                                    dataKey="peso" 
+                                    stroke="#FF0000" 
+                                    strokeWidth={2}
+                                    dot={{ fill: '#FF0000', strokeWidth: 2, r: 4 }}
+                                    activeDot={{ r: 6, fill: '#FF0000' }}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

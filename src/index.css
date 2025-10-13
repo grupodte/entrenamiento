@@ -869,3 +869,34 @@ ol::-webkit-scrollbar,
   -webkit-appearance: none;
   
 }
+
+/* ====== ESTILOS PARA RECHARTS - ELIMINAR OUTLINE ====== */
+/* Eliminar outline/marco de los gráficos Recharts */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-responsive-container,
+.recharts-layer {
+  outline: none !important;
+  border: none !important;
+}
+
+.recharts-wrapper:focus,
+.recharts-surface:focus,
+.recharts-responsive-container:focus,
+.recharts-layer:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Eliminar outline específicamente del SVG */
+svg.recharts-surface {
+  outline: none !important;
+  border: none !important;
+}
+
+svg.recharts-surface:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}

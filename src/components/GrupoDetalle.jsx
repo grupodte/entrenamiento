@@ -28,7 +28,11 @@ import {
     Info,
     FileText,
     Download,
-    Zap
+    Zap,
+    CheckCircle,
+    XCircle,
+    RefreshCw,
+    Shield
 } from 'lucide-react';
 
 const INPUT_CLASS = "w-full rounded-xl bg-white/10 pl-4 pr-4 py-3 text-white placeholder-white/50 focus:ring-2 focus:ring-pink-500 border border-transparent focus:border-pink-400 transition-all outline-none shadow-inner";
@@ -55,6 +59,8 @@ const GrupoDetalle = () => {
     const [showEditarGrupo, setShowEditarGrupo] = useState(false);
     const [showEliminarAsignacion, setShowEliminarAsignacion] = useState(null);
     const [showCambiarAsignacion, setShowCambiarAsignacion] = useState(null);
+    const [estadoConsistencia, setEstadoConsistencia] = useState(null); // { esConsistente, inconsistencias, validandose }
+    const [validandoConsistencia, setValidandoConsistencia] = useState(false);
     
     const [busquedaAlumnos, setBusquedaAlumnos] = useState('');
     const [alumnosSeleccionados, setAlumnosSeleccionados] = useState([]);
@@ -198,6 +204,22 @@ const GrupoDetalle = () => {
             if (asignacionesError) throw asignacionesError;
             setAsignacionesGrupo(asignacionesData || []);
 
+            // Validar consistencia automáticamente después de cargar los datos
+            if ((asignacionesData?.length > 0 || dietasGrupoData?.length > 0) && miembrosData?.length > 0) {
+                console.log('[CargarDatos] Validando consistencia automáticamente...');
+                setTimeout(async () => {
+                    try {
+                        const resultadoConsistencia = await validarConsistenciaAsignaciones(false);
+                        setEstadoConsistencia(resultadoConsistencia);
+                    } catch (error) {
+                        console.warn('[CargarDatos] Error en validación automática:', error);
+                        setEstadoConsistencia({ esConsistente: false, inconsistencias: [], error: error.message });
+                    }
+                }, 1000); // Delay para dar tiempo a que se actualicen todos los estados
+            } else {
+                setEstadoConsistencia({ esConsistente: true, inconsistencias: [] });
+            }
+
         } catch (error) {
             console.error('Error al cargar datos del grupo:', error);
             toast.error('Error al cargar los datos del grupo');
@@ -213,8 +235,15 @@ const GrupoDetalle = () => {
             return;
         }
 
+        const loadingToast = toast.loading('Agregando miembros al grupo...');
+        let miembrosAgregadosExitosamente = [];
+        let erroresAsignacion = [];
+
         try {
             const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                throw new Error('Usuario no autenticado');
+            }
             
             // 1. Crear las asignaciones de grupo para los alumnos
             const asignaciones = alumnosSeleccionados.map(alumnoId => ({
@@ -223,46 +252,99 @@ const GrupoDetalle = () => {
                 activo: true
             }));
 
-            const { error } = await supabase
+            console.log('Insertando asignaciones de grupo:', asignaciones.length);
+            const { error: asignacionError, data: asignacionesInsertadas } = await supabase
                 .from('asignaciones_grupos_alumnos')
-                .insert(asignaciones);
+                .insert(asignaciones)
+                .select('alumno_id');
 
-            if (error) throw error;
+            if (asignacionError) {
+                console.error('Error al insertar asignaciones de grupo:', asignacionError);
+                throw asignacionError;
+            }
+
+            miembrosAgregadosExitosamente = asignacionesInsertadas.map(a => a.alumno_id);
+            console.log('Miembros agregados exitosamente:', miembrosAgregadosExitosamente.length);
 
             // 2. Asignar automáticamente las rutinas/cursos/dietas actuales del grupo a los nuevos miembros
             const totalAsignaciones = asignacionesGrupo.length + dietasGrupo.length;
             if (totalAsignaciones > 0) {
-                toast.loading('Asignando contenido del grupo a nuevos miembros...');
+                toast.loading('Asignando contenido del grupo a nuevos miembros...', { id: loadingToast });
                 
-                for (const alumnoId of alumnosSeleccionados) {
-                    // Asignar rutinas y cursos
-                    for (const asignacion of asignacionesGrupo) {
-                        await asignarContenidoAAlumno(alumnoId, asignacion);
-                    }
+                // Asignar contenido a cada miembro con manejo de errores individual
+                for (const alumnoId of miembrosAgregadosExitosamente) {
+                    console.log(`Procesando asignaciones para alumno ${alumnoId}`);
                     
-                    // Asignar dietas
-                    for (const dietaAsignacion of dietasGrupo) {
-                        await asignarDietaAAlumno(alumnoId, dietaAsignacion.dieta_id);
+                    try {
+                        // Asignar rutinas y cursos
+                        for (const asignacion of asignacionesGrupo) {
+                            try {
+                                await asignarContenidoAAlumno(alumnoId, asignacion);
+                                console.log(`✓ Contenido ${asignacion.tipo} asignado a alumno ${alumnoId}`);
+                            } catch (contenidoError) {
+                                console.error(`Error al asignar contenido ${asignacion.tipo} a alumno ${alumnoId}:`, contenidoError);
+                                erroresAsignacion.push({
+                                    alumnoId,
+                                    tipo: asignacion.tipo,
+                                    error: contenidoError.message
+                                });
+                            }
+                        }
+                        
+                        // Asignar dietas
+                        for (const dietaAsignacion of dietasGrupo) {
+                            try {
+                                await asignarDietaAAlumno(alumnoId, dietaAsignacion.dieta_id);
+                                console.log(`✓ Dieta asignada a alumno ${alumnoId}`);
+                            } catch (dietaError) {
+                                console.error(`Error al asignar dieta a alumno ${alumnoId}:`, dietaError);
+                                erroresAsignacion.push({
+                                    alumnoId,
+                                    tipo: 'dieta',
+                                    error: dietaError.message
+                                });
+                            }
+                        }
+                    } catch (alumnoError) {
+                        console.error(`Error general al procesar alumno ${alumnoId}:`, alumnoError);
+                        erroresAsignacion.push({
+                            alumnoId,
+                            tipo: 'general',
+                            error: alumnoError.message
+                        });
                     }
                 }
                 
-                toast.dismiss();
+                toast.dismiss(loadingToast);
                 
+                // Preparar mensaje de resultado
                 const rutinasAsignadas = asignacionesGrupo.length;
                 const dietasAsignadas = dietasGrupo.length;
-                let mensaje = `${alumnosSeleccionados.length} alumno${alumnosSeleccionados.length > 1 ? 's agregados' : ' agregado'} al grupo`;
+                let mensaje = `${miembrosAgregadosExitosamente.length} alumno${miembrosAgregadosExitosamente.length > 1 ? 's agregados' : ' agregado'} al grupo`;
                 
                 if (rutinasAsignadas > 0) {
-                    mensaje += ` y se ${rutinasAsignadas === 1 ? 'asignó' : 'asignaron'} ${rutinasAsignadas} rutina${rutinasAsignadas > 1 ? 's/cursos' : '/curso'}`;
+                    mensaje += ` y se ${rutinasAsignadas === 1 ? 'procesó' : 'procesaron'} ${rutinasAsignadas} asignación${rutinasAsignadas > 1 ? 'es' : ''} de rutinas/cursos`;
                 }
                 
                 if (dietasAsignadas > 0) {
-                    mensaje += `${rutinasAsignadas > 0 ? ' y ' : ' y se asignaron '}${dietasAsignadas} dieta${dietasAsignadas > 1 ? 's' : ''}`;
+                    mensaje += `${rutinasAsignadas > 0 ? ' y ' : ' y se procesaron '}${dietasAsignadas} dieta${dietasAsignadas > 1 ? 's' : ''}`;
                 }
                 
-                toast.success(mensaje);
+                // Mostrar resultado según si hubo errores
+                if (erroresAsignacion.length === 0) {
+                    toast.success(mensaje + ' correctamente');
+                } else {
+                    console.warn('Errores de asignación:', erroresAsignacion);
+                    toast.success(mensaje, {
+                        duration: 6000
+                    });
+                    toast.warning(`Se encontraron ${erroresAsignacion.length} error${erroresAsignacion.length > 1 ? 'es' : ''} al asignar contenido. Revisa la consola para detalles.`, {
+                        duration: 8000
+                    });
+                }
             } else {
-                toast.success(`${alumnosSeleccionados.length} alumno${alumnosSeleccionados.length > 1 ? 's agregados' : ' agregado'} al grupo`);
+                toast.dismiss(loadingToast);
+                toast.success(`${miembrosAgregadosExitosamente.length} alumno${miembrosAgregadosExitosamente.length > 1 ? 's agregados' : ' agregado'} al grupo`);
             }
             
             setShowAgregarMiembros(false);
@@ -270,9 +352,16 @@ const GrupoDetalle = () => {
             setBusquedaAlumnos('');
             await cargarDatosGrupo();
         } catch (error) {
-            console.error('Error al agregar miembros:', error);
-            toast.dismiss();
-            toast.error('Error al agregar miembros al grupo');
+            console.error('Error crítico al agregar miembros:', error);
+            toast.dismiss(loadingToast);
+            
+            if (miembrosAgregadosExitosamente.length > 0) {
+                toast.error(`Error parcial: ${miembrosAgregadosExitosamente.length} miembro${miembrosAgregadosExitosamente.length > 1 ? 's fueron agregados' : ' fue agregado'} pero hubo problemas con las asignaciones de contenido.`, {
+                    duration: 8000
+                });
+            } else {
+                toast.error('Error al agregar miembros al grupo: ' + (error.message || 'Error desconocido'));
+            }
         }
     };
 
@@ -343,11 +432,14 @@ const GrupoDetalle = () => {
             return;
         }
 
+        const loadingToast = toast.loading(`Asignando ${tipo === 'curso' ? 'curso' : 'rutina'} a ${miembrosActivos.length} miembro${miembrosActivos.length > 1 ? 's' : ''}...`);
+        let asignacionesExitosas = 0;
+        let erroresAsignacion = [];
+
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                toast.error('Usuario no autenticado');
-                return;
+                throw new Error('Usuario no autenticado');
             }
 
             console.log('Iniciando asignación masiva:', { contenidoId, tipo, miembros: miembrosActivos.length });
@@ -376,117 +468,94 @@ const GrupoDetalle = () => {
                 throw asignacionError;
             }
 
-            // Luego asignar individualmente a cada miembro
-            if (tipo === 'curso') {
-                // Para cursos, crear acceso individual
-                const grupoNombre = grupo?.nombre || 'Grupo sin nombre';
-                
-                console.log('Creando accesos de curso para miembros:', miembrosActivos.length);
-                
-                const accesos = miembrosActivos.map(miembro => ({
-                    usuario_id: miembro.alumno_id,
-                    curso_id: contenidoId,
-                    tipo_acceso: 'regalo',
-                    activo: true,
-                    creado_por: user.id,
-                    notas: `Asignado vía grupo: ${grupoNombre}`
-                }));
-
-                console.log('Datos de accesos a insertar:', accesos);
-
-                // Verificar si ya tienen acceso para evitar duplicados
-                const { data: accesosExistentes, error: checkError } = await supabase
-                    .from('acceso_cursos')
-                    .select('usuario_id')
-                    .eq('curso_id', contenidoId)
-                    .in('usuario_id', miembrosActivos.map(m => m.alumno_id))
-                    .eq('activo', true);
-
-                if (checkError) {
-                    console.error('Error al verificar accesos existentes:', checkError);
-                    // No es crítico, continuamos
-                }
-
-                // Filtrar accesos que ya existen
-                const usuariosConAcceso = (accesosExistentes || []).map(a => a.usuario_id);
-                const accesosNuevos = accesos.filter(acceso => !usuariosConAcceso.includes(acceso.usuario_id));
-
-                if (accesosNuevos.length === 0) {
-                    toast.warning('Todos los miembros ya tienen acceso a este curso');
-                } else {
-                    console.log('Insertando accesos nuevos:', accesosNuevos.length);
-                    
-                    const { error: cursosError } = await supabase
-                        .from('acceso_cursos')
-                        .insert(accesosNuevos);
-
-                    if (cursosError) {
-                        console.error('Error al insertar accesos de curso:', cursosError);
-                        throw cursosError;
-                    }
-                }
-            } else if (tipo === 'rutina_completa') {
-                // Para rutinas completas, asignar todas las sesiones
-                const { data: sesiones, error: sesionesError } = await supabase
-                    .from('rutinas_de_verdad_sesiones')
-                    .select('dia_semana, sesion_id')
-                    .eq('rutina_id', contenidoId);
-
-                if (sesionesError) throw sesionesError;
-
-                const asignacionesIndividuales = [];
-                miembrosActivos.forEach(miembro => {
-                    // Eliminar asignaciones existentes para esta semana
-                    const dias = [0, 1, 2, 3, 4, 5, 6];
-                    
-                    // Crear nuevas asignaciones
-                    sesiones.forEach(sesion => {
-                        const diaIndex = sesion.dia_semana === 'lunes' ? 0 : 
-                                       sesion.dia_semana === 'martes' ? 1 :
-                                       sesion.dia_semana === 'miercoles' ? 2 :
-                                       sesion.dia_semana === 'jueves' ? 3 :
-                                       sesion.dia_semana === 'viernes' ? 4 :
-                                       sesion.dia_semana === 'sabado' ? 5 : 6;
-                        
-                        asignacionesIndividuales.push({
-                            alumno_id: miembro.alumno_id,
-                            dia_semana: diaIndex,
-                            rutina_base_id: sesion.sesion_id,
-                            fecha_inicio: new Date().toISOString().split('T')[0]
+            // Luego asignar individualmente a cada miembro con manejo de errores por miembro
+            console.log('Asignando contenido individualmente a cada miembro...');
+            
+            for (const miembro of miembrosActivos) {
+                try {
+                    if (tipo === 'curso') {
+                        await asignarContenidoAAlumno(miembro.alumno_id, {
+                            tipo: 'curso',
+                            curso_id: contenidoId
                         });
-                    });
-                });
-
-                // Primero eliminar asignaciones existentes
-                for (const miembro of miembrosActivos) {
-                    const { error: deleteError } = await supabase
-                        .from('asignaciones')
-                        .delete()
-                        .eq('alumno_id', miembro.alumno_id)
-                        .in('dia_semana', [0, 1, 2, 3, 4, 5, 6]);
+                    } else if (tipo === 'rutina_completa') {
+                        await asignarContenidoAAlumno(miembro.alumno_id, {
+                            tipo: 'rutina_completa',
+                            rutina_de_verdad_id: contenidoId
+                        });
+                    }
                     
-                    if (deleteError) console.warn('Error al eliminar asignaciones previas:', deleteError);
+                    asignacionesExitosas++;
+                    console.log(`✓ Contenido asignado exitosamente a miembro ${miembro.alumno_id}`);
+                    
+                } catch (miembroError) {
+                    console.error(`Error al asignar contenido a miembro ${miembro.alumno_id}:`, miembroError);
+                    erroresAsignacion.push({
+                        miembroId: miembro.alumno_id,
+                        nombre: `${miembro.perfiles.nombre} ${miembro.perfiles.apellido}`,
+                        error: miembroError.message
+                    });
                 }
-
-                const { error: rutinasError } = await supabase
-                    .from('asignaciones')
-                    .insert(asignacionesIndividuales);
-
-                if (rutinasError) throw rutinasError;
             }
 
+            toast.dismiss(loadingToast);
+            
             const contenidoNombre = tipo === 'rutina' ? rutinasBase.find(r => r.id === contenidoId)?.nombre :
                                    tipo === 'rutina_completa' ? rutinasCompletas.find(r => r.id === contenidoId)?.nombre :
                                    cursos.find(c => c.id === contenidoId)?.titulo;
 
-            toast.success(`${contenidoNombre} asignado a ${miembrosActivos.length} miembro${miembrosActivos.length > 1 ? 's' : ''} del grupo`);
+            // Mostrar resultado según el éxito de las asignaciones
+            if (erroresAsignacion.length === 0) {
+                toast.success(`✓ ${contenidoNombre} asignado exitosamente a ${asignacionesExitosas} miembro${asignacionesExitosas > 1 ? 's' : ''} del grupo`);
+            } else {
+                const exitosos = asignacionesExitosas;
+                const fallidos = erroresAsignacion.length;
+                
+                if (exitosos > 0) {
+                    toast.success(`${contenidoNombre} asignado a ${exitosos} miembro${exitosos > 1 ? 's' : ''}`, {
+                        duration: 6000
+                    });
+                    toast.warning(`${fallidos} asignación${fallidos > 1 ? 'es fallaron' : ' falló'}. Ver consola para detalles.`, {
+                        duration: 8000
+                    });
+                } else {
+                    toast.error(`Error: No se pudo asignar ${contenidoNombre} a ningún miembro`);
+                }
+                
+                console.warn('Errores en asignación masiva:', erroresAsignacion);
+            }
             
             setShowAsignarRutina(false);
             setShowAsignarCurso(false);
             await cargarDatosGrupo();
+            
+            // Re-validar consistencia después de la asignación masiva
+            setTimeout(async () => {
+                try {
+                    console.log('[AsignacionMasiva] Re-validando consistencia...');
+                    const nuevoEstado = await validarConsistenciaAsignaciones(false);
+                    setEstadoConsistencia(nuevoEstado);
+                    
+                    if (!nuevoEstado.esConsistente && nuevoEstado.inconsistencias?.length > 0) {
+                        console.log('[AsignacionMasiva] Se detectaron inconsistencias post-asignación, mostrando opción de corrección');
+                        toast.info('Se detectó que algunos miembros podrían necesitar re-sincronización. Usa el botón "Re-sincronizar" si es necesario.', {
+                            duration: 8000
+                        });
+                    }
+                } catch (error) {
+                    console.warn('[AsignacionMasiva] Error en re-validación:', error);
+                }
+            }, 1500);
+            
         } catch (error) {
-            console.error('Error al asignar contenido masivo:', error);
-            toast.error('Error al realizar la asignación masiva');
+            toast.dismiss(loadingToast);
+            console.error('Error crítico al asignar contenido masivo:', error);
+            
+            if (asignacionesExitosas > 0) {
+                toast.error(`Error parcial: ${asignacionesExitosas} asignación${asignacionesExitosas > 1 ? 'es exitosas' : ' exitosa'} pero ocurrió un error crítico: ${error.message}`);
+            } else {
+                toast.error('Error al realizar la asignación masiva: ' + (error.message || 'Error desconocido'));
+            }
         }
     };
 
@@ -646,19 +715,30 @@ const GrupoDetalle = () => {
 
     // Función auxiliar para asignar contenido de grupo a un alumno específico
     const asignarContenidoAAlumno = async (alumnoId, asignacion) => {
+        if (!alumnoId || !asignacion) {
+            throw new Error('Faltan parámetros requeridos: alumnoId o asignacion');
+        }
+
+        console.log(`[AsignarContenido] Iniciando asignación para alumno ${alumnoId}, tipo: ${asignacion.tipo}`);
+
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                console.warn('Usuario no autenticado para asignación individual');
-                return;
+                throw new Error('Usuario no autenticado para asignación individual');
             }
 
             if (asignacion.tipo === 'curso') {
+                console.log(`[AsignarContenido] Procesando curso ${asignacion.curso_id}`);
+                
+                if (!asignacion.curso_id) {
+                    throw new Error('curso_id no especificado en la asignación');
+                }
+
                 // Crear acceso al curso para el alumno
                 const grupoNombre = grupo?.nombre || 'Grupo sin nombre';
                 
                 // Verificar si ya tiene acceso
-                const { data: accesoExistente } = await supabase
+                const { data: accesoExistente, error: checkError } = await supabase
                     .from('acceso_cursos')
                     .select('id')
                     .eq('curso_id', asignacion.curso_id)
@@ -666,7 +746,13 @@ const GrupoDetalle = () => {
                     .eq('activo', true)
                     .single();
 
+                if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows found
+                    throw new Error(`Error al verificar acceso existente: ${checkError.message}`);
+                }
+
                 if (!accesoExistente) {
+                    console.log(`[AsignarContenido] Creando nuevo acceso al curso para alumno ${alumnoId}`);
+                    
                     const { error: cursosError } = await supabase
                         .from('acceso_cursos')
                         .insert({
@@ -679,10 +765,21 @@ const GrupoDetalle = () => {
                         });
 
                     if (cursosError) {
-                        console.error('Error al asignar curso individual:', cursosError);
+                        throw new Error(`Error al insertar acceso al curso: ${cursosError.message}`);
                     }
+                    
+                    console.log(`[AsignarContenido] ✓ Acceso al curso creado para alumno ${alumnoId}`);
+                } else {
+                    console.log(`[AsignarContenido] Alumno ${alumnoId} ya tiene acceso al curso`);
                 }
+                
             } else if (asignacion.tipo === 'rutina_completa') {
+                console.log(`[AsignarContenido] Procesando rutina completa ${asignacion.rutina_de_verdad_id}`);
+                
+                if (!asignacion.rutina_de_verdad_id) {
+                    throw new Error('rutina_de_verdad_id no especificado en la asignación');
+                }
+
                 // Asignar rutina completa al alumno
                 const { data: sesiones, error: sesionesError } = await supabase
                     .from('rutinas_de_verdad_sesiones')
@@ -690,18 +787,28 @@ const GrupoDetalle = () => {
                     .eq('rutina_id', asignacion.rutina_de_verdad_id);
 
                 if (sesionesError) {
-                    console.error('Error al obtener sesiones de rutina:', sesionesError);
-                    return;
+                    throw new Error(`Error al obtener sesiones de rutina: ${sesionesError.message}`);
                 }
 
+                if (!sesiones || sesiones.length === 0) {
+                    throw new Error(`No se encontraron sesiones para la rutina ${asignacion.rutina_de_verdad_id}`);
+                }
+
+                console.log(`[AsignarContenido] Procesando ${sesiones.length} sesiones de rutina`);
+
                 const asignacionesIndividuales = [];
-                sesiones.forEach(sesion => {
+                sesiones.forEach((sesion, index) => {
                     const diaIndex = sesion.dia_semana === 'lunes' ? 0 : 
                                    sesion.dia_semana === 'martes' ? 1 :
                                    sesion.dia_semana === 'miercoles' ? 2 :
                                    sesion.dia_semana === 'jueves' ? 3 :
                                    sesion.dia_semana === 'viernes' ? 4 :
                                    sesion.dia_semana === 'sabado' ? 5 : 6;
+                    
+                    if (!sesion.sesion_id) {
+                        console.warn(`[AsignarContenido] Sesión ${index} sin sesion_id válido`);
+                        return;
+                    }
                     
                     asignacionesIndividuales.push({
                         alumno_id: alumnoId,
@@ -711,24 +818,42 @@ const GrupoDetalle = () => {
                     });
                 });
 
+                if (asignacionesIndividuales.length === 0) {
+                    throw new Error('No se generaron asignaciones válidas para la rutina completa');
+                }
+
+                console.log(`[AsignarContenido] Eliminando asignaciones previas para alumno ${alumnoId}`);
                 // Primero eliminar asignaciones existentes para esta semana
-                await supabase
+                const { error: deleteError } = await supabase
                     .from('asignaciones')
                     .delete()
                     .eq('alumno_id', alumnoId)
                     .in('dia_semana', [0, 1, 2, 3, 4, 5, 6]);
 
+                if (deleteError) {
+                    console.warn(`[AsignarContenido] Advertencia al eliminar asignaciones previas: ${deleteError.message}`);
+                    // No lanzamos error porque esto no es crítico
+                }
+
+                console.log(`[AsignarContenido] Insertando ${asignacionesIndividuales.length} nuevas asignaciones`);
                 // Insertar nuevas asignaciones
                 const { error: rutinasError } = await supabase
                     .from('asignaciones')
                     .insert(asignacionesIndividuales);
 
                 if (rutinasError) {
-                    console.error('Error al asignar rutina individual:', rutinasError);
+                    throw new Error(`Error al insertar asignaciones de rutina: ${rutinasError.message}`);
                 }
+                
+                console.log(`[AsignarContenido] ✓ Rutina completa asignada para alumno ${alumnoId}`);
+                
+            } else {
+                console.log(`[AsignarContenido] Tipo de asignación '${asignacion.tipo}' no requiere procesamiento individual`);
             }
+            
         } catch (error) {
-            console.error('Error en asignación individual:', error);
+            console.error(`[AsignarContenido] Error en asignación individual para alumno ${alumnoId}:`, error);
+            throw error; // Re-lanzar para que el caller pueda manejarlo
         }
     };
 
@@ -834,6 +959,25 @@ const GrupoDetalle = () => {
             
             setShowAsignarDieta(false);
             await cargarDatosGrupo();
+            
+            // Re-validar consistencia después de la asignación de dieta
+            setTimeout(async () => {
+                try {
+                    console.log('[AsignacionDieta] Re-validando consistencia...');
+                    const nuevoEstado = await validarConsistenciaAsignaciones(false);
+                    setEstadoConsistencia(nuevoEstado);
+                    
+                    if (!nuevoEstado.esConsistente && nuevoEstado.inconsistencias?.length > 0) {
+                        console.log('[AsignacionDieta] Se detectaron inconsistencias post-asignación');
+                        toast.info('Se detectó que algunos miembros podrían necesitar re-sincronización de dietas.', {
+                            duration: 6000
+                        });
+                    }
+                } catch (error) {
+                    console.warn('[AsignacionDieta] Error en re-validación:', error);
+                }
+            }, 1500);
+            
         } catch (error) {
             toast.dismiss();
             console.error('Error al asignar dieta:', error);
@@ -939,6 +1083,283 @@ const GrupoDetalle = () => {
         } catch (error) {
             console.error('Error al limpiar dietas del alumno:', error);
         }
+    };
+
+    // Función para validar consistencia de asignaciones
+    const validarConsistenciaAsignaciones = async (mostrarResultados = false) => {
+        try {
+            console.log('[ValidarConsistencia] Iniciando validación de consistencia...');
+            
+            const miembrosActivos = miembros.filter(m => m.activo);
+            if (miembrosActivos.length === 0) {
+                console.log('[ValidarConsistencia] No hay miembros activos para validar');
+                return { esConsistente: true, inconsistencias: [] };
+            }
+
+            const inconsistencias = [];
+            const grupoNombre = grupo?.nombre || 'Grupo sin nombre';
+
+            // Validar asignaciones de cursos
+            for (const asignacionGrupo of asignacionesGrupo) {
+                if (asignacionGrupo.tipo === 'curso' && asignacionGrupo.curso_id) {
+                    console.log(`[ValidarConsistencia] Validando curso ${asignacionGrupo.curso_id}`);
+                    
+                    const { data: accesosActuales, error: accesosError } = await supabase
+                        .from('acceso_cursos')
+                        .select('usuario_id')
+                        .eq('curso_id', asignacionGrupo.curso_id)
+                        .in('usuario_id', miembrosActivos.map(m => m.alumno_id))
+                        .eq('activo', true)
+                        .ilike('notas', `%${grupoNombre}%`);
+
+                    if (accesosError) {
+                        console.error('[ValidarConsistencia] Error al verificar accesos:', accesosError);
+                        continue;
+                    }
+
+                    const usuariosConAcceso = (accesosActuales || []).map(a => a.usuario_id);
+                    const miembrosSinAcceso = miembrosActivos.filter(m => !usuariosConAcceso.includes(m.alumno_id));
+
+                    if (miembrosSinAcceso.length > 0) {
+                        inconsistencias.push({
+                            tipo: 'curso',
+                            contenidoId: asignacionGrupo.curso_id,
+                            contenidoNombre: asignacionGrupo.cursos?.titulo || 'Curso sin nombre',
+                            miembrosSinAsignar: miembrosSinAcceso.map(m => ({
+                                id: m.alumno_id,
+                                nombre: `${m.perfiles.nombre} ${m.perfiles.apellido}`
+                            }))
+                        });
+                    }
+                }
+
+                // Validar rutinas completas
+                if (asignacionGrupo.tipo === 'rutina_completa' && asignacionGrupo.rutina_de_verdad_id) {
+                    console.log(`[ValidarConsistencia] Validando rutina completa ${asignacionGrupo.rutina_de_verdad_id}`);
+                    
+                    // Obtener sesiones de la rutina
+                    const { data: sesiones, error: sesionesError } = await supabase
+                        .from('rutinas_de_verdad_sesiones')
+                        .select('dia_semana, sesion_id')
+                        .eq('rutina_id', asignacionGrupo.rutina_de_verdad_id);
+
+                    if (sesionesError || !sesiones?.length) {
+                        console.warn(`[ValidarConsistencia] No se pudieron obtener sesiones para rutina ${asignacionGrupo.rutina_de_verdad_id}`);
+                        continue;
+                    }
+
+                    const miembrosSinRutinaCompleta = [];
+
+                    for (const miembro of miembrosActivos) {
+                        // Verificar si el miembro tiene asignada toda la semana
+                        const { data: asignacionesMiembro, error: asignacionesError } = await supabase
+                            .from('asignaciones')
+                            .select('dia_semana, rutina_base_id')
+                            .eq('alumno_id', miembro.alumno_id)
+                            .in('dia_semana', [0, 1, 2, 3, 4, 5, 6]);
+
+                        if (asignacionesError) {
+                            console.error(`[ValidarConsistencia] Error al obtener asignaciones para miembro ${miembro.alumno_id}:`, asignacionesError);
+                            continue;
+                        }
+
+                        const diasAsignados = asignacionesMiembro?.map(a => a.dia_semana) || [];
+                        const sesionesRequeridas = sesiones.map(s => {
+                            const diaIndex = s.dia_semana === 'lunes' ? 0 : 
+                                           s.dia_semana === 'martes' ? 1 :
+                                           s.dia_semana === 'miercoles' ? 2 :
+                                           s.dia_semana === 'jueves' ? 3 :
+                                           s.dia_semana === 'viernes' ? 4 :
+                                           s.dia_semana === 'sabado' ? 5 : 6;
+                            return diaIndex;
+                        });
+
+                        const diasFaltantes = sesionesRequeridas.filter(dia => !diasAsignados.includes(dia));
+                        
+                        if (diasFaltantes.length > 0) {
+                            miembrosSinRutinaCompleta.push({
+                                id: miembro.alumno_id,
+                                nombre: `${miembro.perfiles.nombre} ${miembro.perfiles.apellido}`,
+                                diasFaltantes
+                            });
+                        }
+                    }
+
+                    if (miembrosSinRutinaCompleta.length > 0) {
+                        inconsistencias.push({
+                            tipo: 'rutina_completa',
+                            contenidoId: asignacionGrupo.rutina_de_verdad_id,
+                            contenidoNombre: asignacionGrupo.rutinas_de_verdad?.nombre || 'Rutina sin nombre',
+                            miembrosSinAsignar: miembrosSinRutinaCompleta
+                        });
+                    }
+                }
+            }
+
+            // Validar dietas
+            for (const dietaAsignacion of dietasGrupo) {
+                if (dietaAsignacion.dieta_id) {
+                    console.log(`[ValidarConsistencia] Validando dieta ${dietaAsignacion.dieta_id}`);
+                    
+                    const { data: dietasActuales, error: dietasError } = await supabase
+                        .from('asignaciones_dietas_alumnos')
+                        .select('alumno_id')
+                        .eq('dieta_id', dietaAsignacion.dieta_id)
+                        .in('alumno_id', miembrosActivos.map(m => m.alumno_id))
+                        .eq('activo', true)
+                        .ilike('observaciones', `%${grupoNombre}%`);
+
+                    if (dietasError) {
+                        console.error('[ValidarConsistencia] Error al verificar dietas:', dietasError);
+                        continue;
+                    }
+
+                    const usuariosConDieta = (dietasActuales || []).map(a => a.alumno_id);
+                    const miembrosSinDieta = miembrosActivos.filter(m => !usuariosConDieta.includes(m.alumno_id));
+
+                    if (miembrosSinDieta.length > 0) {
+                        inconsistencias.push({
+                            tipo: 'dieta',
+                            contenidoId: dietaAsignacion.dieta_id,
+                            contenidoNombre: dietaAsignacion.dietas?.nombre || 'Dieta sin nombre',
+                            miembrosSinAsignar: miembrosSinDieta.map(m => ({
+                                id: m.alumno_id,
+                                nombre: `${m.perfiles.nombre} ${m.perfiles.apellido}`
+                            }))
+                        });
+                    }
+                }
+            }
+
+            const esConsistente = inconsistencias.length === 0;
+            
+            console.log(`[ValidarConsistencia] Validación completada. Consistente: ${esConsistente}, Inconsistencias: ${inconsistencias.length}`);
+            
+            if (mostrarResultados) {
+                if (esConsistente) {
+                    toast.success('✅ Todas las asignaciones están sincronizadas correctamente');
+                } else {
+                    toast.warning(`⚠️ Se encontraron ${inconsistencias.length} inconsistencia${inconsistencias.length > 1 ? 's' : ''} en las asignaciones`, {
+                        duration: 6000
+                    });
+                    console.log('[ValidarConsistencia] Detalles de inconsistencias:', inconsistencias);
+                }
+            }
+
+            return { esConsistente, inconsistencias };
+        } catch (error) {
+            console.error('[ValidarConsistencia] Error en validación:', error);
+            if (mostrarResultados) {
+                toast.error('Error al validar consistencia de asignaciones');
+            }
+            return { esConsistente: false, inconsistencias: [], error: error.message };
+        }
+    };
+
+    // Función para re-sincronizar asignaciones inconsistentes
+    const reSincronizarAsignaciones = async (inconsistencias) => {
+        if (!inconsistencias || inconsistencias.length === 0) {
+            toast.info('No hay inconsistencias para sincronizar');
+            return;
+        }
+
+        const loadingToast = toast.loading('Re-sincronizando asignaciones...');
+        let correccionesRealizadas = 0;
+        let erroresCorreccion = [];
+
+        try {
+            for (const inconsistencia of inconsistencias) {
+                console.log(`[ReSincronizar] Procesando inconsistencia de ${inconsistencia.tipo}: ${inconsistencia.contenidoNombre}`);
+                
+                for (const miembro of inconsistencia.miembrosSinAsignar) {
+                    try {
+                        if (inconsistencia.tipo === 'curso') {
+                            // Re-asignar acceso al curso
+                            await asignarContenidoAAlumno(miembro.id, {
+                                tipo: 'curso',
+                                curso_id: inconsistencia.contenidoId
+                            });
+                        } else if (inconsistencia.tipo === 'rutina_completa') {
+                            // Re-asignar rutina completa
+                            await asignarContenidoAAlumno(miembro.id, {
+                                tipo: 'rutina_completa',
+                                rutina_de_verdad_id: inconsistencia.contenidoId
+                            });
+                        } else if (inconsistencia.tipo === 'dieta') {
+                            // Re-asignar dieta
+                            await asignarDietaAAlumno(miembro.id, inconsistencia.contenidoId);
+                        }
+                        
+                        correccionesRealizadas++;
+                        console.log(`[ReSincronizar] ✓ Corregida asignación de ${inconsistencia.tipo} para ${miembro.nombre}`);
+                        
+                    } catch (error) {
+                        console.error(`[ReSincronizar] Error al corregir ${inconsistencia.tipo} para ${miembro.nombre}:`, error);
+                        erroresCorreccion.push({
+                            miembro: miembro.nombre,
+                            tipo: inconsistencia.tipo,
+                            error: error.message
+                        });
+                    }
+                }
+            }
+
+            toast.dismiss(loadingToast);
+            
+            if (erroresCorreccion.length === 0) {
+                toast.success(`✅ Re-sincronización completada: ${correccionesRealizadas} asignación${correccionesRealizadas > 1 ? 'es corregidas' : ' corregida'}`);
+            } else {
+                toast.success(`Parcialmente completado: ${correccionesRealizadas} correcciones realizadas`, {
+                    duration: 6000
+                });
+                toast.warning(`${erroresCorreccion.length} error${erroresCorreccion.length > 1 ? 'es' : ''} durante la corrección. Ver consola.`, {
+                    duration: 8000
+                });
+                console.warn('[ReSincronizar] Errores de corrección:', erroresCorreccion);
+            }
+
+            // Recargar datos después de la sincronización
+            await cargarDatosGrupo();
+            
+        } catch (error) {
+            toast.dismiss(loadingToast);
+            console.error('[ReSincronizar] Error crítico en re-sincronización:', error);
+            toast.error('Error durante la re-sincronización: ' + error.message);
+        }
+    };
+
+    // Función para validar consistencia manualmente
+    const validarConsistenciaManual = async () => {
+        setValidandoConsistencia(true);
+        try {
+            const resultado = await validarConsistenciaAsignaciones(true);
+            setEstadoConsistencia(resultado);
+        } catch (error) {
+            console.error('Error en validación manual:', error);
+            setEstadoConsistencia({ esConsistente: false, inconsistencias: [], error: error.message });
+        } finally {
+            setValidandoConsistencia(false);
+        }
+    };
+
+    // Función para re-sincronizar y actualizar estado
+    const reSincronizarYActualizar = async () => {
+        if (!estadoConsistencia?.inconsistencias?.length) {
+            toast.info('No hay inconsistencias para sincronizar');
+            return;
+        }
+
+        await reSincronizarAsignaciones(estadoConsistencia.inconsistencias);
+        
+        // Validar nuevamente después de la sincronización
+        setTimeout(async () => {
+            try {
+                const nuevoResultado = await validarConsistenciaAsignaciones(false);
+                setEstadoConsistencia(nuevoResultado);
+            } catch (error) {
+                console.error('Error al re-validar después de sincronización:', error);
+            }
+        }, 500);
     };
 
     const alumnosDisponiblesFiltrados = alumnosDisponibles.filter(alumno =>
@@ -1090,6 +1511,34 @@ const GrupoDetalle = () => {
                                     {dietasGrupo.length}
                                 </span>
                             </div>
+                            
+                            {/* Indicador de consistencia */}
+                            <div className="flex items-center justify-between pt-3 border-t border-gray-600/30">
+                                <div className="flex items-center gap-2">
+                                    <Shield className="w-5 h-5 text-gray-400" />
+                                    <span className="text-gray-300">Sincronización:</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {estadoConsistencia === null ? (
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-3 h-3 bg-gray-500 rounded-full animate-pulse" />
+                                            <span className="text-xs text-gray-400">Validando...</span>
+                                        </div>
+                                    ) : estadoConsistencia.esConsistente ? (
+                                        <div className="flex items-center gap-1">
+                                            <CheckCircle className="w-4 h-4 text-green-400" />
+                                            <span className="text-xs text-green-400 font-medium">Sincronizado</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-1">
+                                            <XCircle className="w-4 h-4 text-red-400" />
+                                            <span className="text-xs text-red-400 font-medium">
+                                                {estadoConsistencia.inconsistencias?.length || 0} inconsistencia{(estadoConsistencia.inconsistencias?.length || 0) !== 1 ? 's' : ''}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1198,6 +1647,69 @@ const GrupoDetalle = () => {
                         </motion.button>
                     </div>
                 </div>
+                
+                {/* Botones de sincronización */}
+                {(asignacionesGrupo.length > 0 || dietasGrupo.length > 0) && miembros.length > 0 && (
+                    <div className="mb-4 p-4 bg-gray-800/30 rounded-lg border border-gray-700/50">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2">
+                                    <Shield className="w-5 h-5 text-gray-400" />
+                                    <span className="text-white font-medium">Estado de Sincronización</span>
+                                </div>
+                                
+                                {estadoConsistencia === null ? (
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-3 h-3 bg-gray-500 rounded-full animate-pulse" />
+                                        <span className="text-sm text-gray-400">Validando...</span>
+                                    </div>
+                                ) : estadoConsistencia.esConsistente ? (
+                                    <div className="flex items-center gap-2">
+                                        <CheckCircle className="w-5 h-5 text-green-400" />
+                                        <span className="text-sm text-green-400 font-medium">Todas las asignaciones están sincronizadas</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        <XCircle className="w-5 h-5 text-red-400" />
+                                        <div>
+                                            <span className="text-sm text-red-400 font-medium block">
+                                                {estadoConsistencia.inconsistencias?.length || 0} inconsistencia{(estadoConsistencia.inconsistencias?.length || 0) !== 1 ? 's detectadas' : ' detectada'}
+                                            </span>
+                                            <span className="text-xs text-gray-400">
+                                                Algunos miembros no tienen todas las asignaciones del grupo
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <div className="flex gap-2">
+                                <motion.button
+                                    onClick={validarConsistenciaManual}
+                                    disabled={validandoConsistencia}
+                                    className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-2 rounded-lg transition-colors text-sm"
+                                    whileHover={{ scale: validandoConsistencia ? 1 : 1.02 }}
+                                    whileTap={{ scale: validandoConsistencia ? 1 : 0.98 }}
+                                >
+                                    <RefreshCw className={`w-4 h-4 ${validandoConsistencia ? 'animate-spin' : ''}`} />
+                                    {validandoConsistencia ? 'Validando...' : 'Validar'}
+                                </motion.button>
+                                
+                                {estadoConsistencia && !estadoConsistencia.esConsistente && estadoConsistencia.inconsistencias?.length > 0 && (
+                                    <motion.button
+                                        onClick={reSincronizarYActualizar}
+                                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition-colors text-sm"
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                    >
+                                        <Shield className="w-4 h-4" />
+                                        Re-sincronizar
+                                    </motion.button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {asignacionesGrupo.length > 0 ? (
                     <div className="space-y-3">

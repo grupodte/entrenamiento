@@ -187,6 +187,7 @@ const RutinaDetalle = () => {
 
                 {/* Componentes que deben estar fuera del scroll */}
                 {/* 5. MODAL DE COMPLETADO */}
+                {console.log('🏆 RutinaDetalle - todosCompletados:', todosCompletados, 'rutina:', !!rutina)}
                 {rutina && (
                     <EntrenamientoCompletado
                         isOpen={todosCompletados}

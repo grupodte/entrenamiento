@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useImperativeHandle } from 'react';
 import { FaCheck } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import VideoRutinaIcon from '../../assets/video-rutina.svg';
@@ -47,6 +47,11 @@ const SerieItem = React.forwardRef(({
     
     // Solo mantener estado para el peso que sigue siendo editable
     const [actualCarga, setActualCarga] = useState(lastCarga || carga || '');
+
+    // Exponer el valor de actualCarga mediante el ref
+    useImperativeHandle(ref, () => ({
+        getActualCarga: () => actualCarga
+    }), [actualCarga]);
 
     // step en kg 
     const STEP_KG_INC = 5; // Aumentar de a 5
@@ -228,7 +233,7 @@ const SerieItem = React.forwardRef(({
                                     e.stopPropagation();
                                     openVideoPanel(ejercicio.video_url);
                                 }}
-                                className="absolute right-[25px] top-1/2 -translate-y-1/2 touch-manipulation active:scale-100 active:translate-y-[-50%] focus:outline-none"
+                                className="absolute right-[-40px] top-1/2 -translate-y-1/2 touch-manipulation active:scale-100 active:translate-y-[-50%] focus:outline-none"
                                 aria-label="Ver video"
                                 style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                             >

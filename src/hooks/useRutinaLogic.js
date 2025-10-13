@@ -563,8 +563,42 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
         }
     }, [elementoActivoId]);
 
-    const todosCompletados = orderedInteractiveElementIds.length > 0 && orderedInteractiveElementIds.every(id => elementosCompletados[id]);
-    const totalSeriesCompletadas = Object.values(elementosCompletados).filter(Boolean).length;
+    const todosCompletados = orderedInteractiveElementIds.length > 0 && orderedInteractiveElementIds.every(id => {
+        const elementoData = elementosCompletados[id];
+        // Verificar si el elemento está completado (nuevo formato con objeto o formato legacy con boolean)
+        const isCompleted = elementoData && (elementoData.completed === true || elementoData === true);
+        return isCompleted;
+    });
+    
+    // Debug temporal
+    if (orderedInteractiveElementIds.length > 0) {
+        const completedCount = orderedInteractiveElementIds.filter(id => {
+            const elementoData = elementosCompletados[id];
+            return elementoData && (elementoData.completed === true || elementoData === true);
+        }).length;
+        
+        // Mostrar detalles de cada elemento
+        const elementosDetalle = orderedInteractiveElementIds.map(id => {
+            const elementoData = elementosCompletados[id];
+            const isCompleted = elementoData && (elementoData.completed === true || elementoData === true);
+            return {
+                id: id.substring(0, 20) + '...', // Acortar ID para legibilidad
+                completed: isCompleted,
+                data: elementoData
+            };
+        });
+        
+        console.log(
+            '✅ Estado completación:', 
+            `${completedCount}/${orderedInteractiveElementIds.length}`,
+            'todosCompletados:', todosCompletados
+        );
+        console.log('📋 Detalles de elementos:', elementosDetalle);
+    }
+    const totalSeriesCompletadas = Object.values(elementosCompletados).filter(value => {
+        // Contar elementos completados en ambos formatos
+        return value && (value.completed === true || value === true);
+    }).length;
 
     const handleFinalizarYGuardar = async () => {
         try {

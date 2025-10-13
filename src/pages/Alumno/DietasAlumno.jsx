@@ -12,6 +12,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import DownloadDietIcon from '../../assets/download-diet.svg';
 import DocIcon from '../../assets/doc.svg';
+import DietaSlider from '../../assets/dieta-slider.png';
 
 const DietasAlumno = () => {
     const { user } = useAuth();
@@ -259,8 +260,21 @@ const DietasAlumno = () => {
     
 
     return (
-        <div className="mt-10  ">
-            <main className=" mx-auto px-2 pt-6 space-y-2 ">
+        <div className="mt-[50px]">
+            <header className="relative mb-4 px-2 ">
+                <img 
+                    src={DietaSlider} 
+                    alt="Encabezado de dietas" 
+                    className="w-full h-32 object-cover rounded-lg" 
+                />
+                <div className="absolute inset-0 bg-black/40 rounded-lg mx-2" />
+                <div className=" absolute inset-0 flex items-center justify-center">
+                    <h1 className="text-[25px] text-white tracking-wider">
+                        Mi Dieta
+                    </h1>
+                </div>
+            </header>
+            <main className=" mx-auto px-2 space-y-2 ">
 
 
                 {/* Lista de dietas */}

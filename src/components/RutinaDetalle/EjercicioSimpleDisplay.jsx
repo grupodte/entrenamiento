@@ -21,11 +21,17 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
         let exerciseData = {};
         
         if (elementRef) {
-            // Obtener el input de peso
-            const inputCarga = elementRef.querySelector('input[type="text"]');
-            const actualCarga = inputCarga?.value || '0';
-            
             const tipoEjecucion = detalleSerie?.tipo_ejecucion || 'standard';
+            
+            // Intentar obtener la carga mediante el método expuesto por el ref
+            let actualCarga = '0';
+            if (elementRef.getActualCarga && typeof elementRef.getActualCarga === 'function') {
+                actualCarga = elementRef.getActualCarga() || '0';
+            } else {
+                // Fallback: buscar el input de peso en el DOM (para vista legacy)
+                const inputCarga = elementRef.querySelector('input[type="text"]');
+                actualCarga = inputCarga?.value || '0';
+            }
             
             exerciseData = {
                 actualCarga,
@@ -34,18 +40,40 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
             
             // Agregar datos específicos según tipo de ejecución
             if (tipoEjecucion === 'standard') {
+                // En la vista minimal no hay input de reps, usar el valor de la configuración
                 const inputReps = elementRef.querySelector('input[type="number"]');
-                exerciseData.actualReps = parseInt(inputReps?.value || detalleSerie?.reps || '0', 10);
+                exerciseData.actualReps = inputReps?.value 
+                    ? parseInt(inputReps.value, 10) 
+                    : parseInt(detalleSerie?.reps || '0', 10);
             } else if (tipoEjecucion === 'tiempo') {
+                // Para ejercicios de tiempo, usar la duración configurada
                 const inputTiempo = elementRef.querySelector('input[type="number"]');
-                const minutos = parseInt(inputTiempo?.value || (detalleSerie?.duracion_segundos ? Math.round(detalleSerie.duracion_segundos / 60) : 0), 10);
-                exerciseData.actualDuracion = minutos * 60;
+                if (inputTiempo?.value) {
+                    const minutos = parseInt(inputTiempo.value, 10);
+                    exerciseData.actualDuracion = minutos * 60;
+                } else {
+                    exerciseData.actualDuracion = detalleSerie?.duracion_segundos || 0;
+                }
             } else if (tipoEjecucion === 'fallo') {
+                // Para al fallo, usar 0 reps como indicador o valor por defecto
                 const inputReps = elementRef.querySelector('input[type="number"]');
-                exerciseData.actualReps = parseInt(inputReps?.value || '0', 10);
+                exerciseData.actualReps = inputReps?.value 
+                    ? parseInt(inputReps.value, 10) 
+                    : 0; // Al fallo no tiene reps específicas
             }
+        } else {
+            // Si no hay elementRef, usar valores por defecto
+            console.warn('No se encontró elementRef para', serieId);
+            const tipoEjecucion = detalleSerie?.tipo_ejecucion || 'standard';
+            exerciseData = {
+                actualCarga: detalleSerie?.carga || '0',
+                tipoEjecucion: tipoEjecucion,
+                actualReps: tipoEjecucion === 'standard' ? parseInt(detalleSerie?.reps || '0', 10) : undefined,
+                actualDuracion: tipoEjecucion === 'tiempo' ? detalleSerie?.duracion_segundos || 0 : undefined
+            };
         }
 
+        
         props.toggleElementoCompletado(serieId, {
             tipoElemento: 'simple',
             pausa: pausaSet,
