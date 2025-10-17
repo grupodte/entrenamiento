@@ -1,10 +1,14 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getYouTubeVideoId } from '../utils/youtube';
 import { FaTimes } from 'react-icons/fa';
 
 const VideoPanel = ({ isOpen, onClose, videoUrl }) => {
+    // Estados para manejo de reproducción
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [showPlayButton, setShowPlayButton] = useState(true);
+    
     // Detectar si es un video de YouTube o un archivo directo
     const videoId = getYouTubeVideoId(videoUrl);
     const isYouTubeVideo = !!videoId;
@@ -35,6 +39,9 @@ const VideoPanel = ({ isOpen, onClose, videoUrl }) => {
         } else {
             document.body.style.overflow = '';
             document.removeEventListener('keydown', handleEscapeKey);
+            // Resetear estados al cerrar
+            setIsPlaying(false);
+            setShowPlayButton(true);
         }
         return () => {
             document.body.style.overflow = '';
@@ -109,18 +116,52 @@ const VideoPanel = ({ isOpen, onClose, videoUrl }) => {
                                     }}
                                 />
                             ) : isDirectVideo ? (
-                                <video
-                                    src={videoUrl}
-                                    title="Video del ejercicio"
-                                    className="w-full h-full object-cover bg-black"
-                                    controls
-                                    preload="metadata"
-                                    style={{
-                                        borderRadius: 'inherit'
-                                    }}
-                                >
-                                    Tu navegador no soporta la reproducción de video.
-                                </video>
+                                <div className="relative w-full h-full">
+                                    <video
+                                        src={videoUrl}
+                                        title="Video del ejercicio"
+                                        className="w-full h-full object-cover bg-black cursor-pointer"
+                                        preload="metadata"
+                                        loop
+                                        playsInline
+                                        onPlay={() => {
+                                            setIsPlaying(true);
+                                            setShowPlayButton(false);
+                                        }}
+                                        onPause={() => {
+                                            setIsPlaying(false);
+                                            setShowPlayButton(true);
+                                        }}
+                                        onEnded={() => {
+                                            setIsPlaying(false);
+                                            setShowPlayButton(true);
+                                        }}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            const video = e.target;
+                                            if (video.paused) {
+                                                video.play();
+                                            } else {
+                                                video.pause();
+                                            }
+                                        }}
+                                        style={{
+                                            borderRadius: 'inherit'
+                                        }}
+                                    >
+                                        Tu navegador no soporta la reproducción de video.
+                                    </video>
+                                    
+                                    {/* Indicador visual de reproducción */}
+                                    {showPlayButton && (
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <div className="w-20 h-20 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center transition-all duration-300">
+                                                {/* Icono de play */}
+                                                <div className="w-0 h-0 border-l-[16px] border-l-white border-y-[12px] border-y-transparent ml-1"></div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             ) : null}
                         </div>
                         
