@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, Fragment } from 'react';
 import { Listbox, Transition, Dialog } from '@headlessui/react';
 import { supabase } from '../lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaChevronDown, FaPlus, FaTrashAlt, FaVideo, FaEdit, FaTimes, FaSave } from 'react-icons/fa';
+import { FaChevronDown, FaPlus, FaTrashAlt, FaVideo, FaEdit, FaTimes, FaSave, FaUpload, FaSpinner } from 'react-icons/fa';
 import { useVideo } from '../context/VideoContext';
 import VideoPanel from './VideoPanel';
 import { toast } from 'react-hot-toast';
@@ -41,6 +41,8 @@ const EjerciciosManager = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGroups, setSelectedGroups] = useState([]);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [editUploadingVideo, setEditUploadingVideo] = useState(false);
   const { showVideo, isOpen: isVideoOpen, videoUrl, hideVideo } = useVideo();
 
   useEffect(() => {
@@ -60,6 +62,90 @@ const EjerciciosManager = () => {
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedGroups([]);
+  };
+
+  const uploadVideoToSupabase = async (file, isEditMode = false) => {
+    if (!file) return null;
+    
+    // Validar tipo de archivo
+    if (!file.type.startsWith('video/')) {
+      toast.error('Por favor selecciona un archivo de video válido');
+      return null;
+    }
+
+    // Validar tamaño (máximo 50MB)
+    const maxSize = 50 * 1024 * 1024; // 50MB en bytes
+    if (file.size > maxSize) {
+      toast.error('El video es demasiado grande. Máximo 50MB');
+      return null;
+    }
+
+    try {
+      if (isEditMode) {
+        setEditUploadingVideo(true);
+      } else {
+        setUploadingVideo(true);
+      }
+
+      // Generar nombre único para el archivo
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `exercise-videos/${fileName}`;
+
+      // Subir archivo a Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('videos')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('Error uploading video:', error);
+        toast.error('Error al subir el video: ' + error.message);
+        return null;
+      }
+
+      // Obtener URL pública del video
+      const { data: { publicUrl } } = supabase.storage
+        .from('videos')
+        .getPublicUrl(filePath);
+
+      toast.success('Video subido correctamente');
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      toast.error('Error inesperado al subir el video');
+      return null;
+    } finally {
+      if (isEditMode) {
+        setEditUploadingVideo(false);
+      } else {
+        setUploadingVideo(false);
+      }
+    }
+  };
+
+  const handleVideoUpload = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const videoUrl = await uploadVideoToSupabase(file);
+      if (videoUrl) {
+        setNuevo({ ...nuevo, video_url: videoUrl });
+      }
+    }
+    event.target.value = ''; // Limpiar input
+  };
+
+  const handleEditVideoUpload = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const videoUrl = await uploadVideoToSupabase(file, true);
+      if (videoUrl && editando) {
+        setEditando({ ...editando, video_url: videoUrl });
+      }
+    }
+    event.target.value = ''; // Limpiar input
   };
 
   const filteredAndSortedEjercicios = useMemo(() => {
@@ -145,8 +231,25 @@ const EjerciciosManager = () => {
   };
 
   const _performDelete = async (id) => {
+    // Obtener el ejercicio para ver si tiene un video de Supabase Storage
+    const ejercicio = ejercicios.find(ej => ej.id === id);
+    
     const { error } = await supabase.from("ejercicios").delete().eq("id", id);
     if (!error) {
+      // Si el video es de Supabase Storage, intentar eliminarlo
+      if (ejercicio?.video_url && ejercicio.video_url.includes('supabase') && ejercicio.video_url.includes('/exercise-videos/')) {
+        try {
+          const urlParts = ejercicio.video_url.split('/exercise-videos/');
+          if (urlParts.length === 2) {
+            const fileName = urlParts[1];
+            await supabase.storage.from('videos').remove([`exercise-videos/${fileName}`]);
+          }
+        } catch (storageError) {
+          console.warn('Error eliminando video del storage:', storageError);
+          // No mostramos error al usuario porque el ejercicio ya fue eliminado
+        }
+      }
+      
       setEjercicios(prev => prev.filter(ej => ej.id !== id));
       toast.success('Ejercicio eliminado');
     } else {
@@ -205,7 +308,52 @@ const EjerciciosManager = () => {
         <form onSubmit={crearEjercicio} className="space-y-4">
           <input type="text" placeholder="Nombre del ejercicio" value={nuevo.nombre} onChange={e => setNuevo({ ...nuevo, nombre: e.target.value })} required className={INPUT_CLASS} />
           <textarea placeholder="Descripción (opcional)" value={nuevo.descripcion} onChange={e => setNuevo({ ...nuevo, descripcion: e.target.value })} className={`${INPUT_CLASS} h-24`} />
-          <input type="url" placeholder="URL de video (opcional)" value={nuevo.video_url} onChange={e => setNuevo({ ...nuevo, video_url: e.target.value })} className={INPUT_CLASS} />
+          
+          {/* Sección de video */}
+          <div className="space-y-3">
+            <label className="block text-white/80 font-medium text-sm">Video del ejercicio</label>
+            
+            {/* Opción 1: Subir archivo */}
+            <div className="relative">
+              <input 
+                type="file" 
+                accept="video/*" 
+                onChange={handleVideoUpload} 
+                className="hidden" 
+                id="video-upload" 
+                disabled={uploadingVideo}
+              />
+              <label 
+                htmlFor="video-upload" 
+                className={`${INPUT_CLASS} cursor-pointer flex items-center justify-center gap-2 text-center ${
+                  uploadingVideo ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/20'
+                } transition-all`}
+              >
+                {uploadingVideo ? (
+                  <><FaSpinner className="animate-spin" /> Subiendo video...</>
+                ) : (
+                  <><FaUpload /> Subir video desde tu dispositivo</>
+                )}
+              </label>
+            </div>
+            
+            {/* Separador */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1 h-px bg-white/20"></div>
+              <span className="text-white/50 text-sm">o</span>
+              <div className="flex-1 h-px bg-white/20"></div>
+            </div>
+            
+            {/* Opción 2: URL de YouTube */}
+            <input 
+              type="url" 
+              placeholder="URL de YouTube (opcional)" 
+              value={nuevo.video_url} 
+              onChange={e => setNuevo({ ...nuevo, video_url: e.target.value })} 
+              className={INPUT_CLASS} 
+              disabled={uploadingVideo}
+            />
+          </div>
 
           <div className="relative z-[200]">
             <Listbox value={nuevo.grupo_muscular} onChange={val => setNuevo({ ...nuevo, grupo_muscular: val })}>
@@ -227,8 +375,16 @@ const EjerciciosManager = () => {
             </Listbox>
           </div>
 
-          <motion.button type="submit" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={`w-full font-semibold rounded-xl py-3 bg-gradient-to-r ${BRAND_GRADIENT} text-white shadow-[0_8px_20px_rgba(236,72,153,0.3)]`}>
-            Guardar Ejercicio
+          <motion.button 
+            type="submit" 
+            whileHover={uploadingVideo ? {} : { scale: 1.05 }} 
+            whileTap={uploadingVideo ? {} : { scale: 0.95 }} 
+            disabled={uploadingVideo}
+            className={`w-full font-semibold rounded-xl py-3 bg-gradient-to-r ${BRAND_GRADIENT} text-white shadow-[0_8px_20px_rgba(236,72,153,0.3)] ${
+              uploadingVideo ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          >
+            {uploadingVideo ? 'Procesando...' : 'Guardar Ejercicio'}
           </motion.button>
         </form>
       </motion.div>
@@ -403,13 +559,74 @@ const EjerciciosManager = () => {
                         className={`${INPUT_CLASS} h-24`}
                       />
 
-                      <input
-                        type="url"
-                        placeholder="URL de video (opcional)"
-                        value={editando.video_url}
-                        onChange={e => setEditando({ ...editando, video_url: e.target.value })}
-                        className={INPUT_CLASS}
-                      />
+                      {/* Sección de video en edición */}
+                      <div className="space-y-3">
+                        <label className="block text-white/80 font-medium text-sm">Video del ejercicio</label>
+                        
+                        {/* Opción 1: Subir archivo */}
+                        <div className="relative">
+                          <input 
+                            type="file" 
+                            accept="video/*" 
+                            onChange={handleEditVideoUpload} 
+                            className="hidden" 
+                            id="edit-video-upload" 
+                            disabled={editUploadingVideo}
+                          />
+                          <label 
+                            htmlFor="edit-video-upload" 
+                            className={`${INPUT_CLASS} cursor-pointer flex items-center justify-center gap-2 text-center ${
+                              editUploadingVideo ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/20'
+                            } transition-all`}
+                          >
+                            {editUploadingVideo ? (
+                              <><FaSpinner className="animate-spin" /> Subiendo video...</>
+                            ) : (
+                              <><FaUpload /> Cambiar video</>
+                            )}
+                          </label>
+                        </div>
+                        
+                        {/* Separador */}
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1 h-px bg-white/20"></div>
+                          <span className="text-white/50 text-sm">o</span>
+                          <div className="flex-1 h-px bg-white/20"></div>
+                        </div>
+                        
+                        {/* Opción 2: URL de YouTube */}
+                        <input
+                          type="url"
+                          placeholder="URL de YouTube (opcional)"
+                          value={editando.video_url}
+                          onChange={e => setEditando({ ...editando, video_url: e.target.value })}
+                          className={INPUT_CLASS}
+                          disabled={editUploadingVideo}
+                        />
+                        
+                        {/* Mostrar video actual si existe */}
+                        {editando.video_url && (
+                          <div className="p-3 bg-white/5 rounded-lg">
+                            <p className="text-white/70 text-sm mb-2">Video actual:</p>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => showVideo(editando.video_url)}
+                                className="flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+                              >
+                                <FaVideo /> Ver video
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditando({ ...editando, video_url: '' })}
+                                className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition-colors ml-4"
+                              >
+                                <FaTimes /> Eliminar video
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
 
                       <div className="relative z-[200]">
                         <Listbox value={editando.grupo_muscular} onChange={val => setEditando({ ...editando, grupo_muscular: val })}>
@@ -440,12 +657,15 @@ const EjerciciosManager = () => {
                       <div className="flex gap-3 pt-4">
                         <motion.button
                           type="submit"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className={`flex-1 font-semibold rounded-xl py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-[0_8px_20px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2`}
+                          whileHover={editUploadingVideo ? {} : { scale: 1.02 }}
+                          whileTap={editUploadingVideo ? {} : { scale: 0.98 }}
+                          disabled={editUploadingVideo}
+                          className={`flex-1 font-semibold rounded-xl py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-[0_8px_20px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2 ${
+                            editUploadingVideo ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         >
-                          <FaSave />
-                          Guardar Cambios
+                          {editUploadingVideo ? <FaSpinner className="animate-spin" /> : <FaSave />}
+                          {editUploadingVideo ? 'Procesando...' : 'Guardar Cambios'}
                         </motion.button>
                         <motion.button
                           type="button"

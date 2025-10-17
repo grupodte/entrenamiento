@@ -5,8 +5,18 @@ import { getYouTubeVideoId } from '../utils/youtube';
 import { FaTimes } from 'react-icons/fa';
 
 const VideoPanel = ({ isOpen, onClose, videoUrl }) => {
+    // Detectar si es un video de YouTube o un archivo directo
     const videoId = getYouTubeVideoId(videoUrl);
-    const embedUrl = videoId
+    const isYouTubeVideo = !!videoId;
+    const isDirectVideo = !isYouTubeVideo && videoUrl && (
+        videoUrl.includes('.mp4') || 
+        videoUrl.includes('.webm') || 
+        videoUrl.includes('.mov') || 
+        videoUrl.includes('.avi') ||
+        videoUrl.includes('supabase') // Videos de Supabase Storage
+    );
+    
+    const embedUrl = isYouTubeVideo
         ? `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0&showinfo=0&modestbranding=1`
         : null;
 
@@ -32,10 +42,11 @@ const VideoPanel = ({ isOpen, onClose, videoUrl }) => {
         };
     }, [isOpen, handleEscapeKey]);
 
-    if (!videoUrl || !videoId) return null;
+    // No renderizar si no hay video válido
+    if (!videoUrl || (!isYouTubeVideo && !isDirectVideo)) return null;
 
-    // No renderizar si no hay video
-    if (!isOpen || !videoUrl || !videoId || !embedUrl) {
+    // No renderizar si no hay video válido
+    if (!isOpen || !videoUrl || (!isYouTubeVideo && !isDirectVideo)) {
         return null;
     }
 
@@ -72,22 +83,45 @@ const VideoPanel = ({ isOpen, onClose, videoUrl }) => {
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.8, opacity: 0 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="w-[100%] relative overflow-hidden shadow-2xl px-2"
+                        className="w-[90%] max-w-[400px] sm:max-w-[350px] relative overflow-hidden shadow-2xl px-2"
                         onClick={(e) => e.stopPropagation()}
-                        style={{ aspectRatio: '16/9' }}
+                        style={{ aspectRatio: '9/16' }}
                     >
-                        {/* Contenedor interno del iframe */}
+                        {/* Botón de cerrar */}
+                        <button
+                            onClick={onClose}
+                            className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all duration-200"
+                            aria-label="Cerrar video"
+                        >
+                            <FaTimes className="w-4 h-4" />
+                        </button>
+                        {/* Contenedor interno del video */}
                         <div className="w-full h-full rounded-2xl overflow-hidden">
-                            <iframe
-                                src={embedUrl}
-                                title="Video del ejercicio"
-                                className="w-full h-full border-0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                allowFullScreen
-                                style={{
-                                    borderRadius: 'inherit'
-                                }}
-                            />
+                            {isYouTubeVideo ? (
+                                <iframe
+                                    src={embedUrl}
+                                    title="Video del ejercicio"
+                                    className="w-full h-full border-0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowFullScreen
+                                    style={{
+                                        borderRadius: 'inherit'
+                                    }}
+                                />
+                            ) : isDirectVideo ? (
+                                <video
+                                    src={videoUrl}
+                                    title="Video del ejercicio"
+                                    className="w-full h-full object-cover bg-black"
+                                    controls
+                                    preload="metadata"
+                                    style={{
+                                        borderRadius: 'inherit'
+                                    }}
+                                >
+                                    Tu navegador no soporta la reproducción de video.
+                                </video>
+                            ) : null}
                         </div>
                         
                     

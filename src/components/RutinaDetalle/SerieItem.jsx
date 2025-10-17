@@ -233,7 +233,7 @@ const SerieItem = React.forwardRef(({
                                     e.stopPropagation();
                                     openVideoPanel(ejercicio.video_url);
                                 }}
-                                className="absolute right-[-40px] top-1/2 -translate-y-1/2 touch-manipulation active:scale-100 active:translate-y-[-50%] focus:outline-none"
+                                className="absolute right-[20px] top-1/2 -translate-y-1/2 touch-manipulation active:scale-100 active:translate-y-[-50%] focus:outline-none"
                                 aria-label="Ver video"
                                 style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                             >
