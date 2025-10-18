@@ -32,6 +32,7 @@ const PoliticaPrivacidad = React.lazy(() => import('./pages/PoliticaPrivacidad')
 const InstalarApp = React.lazy(() => import('./pages/InstalarApp'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 const SpotifyCallback = React.lazy(() => import('./pages/SpotifyCallback'));
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
 
 // Páginas de alumno
 const DashboardAlumno = React.lazy(() => import('./pages/Alumno/Dashboard'));
@@ -115,6 +116,35 @@ const AppContent = () => {
           } 
         />
 
+      {/* --- RUTAS PÚBLICAS --- */}
+      <Route element={<PublicLayout />}>
+        <Route path="/cursos" element={<CatalogoCursos />} />
+        <Route path="/login" element={<AuthPage />} />
+        <Route path="/register" element={<AuthPage />} />
+        <Route path="/instalar" element={<InstalarApp />} />
+        <Route path="/tyc" element={<Tyc />} />
+        <Route path="/privacidad" element={<PoliticaPrivacidad />} />
+        <Route path="/callback/spotify" element={<SpotifyCallback />} />
+        <Route path="/reset-pass" element={<ResetPassword />} />
+        
+        {/* Ruta raíz */}
+        <Route
+          path="/"
+          element={
+            user ? (
+              rol === 'admin' ?
+                <Navigate to="/admin" replace /> :
+                <Navigate to="/dashboard" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        
+        {/* Ruta 404 - Catch all */}
+        <Route path="*" element={<NotFound />} />
+      </Route>
+
       {/* --- RUTAS DE ALUMNO CON AlumnoLayout --- */}
       <Route
         element={
@@ -163,34 +193,6 @@ const AppContent = () => {
         <Route path="cursos/editar/:cursoId" element={<CrearCurso />} />
         <Route path="cursos/asignar/:cursoId" element={<AsignarCurso />} />
         <Route path="dietas" element={<AdminDietas />} />
-      </Route>
-
-      {/* --- RUTAS PÚBLICAS --- */}
-      <Route element={<PublicLayout />}>
-        <Route path="/cursos" element={<CatalogoCursos />} />
-        <Route path="/login" element={<AuthPage />} />
-        <Route path="/register" element={<AuthPage />} />
-        <Route path="/instalar" element={<InstalarApp />} />
-        <Route path="/tyc" element={<Tyc />} />
-        <Route path="/privacidad" element={<PoliticaPrivacidad />} />
-        <Route path="/callback/spotify" element={<SpotifyCallback />} />
-        
-        {/* Ruta raíz */}
-        <Route
-          path="/"
-          element={
-            user ? (
-              rol === 'admin' ?
-                <Navigate to="/admin" replace /> :
-                <Navigate to="/dashboard" replace />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-        
-        {/* Ruta 404 - Catch all */}
-        <Route path="*" element={<NotFound />} />
       </Route>
         </Routes>
       </Suspense>
