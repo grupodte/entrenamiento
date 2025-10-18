@@ -19,7 +19,14 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const fetchRolAndOnboarding = async (user) => {
+    // Función para detectar si estamos en un flujo de recovery/reset password
+    const isRecoveryFlow = () => {
+        const hash = window.location.hash;
+        const search = window.location.search;
+        return hash.includes('type=recovery') || search.includes('type=recovery') || location.pathname === '/reset-pass';
+    };
+
+    const fetchRolAndOnboarding = async (user, skipOnboardingRedirect = false) => {
         if (!user) return;
         try {
             let { data, error } = await supabase
@@ -68,14 +75,20 @@ export const AuthProvider = ({ children }) => {
                 setOnboardingCompleted(data.onboarding_completed ?? false);
                 localStorage.setItem(LOCAL_STORAGE_USER_ROL_KEY, data.rol);
                 
-                // Redirigir a onboarding si no está completado y no estamos ya en esa ruta
-                // Excluir la página de reset password para permitir el cambio de contraseña
-                if (data.onboarding_completed === false && 
+                // Solo redirigir si NO estamos en un flujo de recovery y NO se solicita saltar la redirección
+                const shouldRedirectToOnboarding = !skipOnboardingRedirect && 
+                    !isRecoveryFlow() &&
+                    data.onboarding_completed === false && 
                     location.pathname !== '/onboarding' && 
                     location.pathname !== '/reset-pass' &&
-                    data.rol === 'alumno') {
+                    data.rol === 'alumno';
+                
+                if (shouldRedirectToOnboarding) {
                     console.log("[AuthContext] Redirigiendo a onboarding");
                     navigate('/onboarding', { replace: true });
+                } else if (isRecoveryFlow()) {
+                    console.log("[AuthContext] Flujo de recovery detectado, redirigiendo a reset-pass");
+                    navigate('/reset-pass', { replace: true });
                 }
             } else {
                 setRol(null);
@@ -105,8 +118,13 @@ export const AuthProvider = ({ children }) => {
             if (session?.user) {
                 if (isMounted) setUser(session.user);
                 localStorage.setItem(LOCAL_STORAGE_USER_ID_KEY, session.user.id);
+                
+                // Detectar si estamos en flujo de recovery desde la inicialización
+                const skipRedirect = isRecoveryFlow();
+                console.log('[AuthContext] Init - Recovery flow detected:', skipRedirect);
+                
                 // no bloquear la carga con la query de rol
-                fetchRolAndOnboarding(session.user); // SIN AWAIT
+                fetchRolAndOnboarding(session.user, skipRedirect); // SIN AWAIT
             } else {
                 if (isMounted) {
                     setUser(null);
@@ -122,11 +140,16 @@ export const AuthProvider = ({ children }) => {
         init();
 
         const { data: subscription } = supabase.auth.onAuthStateChange(
-            async (_event, session) => {
+            async (event, session) => {
+                console.log('[AuthContext] Auth state change:', event, !!session?.user);
+                
                 if (session?.user) {
                     setUser(session.user);
                     localStorage.setItem(LOCAL_STORAGE_USER_ID_KEY, session.user.id);
-                    fetchRolAndOnboarding(session.user); // SIN AWAIT
+                    
+                    // Si es un evento de recovery, evitar redirección automática a onboarding
+                    const skipRedirect = event === 'PASSWORD_RECOVERY' || isRecoveryFlow();
+                    fetchRolAndOnboarding(session.user, skipRedirect); // SIN AWAIT
                 } else {
                     setUser(null);
                     setRol(null);
