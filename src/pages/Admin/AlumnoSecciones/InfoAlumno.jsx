@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
-import { FaUser, FaEnvelope, FaCalendarAlt, FaEdit, FaSave, FaTimes, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaCalendarAlt, FaEdit, FaSave, FaTimes, FaPhone, FaMapMarkerAlt, FaWeight, FaRuler, FaHeartbeat, FaBullseye, FaUtensils, FaDumbbell, FaFileMedical } from 'react-icons/fa';
+import { MdDirectionsRun as FaActivityPulse } from 'react-icons/md';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 
@@ -18,7 +19,7 @@ const InfoAlumno = ({ alumnoId }) => {
         try {
             const { data, error } = await supabase
                 .from('perfiles')
-                .select('id, rol, nombre, apellido, edad, objetivo, nivel, estado, avatar_url, email, user_id, telefono, genero, fecha_nacimiento, fecha_creacion, fecha_actualizacion, biografia, ciudad, pais')
+                .select('*')
                 .eq('id', alumnoId)
                 .single();
 
@@ -35,22 +36,14 @@ const InfoAlumno = ({ alumnoId }) => {
 
     const handleSave = async () => {
         try {
+            // Preparar datos para actualizar (excluir campos no editables)
+            const { id, user_id, fecha_creacion, rol, onboarding_completed, ...datosActualizables } = datosEditados;
+            
             const { error } = await supabase
                 .from('perfiles')
                 .update({
-                    nombre: datosEditados.nombre,
-                    apellido: datosEditados.apellido,
-                    edad: datosEditados.edad,
-                    email: datosEditados.email,
-                    telefono: datosEditados.telefono,
-                    genero: datosEditados.genero,
-                    fecha_nacimiento: datosEditados.fecha_nacimiento,
-                    objetivo: datosEditados.objetivo,
-                    nivel: datosEditados.nivel,
-                    estado: datosEditados.estado,
-                    biografia: datosEditados.biografia,
-                    ciudad: datosEditados.ciudad,
-                    pais: datosEditados.pais
+                    ...datosActualizables,
+                    fecha_actualizacion: new Date().toISOString()
                 })
                 .eq('id', alumnoId);
 
@@ -59,6 +52,8 @@ const InfoAlumno = ({ alumnoId }) => {
             setAlumno(datosEditados);
             setEditando(false);
             toast.success('Información actualizada correctamente');
+            // Recargar datos para obtener la fecha de actualización correcta
+            fetchAlumnoData();
         } catch (error) {
             console.error('Error al actualizar:', error);
             toast.error('Error al actualizar la información');
@@ -131,10 +126,11 @@ const InfoAlumno = ({ alumnoId }) => {
             </div>
 
             {/* Información del alumno */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
                 {/* Columna 1: Información Personal */}
                 <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2">
+                    <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2 flex items-center gap-2">
+                        <FaUser className="text-blue-400" />
                         Información Personal
                     </h3>
                     
@@ -183,7 +179,7 @@ const InfoAlumno = ({ alumnoId }) => {
                                 />
                             ) : (
                                 <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
-                                    {alumno?.edad || 'No especificado'} años
+                                    {alumno?.edad ? `${alumno.edad} años` : 'No especificado'}
                                 </p>
                             )}
                         </div>
@@ -204,7 +200,7 @@ const InfoAlumno = ({ alumnoId }) => {
                                     <option value="otro">Otro</option>
                                 </select>
                             ) : (
-                                <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
+                                <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 capitalize">
                                     {alumno?.genero || 'No especificado'}
                                 </p>
                             )}
@@ -228,13 +224,31 @@ const InfoAlumno = ({ alumnoId }) => {
                                 </p>
                             )}
                         </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-white/70 mb-1">
+                                Avatar
+                            </label>
+                            {alumno?.avatar_url ? (
+                                <img 
+                                    src={alumno.avatar_url} 
+                                    alt="Avatar" 
+                                    className="w-20 h-20 rounded-full border border-white/20 object-cover"
+                                />
+                            ) : (
+                                <div className="w-20 h-20 rounded-full border border-white/20 bg-white/5 flex items-center justify-center">
+                                    <FaUser className="text-white/40 text-2xl" />
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                {/* Columna 2: Contacto */}
+                {/* Columna 2: Contacto y Ubicación */}
                 <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2">
-                        Información de Contacto
+                    <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2 flex items-center gap-2">
+                        <FaMapMarkerAlt className="text-green-400" />
+                        Contacto y Ubicación
                     </h3>
 
                     <div className="space-y-3">
@@ -271,7 +285,7 @@ const InfoAlumno = ({ alumnoId }) => {
                                 />
                             ) : (
                                 <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 flex items-center gap-2">
-                                    <FaPhone className="text-blue-400" />
+                                    <FaPhone className="text-green-400" />
                                     {alumno?.telefono || 'No especificado'}
                                 </p>
                             )}
@@ -291,7 +305,7 @@ const InfoAlumno = ({ alumnoId }) => {
                                 />
                             ) : (
                                 <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 flex items-center gap-2">
-                                    <FaMapMarkerAlt className="text-blue-400" />
+                                    <FaMapMarkerAlt className="text-green-400" />
                                     {alumno?.ciudad || 'No especificado'}
                                 </p>
                             )}
@@ -316,46 +330,80 @@ const InfoAlumno = ({ alumnoId }) => {
                             )}
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-white/70 mb-1">
-                                Avatar
-                            </label>
-                            {alumno?.avatar_url ? (
-                                <img 
-                                    src={alumno.avatar_url} 
-                                    alt="Avatar" 
-                                    className="w-20 h-20 rounded-full border border-white/20 object-cover"
-                                />
-                            ) : (
-                                <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
-                                    Sin avatar
-                                </p>
-                            )}
+                        {/* Sistema */}
+                        <div className="pt-4 border-t border-white/10">
+                            <div className="space-y-2">
+                                <div>
+                                    <label className="block text-sm font-medium text-white/70 mb-1">
+                                        Rol
+                                    </label>
+                                    <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
+                                        <span className="inline-block px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-sm capitalize">
+                                            {alumno?.rol || 'alumno'}
+                                        </span>
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-white/70 mb-1">
+                                        Onboarding Completado
+                                    </label>
+                                    <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
+                                        <span className={`inline-block px-2 py-1 rounded text-sm ${
+                                            alumno?.onboarding_completed ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                                        }`}>
+                                            {alumno?.onboarding_completed ? 'Sí' : 'No'}
+                                        </span>
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-white/70 mb-1">
+                                        Fecha de Registro
+                                    </label>
+                                    <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 flex items-center gap-2 text-sm">
+                                        <FaCalendarAlt className="text-blue-400" />
+                                        {alumno?.fecha_creacion ? new Date(alumno.fecha_creacion).toLocaleDateString('es-ES') : 'No disponible'}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-white/70 mb-1">
+                                        Última Actualización
+                                    </label>
+                                    <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 text-sm">
+                                        {alumno?.fecha_actualizacion ? new Date(alumno.fecha_actualizacion).toLocaleDateString('es-ES') : 'No disponible'}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Columna 3: Información del entrenamiento */}
+                {/* Columna 3: Información de Fitness */}
                 <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2">
-                        Información de Entrenamiento
+                    <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2 flex items-center gap-2">
+                        <FaDumbbell className="text-orange-400" />
+                        Información de Fitness
                     </h3>
                     
                     <div className="space-y-3">
+                        {/* Objetivos y Nivel */}
                         <div>
                             <label className="block text-sm font-medium text-white/70 mb-1">
-                                Objetivo
+                                Objetivo Principal
                             </label>
                             {editando ? (
-                                <input
-                                    type="text"
+                                <textarea
                                     value={datosEditados.objetivo || ''}
                                     onChange={(e) => setDatosEditados({...datosEditados, objetivo: e.target.value})}
-                                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none resize-none"
+                                    rows={2}
                                     placeholder="Objetivo del alumno"
                                 />
                             ) : (
-                                <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
+                                <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 flex items-start gap-2">
+                                    <FaBullseye className="text-orange-400 mt-0.5" />
                                     {alumno?.objetivo || 'No especificado'}
                                 </p>
                             )}
@@ -363,7 +411,36 @@ const InfoAlumno = ({ alumnoId }) => {
 
                         <div>
                             <label className="block text-sm font-medium text-white/70 mb-1">
-                                Nivel
+                                Nivel de Experiencia
+                            </label>
+                            {editando ? (
+                                <select
+                                    value={datosEditados.experiencia || ''}
+                                    onChange={(e) => setDatosEditados({...datosEditados, experiencia: e.target.value})}
+                                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                                >
+                                    <option value="">Seleccione experiencia</option>
+                                    <option value="principiante">Principiante</option>
+                                    <option value="intermedio">Intermedio</option>
+                                    <option value="avanzado">Avanzado</option>
+                                </select>
+                            ) : (
+                                <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
+                                    <span className={`inline-block px-2 py-1 rounded text-sm capitalize ${
+                                        alumno?.experiencia === 'principiante' ? 'bg-green-500/20 text-green-400' :
+                                        alumno?.experiencia === 'intermedio' ? 'bg-yellow-500/20 text-yellow-400' :
+                                        alumno?.experiencia === 'avanzado' ? 'bg-red-500/20 text-red-400' :
+                                        'bg-gray-500/20 text-gray-400'
+                                    }`}>
+                                        {alumno?.experiencia || 'No especificado'}
+                                    </span>
+                                </p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-white/70 mb-1">
+                                Nivel Asignado
                             </label>
                             {editando ? (
                                 <select
@@ -371,19 +448,19 @@ const InfoAlumno = ({ alumnoId }) => {
                                     onChange={(e) => setDatosEditados({...datosEditados, nivel: e.target.value})}
                                     className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
                                 >
-                                    <option value="" disabled>Seleccione nivel</option>
+                                    <option value="">Seleccione nivel</option>
                                     <option value="principiante">Principiante</option>
                                     <option value="intermedio">Intermedio</option>
                                     <option value="avanzado">Avanzado</option>
                                 </select>
                             ) : (
                                 <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
-                                    <span className={`${
+                                    <span className={`inline-block px-2 py-1 rounded text-sm capitalize ${
                                         alumno?.nivel === 'principiante' ? 'bg-green-500/20 text-green-400' :
                                         alumno?.nivel === 'intermedio' ? 'bg-yellow-500/20 text-yellow-400' :
                                         alumno?.nivel === 'avanzado' ? 'bg-red-500/20 text-red-400' :
                                         'bg-gray-500/20 text-gray-400'
-                                    } inline-block px-2 py-1 rounded text-sm`}>
+                                    }`}>
                                         {alumno?.nivel || 'No especificado'}
                                     </span>
                                 </p>
@@ -392,7 +469,7 @@ const InfoAlumno = ({ alumnoId }) => {
 
                         <div>
                             <label className="block text-sm font-medium text-white/70 mb-1">
-                                Estado
+                                Estado del Alumno
                             </label>
                             {editando ? (
                                 <select
@@ -400,75 +477,392 @@ const InfoAlumno = ({ alumnoId }) => {
                                     onChange={(e) => setDatosEditados({...datosEditados, estado: e.target.value})}
                                     className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
                                 >
-                                    <option value="" disabled>Seleccione estado</option>
-                                    <option value="Aprobado">Aprobado</option>
+                                    <option value="">Seleccione estado</option>
+                                    <option value="Activo">Activo</option>
+                                    <option value="Inactivo">Inactivo</option>
                                     <option value="Pendiente">Pendiente</option>
-                                    <option value="Rechazado">Rechazado</option>
+                                    <option value="Suspendido">Suspendido</option>
                                 </select>
                             ) : (
                                 <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
-                                    <span className={`${
-                                        alumno?.estado === 'Aprobado' ? 'bg-green-500/20 text-green-400' :
+                                    <span className={`inline-block px-2 py-1 rounded text-sm ${
+                                        alumno?.estado === 'Activo' ? 'bg-green-500/20 text-green-400' :
                                         alumno?.estado === 'Pendiente' ? 'bg-yellow-500/20 text-yellow-400' :
-                                        alumno?.estado === 'Rechazado' ? 'bg-red-500/20 text-red-400' :
+                                        alumno?.estado === 'Inactivo' || alumno?.estado === 'Suspendido' ? 'bg-red-500/20 text-red-400' :
                                         'bg-gray-500/20 text-gray-400'
-                                    } inline-block px-2 py-1 rounded text-sm`}>
+                                    }`}>
                                         {alumno?.estado || 'No especificado'}
                                     </span>
                                 </p>
                             )}
                         </div>
 
+                        {/* Actividad Física */}
                         <div>
                             <label className="block text-sm font-medium text-white/70 mb-1">
-                                Rol
+                                Nivel de Actividad Física
                             </label>
-                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
-                                <span className="inline-block px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-sm">
-                                    {alumno?.rol || 'alumno'}
-                                </span>
-                            </p>
+                            {editando ? (
+                                <select
+                                    value={datosEditados.actividad_fisica || ''}
+                                    onChange={(e) => setDatosEditados({...datosEditados, actividad_fisica: e.target.value})}
+                                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                                >
+                                    <option value="">Seleccione actividad</option>
+                                    <option value="sedentario">Sedentario</option>
+                                    <option value="ligero">Actividad ligera</option>
+                                    <option value="moderado">Actividad moderada</option>
+                                    <option value="intenso">Actividad intensa</option>
+                                    <option value="muy_intenso">Muy intenso</option>
+                                </select>
+                            ) : (
+                                <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 flex items-center gap-2 capitalize">
+                                    <FaActivityPulse className="text-purple-400" />
+                                    {alumno?.actividad_fisica || 'No especificado'}
+                                </p>
+                            )}
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-white/70 mb-1">
-                                Usuario vinculado
+                                Frecuencia de Entrenamiento
                             </label>
-                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 text-xs font-mono">
-                                {alumno?.user_id || 'No especificado'}
-                            </p>
+                            {editando ? (
+                                <input
+                                    type="text"
+                                    value={datosEditados.frecuencia_entrenamiento || ''}
+                                    onChange={(e) => setDatosEditados({...datosEditados, frecuencia_entrenamiento: e.target.value})}
+                                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                                    placeholder="ej: 3-4 veces por semana"
+                                />
+                            ) : (
+                                <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
+                                    {alumno?.frecuencia_entrenamiento || 'No especificado'}
+                                </p>
+                            )}
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-white/70 mb-1">
-                                Fecha de Registro
+                                Preferencia de Inicio
                             </label>
-                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 flex items-center gap-2">
-                                <FaCalendarAlt className="text-blue-400" />
-                                {alumno?.fecha_creacion ? new Date(alumno.fecha_creacion).toLocaleDateString('es-ES') : 'No disponible'}
-                            </p>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-white/70 mb-1">
-                                Última Actualización
-                            </label>
-                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
-                                {alumno?.fecha_actualizacion ? new Date(alumno.fecha_actualizacion).toLocaleDateString('es-ES') : 'No disponible'}
-                            </p>
+                            {editando ? (
+                                <input
+                                    type="text"
+                                    value={datosEditados.preferencia_inicio || ''}
+                                    onChange={(e) => setDatosEditados({...datosEditados, preferencia_inicio: e.target.value})}
+                                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                                    placeholder="Preferencia para comenzar"
+                                />
+                            ) : (
+                                <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
+                                    {alumno?.preferencia_inicio || 'No especificado'}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
-
-            {/* Biografía - ocupa todo el ancho */}
-            <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2">
-                    Biografía
+            
+            {/* Sección de Medidas Corporales */}
+            <div className="mt-8 space-y-6">
+                <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2 flex items-center gap-2">
+                    <FaWeight className="text-yellow-400" />
+                    Medidas Corporales y Salud
                 </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Peso Actual */}
+                    <div>
+                        <label className="block text-sm font-medium text-white/70 mb-1">
+                            Peso Actual (kg)
+                        </label>
+                        {editando ? (
+                            <input
+                                type="number"
+                                step="0.1"
+                                value={datosEditados.peso || ''}
+                                onChange={(e) => setDatosEditados({...datosEditados, peso: e.target.value})}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                                placeholder="70.5"
+                            />
+                        ) : (
+                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 flex items-center gap-2">
+                                <FaWeight className="text-yellow-400" />
+                                {alumno?.peso ? `${alumno.peso} kg` : 'No especificado'}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Altura */}
+                    <div>
+                        <label className="block text-sm font-medium text-white/70 mb-1">
+                            Altura (m)
+                        </label>
+                        {editando ? (
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={datosEditados.altura || ''}
+                                onChange={(e) => setDatosEditados({...datosEditados, altura: e.target.value})}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                                placeholder="1.75"
+                            />
+                        ) : (
+                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 flex items-center gap-2">
+                                <FaRuler className="text-blue-400" />
+                                {alumno?.altura ? `${alumno.altura} m` : 'No especificado'}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* IMC */}
+                    <div>
+                        <label className="block text-sm font-medium text-white/70 mb-1">
+                            IMC
+                        </label>
+                        {editando ? (
+                            <input
+                                type="number"
+                                step="0.1"
+                                value={datosEditados.imc || ''}
+                                onChange={(e) => setDatosEditados({...datosEditados, imc: e.target.value})}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                                placeholder="22.5"
+                            />
+                        ) : (
+                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
+                                {alumno?.imc ? (
+                                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-sm ${
+                                        alumno.imc < 18.5 ? 'bg-blue-500/20 text-blue-400' :
+                                        alumno.imc < 25 ? 'bg-green-500/20 text-green-400' :
+                                        alumno.imc < 30 ? 'bg-yellow-500/20 text-yellow-400' :
+                                        'bg-red-500/20 text-red-400'
+                                    }`}>
+                                        <FaHeartbeat />
+                                        {alumno.imc}
+                                    </span>
+                                ) : 'No especificado'}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Porcentaje de Grasa */}
+                    <div>
+                        <label className="block text-sm font-medium text-white/70 mb-1">
+                            % Grasa Corporal
+                        </label>
+                        {editando ? (
+                            <input
+                                type="number"
+                                step="0.1"
+                                value={datosEditados.porcentaje_grasa || ''}
+                                onChange={(e) => setDatosEditados({...datosEditados, porcentaje_grasa: e.target.value})}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                                placeholder="15.5"
+                            />
+                        ) : (
+                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
+                                {alumno?.porcentaje_grasa ? `${alumno.porcentaje_grasa}%` : 'No especificado'}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Cintura */}
+                    <div>
+                        <label className="block text-sm font-medium text-white/70 mb-1">
+                            Cintura (cm)
+                        </label>
+                        {editando ? (
+                            <input
+                                type="number"
+                                value={datosEditados.cintura_cm || ''}
+                                onChange={(e) => setDatosEditados({...datosEditados, cintura_cm: e.target.value})}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                                placeholder="80"
+                            />
+                        ) : (
+                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10">
+                                {alumno?.cintura_cm ? `${alumno.cintura_cm} cm` : 'No especificado'}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Fecha último peso */}
+                    <div>
+                        <label className="block text-sm font-medium text-white/70 mb-1">
+                            Última pesada
+                        </label>
+                        {editando ? (
+                            <input
+                                type="date"
+                                value={datosEditados.fecha_ultimo_peso ? datosEditados.fecha_ultimo_peso.split('T')[0] : ''}
+                                onChange={(e) => setDatosEditados({...datosEditados, fecha_ultimo_peso: e.target.value})}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                            />
+                        ) : (
+                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 text-sm">
+                                {alumno?.fecha_ultimo_peso ? new Date(alumno.fecha_ultimo_peso).toLocaleDateString('es-ES') : 'No registrado'}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Peso Meta */}
+                    <div>
+                        <label className="block text-sm font-medium text-white/70 mb-1">
+                            Peso Meta (kg)
+                        </label>
+                        {editando ? (
+                            <input
+                                type="number"
+                                step="0.1"
+                                value={datosEditados.meta_peso || ''}
+                                onChange={(e) => setDatosEditados({...datosEditados, meta_peso: e.target.value})}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                                placeholder="65.0"
+                            />
+                        ) : (
+                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 flex items-center gap-2">
+                                <FaBullseye className="text-green-400" />
+                                {alumno?.meta_peso ? `${alumno.meta_peso} kg` : 'No especificado'}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Grasa Meta */}
+                    <div>
+                        <label className="block text-sm font-medium text-white/70 mb-1">
+                            % Grasa Meta
+                        </label>
+                        {editando ? (
+                            <input
+                                type="number"
+                                step="0.1"
+                                value={datosEditados.meta_grasa || ''}
+                                onChange={(e) => setDatosEditados({...datosEditados, meta_grasa: e.target.value})}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                                placeholder="12.0"
+                            />
+                        ) : (
+                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 flex items-center gap-2">
+                                <FaBullseye className="text-green-400" />
+                                {alumno?.meta_grasa ? `${alumno.meta_grasa}%` : 'No especificado'}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Cintura Meta */}
+                    <div>
+                        <label className="block text-sm font-medium text-white/70 mb-1">
+                            Cintura Meta (cm)
+                        </label>
+                        {editando ? (
+                            <input
+                                type="number"
+                                value={datosEditados.meta_cintura || ''}
+                                onChange={(e) => setDatosEditados({...datosEditados, meta_cintura: e.target.value})}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                                placeholder="75"
+                            />
+                        ) : (
+                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 flex items-center gap-2">
+                                <FaBullseye className="text-green-400" />
+                                {alumno?.meta_cintura ? `${alumno.meta_cintura} cm` : 'No especificado'}
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Sección de Nutrición */}
+            <div className="mt-8 space-y-6">
+                <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2 flex items-center gap-2">
+                    <FaUtensils className="text-green-400" />
+                    Información Nutricional
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-white/70 mb-1">
+                            Frecuencia de Dieta
+                        </label>
+                        {editando ? (
+                            <select
+                                value={datosEditados.frecuencia_dieta || ''}
+                                onChange={(e) => setDatosEditados({...datosEditados, frecuencia_dieta: e.target.value})}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none"
+                            >
+                                <option value="">Seleccione frecuencia</option>
+                                <option value="estricta">Estricta</option>
+                                <option value="moderada">Moderada</option>
+                                <option value="flexible">Flexible</option>
+                            </select>
+                        ) : (
+                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 capitalize">
+                                {alumno?.frecuencia_dieta || 'No especificado'}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-white/70 mb-1">
+                            Comentarios sobre Dieta
+                        </label>
+                        {editando ? (
+                            <textarea
+                                value={datosEditados.comentarios_dieta || ''}
+                                onChange={(e) => setDatosEditados({...datosEditados, comentarios_dieta: e.target.value})}
+                                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none resize-none"
+                                rows={3}
+                                placeholder="Comentarios adicionales sobre la dieta..."
+                            />
+                        ) : (
+                            <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 min-h-[80px]">
+                                {alumno?.comentarios_dieta || 'Sin comentarios'}
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Sección de Condiciones Médicas */}
+            <div className="mt-8 space-y-6">
+                <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2 flex items-center gap-2">
+                    <FaFileMedical className="text-red-400" />
+                    Información Médica
+                </h3>
+                
                 <div>
                     <label className="block text-sm font-medium text-white/70 mb-1">
-                        Biografía
+                        Condiciones Médicas
+                    </label>
+                    {editando ? (
+                        <textarea
+                            value={datosEditados.condiciones_medicas || ''}
+                            onChange={(e) => setDatosEditados({...datosEditados, condiciones_medicas: e.target.value})}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none resize-none"
+                            rows={4}
+                            placeholder="Condiciones médicas, alergias, lesiones, medicamentos, etc..."
+                        />
+                    ) : (
+                        <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 min-h-[100px] flex items-start gap-2">
+                            <FaFileMedical className="text-red-400 mt-0.5" />
+                            <span>{alumno?.condiciones_medicas || 'Sin condiciones médicas reportadas'}</span>
+                        </p>
+                    )}
+                </div>
+            </div>
+
+            {/* Sección de Biografía */}
+            <div className="mt-8 space-y-6">
+                <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2 flex items-center gap-2">
+                    <FaUser className="text-purple-400" />
+                    Biografía
+                </h3>
+                
+                <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                        Biografía Personal
                     </label>
                     {editando ? (
                         <textarea
@@ -476,11 +870,12 @@ const InfoAlumno = ({ alumnoId }) => {
                             onChange={(e) => setDatosEditados({...datosEditados, biografia: e.target.value})}
                             className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-blue-400 focus:outline-none resize-none"
                             rows={4}
-                            placeholder="Breve biografía del alumno"
+                            placeholder="Breve biografía del alumno, historia personal, motivaciones..."
                         />
                     ) : (
-                        <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 min-h-[100px]">
-                            {alumno?.biografia || 'Sin biografía'}
+                        <p className="text-white bg-white/5 px-3 py-2 rounded border border-white/10 min-h-[100px] flex items-start gap-2">
+                            <FaUser className="text-purple-400 mt-0.5" />
+                            <span>{alumno?.biografia || 'Sin biografía disponible'}</span>
                         </p>
                     )}
                 </div>
