@@ -69,8 +69,10 @@ export const AuthProvider = ({ children }) => {
                 localStorage.setItem(LOCAL_STORAGE_USER_ROL_KEY, data.rol);
                 
                 // Redirigir a onboarding si no está completado y no estamos ya en esa ruta
+                // Excluir la página de reset password para permitir el cambio de contraseña
                 if (data.onboarding_completed === false && 
                     location.pathname !== '/onboarding' && 
+                    location.pathname !== '/reset-pass' &&
                     data.rol === 'alumno') {
                     console.log("[AuthContext] Redirigiendo a onboarding");
                     navigate('/onboarding', { replace: true });
