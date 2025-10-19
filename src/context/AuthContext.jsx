@@ -69,6 +69,7 @@ export const AuthProvider = ({ children }) => {
                         id: user.id,
                         rol: 'alumno', // rol por defecto
                         onboarding_completed: false,
+                        estado: 'Aprobado', // ✅ Aprobar automáticamente usuarios OAuth
                         // Datos del proveedor de OAuth (Google)
                         nombre: nombre,
                         apellido: apellido,
