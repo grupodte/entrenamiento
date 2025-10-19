@@ -77,12 +77,24 @@ const WeightTracker = ({ userId }) => {
 
     // Función para formatear fecha
     const formatDate = (dateString, includeYear = false) => {
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
+        if (!dateString) return 'Sin fecha';
         
-        return includeYear ? `${day}/${month}/${year}` : `${day}/${month}`;
+        // Para fechas en formato YYYY-MM-DD, crear la fecha en zona horaria local
+        // para evitar problemas de zona horaria UTC
+        const [year, month, day] = dateString.split('-').map(Number);
+        const date = new Date(year, month - 1, day); // month - 1 porque los meses van de 0-11
+        
+        // Verificar si la fecha es válida
+        if (isNaN(date.getTime())) {
+            console.warn('Fecha inválida recibida:', dateString);
+            return 'Fecha inválida';
+        }
+        
+        const dayFormatted = date.getDate().toString().padStart(2, '0');
+        const monthFormatted = (date.getMonth() + 1).toString().padStart(2, '0');
+        const yearFormatted = date.getFullYear();
+        
+        return includeYear ? `${dayFormatted}/${monthFormatted}/${yearFormatted}` : `${dayFormatted}/${monthFormatted}`;
     };
 
     // Procesar datos para el gráfico
@@ -103,7 +115,7 @@ const WeightTracker = ({ userId }) => {
             return (
                 <div className="bg-[#191919] p-2 rounded-lg border border-[#333]">
                     <p className="text-white text-sm">
-                        {formatDate(label, true)}
+                        {formatDate(data.fecha, true)}
                     </p>
                     <p className="text-[#FF0000] text-sm font-bold">
                         {`${data.peso} kg`}
