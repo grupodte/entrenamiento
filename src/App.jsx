@@ -2,6 +2,8 @@ import React, { Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './lib/queryClient';
 
 // --- IMPORTACIONES INMEDIATAS (CRÍTICAS) ---
 import RutaProtegida from './components/RutaProtegida';
@@ -244,7 +246,11 @@ const App = () => {
     return <div></div>;
   }
 
-  return <AppContent />;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
+    </QueryClientProvider>
+  );
 };
 
 export default App;

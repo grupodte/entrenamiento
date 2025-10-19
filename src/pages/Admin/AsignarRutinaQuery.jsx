@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import { toast } from 'react-hot-toast'
-import { notificationService } from '../../services/notificationService'
+import AdminLayout from '../../layouts/AdminLayout'
 
 const AsignarRutina = () => {
   const { id: alumnoId } = useParams()
@@ -57,8 +57,8 @@ const AsignarRutina = () => {
       if (error) throw error
       return rutinaBaseId
     },
-    onSuccess: async (rutinaBaseId) => {
-      const rutinaSeleccionada = rutinas.find(r => r.id === rutinaBaseId)
+    onSuccess: (rutinaBaseId) => {
+      const rutina = rutinas.find(r => r.id === rutinaBaseId)
       
       // Invalidar queries relacionadas para actualización instantánea
       queryClient.invalidateQueries({ queryKey: ['alumno', alumnoId, 'rutinas'] })
@@ -66,28 +66,6 @@ const AsignarRutina = () => {
       queryClient.invalidateQueries({ queryKey: ['asignaciones'] })
       
       toast.success('✅ Rutina base asignada correctamente.')
-      
-      // Enviar notificación por email (no bloqueante)
-      if (alumno?.email && user?.nombre) {
-        try {
-          console.log('📧 Enviando notificación de rutina asignada...')
-          const notificationResult = await notificationService.sendRutinaAsignada({
-            userEmail: alumno.email,
-            userName: `${alumno.nombre} ${alumno.apellido || ''}`.trim(),
-            rutinaName: rutinaSeleccionada?.nombre || 'Rutina',
-            trainerName: user.nombre || 'Tu entrenador'
-          })
-          
-          if (notificationResult.success) {
-            console.log('✅ Notificación enviada exitosamente')
-            toast.success('✅ Rutina asignada y notificación enviada correctamente.')
-          } else {
-            console.warn('⚠️ Rutina asignada pero falló el envío de notificación:', notificationResult.error)
-          }
-        } catch (emailError) {
-          console.warn('⚠️ Error enviando notificación:', emailError)
-        }
-      }
       
       // Navegar después de mostrar el mensaje
       setTimeout(() => navigate(`/admin/alumno/${alumnoId}`), 1500)
@@ -148,6 +126,6 @@ const AsignarRutina = () => {
       )}
     </div>
   )
-};
+}
 
-export default AsignarRutina;
+export default AsignarRutina

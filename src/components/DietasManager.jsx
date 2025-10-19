@@ -1,9 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
 import MultipleFileUpload from './MultipleFileUpload';
+import { useDietas, useCreateDieta, useUpdateDieta, useDeleteDieta } from '../hooks/useDietas';
 import { 
     Plus, 
     Search, 
@@ -34,13 +36,31 @@ const TIPOS_DIETA = [
 ];
 
 const DietasManager = () => {
-    const [dietas, setDietas] = useState([]);
     const [busqueda, setBusqueda] = useState('');
-    const [cargando, setCargando] = useState(true);
-    const [esAdmin, setEsAdmin] = useState(null);
     const [showCrearDieta, setShowCrearDieta] = useState(false);
     const [dietaEditando, setDietaEditando] = useState(null);
-    const [subiendoArchivo, setSubiendoArchivo] = useState(false);
+
+    // React Query hooks
+    const { data: dietas = [], isLoading: cargando, error } = useDietas();
+    const createDietaMutation = useCreateDieta();
+    const updateDietaMutation = useUpdateDieta();
+    const deleteDietaMutation = useDeleteDieta();
+    
+    // Query para verificar rol de admin
+    const { data: esAdmin, isLoading: loadingAdmin } = useQuery({
+        queryKey: ['user-role'],
+        queryFn: async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            const { data: perfil } = await supabase
+                .from('perfiles')
+                .select('rol')
+                .eq('id', user?.id)
+                .single();
+            return perfil?.rol === 'admin';
+        }
+    });
+
+    const subiendoArchivo = createDietaMutation.isPending || updateDietaMutation.isPending;
 
     // Estados del formulario
     const [formulario, setFormulario] = useState({
@@ -57,161 +77,12 @@ const DietasManager = () => {
         archivos: [] // Cambiado para soportar múltiples archivos
     });
 
-    useEffect(() => {
-        verificarRolYCargarDietas();
-    }, []);
-
-    const verificarRolYCargarDietas = async () => {
-        setCargando(true);
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-            const { data: perfil } = await supabase
-                .from('perfiles')
-                .select('rol')
-                .eq('id', user?.id)
-                .single();
-
-            const isAdmin = perfil?.rol === 'admin';
-            setEsAdmin(isAdmin);
-
-            if (isAdmin) {
-                await cargarDietas();
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            toast.error('Error al cargar los datos');
-        }
-        setCargando(false);
-    };
-
-    const cargarDietas = async () => {
-        try {
-            const { data: dietasData, error } = await supabase
-                .from('dietas')
-                .select('*, perfiles!creado_por(nombre, apellido)')
-                .eq('activo', true)
-                .order('fecha_creacion', { ascending: false });
-
-            if (error) throw error;
-            setDietas(dietasData || []);
-        } catch (error) {
-            console.error('Error al cargar dietas:', error);
-            toast.error('Error al cargar las dietas');
-        }
-    };
-    
-    // Función para sanitizar nombres de archivos
-    const sanitizeFileName = (fileName) => {
-        return fileName
-            .normalize('NFD') // Descomponer caracteres acentuados
-            .replace(/[\u0300-\u036f]/g, '') // Remover acentos
-            .replace(/[^a-zA-Z0-9.-]/g, '_') // Reemplazar caracteres especiales con guion bajo
-            .replace(/_{2,}/g, '_') // Reemplazar múltiples guiones bajos con uno solo
-            .replace(/^_+|_+$/g, '') // Remover guiones bajos al inicio y final
-            .toLowerCase(); // Convertir a minúsculas
-    };
-
     const dietasFiltradas = useMemo(() => 
         dietas.filter(dieta =>
             `${dieta.nombre} ${dieta.descripcion || ''} ${dieta.tipo || ''}`.toLowerCase()
             .includes(busqueda.toLowerCase())
         ), [dietas, busqueda]);
 
-    const subirArchivo = async (archivo) => {
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-            
-            if (!user) {
-                throw new Error('Usuario no autenticado');
-            }
-            
-            // Verificar que el usuario tenga rol de admin
-            const { data: perfil, error: perfilError } = await supabase
-                .from('perfiles')
-                .select('rol')
-                .eq('id', user.id)
-                .single();
-            
-            if (perfilError) {
-                throw new Error(`Error obteniendo perfil: ${perfilError.message}`);
-            }
-            
-            if (perfil?.rol !== 'admin') {
-                throw new Error(`No tienes permisos para subir archivos. Tu rol: ${perfil?.rol}`);
-            }
-            
-            // Crear nombre de archivo sanitizado
-            const timestamp = Date.now();
-            const randomId = Math.random().toString(36).substring(2, 15);
-            const sanitizedFileName = sanitizeFileName(archivo.name);
-            let fileName = `${user.id}/${timestamp}_${randomId}_${sanitizedFileName}`;
-            
-            // Verificar tamaño del archivo (15MB máximo)
-            const maxSize = 15 * 1024 * 1024;
-            if (archivo.size > maxSize) {
-                throw new Error(`El archivo es muy grande (${(archivo.size / 1024 / 1024).toFixed(2)}MB). Máximo 15MB.`);
-            }
-            
-            // Verificar que sea un PDF
-            if (archivo.type !== 'application/pdf') {
-                throw new Error('Solo se permiten archivos PDF');
-            }
-            
-            // Subir archivo
-            let { data, error } = await supabase.storage
-                .from('dietas')
-                .upload(fileName, archivo, {
-                    cacheControl: '3600',
-                    upsert: false
-                });
-            
-            if (error) {
-                if (error.message?.includes('already exists')) {
-                    // Reintentar con nombre diferente
-                    const retryFileName = `${user.id}/${timestamp}_${Date.now()}_${sanitizedFileName}`;
-                    const { data: retryData, error: retryError } = await supabase.storage
-                        .from('dietas')
-                        .upload(retryFileName, archivo, {
-                            cacheControl: '3600',
-                            upsert: false
-                        });
-                    
-                    if (retryError) {
-                        throw new Error(`Error al subir archivo: ${retryError.message}`);
-                    }
-                    
-                    data = retryData;
-                    fileName = retryFileName;
-                } else {
-                    throw new Error(`Error al subir archivo: ${error.message}`);
-                }
-            }
-            
-            const { data: { publicUrl } } = supabase.storage
-                .from('dietas')
-                .getPublicUrl(fileName);
-
-            return { 
-                path: data.path, 
-                url: publicUrl,
-                name: archivo.name,
-                size: archivo.size,
-                type: archivo.type
-            };
-        } catch (error) {
-            console.error('Error en subirArchivo:', error);
-            throw error;
-        }
-    };
-    
-    const subirMultiplesArchivos = async (archivos) => {
-        const resultados = [];
-        for (const archivo of archivos) {
-            const resultado = await subirArchivo(archivo);
-            resultados.push(resultado);
-        }
-        return resultados;
-    };
     
     const resetFormulario = () => {
         setFormulario({
@@ -241,7 +112,7 @@ const DietasManager = () => {
                 grasas: dieta.macronutrientes?.grasas || ''
             },
             etiquetas: dieta.etiquetas ? dieta.etiquetas.join(', ') : '',
-            archivos: [] // Los archivos existentes no se cargan para edición
+            archivos: dieta.archivos || [] // Mostrar archivos existentes
         });
     };
 
@@ -258,66 +129,45 @@ const DietasManager = () => {
             return;
         }
 
-        try {
-            setSubiendoArchivo(true);
-            const { data: { user } } = await supabase.auth.getUser();
-            
-            let dietaData = {
-                nombre: formulario.nombre.trim(),
-                descripcion: formulario.descripcion || null,
-                tipo: formulario.tipo,
-                calorias: formulario.calorias ? parseInt(formulario.calorias) : null,
-                macronutrientes: (formulario.macronutrientes.proteinas || formulario.macronutrientes.carbohidratos || formulario.macronutrientes.grasas) 
-                    ? formulario.macronutrientes : null,
-                etiquetas: formulario.etiquetas ? formulario.etiquetas.split(',').map(tag => tag.trim()).filter(Boolean) : null
-            };
+        const dietaData = {
+            nombre: formulario.nombre.trim(),
+            descripcion: formulario.descripcion || null,
+            tipo: formulario.tipo,
+            calorias: formulario.calorias ? parseInt(formulario.calorias) : null,
+            macronutrientes: (formulario.macronutrientes.proteinas || formulario.macronutrientes.carbohidratos || formulario.macronutrientes.grasas) 
+                ? formulario.macronutrientes : null,
+            etiquetas: formulario.etiquetas ? formulario.etiquetas.split(',').map(tag => tag.trim()).filter(Boolean) : null
+        };
 
-            // Subir archivos si hay nuevos
-            if (formulario.archivos && formulario.archivos.length > 0) {
-                const archivosSubidos = await subirMultiplesArchivos(formulario.archivos);
-                
-                // Usar el primer archivo como principal
-                dietaData.archivo_url = archivosSubidos[0]?.url;
-                dietaData.pdf_url = archivosSubidos[0]?.url; // Mantener compatibilidad
-                dietaData.archivos = archivosSubidos; // Guardar información de todos los archivos
-            }
-
-            let error;
-            if (dietaEditando) {
-                // Actualizar dieta existente
-                const { error: updateError } = await supabase
-                    .from('dietas')
-                    .update(dietaData)
-                    .eq('id', dietaEditando.id);
-                error = updateError;
-            } else {
-                // Crear nueva dieta
-                dietaData.creado_por = user.id;
-                const { error: insertError } = await supabase
-                    .from('dietas')
-                    .insert(dietaData);
-                error = insertError;
-            }
-
-            if (error) {
-                if (error.code === '23505') {
-                    toast.error('Ya existe una dieta con ese nombre');
-                } else {
-                    throw error;
+        // Separar archivos existentes de archivos nuevos
+        const archivosExistentes = formulario.archivos?.filter(file => file.url && !file.size) || [];
+        const archivosNuevos = formulario.archivos?.filter(file => !file.url || file.size) || [];
+        
+        if (dietaEditando) {
+            // Actualizar dieta existente
+            dietaData.archivos = archivosExistentes; // Mantener archivos existentes
+            updateDietaMutation.mutate(
+                { dietaId: dietaEditando.id, dietaData, archivos: archivosNuevos },
+                {
+                    onSuccess: () => {
+                        setShowCrearDieta(false);
+                        setDietaEditando(null);
+                        resetFormulario();
+                    }
                 }
-                return;
-            }
-
-            toast.success(`Dieta ${dietaEditando ? 'actualizada' : 'creada'} exitosamente`);
-            setShowCrearDieta(false);
-            setDietaEditando(null);
-            resetFormulario();
-            await cargarDietas();
-        } catch (error) {
-            console.error('Error al guardar dieta:', error);
-            toast.error('Error al guardar la dieta');
-        } finally {
-            setSubiendoArchivo(false);
+            );
+        } else {
+            // Crear nueva dieta
+            createDietaMutation.mutate(
+                { dietaData, archivos: formulario.archivos },
+                {
+                    onSuccess: () => {
+                        setShowCrearDieta(false);
+                        setDietaEditando(null);
+                        resetFormulario();
+                    }
+                }
+            );
         }
     };
 
@@ -326,20 +176,7 @@ const DietasManager = () => {
             return;
         }
 
-        try {
-            const { error } = await supabase
-                .from('dietas')
-                .update({ activo: false })
-                .eq('id', dietaId);
-
-            if (error) throw error;
-
-            toast.success('Dieta eliminada correctamente');
-            await cargarDietas();
-        } catch (error) {
-            console.error('Error al eliminar dieta:', error);
-            toast.error('Error al eliminar la dieta');
-        }
+        deleteDietaMutation.mutate({ dietaId });
     };
 
     const abrirModalEditar = (dieta) => {
@@ -385,7 +222,7 @@ const DietasManager = () => {
         }
     };
 
-    if (cargando) {
+    if (cargando || loadingAdmin) {
         return <DietasSkeleton />;
     }
 
@@ -638,12 +475,12 @@ const DietasManager = () => {
                                     <MultipleFileUpload
                                         archivos={formulario.archivos}
                                         onChange={(archivos) => setFormulario(prev => ({ ...prev, archivos }))}
-                                        maxFiles={3}
+                                        maxFiles={10}
                                         maxSizeMB={15}
                                         allowedTypes={['application/pdf']}
                                     />
                                     <p className="text-gray-400 text-sm mt-2">
-                                        {dietaEditando ? 'Los nuevos archivos se agregarán a los existentes' : 'Puedes subir hasta 3 archivos PDF'}
+                                        {dietaEditando ? 'Los nuevos archivos se agregarán a los existentes' : 'Puedes subir hasta 10 archivos PDF'}
                                     </p>
                                 </div>
                             </div>

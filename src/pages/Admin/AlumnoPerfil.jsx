@@ -70,7 +70,7 @@ const AlumnoPerfil = () => {
                         rutina_personalizada:rutina_personalizada_id (id, nombre)
                     `)
                     .eq('alumno_id', id),
-                supabase.from('rutinas_de_verdad').select('id, nombre')
+                supabase.from('rutinas_de_verdad').select('id, nombre, descripcion')
             ]);
 
             if (perfilResult.error) throw perfilResult.error;

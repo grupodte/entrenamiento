@@ -64,9 +64,16 @@ const ComboboxRutinas = ({ rutinasDisponibles, onSelect, defaultValue = null }) 
                                     >
                                         {({ selected }) => (
                                             <div className="flex justify-between items-center">
-                                                <span className={`truncate ${selected ? 'font-semibold' : 'font-normal'}`}>
-                                                    {rutina.nombre}
-                                                </span>
+                                                <div>
+                                                    <span className={`block truncate ${selected ? 'font-semibold' : 'font-normal'}`}>
+                                                        {rutina.nombre}
+                                                    </span>
+                                                    {rutina.descripcion && (
+                                                        <span className="block text-xs text-white/70 truncate">
+                                                            {rutina.descripcion}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 {selected && <Check className="h-4 w-4 text-white" />}
                                             </div>
                                         )}

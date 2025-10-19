@@ -43,9 +43,13 @@ const MultipleFileUpload = ({
         const validFiles = [];
         const errors = [];
 
+        // Contar archivos existentes y nuevos por separado
+        const existingFilesCount = archivos.filter(file => file.url && !file.size).length;
+        const newFilesCount = archivos.filter(file => !file.url || file.size).length;
+        
         // Verificar límite total
-        if (archivos.length + newFiles.length > maxFiles) {
-            setError(`Máximo ${maxFiles} archivos permitidos`);
+        if (newFilesCount + newFiles.length > maxFiles) {
+            setError(`Máximo ${maxFiles} archivos permitidos (tienes ${newFilesCount} nuevos + ${existingFilesCount} existentes)`);
             return;
         }
 
@@ -55,10 +59,13 @@ const MultipleFileUpload = ({
             if (validation) {
                 errors.push(`${file.name}: ${validation}`);
             } else {
-                // Verificar si ya existe
-                const exists = archivos.some(existing => 
-                    existing.name === file.name && existing.size === file.size
-                );
+                // Verificar si ya existe (solo comparar con archivos nuevos, no existentes)
+                const exists = archivos.some(existing => {
+                    // Si el archivo existente es del servidor (tiene url pero no size), no comparar
+                    if (existing.url && !existing.size) return false;
+                    // Comparar archivos nuevos
+                    return existing.name === file.name && existing.size === file.size;
+                });
                 
                 if (!exists) {
                     validFiles.push(file);
@@ -181,39 +188,57 @@ const MultipleFileUpload = ({
                             Archivos seleccionados ({archivos.length}/{maxFiles})
                         </h4>
                         
-                        {archivos.map((file, index) => (
-                            <motion.div
-                                key={`${file.name}-${index}`}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10"
-                            >
-                                <div className="flex items-center gap-3 flex-1">
-                                    <FileText className="w-5 h-5 text-red-400" />
-                                    <div className="flex-1">
-                                        <p className="text-white font-medium text-sm truncate">
-                                            {file.name}
-                                        </p>
-                                        <p className="text-gray-400 text-xs">
-                                            {formatFileSize(file.size)}
-                                        </p>
-                                    </div>
-                                </div>
-                                
-                                <motion.button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        removeFile(index);
-                                    }}
-                                    className="p-1 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
+                        {archivos.map((file, index) => {
+                            // Determinar si es un archivo existente (del servidor) o uno nuevo
+                            const isExistingFile = file.url && !file.size; // Archivos del servidor tienen url pero no size
+                            const fileName = file.name || file.nombre || 'Archivo sin nombre';
+                            const fileSize = file.size || 0;
+                            
+                            return (
+                                <motion.div
+                                    key={`${fileName}-${index}`}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    className={`flex items-center justify-between p-3 rounded-lg border ${
+                                        isExistingFile 
+                                            ? 'bg-blue-500/10 border-blue-500/20' 
+                                            : 'bg-white/5 border-white/10'
+                                    }`}
                                 >
-                                    <X className="w-4 h-4" />
-                                </motion.button>
-                            </motion.div>
-                        ))}
+                                    <div className="flex items-center gap-3 flex-1">
+                                        <FileText className={`w-5 h-5 ${
+                                            isExistingFile ? 'text-blue-400' : 'text-red-400'
+                                        }`} />
+                                        <div className="flex-1">
+                                            <p className="text-white font-medium text-sm truncate">
+                                                {fileName}
+                                                {isExistingFile && (
+                                                    <span className="ml-2 text-xs text-blue-400">
+                                                        (existente)
+                                                    </span>
+                                                )}
+                                            </p>
+                                            <p className="text-gray-400 text-xs">
+                                                {fileSize > 0 ? formatFileSize(fileSize) : 'Archivo del servidor'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <motion.button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            removeFile(index);
+                                        }}
+                                        className="p-1 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </motion.button>
+                                </motion.div>
+                            );
+                        })}
                     </motion.div>
                 )}
             </AnimatePresence>
