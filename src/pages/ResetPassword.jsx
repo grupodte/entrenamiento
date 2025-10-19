@@ -21,13 +21,13 @@ const ResetPassword = () => {
                 const { data: { session }, error } = await supabase.auth.getSession();
                 if (error) {
                     console.error('Error obteniendo sesión:', error);
-                    toast.error('❌ Enlace de restablecimiento inválido o expirado');
+                    toast.error('Enlace de restablecimiento inválido o expirado');
                     setTimeout(() => navigate('/login', { replace: true }), 3000);
                     return;
                 }
                 
                 if (!session) {
-                    toast.error('❌ Enlace de restablecimiento inválido o expirado');
+                    toast.error('Enlace de restablecimiento inválido o expirado');
                     setTimeout(() => navigate('/login', { replace: true }), 3000);
                     return;
                 }
@@ -35,7 +35,7 @@ const ResetPassword = () => {
                 setHasValidSession(true);
             } catch (error) {
                 console.error('Error verificando sesión:', error);
-                toast.error('❌ Error al verificar el enlace de restablecimiento');
+                toast.error('Error al verificar el enlace de restablecimiento');
                 setTimeout(() => navigate('/login', { replace: true }), 3000);
             }
         };
@@ -67,7 +67,7 @@ const ResetPassword = () => {
                 throw new Error(error.message || 'No se pudo actualizar la contraseña');
             }
 
-            toast.success('✅ ¡Contraseña actualizada con éxito!');
+            toast.success('¡Contraseña actualizada con éxito!');
             
             // Esperar un momento antes de redirigir
             setTimeout(() => {
@@ -162,14 +162,7 @@ const ResetPassword = () => {
                             </button>
                         </form>
                         
-                        <div className="mt-6 text-center">
-                            <p className="text-xs text-gray-400 mb-2">
-                                ℹ️ Después de cambiar tu contraseña serás redirigido al login.
-                            </p>
-                            <p className="text-xs text-gray-500">
-                                🔒 Tu contraseña debe tener al menos 6 caracteres para mayor seguridad.
-                            </p>
-                        </div>
+                 
                     </div>
                 </motion.div>
             </div>
