@@ -12,6 +12,7 @@ import googleIcon from '../assets/google.svg';
 
 const AuthPage = () => {
     const [isLogin, setIsLogin] = useState(true);
+    const [isResetPassword, setIsResetPassword] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -74,6 +75,31 @@ const AuthPage = () => {
         setIsLoading(false);
     };
 
+    const handleResetPassword = async (e) => {
+        e.preventDefault();
+        if (!email) {
+            toast.error('❌ Por favor ingresa tu correo electrónico');
+            return;
+        }
+        
+        setIsLoading(true);
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-pass`,
+            });
+            
+            if (error) throw error;
+            
+            toast.success('📬 Enlace de restablecimiento enviado a tu correo');
+            setIsResetPassword(false);
+            setIsLogin(true);
+        } catch (err) {
+            toast.error(`❌ ${err.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="fixed inset-0 ">
             {/* Fondos distintos para móvil y desktop */}
@@ -110,9 +136,11 @@ const AuthPage = () => {
                     className="w-full md:w-[380px] lg:w-[420px] md:ml-auto mb-8 md:mb-0 flex items-center justify-center"
                 >
                     <div className=" w-[288px] pb-[20px]">
-                        <h2 className="text-[23px] text-[#FFFFFF] mb-4">{isLogin ? 'Inicia sesión' : 'Registrate'}</h2>
+                        <h2 className="text-[23px] text-[#FFFFFF] mb-4">
+                            {isResetPassword ? 'Restablecer Contraseña' : isLogin ? 'Inicia sesión' : 'Registrate'}
+                        </h2>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={isResetPassword ? handleResetPassword : handleSubmit} className="space-y-4">
                             <input
                                 type="email"
                                 value={email}
@@ -123,15 +151,17 @@ const AuthPage = () => {
                                 disabled={isLoading}
                             />
 
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full px-4 py-3 bg-[#000000]/50 rounded-[10px] border-none placeholder-[#FFFFFF]/50 text-[#FFFFFF] focus:border-none focus:ring-0 "
-                                placeholder="Contraseña"
-                                required
-                                disabled={isLoading}
-                            />
+                            {!isResetPassword && (
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full px-4 py-3 bg-[#000000]/50 rounded-[10px] border-none placeholder-[#FFFFFF]/50 text-[#FFFFFF] focus:border-none focus:ring-0 "
+                                    placeholder="Contraseña"
+                                    required
+                                    disabled={isLoading}
+                                />
+                            )}
 
                             <button
                                 type="submit"
@@ -150,30 +180,63 @@ const AuthPage = () => {
                                         Procesando...
                                     </div>
                                 ) : (
-                                    isLogin ? 'Ingresar' : 'Registrarme'
+                                    isResetPassword ? 'Enviar Enlace' : isLogin ? 'Ingresar' : 'Registrarme'
                                 )}
                             </button>
                         </form>
 
 
-                        <button
-                            onClick={handleGoogle}
-                            disabled={isLoading}
-                            className=" mt-4 w-full py-3 rounded-[10px] bg-[#0037FF] text-[#000000] flex items-center justify-center gap-3 transition-colors duration-200 disabled:opacity-50 border border-white/10 backdrop-blur-md"
-                        >
-                            <img src={googleIcon} alt="Google" className="w-6 h-6 absolute left-8" />
-                            Iniciar rápido
-                        </button>
-
-                        <p className="text-[15px] text-center mt-12 text-[#FFFFFF]">
-                            {isLogin ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
+                        {!isResetPassword && (
                             <button
-                                onClick={() => setIsLogin(!isLogin)}
-                                className="text-[#000000] font-semibold ml-1 hover:underline hover:text-[#0037FF] transition-colors duration-200"
+                                onClick={handleGoogle}
+                                disabled={isLoading}
+                                className=" mt-4 w-full py-3 rounded-[10px] bg-[#0037FF] text-[#000000] flex items-center justify-center gap-3 transition-colors duration-200 disabled:opacity-50 border border-white/10 backdrop-blur-md"
                             >
-                                {isLogin ? 'Registrate' : 'Iniciar sesión'}
+                                <img src={googleIcon} alt="Google" className="w-6 h-6 absolute left-8" />
+                                Iniciar rápido
                             </button>
-                        </p>
+                        )}
+                        
+                        {/* Enlace "Olvidé mi contraseña" solo en modo login */}
+                        {isLogin && !isResetPassword && (
+                            <div className="text-center mt-4">
+                                <button
+                                    onClick={() => setIsResetPassword(true)}
+                                    className="text-sm text-[#FFFFFF]/70 hover:text-[#FFFFFF] transition-colors duration-200"
+                                    type="button"
+                                >
+                                    ¿Olvidaste tu contraseña?
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="text-center mt-8">
+                            {isResetPassword ? (
+                                <button
+                                    onClick={() => {
+                                        setIsResetPassword(false);
+                                        setIsLogin(true);
+                                    }}
+                                    className="text-sm text-[#FFFFFF]/70 hover:text-[#FFFFFF] transition-colors duration-200"
+                                    type="button"
+                                >
+                                    ← Volver al login
+                                </button>
+                            ) : (
+                                <p className="text-[15px] text-[#FFFFFF]">
+                                    {isLogin ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
+                                    <button
+                                        onClick={() => {
+                                            setIsLogin(!isLogin);
+                                            setIsResetPassword(false);
+                                        }}
+                                        className="text-[#000000] font-semibold ml-1 hover:underline hover:text-[#0037FF] transition-colors duration-200"
+                                    >
+                                        {isLogin ? 'Registrate' : 'Iniciar sesión'}
+                                    </button>
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </motion.div>
             </div>

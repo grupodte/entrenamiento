@@ -23,7 +23,23 @@ export const AuthProvider = ({ children }) => {
     const isRecoveryFlow = () => {
         const hash = window.location.hash;
         const search = window.location.search;
-        return hash.includes('type=recovery') || search.includes('type=recovery') || location.pathname === '/reset-pass';
+        const pathname = location.pathname;
+        
+        console.log('[AuthContext] Checking recovery flow:', {
+            hash,
+            search,
+            pathname,
+            fullUrl: window.location.href
+        });
+        
+        const isRecovery = hash.includes('type=recovery') || 
+                          search.includes('type=recovery') || 
+                          pathname === '/reset-pass' ||
+                          hash.includes('access_token') || // Token de acceso de Supabase
+                          hash.includes('refresh_token'); // Token de refresh de Supabase
+        
+        console.log('[AuthContext] Recovery flow detected:', isRecovery);
+        return isRecovery;
     };
 
     const fetchRolAndOnboarding = async (user, skipOnboardingRedirect = false) => {
@@ -75,9 +91,36 @@ export const AuthProvider = ({ children }) => {
                 setOnboardingCompleted(data.onboarding_completed ?? false);
                 localStorage.setItem(LOCAL_STORAGE_USER_ROL_KEY, data.rol);
                 
-                // Solo redirigir si NO estamos en un flujo de recovery y NO se solicita saltar la redirección
+                // DESACTIVAR TEMPORALMENTE LA REDIRECCIÓN AUTOMÁTICA A ONBOARDING
+                // Esto nos permitirá probar el reset password sin interferencias
+                
+                const recoveryFlow = isRecoveryFlow();
+                
+                // Si hay tokens en la URL (access_token, refresh_token), es un flujo de recovery
+                const hasAuthTokens = window.location.hash.includes('access_token') || 
+                                     window.location.hash.includes('refresh_token');
+                
+                console.log('[AuthContext] Redirect decision:', {
+                    skipOnboardingRedirect,
+                    recoveryFlow,
+                    hasAuthTokens,
+                    onboarding_completed: data.onboarding_completed,
+                    pathname: location.pathname,
+                    rol: data.rol,
+                    hash: window.location.hash
+                });
+                
+                // Si detectamos tokens de auth en la URL, redirigir a reset-pass
+                if (hasAuthTokens && location.pathname !== '/reset-pass') {
+                    console.log("[AuthContext] Tokens de auth detectados, redirigiendo a reset-pass");
+                    navigate('/reset-pass', { replace: true });
+                    return; // Salir temprano para evitar otras redirecciones
+                }
+                
+                // Solo redirigir a onboarding si NO estamos en recovery Y el onboarding no está completo
                 const shouldRedirectToOnboarding = !skipOnboardingRedirect && 
-                    !isRecoveryFlow() &&
+                    !recoveryFlow &&
+                    !hasAuthTokens &&
                     data.onboarding_completed === false && 
                     location.pathname !== '/onboarding' && 
                     location.pathname !== '/reset-pass' &&
@@ -86,9 +129,8 @@ export const AuthProvider = ({ children }) => {
                 if (shouldRedirectToOnboarding) {
                     console.log("[AuthContext] Redirigiendo a onboarding");
                     navigate('/onboarding', { replace: true });
-                } else if (isRecoveryFlow()) {
-                    console.log("[AuthContext] Flujo de recovery detectado, redirigiendo a reset-pass");
-                    navigate('/reset-pass', { replace: true });
+                } else {
+                    console.log("[AuthContext] No redirection needed");
                 }
             } else {
                 setRol(null);
