@@ -13,8 +13,19 @@ const SimplePDFViewer = ({
     const [pdfUrl, setPdfUrl] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [isPWA, setIsPWA] = useState(false);
 
     useEffect(() => {
+        // Detectar si es PWA
+        const detectPWA = () => {
+            const isInWebAppiOS = window.navigator.standalone === true;
+            const isInWebAppChrome = window.matchMedia('(display-mode: standalone)').matches;
+            const isInWebAppFirefox = window.navigator.standalone !== undefined;
+            return isInWebAppiOS || isInWebAppChrome || isInWebAppFirefox;
+        };
+        
+        setIsPWA(detectPWA());
+        
         if (isOpen && archivo) {
             loadPDF();
             
@@ -164,28 +175,52 @@ const SimplePDFViewer = ({
                     )}
 
                     {pdfUrl && !loading && !error && (
-                        <div className="w-full h-full pdf-viewer-container overflow-auto">
-                            <iframe
-                                src={`${pdfUrl}#toolbar=0&navpanes=0&statusbar=0&messages=0&zoom=page-fit&view=FitH`}
-                                className="w-full h-full border-0"
-                                title="Visor PDF"
-                                style={{ 
-                                    touchAction: 'pan-y pan-x zoom-in zoom-out',
-                                    background: 'transparent',
-                                    border: 'none',
-                                    outline: 'none',
-                                    width: '100%',
-                                    height: '100%'
-                                }}
-                                allow="fullscreen"
-                                frameBorder="0"
-                            />
+                        <div className="w-full h-full pdf-viewer-container overflow-auto relative">
+                            {isPWA ? (
+                                /* Vista especial para PWA */
+                                <div className="flex flex-col items-center justify-center h-full text-center p-8">
+                                    <div className="mb-6">
+                                        <div className="w-24 h-24 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+                                            <Download className="w-12 h-12 text-red-400" />
+                                        </div>
+                                        <h3 className="text-xl font-semibold text-white mb-2">
+                                            Vista previa no disponible en PWA
+                                        </h3>
+                                        <p className="text-gray-300 mb-6">
+                                            Para una mejor experiencia, descarga el PDF y ábrelo con tu visor predeterminado.
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={handleDownload}
+                                        className="flex items-center gap-3 px-6 py-3 bg-[#FF0000] hover:bg-[#E60000] rounded-[10px] transition-colors font-medium"
+                                    >
+                                        <Download className="w-5 h-5 text-white" />
+                                        <span className="text-white">Descargar PDF</span>
+                                    </button>
+                                </div>
+                            ) : (
+                                /* Vista normal para navegador */
+                                <iframe
+                                    src={`${pdfUrl}#toolbar=0&navpanes=0&statusbar=0&messages=0&view=FitH`}
+                                    className="w-full h-full border-0"
+                                    title="Visor PDF"
+                                    style={{ 
+                                        touchAction: 'pan-y pan-x zoom-in zoom-out',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        outline: 'none',
+                                        minHeight: '100vh'
+                                    }}
+                                    allow="fullscreen"
+                                    frameBorder="0"
+                                />
+                            )}
                         </div>
                     )}
                 </div>
                 
                 {/* Botones flotantes en posición fija */}
-                <div className="absolute top-4 right-8 flex flex-col gap-2 z-[10000]">
+                <div className="absolute top-4 right-10 md:right-20 flex flex-col gap-2 z-[10000]">
                     {/* Cerrar */}
                     <button
                         onClick={onClose}
