@@ -1,6 +1,7 @@
 import { useAuth } from '../../context/AuthContext';
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { isPWA, handleFileDownload, getEnvironmentInfo } from '../../utils/pwaHelpers';
 import {
     FaUtensils,
     FaSpinner,
@@ -146,108 +147,79 @@ const DietasAlumno = () => {
 
     // Función para descargar un archivo
     const descargarArchivo = useCallback(async (dieta, archivo) => {
-        console.log('Iniciando descarga:', { dieta: dieta.nombre, archivo });
+        const envInfo = getEnvironmentInfo();
+        console.log('Iniciando descarga:', {
+            dieta: dieta.nombre,
+            archivo: archivo?.name || archivo?.nombre,
+            entorno: envInfo
+        });
         
         if (!archivo || !archivo.url) {
             console.error('No hay archivo para descargar:', archivo);
+            alert('No se puede descargar el archivo: URL no válida');
             return;
         }
 
         const fileId = `${dieta.id}-${archivo?.name || archivo?.nombre || 'archivo'}`;
+        const fileName = archivo?.name || archivo?.nombre || `dieta-${dieta.nombre || 'archivo'}.pdf`;
+        
         setDownloadingFile(fileId);
 
         try {
-            // Mejorar la extracción del path del archivo
-            let fileName;
+            let downloadUrl = archivo.url;
             
-            if (archivo.path) {
-                // Usar path directo si está disponible
-                fileName = archivo.path;
-                console.log('Usando path directo:', fileName);
-            } else {
-                // Extraer el path desde la URL de manera más robusta
-                const url = archivo.url;
-                const supabaseStorageUrl = '/storage/v1/object/public/dietas/';
+            // Si no es PWA, intentar usar URL firmada de Supabase
+            if (!isPWA()) {
+                let storageFileName;
                 
-                if (url.includes(supabaseStorageUrl)) {
-                    // Para URLs de Supabase storage
-                    fileName = url.split(supabaseStorageUrl)[1];
-                    console.log('Path extraído de URL Supabase:', fileName);
-                } else if (url.includes('/dietas/')) {
-                    // Fallback para otras estructuras de URL
-                    const parts = url.split('/dietas/');
-                    fileName = parts[parts.length - 1];
-                    console.log('Path extraído con fallback /dietas/:', fileName);
+                if (archivo.path) {
+                    storageFileName = archivo.path;
                 } else {
-                    // Último fallback: usar el nombre del archivo desde la URL
-                    const urlParts = url.split('/');
-                    fileName = urlParts[urlParts.length - 1];
-                    console.log('Usando nombre desde URL:', fileName);
+                    // Extraer el path desde la URL
+                    const url = archivo.url;
+                    const supabaseStorageUrl = '/storage/v1/object/public/dietas/';
+                    
+                    if (url.includes(supabaseStorageUrl)) {
+                        storageFileName = url.split(supabaseStorageUrl)[1];
+                    } else if (url.includes('/dietas/')) {
+                        const parts = url.split('/dietas/');
+                        storageFileName = parts[parts.length - 1];
+                    } else {
+                        const urlParts = url.split('/');
+                        storageFileName = urlParts[urlParts.length - 1];
+                    }
+                    
+                    storageFileName = decodeURIComponent(storageFileName);
                 }
                 
-                // Decodificar URL encoding si es necesario
-                fileName = decodeURIComponent(fileName);
-            }
-            
-            console.log('Intentando crear signed URL para:', fileName);
-            
-            // Intentar crear URL firmada
-            const { data, error } = await supabase.storage
-                .from('dietas')
-                .createSignedUrl(fileName, 300); // 5 minutos de validez
+                // Intentar crear URL firmada
+                const { data, error } = await supabase.storage
+                    .from('dietas')
+                    .createSignedUrl(storageFileName, 300);
 
-            if (error) {
-                console.error('Error al generar URL de descarga:', error);
-                console.log('Intentando descarga directa...');
-                
-                // Fallback: descarga directa usando la URL pública
-                const link = document.createElement('a');
-                link.href = archivo.url;
-                link.download = archivo?.name || archivo?.nombre || `dieta-${dieta.nombre || 'archivo'}.pdf`;
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-                
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                console.log('Descarga directa iniciada');
-                return;
+                if (!error && data?.signedUrl) {
+                    downloadUrl = data.signedUrl;
+                    console.log('URL firmada creada exitosamente');
+                } else {
+                    console.log('Error en URL firmada, usando URL directa:', error);
+                }
             }
 
-            // Crear enlace temporal para descargar con URL firmada
-            const link = document.createElement('a');
-            link.href = data.signedUrl;
-            link.download = archivo?.name || archivo?.nombre || `dieta-${dieta.nombre || 'archivo'}.pdf`;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            console.log('Descarga con URL firmada exitosa');
+            // Usar la utilidad PWA helper para manejar la descarga
+            await handleFileDownload(downloadUrl, fileName, {
+                onSuccess: (message) => {
+                    console.log('Descarga exitosa:', message);
+                    // No mostrar toast en PWA para no molestar al usuario
+                },
+                onError: (error) => {
+                    console.error('Error en descarga:', error);
+                    alert('Error al descargar el archivo. Intenta desde un navegador web.');
+                }
+            });
 
         } catch (error) {
             console.error('Error al descargar archivo:', error);
-            
-            // Último fallback: descarga directa
-            try {
-                const link = document.createElement('a');
-                link.href = archivo.url;
-                link.download = archivo?.name || archivo?.nombre || `dieta-${dieta.nombre || 'archivo'}.pdf`;
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-                
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                console.log('Descarga de emergencia iniciada');
-            } catch (fallbackError) {
-                console.error('Error en descarga de emergencia:', fallbackError);
-                alert('Error al descargar el archivo. Por favor, contacta con soporte.');
-            }
+            alert('Error al descargar el archivo. Intenta desde un navegador web.');
         } finally {
             setDownloadingFile(null);
         }

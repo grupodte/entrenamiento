@@ -214,39 +214,81 @@ const DietasManager = () => {
 
 
 
+    // Detectar si está en PWA
+    const isPWA = () => {
+        return window.matchMedia('(display-mode: standalone)').matches ||
+               window.navigator.standalone ||
+               document.referrer.includes('android-app://');
+    };
+
     const descargarDieta = async (dieta) => {
         try {
+            console.log('Iniciando descarga desde admin:', { dieta: dieta.nombre, isPWA: isPWA() });
+            
             // Si tiene múltiples archivos, descargar todos
             if (dieta.archivos && dieta.archivos.length > 0) {
                 for (const archivo of dieta.archivos) {
+                    if (isPWA()) {
+                        // Para PWA, abrir en navegador externo
+                        console.log('PWA detectada - Abriendo archivo en navegador externo');
+                        window.open(archivo.url, '_blank', 'noopener,noreferrer');
+                        
+                        // También crear enlace de descarga como backup
+                        const link = document.createElement('a');
+                        link.href = archivo.url;
+                        link.download = archivo.name || `${dieta.nombre}_${Math.random().toString(36).substring(2, 7)}.pdf`;
+                        link.target = '_system';
+                        
+                        document.body.appendChild(link);
+                        setTimeout(() => {
+                            link.click();
+                            document.body.removeChild(link);
+                        }, 100);
+                    } else {
+                        // Descarga normal para navegador web
+                        const link = document.createElement('a');
+                        link.href = archivo.url;
+                        link.download = archivo.name || `${dieta.nombre}_${Math.random().toString(36).substring(2, 7)}.pdf`;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                    
+                    // Pequeña pausa entre descargas para evitar problemas del navegador
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+                
+                if (isPWA()) {
+                    toast.success(`Abriendo ${dieta.archivos.length} archivo${dieta.archivos.length > 1 ? 's' : ''} en navegador`);
+                } else {
+                    toast.success(`Descargando ${dieta.archivos.length} archivo${dieta.archivos.length > 1 ? 's' : ''}`);
+                }
+            } else if (dieta.pdf_url) {
+                // Compatibilidad con archivos únicos anteriores
+                if (isPWA()) {
+                    window.open(dieta.pdf_url, '_blank', 'noopener,noreferrer');
+                    toast.success('Abriendo archivo en navegador');
+                } else {
                     const link = document.createElement('a');
-                    link.href = archivo.url;
-                    link.download = archivo.name || `${dieta.nombre}_${Math.random().toString(36).substring(2, 7)}.pdf`;
+                    link.href = dieta.pdf_url;
+                    link.download = `${dieta.nombre}.pdf`;
                     link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    
-                    // Pequeña pausa entre descargas para evitar problemas del navegador
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    toast.success('Descarga iniciada');
                 }
-                toast.success(`Descargando ${dieta.archivos.length} archivo${dieta.archivos.length > 1 ? 's' : ''}`);
-            } else if (dieta.pdf_url) {
-                // Compatibilidad con archivos únicos anteriores
-                const link = document.createElement('a');
-                link.href = dieta.pdf_url;
-                link.download = `${dieta.nombre}.pdf`;
-                link.target = '_blank';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                toast.success('Descarga iniciada');
             } else {
                 toast.error('No hay archivos para descargar');
             }
         } catch (error) {
             console.error('Error al descargar:', error);
-            toast.error('Error al descargar la dieta');
+            toast.error(isPWA() ? 'Error al abrir el archivo' : 'Error al descargar la dieta');
         }
     };
 
