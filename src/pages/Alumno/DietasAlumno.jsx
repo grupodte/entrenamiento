@@ -166,44 +166,9 @@ const DietasAlumno = () => {
         setDownloadingFile(fileId);
 
         try {
-            let downloadUrl = archivo.url;
-            
-            // Si no es PWA, intentar usar URL firmada de Supabase
-            if (!isPWA()) {
-                let storageFileName;
-                
-                if (archivo.path) {
-                    storageFileName = archivo.path;
-                } else {
-                    // Extraer el path desde la URL
-                    const url = archivo.url;
-                    const supabaseStorageUrl = '/storage/v1/object/public/dietas/';
-                    
-                    if (url.includes(supabaseStorageUrl)) {
-                        storageFileName = url.split(supabaseStorageUrl)[1];
-                    } else if (url.includes('/dietas/')) {
-                        const parts = url.split('/dietas/');
-                        storageFileName = parts[parts.length - 1];
-                    } else {
-                        const urlParts = url.split('/');
-                        storageFileName = urlParts[urlParts.length - 1];
-                    }
-                    
-                    storageFileName = decodeURIComponent(storageFileName);
-                }
-                
-                // Intentar crear URL firmada
-                const { data, error } = await supabase.storage
-                    .from('dietas')
-                    .createSignedUrl(storageFileName, 300);
-
-                if (!error && data?.signedUrl) {
-                    downloadUrl = data.signedUrl;
-                    console.log('URL firmada creada exitosamente');
-                } else {
-                    console.log('Error en URL firmada, usando URL directa:', error);
-                }
-            }
+            // Siempre usar la URL directa para evitar problemas con URLs firmadas
+            const downloadUrl = archivo.url;
+            console.log('Usando URL directa para descarga:', downloadUrl);
 
             // Usar la utilidad PWA helper para manejar la descarga
             await handleFileDownload(downloadUrl, fileName, {

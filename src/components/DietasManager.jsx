@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
 import MultipleFileUpload from './MultipleFileUpload';
 import { useDietas, useCreateDieta, useUpdateDieta, useDeleteDieta } from '../hooks/useDietas';
+import { isPWA, handleFileDownload } from '../utils/pwaHelpers';
 import {
     Search,
     Plus,
@@ -214,13 +215,6 @@ const DietasManager = () => {
 
 
 
-    // Detectar si está en PWA
-    const isPWA = () => {
-        return window.matchMedia('(display-mode: standalone)').matches ||
-               window.navigator.standalone ||
-               document.referrer.includes('android-app://');
-    };
-
     const descargarDieta = async (dieta) => {
         try {
             console.log('Iniciando descarga desde admin:', { dieta: dieta.nombre, isPWA: isPWA() });
@@ -228,36 +222,18 @@ const DietasManager = () => {
             // Si tiene múltiples archivos, descargar todos
             if (dieta.archivos && dieta.archivos.length > 0) {
                 for (const archivo of dieta.archivos) {
-                    if (isPWA()) {
-                        // Para PWA, abrir en navegador externo
-                        console.log('PWA detectada - Abriendo archivo en navegador externo');
-                        window.open(archivo.url, '_blank', 'noopener,noreferrer');
-                        
-                        // También crear enlace de descarga como backup
-                        const link = document.createElement('a');
-                        link.href = archivo.url;
-                        link.download = archivo.name || `${dieta.nombre}_${Math.random().toString(36).substring(2, 7)}.pdf`;
-                        link.target = '_system';
-                        
-                        document.body.appendChild(link);
-                        setTimeout(() => {
-                            link.click();
-                            document.body.removeChild(link);
-                        }, 100);
-                    } else {
-                        // Descarga normal para navegador web
-                        const link = document.createElement('a');
-                        link.href = archivo.url;
-                        link.download = archivo.name || `${dieta.nombre}_${Math.random().toString(36).substring(2, 7)}.pdf`;
-                        link.target = '_blank';
-                        link.rel = 'noopener noreferrer';
-                        
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                    }
+                    const fileName = archivo.name || `${dieta.nombre}_${Math.random().toString(36).substring(2, 7)}.pdf`;
                     
-                    // Pequeña pausa entre descargas para evitar problemas del navegador
+                    await handleFileDownload(archivo.url, fileName, {
+                        onSuccess: (message) => {
+                            console.log('Archivo procesado:', fileName, message);
+                        },
+                        onError: (error) => {
+                            console.error('Error procesando archivo:', fileName, error);
+                        }
+                    });
+                    
+                    // Pequeña pausa entre descargas
                     await new Promise(resolve => setTimeout(resolve, 200));
                 }
                 
@@ -268,21 +244,20 @@ const DietasManager = () => {
                 }
             } else if (dieta.pdf_url) {
                 // Compatibilidad con archivos únicos anteriores
-                if (isPWA()) {
-                    window.open(dieta.pdf_url, '_blank', 'noopener,noreferrer');
-                    toast.success('Abriendo archivo en navegador');
-                } else {
-                    const link = document.createElement('a');
-                    link.href = dieta.pdf_url;
-                    link.download = `${dieta.nombre}.pdf`;
-                    link.target = '_blank';
-                    link.rel = 'noopener noreferrer';
-                    
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    toast.success('Descarga iniciada');
-                }
+                await handleFileDownload(dieta.pdf_url, `${dieta.nombre}.pdf`, {
+                    onSuccess: (message) => {
+                        console.log('Archivo único procesado:', message);
+                        if (isPWA()) {
+                            toast.success('Abriendo archivo en navegador');
+                        } else {
+                            toast.success('Descarga iniciada');
+                        }
+                    },
+                    onError: (error) => {
+                        console.error('Error procesando archivo único:', error);
+                        toast.error(isPWA() ? 'Error al abrir el archivo' : 'Error al descargar la dieta');
+                    }
+                });
             } else {
                 toast.error('No hay archivos para descargar');
             }
