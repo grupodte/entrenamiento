@@ -219,25 +219,25 @@ const SerieItem = React.forwardRef(({
 
                     {/* Contenedor centrado con pill y botón */}
                     <div className="mt-1 mb-3 relative flex justify-center">
-                        {/* Pill central negro */}
+                        {/* Pill central negro - centrado perfectamente */}
                         <div className="inline-flex items-center justify-center w-[144px] h-[62px] rounded-[8px] bg-[#232323]">
                             <span className="text-[29px] leading-none font-bold text-[#F84B4B]">
                                 {valorCentral}
                             </span>
                         </div>
 
-                        {/* Botón ver video */}
+                        {/* Botón ver video - posicionado absolutamente a la derecha del pill */}
                         {ejercicio?.video_url && (
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     openVideoPanel(ejercicio.video_url);
                                 }}
-                                className="absolute right-[20px] top-1/2 -translate-y-1/2 touch-manipulation active:scale-100 active:translate-y-[-50%] focus:outline-none"
+                                className="absolute left-[calc(50%+88px)] top-1/2 -translate-y-1/2 w-10 h-12 touch-manipulation active:scale-100 focus:outline-none flex-shrink-0"
                                 aria-label="Ver video"
                                 style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                             >
-                                <img src={VideoRutinaIcon} alt="Ver video" className="w-10 h-12" />
+                                <img src={VideoRutinaIcon} alt="Ver video" className="w-10 h-12 flex-shrink-0" />
                             </button>
                         )}
                     </div>
