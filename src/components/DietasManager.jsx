@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
 import MultipleFileUpload from './MultipleFileUpload';
 import { useDietas, useCreateDieta, useUpdateDieta, useDeleteDieta } from '../hooks/useDietas';
+import SimplePDFViewer from './SimplePDFViewer';
 import { 
     Plus, 
     Search, 
@@ -39,6 +40,11 @@ const DietasManager = () => {
     const [busqueda, setBusqueda] = useState('');
     const [showCrearDieta, setShowCrearDieta] = useState(false);
     const [dietaEditando, setDietaEditando] = useState(null);
+    const [pdfViewer, setPdfViewer] = useState({
+        isOpen: false,
+        archivo: null,
+        dietaNombre: null
+    });
 
     // React Query hooks
     const { data: dietas = [], isLoading: cargando, error } = useDietas();
@@ -124,9 +130,13 @@ const DietasManager = () => {
             return;
         }
 
-        if ((!formulario.archivos || formulario.archivos.length === 0) && !dietaEditando) {
-            toast.error('Debes subir al menos un archivo PDF');
-            return;
+        // Validar archivos para nuevas dietas
+        if (!dietaEditando) {
+            const archivosFile = formulario.archivos?.filter(file => file instanceof File) || [];
+            if (archivosFile.length === 0) {
+                toast.error('Debes subir al menos un archivo PDF');
+                return;
+            }
         }
 
         const dietaData = {
@@ -139,9 +149,24 @@ const DietasManager = () => {
             etiquetas: formulario.etiquetas ? formulario.etiquetas.split(',').map(tag => tag.trim()).filter(Boolean) : null
         };
 
-        // Separar archivos existentes de archivos nuevos
-        const archivosExistentes = formulario.archivos?.filter(file => file.url && !file.size) || [];
-        const archivosNuevos = formulario.archivos?.filter(file => !file.url || file.size) || [];
+        // Separar archivos existentes de archivos nuevos de manera más robusta
+        const archivosExistentes = formulario.archivos?.filter(file => {
+            // Archivos existentes tienen URL pero NO son objetos File
+            return file.url && !(file instanceof File) && !file.size;
+        }) || [];
+        
+        const archivosNuevos = formulario.archivos?.filter(file => {
+            // Archivos nuevos son instancias de File
+            return file instanceof File;
+        }) || [];
+        
+        console.log('🔍 Análisis de archivos:', {
+            total: formulario.archivos?.length || 0,
+            existentes: archivosExistentes.length,
+            nuevos: archivosNuevos.length,
+            archivosExistentes,
+            archivosNuevos
+        });
         
         if (dietaEditando) {
             // Actualizar dieta existente
@@ -157,9 +182,18 @@ const DietasManager = () => {
                 }
             );
         } else {
-            // Crear nueva dieta
+            // Crear nueva dieta - solo procesar archivos File
+            const archivosParaSubir = formulario.archivos?.filter(file => file instanceof File) || [];
+            
+            if (archivosParaSubir.length === 0) {
+                toast.error('Debes subir al menos un archivo PDF');
+                return;
+            }
+            
+            console.log('📤 Creando dieta con archivos:', archivosParaSubir.length);
+            
             createDietaMutation.mutate(
-                { dietaData, archivos: formulario.archivos },
+                { dietaData, archivos: archivosParaSubir },
                 {
                     onSuccess: () => {
                         setShowCrearDieta(false);
@@ -183,6 +217,24 @@ const DietasManager = () => {
         setDietaEditando(dieta);
         inicializarFormulario(dieta);
         setShowCrearDieta(true);
+    };
+
+    // Funciones para el visor de PDF
+    const abrirVisorPDF = (dieta, archivo) => {
+        console.log('🔍 Abriendo visor PDF (Admin):', { dieta: dieta.nombre, archivo });
+        setPdfViewer({
+            isOpen: true,
+            archivo: archivo,
+            dietaNombre: dieta.nombre
+        });
+    };
+
+    const cerrarVisorPDF = () => {
+        setPdfViewer({
+            isOpen: false,
+            archivo: null,
+            dietaNombre: null
+        });
     };
 
 
@@ -281,6 +333,7 @@ const DietasManager = () => {
                             onEliminar={eliminarDieta}
                             onEditar={abrirModalEditar}
                             onDescargar={descargarDieta}
+                            onVerPDF={abrirVisorPDF}
                         />
                     ))}
                 </AnimatePresence>
@@ -518,11 +571,19 @@ const DietasManager = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+            
+            {/* Visor de PDF simplificado */}
+            <SimplePDFViewer
+                isOpen={pdfViewer.isOpen}
+                onClose={cerrarVisorPDF}
+                archivo={pdfViewer.archivo}
+                dietaNombre={pdfViewer.dietaNombre}
+            />
         </div>
     );
 };
 
-const DietaCard = ({ dieta, onEliminar, onEditar, onDescargar }) => {
+const DietaCard = ({ dieta, onEliminar, onEditar, onDescargar, onVerPDF }) => {
     const tipoConfig = TIPOS_DIETA.find(t => t.value === dieta.tipo) || TIPOS_DIETA[0];
     
     return (
@@ -555,6 +616,18 @@ const DietaCard = ({ dieta, onEliminar, onEditar, onDescargar }) => {
                     </div>
                     
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* Botón de vista previa para PDFs */}
+                        {dieta.archivos && dieta.archivos.length > 0 && (
+                            <motion.button
+                                onClick={() => onVerPDF(dieta, dieta.archivos[0])}
+                                className="p-1.5 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors"
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                title="Ver PDF"
+                            >
+                                <Eye className="w-4 h-4" />
+                            </motion.button>
+                        )}
                         <motion.button
                             onClick={() => onDescargar(dieta)}
                             className="p-1.5 text-gray-400 hover:text-green-400 hover:bg-green-500/10 rounded-lg transition-colors"

@@ -90,23 +90,49 @@ export const useUpdateDieta = () => {
 
       // Subir archivos nuevos si existen
       let archivosNuevos = []
-      const archivosExistentes = dietaData.archivos?.filter(file => file.url && !file.size) || []
-      const archivosParaSubir = archivos?.filter(file => !file.url || file.size) || []
+      const archivosExistentes = dietaData.archivos?.filter(file => {
+        // Archivos existentes tienen URL pero NO son objetos File
+        return file.url && !(file instanceof File) && !file.size
+      }) || []
+      
+      const archivosParaSubir = archivos?.filter(file => {
+        // Solo procesar archivos File que son nuevos
+        return file instanceof File
+      }) || []
+      
+      console.log('🗄 Actualizando dieta:', {
+        existentes: archivosExistentes.length,
+        nuevosParaSubir: archivosParaSubir.length
+      })
 
       if (archivosParaSubir.length > 0) {
+        console.log('📤 Subiendo', archivosParaSubir.length, 'archivos nuevos...')
         for (const archivo of archivosParaSubir) {
-          const uploadResult = await uploadFile(archivo, user.id)
-          archivosNuevos.push(uploadResult)
+          try {
+            const uploadResult = await uploadFile(archivo, user.id)
+            archivosNuevos.push(uploadResult)
+            console.log('✅ Archivo subido:', uploadResult.name)
+          } catch (error) {
+            console.error('❌ Error al subir archivo:', archivo.name, error)
+            throw new Error(`Error al subir ${archivo.name}: ${error.message}`)
+          }
         }
       }
 
       // Combinar archivos existentes con nuevos
       const todosLosArchivos = [...archivosExistentes, ...archivosNuevos]
       
+      console.log('📁 Archivos finales:', todosLosArchivos.length)
+      
       if (todosLosArchivos.length > 0) {
         dietaData.archivo_url = todosLosArchivos[0]?.url
         dietaData.pdf_url = todosLosArchivos[0]?.url
         dietaData.archivos = todosLosArchivos
+      } else {
+        // Si no hay archivos, limpiar las referencias
+        dietaData.archivo_url = null
+        dietaData.pdf_url = null
+        dietaData.archivos = []
       }
 
       const { error } = await supabase
@@ -228,9 +254,27 @@ const uploadFile = async (archivo, userId) => {
       }
     }
     
-    const { data: { publicUrl } } = supabase.storage
+    // Obtener URL pública con validación
+    const { data: { publicUrl }, error: urlError } = supabase.storage
       .from('dietas')
       .getPublicUrl(fileName)
+    
+    if (urlError) {
+      console.error('Error obteniendo URL pública:', urlError)
+      throw new Error(`Error obteniendo URL pública: ${urlError.message}`)
+    }
+    
+    // Validar que la URL sea válida
+    if (!publicUrl || !publicUrl.startsWith('http')) {
+      throw new Error('URL pública inválida generada')
+    }
+
+    console.log('✅ Archivo subido correctamente:', {
+      path: data.path,
+      url: publicUrl,
+      name: archivo.name,
+      size: archivo.size
+    })
 
     return { 
       path: data.path, 
