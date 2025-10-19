@@ -90,7 +90,7 @@ const AuthPage = () => {
             
             if (error) throw error;
             
-            toast.success('📬 Enlace de restablecimiento enviado a tu correo');
+            toast.success('Enlace de restablecimiento enviado a tu correo');
             setIsResetPassword(false);
             setIsLogin(true);
         } catch (err) {
