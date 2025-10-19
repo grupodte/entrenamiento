@@ -6,15 +6,13 @@ import { supabase } from '../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
 import MultipleFileUpload from './MultipleFileUpload';
 import { useDietas, useCreateDieta, useUpdateDieta, useDeleteDieta } from '../hooks/useDietas';
-import SimplePDFViewer from './SimplePDFViewer';
-import { 
-    Plus, 
-    Search, 
-    Calendar, 
+import {
+    Search,
+    Plus,
     FileText,
+    Calendar,
     Edit2,
     Trash2,
-    Eye,
     Download,
     Upload,
     X,
@@ -40,11 +38,6 @@ const DietasManager = () => {
     const [busqueda, setBusqueda] = useState('');
     const [showCrearDieta, setShowCrearDieta] = useState(false);
     const [dietaEditando, setDietaEditando] = useState(null);
-    const [pdfViewer, setPdfViewer] = useState({
-        isOpen: false,
-        archivo: null,
-        dietaNombre: null
-    });
 
     // React Query hooks
     const { data: dietas = [], isLoading: cargando, error } = useDietas();
@@ -219,23 +212,6 @@ const DietasManager = () => {
         setShowCrearDieta(true);
     };
 
-    // Funciones para el visor de PDF
-    const abrirVisorPDF = (dieta, archivo) => {
-        console.log('🔍 Abriendo visor PDF (Admin):', { dieta: dieta.nombre, archivo });
-        setPdfViewer({
-            isOpen: true,
-            archivo: archivo,
-            dietaNombre: dieta.nombre
-        });
-    };
-
-    const cerrarVisorPDF = () => {
-        setPdfViewer({
-            isOpen: false,
-            archivo: null,
-            dietaNombre: null
-        });
-    };
 
 
     const descargarDieta = async (dieta) => {
@@ -333,7 +309,6 @@ const DietasManager = () => {
                             onEliminar={eliminarDieta}
                             onEditar={abrirModalEditar}
                             onDescargar={descargarDieta}
-                            onVerPDF={abrirVisorPDF}
                         />
                     ))}
                 </AnimatePresence>
@@ -571,19 +546,11 @@ const DietasManager = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
-            
-            {/* Visor de PDF simplificado */}
-            <SimplePDFViewer
-                isOpen={pdfViewer.isOpen}
-                onClose={cerrarVisorPDF}
-                archivo={pdfViewer.archivo}
-                dietaNombre={pdfViewer.dietaNombre}
-            />
         </div>
     );
 };
 
-const DietaCard = ({ dieta, onEliminar, onEditar, onDescargar, onVerPDF }) => {
+const DietaCard = ({ dieta, onEliminar, onEditar, onDescargar }) => {
     const tipoConfig = TIPOS_DIETA.find(t => t.value === dieta.tipo) || TIPOS_DIETA[0];
     
     return (
@@ -616,18 +583,6 @@ const DietaCard = ({ dieta, onEliminar, onEditar, onDescargar, onVerPDF }) => {
                     </div>
                     
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {/* Botón de vista previa para PDFs */}
-                        {dieta.archivos && dieta.archivos.length > 0 && (
-                            <motion.button
-                                onClick={() => onVerPDF(dieta, dieta.archivos[0])}
-                                className="p-1.5 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors"
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                                title="Ver PDF"
-                            >
-                                <Eye className="w-4 h-4" />
-                            </motion.button>
-                        )}
                         <motion.button
                             onClick={() => onDescargar(dieta)}
                             className="p-1.5 text-gray-400 hover:text-green-400 hover:bg-green-500/10 rounded-lg transition-colors"

@@ -8,24 +8,17 @@ import {
     FaInfoCircle,
     FaTag,
     FaUserCircle,
-    FaEye,
 } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import DownloadDietIcon from '../../assets/download-diet.svg';
 import DocIcon from '../../assets/doc.svg';
 import DietaSlider from '../../assets/dieta-slider.png';
-import SimplePDFViewer from '../../components/SimplePDFViewer';
 
 const DietasAlumno = () => {
     const { user } = useAuth();
     const [dietas, setDietas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [downloadingFile, setDownloadingFile] = useState(null);
-    const [pdfViewer, setPdfViewer] = useState({
-        isOpen: false,
-        archivo: null,
-        dietaNombre: null
-    });
 
     // Función para obtener las dietas asignadas al alumno
     const fetchDietasAsignadas = useCallback(async () => {
@@ -260,24 +253,6 @@ const DietasAlumno = () => {
         }
     }, []);
 
-    // Función para abrir el visor de PDF
-    const abrirVisorPDF = useCallback((dieta, archivo) => {
-        console.log('🔍 Abriendo visor PDF:', { dieta: dieta.nombre, archivo });
-        setPdfViewer({
-            isOpen: true,
-            archivo: archivo,
-            dietaNombre: dieta.nombre
-        });
-    }, []);
-
-    // Función para cerrar el visor de PDF
-    const cerrarVisorPDF = useCallback(() => {
-        setPdfViewer({
-            isOpen: false,
-            archivo: null,
-            dietaNombre: null
-        });
-    }, []);
 
     useEffect(() => {
         fetchDietasAsignadas();
@@ -364,7 +339,6 @@ const DietasAlumno = () => {
 
                                     {/* Archivos - Solo mostrar archivos múltiples */}
                                     <div className="space-y-3">
-                                      
                                         {dieta.archivos && dieta.archivos.length > 0 ? dieta.archivos.map((archivo, archivoIndex) => {
                                             const fileId = `${dieta.id}-${archivo?.name || archivo?.nombre || 'archivo'}`;
                                             const fileExtension = (archivo?.name || archivo?.nombre)?.split('.')?.pop()?.toLowerCase();
@@ -372,62 +346,38 @@ const DietasAlumno = () => {
                                             const isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(fileExtension || '');
                                             
                                             return (
-                                                <div key={archivoIndex} className="bg-[#121212] rounded-[10px] p-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-4 flex-1">
-                                                            <div className="w-12 h-12 rounded-xl flex items-center justify-center">
-                                                                <img src={DocIcon} alt="Documento" className="w-[30px] h-[37px]" />
-                                                            </div>
-                                                            <div className="text-left flex-1">
-                                                                <p className="text-[15px] text-[#b5b5b5] mb-1">
-                                                                    {archivo?.name || archivo?.nombre || 'Archivo sin nombre'}
-                                                                </p>
-                                                           
-                                                            </div>
+                                                <motion.button
+                                                    key={archivoIndex}
+                                                    whileTap={{ scale: 0.98 }}
+                                                    onClick={() => descargarArchivo(dieta, archivo)}
+                                                    disabled={downloadingFile === fileId}
+                                                    className="w-full flex items-center justify-between p-4 rounded-[10px] bg-[#121212]"
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-xl flex items-center justify-center">
+                                                            <img src={DocIcon} alt="Documento" className="w-[30px] h-[37px]" />
                                                         </div>
-                                                        
-                                                        <div className="flex items-center gap-2">
-                                                            {/* Botón de Vista Previa para PDFs */}
-                                                            {isPDF && (
-                                                                <motion.button
-                                                                    onClick={() => abrirVisorPDF(dieta, archivo)}
-                                                                    className="px-3 py-2 bg-[#FF0000] rounded-lg flex items-center gap-2 transition-colors"
-                                                                    whileHover={{ scale: 1.05 }}
-                                                                    whileTap={{ scale: 0.95 }}
-                                                                    title="Ver PDF"
-                                                                >
-                                                                    <span className="text-[#FFFFFF] text-[12px] font-medium">Ver</span>
-                                                                </motion.button>
-                                                            )}
-                                                            
-                                                            {/* Botón de Descarga */}
-                                                            <motion.button
-                                                                onClick={() => descargarArchivo(dieta, archivo)}
-                                                                disabled={downloadingFile === fileId}
-                                                                className="px-3 py-2  rounded-lg flex items-center gap-2 transition-colors"
-                                                                whileHover={{ scale: 1.05 }}
-                                                                whileTap={{ scale: 0.95 }}
-                                                                title="Descargar archivo"
-                                                            >
-                                                                {downloadingFile === fileId ? (
-                                                                    <FaSpinner className="w-5 h-5 animate-spin text-white" />
-                                                                ) : (
-                                                                    <img src={DownloadDietIcon} alt="Descargar" className="w-[20px] h-[20px]" />
-                                                                )}
-                                                            </motion.button>
+                                                        <div className="text-left flex-1">
+                                                            <p className="text-[15px] text-[#b5b5b5]">
+                                                                {archivo?.name || archivo?.nombre || 'Archivo sin nombre'}
+                                                            </p>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                    <div className="flex items-center">
+                                                        {downloadingFile === fileId ? (
+                                                            <FaSpinner className="w-5 h-5 animate-spin text-green-400" />
+                                                        ) : (
+                                                            <div className="flex items-center justify-center w-10 h-10">
+                                                                <img src={DownloadDietIcon} alt="Descargar" className="w-[40px] h-[40px]" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </motion.button>
                                             );
                                         }) : (
-                                            <div className="text-center py-8 space-y-3">
-                                                <div className="w-16 h-16 mx-auto rounded-2xl bg-white/5 flex items-center justify-center">
-                                                    <FaUtensils className="w-6 h-6 text-white/40" />
-                                                </div>
-                                                <p className="text-sm text-white/60">
-                                                    No hay archivos disponibles para esta dieta
-                                                </p>
-                                            </div>
+                                            <p className="text-sm text-gray-400">
+                                                No hay archivos disponibles para esta dieta
+                                            </p>
                                         )}
                                     </div>
                                 </motion.div>
@@ -436,14 +386,6 @@ const DietasAlumno = () => {
                     </div>
                 )}
             </main>
-            
-            {/* Visor de PDF simplificado */}
-            <SimplePDFViewer
-                isOpen={pdfViewer.isOpen}
-                onClose={cerrarVisorPDF}
-                archivo={pdfViewer.archivo}
-                dietaNombre={pdfViewer.dietaNombre}
-            />
         </div>
     );
 };
