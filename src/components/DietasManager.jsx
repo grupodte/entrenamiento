@@ -101,6 +101,13 @@ const DietasManager = () => {
     };
     
     const inicializarFormulario = (dieta) => {
+        console.log('🔄 Inicializando formulario para editar:', {
+            dietaId: dieta.id,
+            dietaNombre: dieta.nombre,
+            archivosOriginales: dieta.archivos,
+            cantidadArchivos: dieta.archivos?.length || 0
+        });
+        
         setFormulario({
             nombre: dieta.nombre || '',
             descripcion: dieta.descripcion || '',
@@ -114,6 +121,8 @@ const DietasManager = () => {
             etiquetas: dieta.etiquetas ? dieta.etiquetas.join(', ') : '',
             archivos: dieta.archivos || [] // Mostrar archivos existentes
         });
+        
+        console.log('🔄 Formulario inicializado con archivos:', dieta.archivos || []);
     };
 
     const handleSubmitDieta = async (e) => {
@@ -145,12 +154,17 @@ const DietasManager = () => {
 
         // Separar archivos existentes de archivos nuevos de manera más robusta
         const archivosExistentes = formulario.archivos?.filter(file => {
-            // Archivos existentes tienen URL pero NO son objetos File
-            return file.url && !(file instanceof File) && !file.size;
+            // Archivos existentes: tienen URL, path, y NO son objetos File
+            return file && 
+                   typeof file === 'object' && 
+                   file.url && 
+                   !(file instanceof File) && 
+                   (file.path || file.name) && // Debe tener path o name
+                   !file.size; // Los objetos File tienen size, los existentes no
         }) || [];
         
         const archivosNuevos = formulario.archivos?.filter(file => {
-            // Archivos nuevos son instancias de File
+            // Archivos nuevos: son instancias de File del navegador
             return file instanceof File;
         }) || [];
         
@@ -163,10 +177,15 @@ const DietasManager = () => {
         });
         
         if (dietaEditando) {
-            // Actualizar dieta existente
-            dietaData.archivos = archivosExistentes; // Mantener archivos existentes
+            // Actualizar dieta existente - NO modificar dietaData.archivos aquí
+            // El hook useUpdateDieta se encargará de combinar correctamente los archivos
             updateDietaMutation.mutate(
-                { dietaId: dietaEditando.id, dietaData, archivos: archivosNuevos },
+                { 
+                    dietaId: dietaEditando.id, 
+                    dietaData, 
+                    archivos: archivosNuevos,
+                    archivosExistentes: archivosExistentes // Pasar explícitamente los archivos existentes
+                },
                 {
                     onSuccess: () => {
                         setShowCrearDieta(false);
@@ -570,6 +589,15 @@ const DietasManager = () => {
 const DietaCard = ({ dieta, onEliminar, onEditar, onDescargar }) => {
     const tipoConfig = TIPOS_DIETA.find(t => t.value === dieta.tipo) || TIPOS_DIETA[0];
     
+    // Debug: Log de archivos para verificar qué datos llegan
+    console.log('🔍 DietaCard - Datos de la dieta:', {
+        nombre: dieta.nombre,
+        archivos: dieta.archivos,
+        archivo_url: dieta.archivo_url,
+        pdf_url: dieta.pdf_url,
+        archivo_nombre: dieta.archivo_nombre
+    });
+    
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -683,6 +711,26 @@ const DietaCard = ({ dieta, onEliminar, onEditar, onDescargar }) => {
                             {dieta.etiquetas.length > 3 && (
                                 <span className="text-xs text-gray-400">+{dieta.etiquetas.length - 3}</span>
                             )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Archivos */}
+                {dieta.archivos && dieta.archivos.length > 0 && (
+                    <div className="mb-4">
+                        <h4 className="text-sm font-medium text-white mb-2 flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-blue-400" />
+                            Archivos ({dieta.archivos.length})
+                        </h4>
+                        <div className="space-y-1 max-h-20 overflow-y-auto">
+                            {dieta.archivos.map((archivo, index) => (
+                                <div key={index} className="flex items-center gap-2 text-xs text-gray-300 bg-gray-800/50 rounded px-2 py-1">
+                                    <FileText className="w-3 h-3 text-blue-400 flex-shrink-0" />
+                                    <span className="truncate">
+                                        {archivo.name || archivo.nombre || `Archivo ${index + 1}`}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}

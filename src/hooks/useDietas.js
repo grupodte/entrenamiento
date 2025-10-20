@@ -22,6 +22,17 @@ export const useDietas = () => {
         .order('fecha_creacion', { ascending: false })
 
       if (error) throw error
+      
+      // Debug: Log para verificar qué datos se obtienen
+      console.log('📊 useDietas - Datos obtenidos de BD:', data?.map(d => ({
+        id: d.id,
+        nombre: d.nombre,
+        archivos: d.archivos,
+        archivo_url: d.archivo_url,
+        tieneArchivos: Array.isArray(d.archivos) ? d.archivos.length > 0 : false,
+        tipoArchivos: typeof d.archivos
+      })))
+      
       return data || []
     }
   })
@@ -51,15 +62,32 @@ export const useCreateDieta = () => {
         dietaData.pdf_url = archivosSubidos[0]?.url
         dietaData.archivos = archivosSubidos
       }
+      
+      console.log('📦 Datos que se van a insertar:', {
+        nombre: dietaData.nombre,
+        archivos: dietaData.archivos,
+        archivo_url: dietaData.archivo_url,
+        cantidadArchivos: archivosSubidos.length,
+        dietaDataCompleta: dietaData
+      })
 
       // Crear dieta
       dietaData.creado_por = user.id
-      const { error } = await supabase
+      const { data: insertedData, error } = await supabase
         .from('dietas')
         .insert(dietaData)
+        .select()
+      
+      console.log('📦 Resultado de inserción:', {
+        insertedData,
+        error
+      })
 
-      if (error) throw error
-      return dietaData
+      if (error) {
+        console.error('❌ Error al insertar en BD:', error)
+        throw error
+      }
+      return insertedData?.[0] || dietaData
     },
     onSuccess: () => {
       // Invalidar queries para actualización instantánea
@@ -84,13 +112,15 @@ export const useUpdateDieta = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ dietaId, dietaData, archivos }) => {
+    mutationFn: async ({ dietaId, dietaData, archivos, archivosExistentes: archivosExistentesParam }) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Usuario no autenticado')
 
       // Subir archivos nuevos si existen
       let archivosNuevos = []
-      const archivosExistentes = dietaData.archivos?.filter(file => {
+      
+      // Usar archivos existentes pasados como parámetro o extraer de dietaData como fallback
+      const archivosExistentes = archivosExistentesParam || dietaData.archivos?.filter(file => {
         // Archivos existentes tienen URL pero NO son objetos File
         return file.url && !(file instanceof File) && !file.size
       }) || []
@@ -134,14 +164,31 @@ export const useUpdateDieta = () => {
         dietaData.pdf_url = null
         dietaData.archivos = []
       }
+      
+      console.log('🔄 Datos que se van a actualizar:', {
+        dietaId,
+        archivos: dietaData.archivos,
+        archivo_url: dietaData.archivo_url,
+        cantidadArchivos: todosLosArchivos.length,
+        dietaDataCompleta: dietaData
+      })
 
-      const { error } = await supabase
+      const { data: updatedData, error } = await supabase
         .from('dietas')
         .update(dietaData)
         .eq('id', dietaId)
+        .select()
+      
+      console.log('🔄 Resultado de actualización:', {
+        updatedData,
+        error
+      })
 
-      if (error) throw error
-      return { dietaId, dietaData }
+      if (error) {
+        console.error('❌ Error al actualizar en BD:', error)
+        throw error
+      }
+      return { dietaId, dietaData: updatedData?.[0] || dietaData }
     },
     onSuccess: () => {
       // Invalidar queries para actualización instantánea

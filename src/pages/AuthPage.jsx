@@ -112,7 +112,7 @@ const AuthPage = () => {
                 {/* Encabezado móvil */}
                 <div className="w-full md:hidden pt-10 items-center justify-center  flex">
                     <h1 className="text-[#FFFFFF] leading-none mt-[50px] text-[43px] w-[288px] ">
-                        La app para entrar que necesitabas
+                        La app para entrenar que necesitabas
                     </h1>
                 </div>
 
