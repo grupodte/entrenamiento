@@ -23,6 +23,12 @@ const ResetPassword = () => {
             window.history.replaceState({}, document.title, newUrl);
         };
 
+        const markSessionValid = () => {
+            if (!isMounted) return;
+            clearTimeout(failTimeoutId);
+            setHasValidSession(true);
+        };
+
         const checkSession = async () => {
             try {
                 const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
@@ -32,8 +38,6 @@ const ResetPassword = () => {
                 const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
                 const code = queryParams.get('code');
 
-                let session = null;
-
                 if (accessToken && refreshToken) {
                     const { data, error } = await supabase.auth.setSession({
                         access_token: accessToken,
@@ -41,26 +45,29 @@ const ResetPassword = () => {
                     });
 
                     if (error) throw error;
-                    session = data.session;
-                    cleanUrl();
+                    if (data.session) {
+                        markSessionValid();
+                        cleanUrl();
+                        return;
+                    }
                 } else if (code) {
                     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
                     if (error) throw error;
-                    session = data.session;
-                    cleanUrl();
+                    if (data.session) {
+                        markSessionValid();
+                        cleanUrl();
+                        return;
+                    }
                 } else {
                     const { data, error } = await supabase.auth.getSession();
                     if (error) throw error;
-                    session = data.session;
+                    if (data.session) {
+                        markSessionValid();
+                        return;
+                    }
                 }
 
-                if (!session) {
-                    throw new Error('No se pudo validar la sesión de recuperación');
-                }
-
-                if (isMounted) {
-                    setHasValidSession(true);
-                }
+                console.warn('No se pudo validar la sesión inmediatamente; esperando evento de autenticación.');
             } catch (error) {
                 console.error('Error verificando sesión:', error);
                 toast.error('Error al verificar el enlace de restablecimiento');
@@ -68,18 +75,26 @@ const ResetPassword = () => {
             }
         };
 
+        let failTimeoutId = setTimeout(() => {
+            if (!isMounted) return;
+            toast.error('Enlace de restablecimiento inválido o expirado');
+            navigate('/login', { replace: true });
+        }, 10000);
+
         checkSession();
 
         const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
             if (!isMounted) return;
 
             if (session && (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN')) {
-                setHasValidSession(true);
+                markSessionValid();
+                cleanUrl();
             }
         });
 
         return () => {
             isMounted = false;
+            clearTimeout(failTimeoutId);
             authListener?.subscription?.unsubscribe();
         };
     }, [navigate]);
