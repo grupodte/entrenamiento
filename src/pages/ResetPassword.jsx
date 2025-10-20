@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { supabase } from '../lib/supabaseClient';
 import { motion } from 'framer-motion';
@@ -12,27 +12,55 @@ const ResetPassword = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [hasValidSession, setHasValidSession] = useState(false);
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
 
     // Verificar si tenemos una sesión válida para reset password
     useEffect(() => {
+        let isMounted = true;
+
+        const cleanUrl = () => {
+            if (typeof window === 'undefined') return;
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        };
+
         const checkSession = async () => {
             try {
-                const { data: { session }, error } = await supabase.auth.getSession();
-                if (error) {
-                    console.error('Error obteniendo sesión:', error);
-                    toast.error('Enlace de restablecimiento inválido o expirado');
-                    setTimeout(() => navigate('/login', { replace: true }), 3000);
-                    return;
+                const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+                const queryParams = new URLSearchParams(window.location.search);
+
+                const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+                const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
+                const code = queryParams.get('code');
+
+                let session = null;
+
+                if (accessToken && refreshToken) {
+                    const { data, error } = await supabase.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken,
+                    });
+
+                    if (error) throw error;
+                    session = data.session;
+                    cleanUrl();
+                } else if (code) {
+                    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+                    if (error) throw error;
+                    session = data.session;
+                    cleanUrl();
+                } else {
+                    const { data, error } = await supabase.auth.getSession();
+                    if (error) throw error;
+                    session = data.session;
                 }
-                
+
                 if (!session) {
-                    toast.error('Enlace de restablecimiento inválido o expirado');
-                    setTimeout(() => navigate('/login', { replace: true }), 3000);
-                    return;
+                    throw new Error('No se pudo validar la sesión de recuperación');
                 }
-                
-                setHasValidSession(true);
+
+                if (isMounted) {
+                    setHasValidSession(true);
+                }
             } catch (error) {
                 console.error('Error verificando sesión:', error);
                 toast.error('Error al verificar el enlace de restablecimiento');
@@ -41,6 +69,19 @@ const ResetPassword = () => {
         };
 
         checkSession();
+
+        const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+            if (!isMounted) return;
+
+            if (session && (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN')) {
+                setHasValidSession(true);
+            }
+        });
+
+        return () => {
+            isMounted = false;
+            authListener?.subscription?.unsubscribe();
+        };
     }, [navigate]);
 
     const handleSubmit = async (e) => {
@@ -66,6 +107,8 @@ const ResetPassword = () => {
             if (error) {
                 throw new Error(error.message || 'No se pudo actualizar la contraseña');
             }
+
+            await supabase.auth.signOut();
 
             toast.success('¡Contraseña actualizada con éxito!');
             
