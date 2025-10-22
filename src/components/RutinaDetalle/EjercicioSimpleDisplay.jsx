@@ -105,7 +105,7 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                         }`}
                     >
                         {/* Header del ejercicio simple */}
-                        <div className="flex items-center justify-between w-full px-4 py-4">
+                        <div className="flex items-center justify-between w-full px-10 py-4">
                             {/* Lado izquierdo: Set */}
                             <div className="flex items-center gap-2">
                                 <h4 className="text-[25px] font-semibold text-gray-800">
