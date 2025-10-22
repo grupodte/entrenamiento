@@ -29,7 +29,7 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                 actualCarga = elementRef.getActualCarga() || '0';
             } else {
                 // Fallback: buscar el input de peso en el DOM (para vista legacy)
-                const inputCarga = elementRef.querySelector('input[type="text"]');
+                const inputCarga = elementRef.querySelector && elementRef.querySelector('input[type="text"]');
                 actualCarga = inputCarga?.value || '0';
             }
             
@@ -41,13 +41,13 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
             // Agregar datos específicos según tipo de ejecución
             if (tipoEjecucion === 'standard') {
                 // En la vista minimal no hay input de reps, usar el valor de la configuración
-                const inputReps = elementRef.querySelector('input[type="number"]');
+                const inputReps = elementRef.querySelector && elementRef.querySelector('input[type="number"]');
                 exerciseData.actualReps = inputReps?.value 
                     ? parseInt(inputReps.value, 10) 
                     : parseInt(detalleSerie?.reps || '0', 10);
             } else if (tipoEjecucion === 'tiempo') {
                 // Para ejercicios de tiempo, usar la duración configurada
-                const inputTiempo = elementRef.querySelector('input[type="number"]');
+                const inputTiempo = elementRef.querySelector && elementRef.querySelector('input[type="number"]');
                 if (inputTiempo?.value) {
                     const minutos = parseInt(inputTiempo.value, 10);
                     exerciseData.actualDuracion = minutos * 60;
@@ -56,7 +56,7 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                 }
             } else if (tipoEjecucion === 'fallo') {
                 // Para al fallo, usar 0 reps como indicador o valor por defecto
-                const inputReps = elementRef.querySelector('input[type="number"]');
+                const inputReps = elementRef.querySelector && elementRef.querySelector('input[type="number"]');
                 exerciseData.actualReps = inputReps?.value 
                     ? parseInt(inputReps.value, 10) 
                     : 0; // Al fallo no tiene reps específicas
@@ -121,10 +121,10 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                                 <span className="text-[8px] text-gray-600 select-none">
                                     Marcar al finalizar
                                 </span>
-                                <div className={`w-[44px] h-[44px] rounded flex items-center justify-center transition-all rounded-[8px] ${
+                                <div className={`w-[44px] h-[44px] rounded  flex items-center justify-center transition-all rounded-[8px] ${
                                     isCompletada 
                                     ? 'bg-[#47D065]' 
-                                    : 'bg-[#C1C1C1]'
+                                    : 'bg-[#C1C1C1] '
                                 }`}>
                                     {isCompletada && (
                                         <img src={tickRutina} alt="Completado" className="w-4 h-4" />
@@ -155,7 +155,7 @@ const EjercicioSimpleDisplay = ({ sbe, subbloqueId, lastSessionData, ...props })
                                     openVideoPanel={props.openVideoPanel}
                                     isCompletada={isCompletada}
                                     isActive={isActive}
-                                    onItemClick={props.toggleElementoCompletado}
+                                    onItemClick={null}
                                     reps={serie.reps}
                                     carga={serie.carga_sugerida || serie.carga}
                                     pausa={serie.pausa}
