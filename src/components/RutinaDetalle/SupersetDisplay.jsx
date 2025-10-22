@@ -131,7 +131,7 @@ const SupersetDisplay = ({ subbloque, lastSessionData, ...props }) => {
                         }`}
                     >
                         {/* Header del superset */}
-                        <div className="flex items-center justify-between w-full px-10  py-4">
+                        <div className="flex items-center justify-between w-full px-6  py-4">
                             {/* Lado izquierdo: Icono + Set */}
                             <div className="flex items-center gap-2">
                                 
