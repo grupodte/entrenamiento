@@ -245,6 +245,12 @@ const useRutinaLogic = (id, tipo, bloqueSeleccionado, user) => {
             return;
         }
 
+        // Solo activar el elemento (sin marcar completado)
+        if (typeof payload === 'string' && additionalData?.tipoElemento === 'activate') {
+            setElementoActivoId(payload);
+            return;
+        }
+
         // Formato de EjercicioSimpleDisplay (nuevo formato)
         if (typeof payload === 'string' && args.length === 2 && typeof additionalData === 'object') {
             const elementoId = payload;
