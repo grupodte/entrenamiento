@@ -9,13 +9,16 @@ import bgMov from '../assets/bg-auth-mov.png';
 import imgWeb from '../assets/img-auth-w.png';
 import googleIcon from '../assets/google.svg';
 
+
 const AuthPage = () => {
+    const [isLogin, setIsLogin] = useState(true);
+    const [isResetPassword, setIsResetPassword] = useState(false);
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [magicLinkSent, setMagicLinkSent] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, rol, loading } = useAuth();
+    const { user, rol, loading, login } = useAuth();
 
     // Redirigir si ya está logueado
     useEffect(() => {
@@ -24,48 +27,40 @@ const AuthPage = () => {
         }
     }, [user, rol, loading, navigate]);
 
-    // Flujo legado de verificación manual (se mantiene para no romper onboarding existente)
+    // Activar cuenta si viene de verificación
     useEffect(() => {
         if (location.search.includes('verified=true')) {
             (async () => {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session?.user?.id) return toast.error('❌ No se pudo obtener la sesión.');
-                const { error } = await supabase
-                    .from('perfiles')
-                    .update({ estado: 'Aprobado' })
-                    .eq('id', session.user.id);
-                if (error) {
-                    toast.error('❌ Error al activar la cuenta.');
-                } else {
-                    toast.success('🙌 Cuenta activada correctamente.');
-                }
+                const { error } = await supabase.from('perfiles').update({ estado: 'Aprobado' }).eq('id', session.user.id);
+                error ? toast.error('❌ Error al activar la cuenta.') : toast.success('🙌 Cuenta activada correctamente.');
                 navigate('/login', { replace: true });
             })();
         }
     }, [location, navigate]);
 
-    const handleMagicLink = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!email) {
-            toast.error('❌ Por favor ingresa tu correo electrónico');
-            return;
-        }
-
         setIsLoading(true);
         try {
-            const { error } = await supabase.auth.signInWithOtp({
-                email,
-                options: {
-                    emailRedirectTo: `${window.location.origin}/login`,
-                    shouldCreateUser: true,
-                },
-            });
-
-            if (error) throw error;
-
-            toast.success('📬 Te enviamos un enlace de acceso. Revísalo en los próximos minutos.');
-            setMagicLinkSent(true);
+            if (isLogin) {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw new Error('El correo o la contraseña son incorrectos.');
+                const { data: perfil } = await supabase.from('perfiles').select('rol, estado').eq('id', data.user.id).single();
+                if (!perfil || perfil.estado !== 'Aprobado') throw new Error('Cuenta no activada. Verificá tu correo.');
+                login(data.user, perfil.rol);
+                navigate(perfil.rol === 'admin' ? '/admin' : '/dashboard');
+            } else {
+                const { data, error } = await supabase.auth.signUp({
+                    email, password,
+                    options: { emailRedirectTo: `${window.location.origin}/login?verified=true` }
+                });
+                if (error) throw error;
+                await supabase.from('perfiles').insert({ id: data.user.id, email, estado: 'pendiente', rol: 'alumno' });
+                toast.success('📩 Revisa tu correo para verificar tu cuenta');
+                setIsLogin(true);
+            }
         } catch (err) {
             toast.error(`❌ ${err.message}`);
         } finally {
@@ -75,12 +70,34 @@ const AuthPage = () => {
 
     const handleGoogle = async () => {
         setIsLoading(true);
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: { redirectTo: window.location.origin },
-        });
+        const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
         if (error) toast.error('❌ Error con Google');
         setIsLoading(false);
+    };
+
+    const handleResetPassword = async (e) => {
+        e.preventDefault();
+        if (!email) {
+            toast.error('❌ Por favor ingresa tu correo electrónico');
+            return;
+        }
+        
+        setIsLoading(true);
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-pass`,
+            });
+            
+            if (error) throw error;
+            
+            toast.success('Enlace de restablecimiento enviado a tu correo');
+            setIsResetPassword(false);
+            setIsLogin(true);
+        } catch (err) {
+            toast.error(`❌ ${err.message}`);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -88,6 +105,7 @@ const AuthPage = () => {
             {/* Fondos distintos para móvil y desktop */}
             <img src={bgMov} alt="Fondo móvil" className="absolute inset-0 w-full h-full object-cover md:hidden" />
             <img src={bgWeb} alt="Fondo web" className="absolute inset-0 w-full h-full object-cover hidden md:block" />
+
 
             {/* Contenido */}
             <div className="relative z-10 h-full flex flex-col md:flex-row items-center  justify-between md:w-[1440px] mx-auto ">
@@ -119,14 +137,10 @@ const AuthPage = () => {
                 >
                     <div className=" w-[288px] pb-[20px]">
                         <h2 className="text-[23px] text-[#FFFFFF] mb-4">
-                            Accedé con tu correo
+                            {isResetPassword ? 'Restablecer Contraseña' : isLogin ? 'Inicia sesión' : 'Registrate'}
                         </h2>
 
-                        <p className="text-sm text-[#FFFFFF]/70 mb-6">
-                            Te enviamos un enlace mágico para ingresar sin contraseña. Funciona tanto para registrarte como para volver a entrar.
-                        </p>
-
-                        <form onSubmit={handleMagicLink} className="space-y-4">
+                        <form onSubmit={isResetPassword ? handleResetPassword : handleSubmit} className="space-y-4">
                             <input
                                 type="email"
                                 value={email}
@@ -136,6 +150,18 @@ const AuthPage = () => {
                                 required
                                 disabled={isLoading}
                             />
+
+                            {!isResetPassword && (
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full px-4 py-3 bg-[#000000]/50 rounded-[10px] border-none placeholder-[#FFFFFF]/50 text-[#FFFFFF] focus:border-none focus:ring-0 "
+                                    placeholder="Contraseña"
+                                    required
+                                    disabled={isLoading}
+                                />
+                            )}
 
                             <button
                                 type="submit"
@@ -154,28 +180,62 @@ const AuthPage = () => {
                                         Procesando...
                                     </div>
                                 ) : (
-                                    magicLinkSent ? 'Reenviar enlace mágico' : 'Enviar enlace mágico'
+                                    isResetPassword ? 'Enviar Enlace' : isLogin ? 'Ingresar' : 'Registrarme'
                                 )}
                             </button>
                         </form>
 
-                        {magicLinkSent && (
-                            <div className="mt-4 text-sm text-[#FFFFFF]/70 bg-[#000000]/40 rounded-[10px] px-4 py-3">
-                                Revisá tu casilla (y el spam). El enlace expira en unos minutos y te llevará nuevamente a esta página para completar el acceso.
+
+                        {!isResetPassword && (
+                            <button
+                                onClick={handleGoogle}
+                                disabled={isLoading}
+                                className=" mt-4 w-full py-3 rounded-[10px] bg-[#0037FF] text-[#000000] flex items-center justify-center gap-3 transition-colors duration-200 disabled:opacity-50 border border-white/10 backdrop-blur-md"
+                            >
+                                <img src={googleIcon} alt="Google" className="w-6 h-6 absolute left-8" />
+                                Iniciar rápido
+                            </button>
+                        )}
+                        
+                        {/* Enlace "Olvidé mi contraseña" solo en modo login */}
+                        {isLogin && !isResetPassword && (
+                            <div className="text-center mt-4">
+                                <button
+                                    onClick={() => setIsResetPassword(true)}
+                                    className="text-sm text-[#FFFFFF]/70 hover:text-[#FFFFFF] transition-colors duration-200"
+                                    type="button"
+                                >
+                                    ¿Olvidaste tu contraseña?
+                                </button>
                             </div>
                         )}
 
-                        <button
-                            onClick={handleGoogle}
-                            disabled={isLoading}
-                            className=" mt-4 w-full py-3 rounded-[10px] bg-[#0037FF] text-[#000000] flex items-center justify-center gap-3 transition-colors duration-200 disabled:opacity-50 border border-white/10 backdrop-blur-md"
-                        >
-                            <img src={googleIcon} alt="Google" className="w-6 h-6 absolute left-8" />
-                            Continuar con Google
-                        </button>
-
-                        <div className="text-center mt-8 text-[15px] text-[#FFFFFF]/70">
-                            ¿Necesitás ayuda? Escribinos a soporte para validar tu acceso.
+                        <div className="text-center mt-8">
+                            {isResetPassword ? (
+                                <button
+                                    onClick={() => {
+                                        setIsResetPassword(false);
+                                        setIsLogin(true);
+                                    }}
+                                    className="text-sm text-[#FFFFFF]/70 hover:text-[#FFFFFF] transition-colors duration-200"
+                                    type="button"
+                                >
+                                    ← Volver al login
+                                </button>
+                            ) : (
+                                <p className="text-[15px] text-[#FFFFFF]">
+                                    {isLogin ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
+                                    <button
+                                        onClick={() => {
+                                            setIsLogin(!isLogin);
+                                            setIsResetPassword(false);
+                                        }}
+                                        className="text-[#000000] font-semibold ml-1 hover:underline hover:text-[#0037FF] transition-colors duration-200"
+                                    >
+                                        {isLogin ? 'Registrate' : 'Iniciar sesión'}
+                                    </button>
+                                </p>
+                            )}
                         </div>
                     </div>
                 </motion.div>
