@@ -124,7 +124,7 @@ const AuthPage = () => {
                         className="w-[663px] h-[899px] select-none pointer-events-none "
                     />
                     <h1 className=" -ml-[200px] text-[#FFFFFF]  leading-none  text-[83px] max-w-[500px] ">
-                        La app para entrar que necesitabas
+                        La app para entrenar que necesitabas
                     </h1>
                 </div>
 
